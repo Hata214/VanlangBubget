@@ -1,9 +1,31 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { setCookie } from 'cookies-next';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
+import '../admin.css';
+
+// CSS Reset khi người dùng rời khỏi trang admin
+const resetAdminCSS = () => {
+    // Tạo một style tag để reset CSS
+    if (typeof window !== 'undefined') {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            /* Reset các CSS của admin khi rời khỏi trang admin */
+            body:not(.admin-layout) a.admin-back-button,
+            body:not(.admin-login-layout) a.admin-back-button {
+                all: unset !important;
+                text-decoration: inherit !important;
+                color: inherit !important;
+                display: inline !important;
+                cursor: pointer !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+};
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -13,6 +35,22 @@ export default function AdminLoginPage() {
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showAdminHelp, setShowAdminHelp] = useState(false);
+
+    // Khi người dùng rời trang admin, reset CSS
+    useEffect(() => {
+        // Thêm lớp admin-login-layout vào body
+        if (typeof window !== 'undefined') {
+            document.body.classList.add('admin-login-layout');
+        }
+
+        // Cleanup function khi component unmount
+        return () => {
+            if (typeof window !== 'undefined') {
+                document.body.classList.remove('admin-login-layout');
+                resetAdminCSS();
+            }
+        };
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -150,7 +188,7 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div style={{
+        <div className="admin-login-layout" style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -171,27 +209,8 @@ export default function AdminLoginPage() {
                 <Link
                     href="/"
                     className="admin-back-button"
-                    style={{
-                        position: 'absolute',
-                        top: '16px',
-                        left: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '8px 12px',
-                        backgroundColor: 'transparent',
-                        color: '#6b7280',
-                        border: 'none',
-                        borderRadius: '4px',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        transition: 'color 0.2s',
-                        textDecoration: 'none'
-                    }}
                 >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px', marginRight: '6px' }}>
-                        <path d="M19 12H5M12 19l-7-7 7-7" />
-                    </svg>
+                    <ArrowLeft className="mr-2" size={16} />
                     Quay lại trang chính
                 </Link>
 
