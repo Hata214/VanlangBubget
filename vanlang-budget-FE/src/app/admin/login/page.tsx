@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { setCookie } from 'cookies-next';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ShieldCheck } from 'lucide-react';
 import '../admin.css';
 
 // CSS Reset khi người dùng rời khỏi trang admin
@@ -195,86 +195,96 @@ export default function AdminLoginPage() {
             justifyContent: 'center',
             minHeight: '100vh',
             width: '100%',
-            padding: '20px'
+            padding: '20px',
+            background: 'linear-gradient(135deg, #f9fafb 0%, #e5e7eb 100%)'
         }}>
             <div style={{
                 width: '100%',
-                maxWidth: '400px',
+                maxWidth: '420px',
                 padding: '32px',
                 backgroundColor: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                position: 'relative'
+                borderRadius: '12px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08)',
+                position: 'relative',
+                overflow: 'hidden'
             }}>
                 <Link
                     href="/"
                     className="admin-back-button"
+                    style={{
+                        position: 'absolute',
+                        top: '16px',
+                        left: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        textDecoration: 'none',
+                        color: '#6b7280',
+                        fontSize: '14px',
+                        transition: 'color 0.2s'
+                    }}
                 >
                     <ArrowLeft className="mr-2" size={16} />
                     Quay lại trang chính
                 </Link>
 
-                <div style={{ marginBottom: '24px', textAlign: 'center' }}>
+                <div style={{ marginBottom: '32px', textAlign: 'center' }}>
                     <div style={{
-                        width: '80px',
-                        height: '80px',
+                        width: '90px',
+                        height: '90px',
                         margin: '0 auto',
                         borderRadius: '50%',
-                        backgroundColor: '#e0e7ff',
+                        background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        marginBottom: '16px'
+                        marginBottom: '20px',
+                        boxShadow: '0 0 20px rgba(79, 70, 229, 0.2)'
                     }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '40px', height: '40px', color: '#4f46e5' }}>
-                            <path d="M15.75 5.25a3 3 0 0 1 3 3m3 0a6 6 0 0 1-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1 1 21.75 8.25Z" />
-                        </svg>
+                        <ShieldCheck size={45} color="#4f46e5" strokeWidth={1.5} />
                     </div>
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', marginBottom: '8px' }}>Đăng nhập Quản trị viên</h1>
-                    <p style={{ fontSize: '14px', color: '#6b7280' }}>Vui lòng đăng nhập với tài khoản quản trị</p>
-
-                    <button
-                        onClick={() => setShowAdminHelp(!showAdminHelp)}
-                        style={{
-                            marginTop: '8px',
-                            padding: '0',
-                            background: 'none',
-                            border: 'none',
-                            color: '#4f46e5',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            textDecoration: 'underline'
-                        }}
-                    >
-                        {showAdminHelp ? 'Ẩn thông tin' : 'Không có tài khoản admin?'}
-                    </button>
+                    <h1 style={{
+                        fontSize: '28px',
+                        fontWeight: '700',
+                        color: '#1f2937',
+                        marginBottom: '8px',
+                        letterSpacing: '-0.025em'
+                    }}>Đăng nhập Quản trị viên</h1>
+                    <p style={{
+                        fontSize: '15px',
+                        color: '#6b7280',
+                        marginBottom: '8px'
+                    }}>Vui lòng đăng nhập với tài khoản quản trị</p>
                 </div>
 
                 {showAdminHelp && (
                     <div style={{
-                        padding: '12px',
-                        marginBottom: '16px',
+                        padding: '16px',
+                        marginBottom: '24px',
                         backgroundColor: '#e0e7ff',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         fontSize: '14px',
-                        color: '#4338ca'
+                        color: '#4338ca',
+                        boxShadow: '0 2px 5px rgba(67, 56, 202, 0.1)'
                     }}>
-                        <p style={{ marginBottom: '8px' }}>Tài khoản superadmin mặc định:</p>
+                        <p style={{ marginBottom: '8px', fontWeight: '500' }}>Tài khoản superadmin mặc định:</p>
                         <p style={{ marginBottom: '4px' }}><strong>Email:</strong> superadmin@control.vn</p>
                         <p style={{ marginBottom: '8px' }}><strong>Mật khẩu:</strong> Admin123!</p>
 
                         <button
                             onClick={handleEmergencyLogin}
                             style={{
-                                marginTop: '8px',
-                                padding: '8px 12px',
+                                marginTop: '12px',
+                                padding: '10px 16px',
                                 backgroundColor: '#4f46e5',
                                 color: 'white',
                                 border: 'none',
-                                borderRadius: '4px',
+                                borderRadius: '6px',
                                 fontSize: '14px',
+                                fontWeight: '500',
                                 cursor: loading ? 'not-allowed' : 'pointer',
-                                opacity: loading ? 0.7 : 1
+                                opacity: loading ? 0.7 : 1,
+                                transition: 'all 0.2s',
+                                boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)'
                             }}
                         >
                             {loading ? 'Đang xử lý...' : 'Đăng nhập khẩn cấp'}
@@ -284,24 +294,25 @@ export default function AdminLoginPage() {
 
                 {error && (
                     <div style={{
-                        padding: '12px',
-                        marginBottom: '16px',
+                        padding: '16px',
+                        marginBottom: '24px',
                         backgroundColor: '#fee2e2',
-                        borderRadius: '6px',
+                        borderRadius: '8px',
                         fontSize: '14px',
-                        color: '#b91c1c'
+                        color: '#b91c1c',
+                        animation: 'fadeIn 0.3s ease-in-out'
                     }}>
                         {error}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit}>
-                    <div style={{ marginBottom: '16px' }}>
+                    <div style={{ marginBottom: '20px' }}>
                         <label
                             htmlFor="email"
                             style={{
                                 display: 'block',
-                                marginBottom: '6px',
+                                marginBottom: '8px',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 color: '#4b5563'
@@ -318,12 +329,12 @@ export default function AdminLoginPage() {
                             required
                             style={{
                                 width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: '6px',
+                                padding: '12px 16px',
+                                borderRadius: '8px',
                                 border: '1px solid #d1d5db',
-                                fontSize: '16px',
+                                fontSize: '15px',
                                 outline: 'none',
-                                transition: 'border-color 0.2s',
+                                transition: 'border-color 0.2s, box-shadow 0.2s',
                                 backgroundColor: '#fff'
                             }}
                             placeholder="superadmin@control.vn"
@@ -335,7 +346,7 @@ export default function AdminLoginPage() {
                             htmlFor="password"
                             style={{
                                 display: 'block',
-                                marginBottom: '6px',
+                                marginBottom: '8px',
                                 fontSize: '14px',
                                 fontWeight: '500',
                                 color: '#4b5563'
@@ -353,13 +364,13 @@ export default function AdminLoginPage() {
                                 required
                                 style={{
                                     width: '100%',
-                                    padding: '10px 12px',
-                                    paddingRight: '42px',
-                                    borderRadius: '6px',
+                                    padding: '12px 16px',
+                                    paddingRight: '46px',
+                                    borderRadius: '8px',
                                     border: '1px solid #d1d5db',
-                                    fontSize: '16px',
+                                    fontSize: '15px',
                                     outline: 'none',
-                                    transition: 'border-color 0.2s',
+                                    transition: 'border-color 0.2s, box-shadow 0.2s',
                                     backgroundColor: '#fff'
                                 }}
                                 placeholder="Admin123!"
@@ -370,7 +381,7 @@ export default function AdminLoginPage() {
                                 style={{
                                     position: 'absolute',
                                     top: '50%',
-                                    right: '12px',
+                                    right: '14px',
                                     transform: 'translateY(-50%)',
                                     background: 'none',
                                     border: 'none',
@@ -383,13 +394,13 @@ export default function AdminLoginPage() {
                                 }}
                             >
                                 {showPassword ? (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                                         <circle cx="12" cy="12" r="3" />
                                         <path d="m3 3 18 18" />
                                     </svg>
                                 ) : (
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
                                         <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                                         <circle cx="12" cy="12" r="3" />
                                     </svg>
@@ -403,16 +414,17 @@ export default function AdminLoginPage() {
                         disabled={loading}
                         style={{
                             width: '100%',
-                            padding: '12px',
-                            backgroundColor: '#4f46e5',
+                            padding: '14px',
+                            background: 'linear-gradient(to right, #4f46e5, #6366f1)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '6px',
+                            borderRadius: '8px',
                             fontSize: '16px',
-                            fontWeight: '500',
+                            fontWeight: '600',
                             cursor: loading ? 'not-allowed' : 'pointer',
                             opacity: loading ? 0.7 : 1,
-                            transition: 'background-color 0.2s',
+                            transition: 'all 0.3s',
+                            boxShadow: '0 4px 6px rgba(79, 70, 229, 0.15)',
                             marginBottom: '16px'
                         }}
                     >
@@ -420,6 +432,32 @@ export default function AdminLoginPage() {
                     </button>
                 </form>
             </div>
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+                
+                input:focus {
+                    border-color: #4f46e5 !important;
+                    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
+                }
+                
+                button[type="submit"]:hover:not(:disabled) {
+                    background: linear-gradient(to right, #4338ca, #4f46e5) !important;
+                    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+                    transform: translateY(-1px) !important;
+                }
+                
+                button[type="submit"]:active:not(:disabled) {
+                    transform: translateY(0) !important;
+                    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15) !important;
+                }
+                
+                .admin-back-button:hover {
+                    color: #4f46e5 !important;
+                }
+            `}</style>
         </div>
     );
 }
