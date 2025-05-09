@@ -1,0 +1,11 @@
+{
+    "transactionType": "Loại giao dịch",
+    "selectTransactionType": "Chọn loại giao dịch",
+    "transactionValue": "Giá trị giao dịch",
+    "autoCalculate": "Tự động tính",
+    "feeRate": "Tỷ lệ phí (%)",
+    "feeRateDescription": "Tỷ lệ phí thông thường là 0.15% đến 0.3%",
+    "totalWithFee": "Tổng cộng (bao gồm phí)",
+    "notesPlaceholder": "Thêm ghi chú về giao dịch này",
+    "cancelAndClose": "Hủy bỏ"
+}

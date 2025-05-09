@@ -1,0 +1,64 @@
+{
+    "title": "Về chúng tôi",
+    "subtitle": "Hành trình của VangLang Budget",
+    "description": "VangLang Budget được phát triển bởi một nhóm các nhà phát triển đam mê tài chính cá nhân với mục tiêu giúp mọi người quản lý tài chính hiệu quả hơn.",
+    "mission": {
+        "title": "Sứ mệnh của chúng tôi",
+        "content": "Giúp mọi người đạt được sự tự do tài chính thông qua các công cụ quản lý tài chính thông minh và trực quan."
+    },
+    "vision": {
+        "title": "Tầm nhìn",
+        "content": "Trở thành ứng dụng quản lý tài chính cá nhân hàng đầu tại Việt Nam, giúp hàng triệu người kiểm soát chi tiêu, tiết kiệm hiệu quả và đạt được các mục tiêu tài chính."
+    },
+    "values": [
+        {
+            "title": "Đơn giản",
+            "content": "Chúng tôi tin rằng quản lý tài chính không nên phức tạp. VangLang Budget được thiết kế với giao diện trực quan, dễ sử dụng cho mọi người."
+        },
+        {
+            "title": "Minh bạch",
+            "content": "Chúng tôi luôn rõ ràng về cách dữ liệu của bạn được sử dụng và bảo vệ. Không có chi phí ẩn, không có quảng cáo phiền nhiễu."
+        },
+        {
+            "title": "Hỗ trợ",
+            "content": "Chúng tôi cam kết hỗ trợ người dùng trong suốt hành trình tài chính của họ, từ việc thiết lập ngân sách đến đạt được các mục tiêu dài hạn."
+        }
+    ],
+    "team": [
+        {
+            "name": "Nguyễn Mạnh Dũng",
+            "role": "Đồng sáng lập & Phát triển",
+            "bio": "Với đam mê về công nghệ và tài chính cá nhân, Nguyễn Mạnh Dũng đã dẫn dắt đội ngũ phát triển VangLang Budget từ ý tưởng đến sản phẩm."
+        },
+        {
+            "name": "Phạm Nhật Hoàng",
+            "role": "Đồng sáng lập & Thiết kế",
+            "bio": "Chuyên gia thiết kế UX/UI với kinh nghiệm trong lĩnh vực fintech, Phạm Nhật Hoàng chịu trách nhiệm về trải nghiệm người dùng và thiết kế giao diện của VangLang Budget."
+        }
+    ],
+    "history": {
+        "title": "Lịch sử hình thành",
+        "milestones": [
+            {
+                "year": 2025,
+                "event": "Hình thành ý tưởng VangLang Budget vào tháng 1"
+            },
+            {
+                "year": 2025,
+                "event": "Phát triển phiên bản prototype vào tháng 2"
+            },
+            {
+                "year": 2025,
+                "event": "Thử nghiệm beta với nhóm người dùng ban đầu vào tháng 3"
+            },
+            {
+                "year": 2025,
+                "event": "Ra mắt chính thức VangLang Budget vào tháng 5"
+            },
+            {
+                "year": 2025,
+                "event": "Dự kiến phát triển các tính năng nâng cao vào tháng 10"
+            }
+        ]
+    }
+}

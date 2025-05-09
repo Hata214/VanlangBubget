@@ -47,4 +47,8 @@ __pycache__/
 !.vscode/extensions.json
 
 # Cursor
-.cursor/ 
+.cursor/
+
+# Keep these directories
+!vanlang-budget-BE/
+!vanlang-budget-FE/ 

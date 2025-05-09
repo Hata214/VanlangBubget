@@ -1,0 +1,144 @@
+graph TD
+    %% Luồng người dùng chính
+    NguoiDung((Người Dùng)) --> XacThuc[Xác Thực]
+    XacThuc --> TrangChu[Trang Chủ]
+    
+    %% Các tính năng chính từ Trang Chủ
+    TrangChu --> ThuNhap[Quản Lý Thu Nhập]
+    TrangChu --> ChiTieu[Quản Lý Chi Tiêu]
+    TrangChu --> NganSach[Quản Lý Ngân Sách]
+    TrangChu --> KhoanVay[Quản Lý Khoản Vay]
+    TrangChu --> BaoCao[Báo Cáo & Thống Kê]
+
+    %% Quản lý Thu Nhập
+    ThuNhap --> |Thêm/Sửa| NhapThuNhap[Nhập Thu Nhập]
+    ThuNhap --> |Xem| LichSuThuNhap[Lịch Sử Thu Nhập]
+    NhapThuNhap --> KiemTraDuLieu[Kiểm Tra Dữ Liệu]
+    NhapThuNhap --> CapNhatRedux[Cập Nhật Redux]
+    LichSuThuNhap --> BieuDo[Biểu Đồ]
+
+    %% Quản lý Chi Tiêu
+    ChiTieu --> |Thêm/Sửa| NhapChiTieu[Nhập Chi Tiêu]
+    ChiTieu --> |Xem| LichSuChiTieu[Lịch Sử Chi Tiêu]
+    ChiTieu --> |Quản lý| DanhMuc[Danh Mục]
+    NhapChiTieu --> KiemTraDuLieu
+    NhapChiTieu --> CapNhatRedux
+    LichSuChiTieu --> BieuDo
+
+    %% Quản lý Ngân Sách
+    NganSach --> |Thiết lập| HanMucNganSach[Hạn Mức Ngân Sách]
+    NganSach --> |Theo dõi| TheoDoiNganSach[Theo Dõi Chi Tiêu]
+    HanMucNganSach --> KiemTraDuLieu
+    HanMucNganSach --> CapNhatRedux
+    TheoDoiNganSach --> BieuDo
+
+    %% Quản lý Khoản Vay
+    KhoanVay --> |Tính toán| TinhLaiSuat[Tính Lãi Suất]
+    KhoanVay --> |Lập lịch| LichTraNo[Lịch Trả Nợ]
+    KhoanVay --> |Theo dõi| TrangThaiVay[Trạng Thái Vay]
+    TrangThaiVay --> BieuDo
+
+    %% Báo cáo và Thống kê
+    BaoCao --> BieuDo
+    BaoCao --> BaoCaoTaiChinh[Báo Cáo Tài Chính]
+    BieuDo --> BaoCaoTaiChinh
+
+    %% Luồng dữ liệu
+    subgraph QuanLyDuLieu[Quản Lý Dữ Liệu]
+        KiemTraDuLieu[Kiểm Tra Dữ Liệu]
+        CapNhatRedux[Cập Nhật Redux]
+        GoiAPI[Gọi API]
+        XuLyRedux[Xử Lý Redux]
+        LuuTrangThai[Lưu Trạng Thái]
+        CapNhatGiaoDien[Cập Nhật Giao Diện]
+    end
+
+    %% Kết nối luồng dữ liệu
+    CapNhatRedux --> GoiAPI
+    GoiAPI --> XuLyRedux
+    XuLyRedux --> LuuTrangThai
+    LuuTrangThai --> CapNhatGiaoDien
+    CapNhatGiaoDien --> TrangChu
+    KiemTraDuLieu --> CapNhatRedux
+    KiemTraDuLieu --> CapNhatGiaoDien
+
+    %% Định dạng
+    classDef chinh fill:#e1f5fe,stroke:#01579b
+    classDef phu fill:#f3e5f5,stroke:#4a148c
+    classDef dulieu fill:#e8f5e9,stroke:#1b5e20
+    
+    class NguoiDung,XacThuc,TrangChu chinh
+    class ThuNhap,ChiTieu,NganSach,KhoanVay,BaoCao phu
+    class QuanLyDuLieu dulieu
+
+    %% Main User Flow
+    User((User)) --> Auth[Authentication]
+    Auth --> Dashboard
+    
+    %% Dashboard to Main Features
+    Dashboard --> Income
+    Dashboard --> Expenses 
+    Dashboard --> Budget
+    Dashboard --> Loans
+    Dashboard --> Reports
+
+    %% Income Management
+    Income --> |Create/Edit| IncomeEntry[Income Entry]
+    Income --> |View| IncomeHistory[Income History]
+    IncomeEntry --> DataValidation
+    IncomeEntry --> ReduxActions
+    IncomeHistory --> Charts
+
+    %% Expense Management
+    Expenses --> |Create/Edit| ExpenseEntry[Expense Entry]
+    Expenses --> |View| ExpenseHistory[Expense History]
+    Expenses --> |Manage| Categories[Categories]
+    ExpenseEntry --> DataValidation
+    ExpenseEntry --> ReduxActions
+    ExpenseHistory --> Charts
+
+    %% Budget Management
+    Budget --> |Set| BudgetLimits[Budget Limits]
+    Budget --> |Monitor| BudgetTracking[Budget Tracking]
+    BudgetLimits --> DataValidation
+    BudgetLimits --> ReduxActions
+    BudgetTracking --> Charts
+
+    %% Loan Management
+    Loans --> |Calculate| InterestCalc[Interest Calculator]
+    Loans --> |Plan| PaymentSchedule[Payment Schedule]
+    Loans --> |Monitor| LoanStatus[Loan Status]
+    LoanStatus --> Charts
+
+    %% Reports & Analytics
+    Reports --> Charts
+    Reports --> FinancialReports[Financial Reports]
+    Charts --> FinancialReports
+
+    %% Data Flow
+    subgraph DataFlow[Data Management]
+        DataValidation[Data Validation]
+        ReduxActions[Redux Actions]
+        APIEndpoints[API Endpoints]
+        ReduxReducers[Redux Reducers]
+        ReduxState[Redux State]
+        UIComponents[UI Components]
+    end
+
+    %% Data Flow Connections
+    ReduxActions --> APIEndpoints
+    APIEndpoints --> ReduxReducers
+    ReduxReducers --> ReduxState
+    ReduxState --> UIComponents
+    UIComponents --> Dashboard
+    DataValidation --> ReduxActions
+    DataValidation --> UIComponents
+
+    %% Styling
+    classDef primary fill:#e1f5fe,stroke:#01579b
+    classDef secondary fill:#f3e5f5,stroke:#4a148c
+    classDef success fill:#e8f5e9,stroke:#1b5e20
+    
+    class User,Auth,Dashboard primary
+    class Income,Expenses,Budget,Loans,Reports secondary
+    class DataFlow success

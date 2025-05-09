@@ -1,0 +1,111 @@
+{
+    "title": "Liên hệ với chúng tôi",
+    "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
+    "description": "Nếu bạn có bất kỳ câu hỏi nào về VangLang Budget hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
+    "contactInfo": {
+        "email": "support@vanglangbudget.com",
+        "phone": "+84 28 1234 5678",
+        "address": "Đại học Văn Lang cơ sở 3",
+        "workingHours": "Thứ Hai - Thứ Sáu: 9:00 - 17:00"
+    },
+    "supportCategories": [
+        {
+            "title": "Hỗ trợ kỹ thuật",
+            "description": "Gặp vấn đề khi sử dụng VangLang Budget? Đội ngũ kỹ thuật của chúng tôi sẽ giúp bạn giải quyết mọi khó khăn.",
+            "email": "technical@vanglangbudget.com"
+        },
+        {
+            "title": "Góp ý sản phẩm",
+            "description": "Chúng tôi luôn mong muốn cải thiện VangLang Budget. Hãy chia sẻ ý kiến của bạn với chúng tôi.",
+            "email": "feedback@vanglangbudget.com"
+        },
+        {
+            "title": "Hợp tác kinh doanh",
+            "description": "Quan tâm đến việc hợp tác với VangLang Budget? Chúng tôi rất mong được kết nối với bạn.",
+            "email": "partners@vanglangbudget.com"
+        }
+    ],
+    "faq": [
+        {
+            "question": "Làm thế nào để tôi có thể nhận hỗ trợ nhanh nhất?",
+            "answer": "Cách nhanh nhất để nhận hỗ trợ là gửi email đến support@vanglangbudget.com với mô tả chi tiết về vấn đề của bạn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc."
+        },
+        {
+            "question": "Tôi có thể đề xuất tính năng mới không?",
+            "answer": "Tất nhiên! Chúng tôi luôn chào đón các ý tưởng từ người dùng. Hãy gửi đề xuất của bạn đến feedback@vanglangbudget.com hoặc sử dụng mẫu góp ý trên trang này."
+        },
+        {
+            "question": "VangLang Budget có hỗ trợ qua điện thoại không?",
+            "answer": "Có, bạn có thể liên hệ với chúng tôi qua số điện thoại +84 28 1234 5678 trong giờ làm việc từ 9:00 đến 17:00, Thứ Hai đến Thứ Sáu."
+        }
+    ],
+    "socialMedia": [
+        {
+            "platform": "Facebook",
+            "url": "https://facebook.com/vanglangbudget",
+            "icon": "facebook"
+        },
+        {
+            "platform": "Twitter",
+            "url": "https://twitter.com/vanglangbudget",
+            "icon": "twitter"
+        },
+        {
+            "platform": "LinkedIn",
+            "url": "https://linkedin.com/company/vanglangbudget",
+            "icon": "linkedin"
+        },
+        {
+            "platform": "Instagram",
+            "url": "https://instagram.com/vanglangbudget",
+            "icon": "instagram"
+        }
+    ],
+    "form": {
+        "title": "Gửi tin nhắn cho chúng tôi",
+        "fields": [
+            {
+                "name": "name",
+                "label": "Họ và tên",
+                "type": "text",
+                "required": true,
+                "placeholder": "Nhập họ và tên của bạn"
+            },
+            {
+                "name": "email",
+                "label": "Email",
+                "type": "email",
+                "required": true,
+                "placeholder": "Nhập địa chỉ email của bạn"
+            },
+            {
+                "name": "subject",
+                "label": "Tiêu đề",
+                "type": "text",
+                "required": true,
+                "placeholder": "Nhập tiêu đề tin nhắn"
+            },
+            {
+                "name": "message",
+                "label": "Nội dung",
+                "type": "textarea",
+                "required": true,
+                "placeholder": "Nhập nội dung tin nhắn của bạn"
+            },
+            {
+                "name": "category",
+                "label": "Danh mục",
+                "type": "select",
+                "options": [
+                    "Hỗ trợ kỹ thuật",
+                    "Góp ý sản phẩm",
+                    "Hợp tác kinh doanh",
+                    "Khác"
+                ],
+                "required": true,
+                "placeholder": "Chọn danh mục liên hệ"
+            }
+        ],
+        "submitButton": "Gửi tin nhắn"
+    }
+}

@@ -1,0 +1,148 @@
+// This file has been renamed to _middleware.ts.bak to temporarily disable it
+// If you need to re-enable middleware, rename this file back to middleware.ts
+
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+/**
+ * Danh sách các đường dẫn công khai không cần xác thực
+ */
+const publicPaths = [
+  '/',
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
+
+/**
+ * Danh sách các đường dẫn API và data endpoints cần bỏ qua middleware
+ */
+const skipMiddlewarePaths = [
+  '/api',
+  '/investments',
+  '/budgets',
+  '/expenses',
+  '/incomes',
+  '/expense-categories',
+  '/income-categories',
+  '/loans',
+  '/loan-payments',
+  '/notifications',
+  '/users',
+  '/vi/profile',
+  '/vi/settings',
+  '/profile',
+  '/settings',
+  '/dashboard', // Thêm dashboard để không chuyển hướng
+];
+
+/**
+ * Danh sách các đường dẫn yêu cầu vai trò admin
+ */
+const adminPaths = [
+  '/admin',
+  '/admin/users',
+  '/admin/departments',
+  '/admin/budgets',
+  '/admin/reports',
+  '/admin/settings',
+];
+
+/**
+ * Kiểm tra nếu đường dẫn bắt đầu bằng một giá trị trong danh sách
+ */
+const pathStartsWith = (path: string, pathList: string[]): boolean => {
+  return pathList.some(prefix => path.startsWith(prefix));
+};
+
+/**
+ * Middleware NextJS
+ */
+export function middleware(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  console.log('Middleware running for path:', path);
+
+  // BỎ QUA HOÀN TOÀN các đường dẫn investments và API để ngăn vòng lặp
+  if (path.includes('/investments') || path.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
+  // Bỏ qua các đường dẫn trong danh sách skipMiddlewarePaths
+  if (pathStartsWith(path, skipMiddlewarePaths)) {
+    return NextResponse.next();
+  }
+
+  const token = request.cookies.get('token')?.value;
+  const isPublicPath = publicPaths.includes(path) ||
+    path === '/' ||
+    path.startsWith('/_next') ||
+    path.startsWith('/static') ||
+    path.includes('.') ||  // Static files (.ico, .png, etc.)
+    path.startsWith('/auth');
+
+  console.log('Middleware check:', { path, isPublicPath, hasToken: !!token });
+
+  // Trang chủ '/' luôn được truy cập
+  if (path === '/') {
+    console.log('Allowing access to homepage');
+    return NextResponse.next();
+  }
+
+  // Cho phép truy cập đường dẫn công khai
+  if (isPublicPath) {
+    return NextResponse.next();
+  }
+
+  // Kiểm tra xác thực - CHUYỂN SANG CHỈ THÊM THÔNG TIN KHÔNG REDIRECT
+  if (!token) {
+    console.log('No token found, but allowing access without redirection');
+    return NextResponse.next();
+  }
+
+  try {
+    // Parse token JSON
+    const parsedToken = JSON.parse(token);
+    const accessToken = parsedToken.accessToken;
+
+    if (!accessToken) {
+      console.log('Invalid token format, but allowing access');
+      return NextResponse.next();
+    }
+
+    // Xử lý JWT từ accessToken
+    const payload = accessToken.split('.')[1];
+    if (!payload) {
+      console.log('Invalid JWT format, but allowing access');
+      return NextResponse.next();
+    }
+
+    const decoded = JSON.parse(Buffer.from(payload, 'base64').toString());
+
+    // Kiểm tra quyền admin
+    if (pathStartsWith(path, adminPaths) && decoded.role !== 'admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
+    }
+
+    // Đính kèm thông tin người dùng
+    const response = NextResponse.next();
+    response.headers.set('x-user-id', decoded.id || decoded._id || '');
+    response.headers.set('x-user-role', decoded.role || 'user');
+
+    return response;
+  } catch (error) {
+    console.error('Lỗi middleware:', error);
+    // Cho phép tiếp tục thay vì chuyển hướng
+    return NextResponse.next();
+  }
+}
+
+/**
+ * Cấu hình đường dẫn tác động của middleware
+ */
+export const config = {
+  matcher: [
+    // Loại trừ các api routes, investments và các static files
+    '/((?!api|investments|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+  ],
+}; 

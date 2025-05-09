@@ -1,0 +1,96 @@
+{
+    "title": "Tính năng",
+    "subtitle": "Các công cụ quản lý tài chính mạnh mẽ",
+    "description": "VangLang Budget cung cấp đầy đủ các tính năng cần thiết để giúp bạn kiểm soát tài chính cá nhân một cách hiệu quả.",
+    "mainFeatures": [
+        {
+            "id": "expense-tracking",
+            "title": "Theo dõi chi tiêu",
+            "description": "Ghi lại và phân loại tất cả các khoản thu chi hàng ngày, tuần, tháng với giao diện trực quan và dễ sử dụng.",
+            "benefits": [
+                "Dễ dàng thêm chi tiêu mới với vài thao tác đơn giản",
+                "Phân loại tự động dựa trên các danh mục phổ biến",
+                "Thêm vị trí, hình ảnh và ghi chú cho mỗi giao dịch",
+                "Lọc và tìm kiếm chi tiêu theo nhiều tiêu chí khác nhau"
+            ],
+            "iconName": "BarChart3"
+        },
+        {
+            "id": "budget-management",
+            "title": "Quản lý ngân sách",
+            "description": "Thiết lập và theo dõi ngân sách chi tiêu theo từng danh mục, giúp bạn kiểm soát chi tiêu và hình thành thói quen tài chính lành mạnh.",
+            "benefits": [
+                "Thiết lập ngân sách theo tháng hoặc theo đợt",
+                "Cảnh báo khi chi tiêu vượt quá ngân sách",
+                "Phân tích mức độ tuân thủ ngân sách theo thời gian",
+                "Điều chỉnh ngân sách dựa trên dữ liệu thực tế"
+            ],
+            "iconName": "PiggyBank"
+        },
+        {
+            "id": "financial-analysis",
+            "title": "Phân tích tài chính",
+            "description": "Biểu đồ và báo cáo chi tiết giúp bạn hiểu rõ về thói quen chi tiêu và cơ hội tiết kiệm.",
+            "benefits": [
+                "Biểu đồ trực quan về thu nhập và chi tiêu",
+                "Phân tích xu hướng tài chính theo thời gian",
+                "So sánh ngân sách và chi tiêu thực tế",
+                "Xác định các danh mục chi tiêu chính và cơ hội tiết kiệm"
+            ],
+            "iconName": "LineChart"
+        },
+        {
+            "id": "future-planning",
+            "title": "Lên kế hoạch tương lai",
+            "description": "Đặt mục tiêu tài chính và theo dõi tiến độ thực hiện, từ quỹ khẩn cấp ngắn hạn đến kế hoạch nghỉ hưu dài hạn.",
+            "benefits": [
+                "Thiết lập mục tiêu SMART cụ thể, đo lường được",
+                "Tự động tính toán tiến độ và dự báo hoàn thành",
+                "Đề xuất điều chỉnh để đạt mục tiêu nhanh hơn",
+                "Nhắc nhở và khuyến khích thường xuyên"
+            ],
+            "iconName": "Clock"
+        },
+        {
+            "id": "loan-management",
+            "title": "Quản lý khoản vay",
+            "description": "Theo dõi các khoản vay, tính lãi suất và lập lịch trả nợ để giảm thiểu chi phí lãi vay và tối ưu hóa kế hoạch trả nợ.",
+            "benefits": [
+                "Theo dõi nhiều khoản vay cùng lúc",
+                "Tính toán lãi suất tự động",
+                "Lập lịch trả nợ chi tiết",
+                "Phân tích kịch bản trả nợ tốt nhất"
+            ],
+            "iconName": "CreditCard"
+        },
+        {
+            "id": "data-security",
+            "title": "Bảo mật dữ liệu",
+            "description": "Bảo vệ thông tin tài chính của bạn với các công nghệ mã hóa tiên tiến và kiểm soát quyền truy cập.",
+            "benefits": [
+                "Mã hóa dữ liệu đầu cuối",
+                "Xác thực hai yếu tố",
+                "Sao lưu dữ liệu tự động",
+                "Không chia sẻ thông tin với bên thứ ba"
+            ],
+            "iconName": "Shield"
+        }
+    ],
+    "comingSoonFeatures": [
+        {
+            "title": "Đồng bộ hóa ngân hàng",
+            "description": "Tích hợp trực tiếp với tài khoản ngân hàng của bạn để tự động cập nhật giao dịch.",
+            "eta": "Tháng 6/2025"
+        },
+        {
+            "title": "Chia sẻ chi tiêu nhóm",
+            "description": "Quản lý chi tiêu chung với bạn bè, gia đình hoặc đồng nghiệp.",
+            "eta": "Tháng 8/2025"
+        },
+        {
+            "title": "Tư vấn tài chính AI",
+            "description": "Nhận đề xuất cá nhân hóa dựa trên thói quen chi tiêu và mục tiêu tài chính của bạn.",
+            "eta": "Tháng 12/2025"
+        }
+    ]
+}

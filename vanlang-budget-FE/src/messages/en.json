@@ -1,0 +1,962 @@
+{
+    "app": {
+        "name": "VangLang Budget",
+        "description": "Personal Finance Management App"
+    },
+    "home": {
+        "hero": {
+            "title": "Smart personal finance management",
+            "description": "VangLang Budget helps you track expenses, manage budgets, and achieve your financial goals with ease.",
+            "getStarted": "Get Started",
+            "learnMore": "Learn More"
+        },
+        "stats": {
+            "monthlyUsers": "Monthly Users",
+            "transactionsManaged": "Transactions Managed",
+            "savingsIncrease": "Savings Increase"
+        },
+        "features": {
+            "title": "Key Features",
+            "subtitle": "VangLang Budget provides all the tools you need to manage your finances effectively",
+            "expenseTracking": {
+                "title": "Expense Tracking",
+                "description": "Record all your income and expenses easily and quickly."
+            },
+            "budgetManagement": {
+                "title": "Budget Management",
+                "description": "Set and track budgets for each spending category to better control your finances."
+            },
+            "financialAnalysis": {
+                "title": "Financial Analysis",
+                "description": "View detailed reports and charts about your financial situation in real-time."
+            },
+            "futurePlanning": {
+                "title": "Future Planning",
+                "description": "Set financial goals and track your progress."
+            },
+            "loanManagement": {
+                "title": "Loan Management",
+                "description": "Track loans, calculate interest rates, and payment schedules easily."
+            },
+            "dataSecurity": {
+                "title": "Data Security",
+                "description": "Your data is encrypted and protected securely with the highest security standards."
+            }
+        },
+        "screenshots": {
+            "title": "Intuitive, easy-to-use interface",
+            "subtitle": "Modern, user-friendly design helps you manage your finances easily",
+            "financialOverview": "Financial Overview",
+            "incomeAnalysis": "Income Analysis",
+            "expenseManagement": "Expense Management"
+        },
+        "testimonials": {
+            "title": "What users say about us"
+        },
+        "pricing": {
+            "title": "Simple and transparent",
+            "subtitle": "Choose a plan that fits your needs",
+            "comingSoon": "Coming Soon",
+            "pageDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
+            "basic": {
+                "title": "Basic",
+                "price": "Free",
+                "description": "For beginners",
+                "features": [
+                    "Unlimited expense tracking",
+                    "Basic reports",
+                    "Budget management",
+                    "CSV data export"
+                ],
+                "action": "Sign Up Now"
+            },
+            "premium": {
+                "title": "Premium",
+                "price": "Coming Soon",
+                "description": "For power users",
+                "features": [
+                    "All Basic features",
+                    "Advanced reports",
+                    "Financial forecasting",
+                    "Multi-device sync",
+                    "Priority support",
+                    "Ad-free experience"
+                ],
+                "action": "Coming Soon"
+            }
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "subtitle": "Answers to common questions about VangLang Budget",
+            "questions": [
+                {
+                    "question": "Is VangLang Budget free?",
+                    "answer": "Yes, VangLang Budget is completely free for all users. You can use all the basic features without paying."
+                },
+                {
+                    "question": "How do I start using VangLang Budget?",
+                    "answer": "It's simple! Just sign up for an account, log in, and start adding your income and expenses. The app will automatically generate reports and charts for you to track."
+                },
+                {
+                    "question": "Is my data safe?",
+                    "answer": "We take security seriously. All your data is encrypted and only you can access it. We never share your personal information with third parties."
+                },
+                {
+                    "question": "Can I use VangLang Budget on my phone?",
+                    "answer": "Yes, VangLang Budget is a responsive web application that works well on all devices including computers, tablets, and mobile phones."
+                }
+            ]
+        },
+        "cta": {
+            "title": "Ready to take control of your finances?",
+            "description": "Sign up today and start your journey to financial freedom.",
+            "getStarted": "Start for free",
+            "contact": "Contact us"
+        }
+    },
+    "navigation": {
+        "dashboard": "Dashboard",
+        "incomes": "Incomes",
+        "expenses": "Expenses",
+        "loans": "Loans",
+        "investments": "Investments"
+    },
+    "profile": {
+        "account": "Account",
+        "settings": "Settings",
+        "logout": "Logout",
+        "loggingOut": "Logging out..."
+    },
+    "settings": {
+        "title": "Settings",
+        "subtitle": "Manage your account settings",
+        "theme": {
+            "label": "Theme",
+            "light": "Light mode",
+            "dark": "Dark mode"
+        },
+        "language": {
+            "label": "Language",
+            "vietnamese": "Vietnamese",
+            "english": "English"
+        },
+        "userProfile": "User Profile",
+        "userProfileDesc": "Update your personal information",
+        "manageProfile": "Manage Profile",
+        "notifications": "Notifications",
+        "notificationsDesc": "Manage notification settings",
+        "manageNotifications": "Manage Notifications",
+        "security": "Security",
+        "securityDesc": "Secure your account",
+        "changePassword": "Change Password",
+        "languageSection": "Language",
+        "languageDesc": "Change application language",
+        "currencyFormat": "Currency Format",
+        "currencyFormatDesc": "Set currency and display format",
+        "changeCurrency": "Change Currency",
+        "about": "About",
+        "aboutDesc": "Information about VangLang Budget",
+        "aboutApp": "About the app",
+        "logoutDesc": "Log out from your current account",
+        "notifications": {
+            "saveSuccess": "Notification settings saved successfully",
+            "saveError": "An error occurred while saving notification settings"
+        }
+    },
+    "auth": {
+        "login": "Login",
+        "register": "Register",
+        "forgotPassword": "Forgot Password",
+        "resetPassword": "Reset Password",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "fullName": "Full Name",
+        "rememberMe": "Remember Me",
+        "dontHaveAccount": "Don't have an account?",
+        "alreadyHaveAccount": "Already have an account?",
+        "createAccount": "Create Account",
+        "demoAccount": "Try with demo account",
+        "loginError": "Login failed",
+        "backToHome": "Back to home",
+        "emailVerification": "Email Verification",
+        "emailVerificationDescription": "Please verify your email to complete registration",
+        "emailVerificationSuccess": "Your email has been successfully verified!",
+        "emailVerificationError": "Email verification failed",
+        "emailVerificationPending": "Verifying your email...",
+        "emailVerificationRequired": "Please check your inbox to verify your account",
+        "emailVerificationSent": "We have sent a verification email to your address",
+        "emailVerificationInvalid": "Invalid or expired token",
+        "resendEmailVerification": "Resend verification email",
+        "checkInbox": "Check your inbox",
+        "accountCreated": "Account Created",
+        "continueToLogin": "Continue to Login",
+        "verifyAccount": "Verify Account",
+        "verifying": "Verifying...",
+        "otpVerificationNeeded": "Enter OTP to verify your account",
+        "otpSent": "OTP code has been sent to",
+        "otpCode": "OTP Verification Code",
+        "didntReceiveCode": "Didn't receive the code?",
+        "resendCode": "Resend code",
+        "resendCodeIn": "Resend code in",
+        "checkSpamNote": "Please check your Spam folder too!"
+    },
+    "common": {
+        "save": "Save changes",
+        "cancel": "Cancel",
+        "back": "Back",
+        "loading": "Loading...",
+        "success": "Success",
+        "error": "Error",
+        "warning": "Warning",
+        "info": "Information",
+        "noData": "No data available",
+        "search": "Search...",
+        "filter": "Show filters",
+        "hideFilter": "Hide filters",
+        "pagination": "Showing {start}-{end} of {total} results",
+        "perPage": "{count} / page",
+        "networkError": "Network error",
+        "date": "Date",
+        "type": "Type",
+        "category": "Category",
+        "description": "Description",
+        "amount": "Amount",
+        "actions": "Actions",
+        "confirm": "Confirm",
+        "update": "Update",
+        "location": "Location",
+        "pageSize": "Page size",
+        "logout": "Logout",
+        "backToHome": "Back to Home",
+        "goToWallet": "Go to Wallet",
+        "dashboard": "Dashboard",
+        "profile": "Profile",
+        "settings": "Settings",
+        "help": "Help",
+        "signOut": "Sign Out"
+    },
+    "dashboard": {
+        "financialOverview": "Financial Overview",
+        "balance": "Balance",
+        "totalIncome": "Total Income",
+        "totalExpense": "Total Expense",
+        "totalLoan": "Total Loan",
+        "monthlyIncomeExpense": "Monthly Income & Expense",
+        "expenseByCategory": "Expense by Category",
+        "financialDistribution": "Financial Distribution",
+        "recentTransactions": "Recent Transactions",
+        "welcome": "Welcome",
+        "negativeBalanceWarning": "Your balance is negative. Consider reducing expenses or increasing income!",
+        "negativeBalanceAlert": "Negative Balance Alert",
+        "negativeBalanceMessage": "Your current account balance is {amount}. Consider reducing expenses or increasing income!",
+        "resetAllData": "Reset All Data",
+        "resetAllDataTitle": "Reset All Data",
+        "resetAllDataConfirmation": "This action will delete all income, expense, loan data and cannot be recovered. To confirm, please type \"resetdata\" in the box below.",
+        "resetDataConfirmPlaceholder": "Type 'resetdata' to confirm",
+        "confirmResetData": "Confirm Reset Data"
+    },
+    "income": {
+        "manage": "Income",
+        "add": "Add Income",
+        "edit": "Edit Income",
+        "delete": "Delete Income",
+        "deleteConfirm": "Are you sure you want to delete this income?",
+        "total": "Total Income",
+        "noIncome": "No income found",
+        "amount": "Amount",
+        "description": "Description",
+        "category": "Category",
+        "date": "Date",
+        "customCategory": "Custom category",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "minAmount": "Min amount",
+        "maxAmount": "Max amount",
+        "enterAmount": "Enter amount",
+        "enterDescription": "Enter description",
+        "selectCategory": "Select category",
+        "enterCustomCategory": "Enter custom category name",
+        "category": {
+            "salary": "Salary",
+            "bonus": "Bonus",
+            "investment": "Investment",
+            "business": "Business",
+            "savings": "Savings",
+            "other": "Other"
+        },
+        "addSuccess": "Income added successfully",
+        "addSuccessDetail": "The income has been added successfully",
+        "addError": "Failed to add income",
+        "addErrorDetail": "An error occurred while adding the income. Please try again.",
+        "updateSuccess": "Income updated successfully",
+        "updateSuccessDetail": "The income has been updated successfully",
+        "updateError": "Failed to update income",
+        "updateErrorDetail": "An error occurred while updating the income. Please try again.",
+        "deleteSuccess": "Income deleted successfully",
+        "deleteSuccessDetail": "The income has been deleted successfully",
+        "deleteError": "Failed to delete income",
+        "deleteErrorDetail": "An error occurred while deleting the income. Please try again."
+    },
+    "expense": {
+        "manage": "Expenses",
+        "add": "Add Expense",
+        "edit": "Edit Expense",
+        "delete": "Delete Expense",
+        "deleteConfirm": "Are you sure you want to delete this expense?",
+        "total": "Total Expenses",
+        "noExpense": "No expense found",
+        "amount": "Amount",
+        "description": "Description",
+        "category": "Category",
+        "date": "Date",
+        "customCategory": "Custom category",
+        "byCategory": "Expenses by Category",
+        "location": "Location",
+        "locationDetails": "Location Details",
+        "address": "Address",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "minAmount": "Min amount",
+        "maxAmount": "Max amount",
+        "enterAmount": "Enter amount",
+        "enterDescription": "Enter description",
+        "selectCategory": "Select category",
+        "enterCustomCategory": "Enter custom category name",
+        "selectLocation": "Select location",
+        "enterLocation": "Enter address here",
+        "coordinates": "Coordinates",
+        "getCurrentLocation": "Get current location",
+        "locationHint": "Enter address or use GPS to determine location",
+        "locationLoading": "Determining location...",
+        "locationError": "Error determining location",
+        "locationPermissionDenied": "Location permission denied. Please allow access to your location",
+        "locationUnavailable": "Location information is currently unavailable",
+        "locationTimeout": "Location request timed out. Please try again",
+        "locationNotSupported": "Geolocation is not supported by your browser",
+        "noLocationData": "No location data available",
+        "openInGoogleMaps": "Open in Google Maps",
+        "viewOnMap": "View on map",
+        "manualLocation": "Manual location",
+        "manualAddressOnly": "Manual address only",
+        "useGpsLocation": "Use GPS",
+        "usingGpsLocation": "Using GPS location",
+        "usingManualLocation": "Using manual address",
+        "geocodeAddress": "Find location from address",
+        "geocodingAddress": "Finding location on map...",
+        "geocodingError": "Location not found on map",
+        "unableToShowOnMap": "Unable to show location on map",
+        "findOnMap": "Find on map",
+        "category": {
+            "food": "Food",
+            "transport": "Transport",
+            "shopping": "Shopping",
+            "entertainment": "Entertainment",
+            "bills": "Bills",
+            "health": "Health",
+            "education": "Education",
+            "other": "Other"
+        },
+        "addSuccess": "Expense added successfully",
+        "addSuccessDetail": "The expense has been added successfully",
+        "addError": "Failed to add expense",
+        "addErrorDetail": "An error occurred while adding the expense. Please try again.",
+        "updateSuccess": "Expense updated successfully",
+        "updateSuccessDetail": "The expense has been updated successfully",
+        "updateError": "Failed to update expense",
+        "updateErrorDetail": "An error occurred while updating the expense. Please try again.",
+        "deleteSuccess": "Expense deleted successfully",
+        "deleteSuccessDetail": "The expense has been deleted successfully",
+        "deleteError": "Failed to delete expense",
+        "deleteErrorDetail": "An error occurred while deleting the expense. Please try again.",
+        "requiredField": "This field is required",
+        "invalidAmount": "Please enter a valid amount",
+        "invalidDate": "Please enter a valid date",
+        "formNote": "Fields marked with * are required",
+        "loadingAddressData": "Loading address information...",
+        "addressNotFound": "Address not found",
+        "addressFound": "Address found",
+        "addressDetails": "Address details",
+        "addressSuggestions": "Address suggestions"
+    },
+    "loan": {
+        "prepaymentAmount": "Prepayment amount",
+        "enterPrepaymentAmount": "Enter prepayment amount",
+        "manage": "Loan Management",
+        "add": "Add loan",
+        "edit": "Edit Loan",
+        "delete": "Delete Loan",
+        "deleteConfirm": "Are you sure you want to delete this loan?",
+        "totalDebt": "Total Debt",
+        "totalLoanAmount": "Total Loan Amount",
+        "totalDebtWithInterest": "Total Payable Amount",
+        "noLoan": "No loan found",
+        "loanList": "Loan List",
+        "amount": "Loan Amount",
+        "description": "Description",
+        "lender": "Lender",
+        "interestRate": "Interest Rate",
+        "interestRateType": "Time Unit",
+        "startDate": "Start Date",
+        "dueDate": "Due Date",
+        "status": "Status",
+        "active": "Active",
+        "paid": "Paid",
+        "overdue": "Overdue",
+        "enterAmount": "Enter amount",
+        "enterDescription": "Enter loan description",
+        "enterLender": "Enter lender name",
+        "enterInterestRate": "Enter interest rate",
+        "selectLender": "Select lender",
+        "enterCustomLender": "Enter other lender name",
+        "selectInterestRateType": "Select time unit",
+        "estimatedInterest": "Estimated interest:",
+        "estimatedInterestNote": "Total payable amount (Principal + Interest):",
+        "interest": "Interest",
+        "total": "Total",
+        "principalToRepay": "Principal to repay:",
+        "interestCalculationMethodLabel": "Interest calculation method",
+        "interestCalculationMethod": {
+            "simple": "Simple interest (month, quarter, year)",
+            "dailyForBank": "Daily interest (day, week)"
+        },
+        "totalRepayment": "Total repayment",
+        "autoUpdateStatus": "Automatically update status based on due date",
+        "interestRateType": {
+            "day": "Day",
+            "week": "Week",
+            "month": "Month",
+            "quarter": "Quarter",
+            "year": "Year"
+        },
+        "lenderTypes": {
+            "individual": "Individual",
+            "bank": "Bank",
+            "credit": "Credit",
+            "company": "Company",
+            "other": "Other"
+        },
+        "addSuccess": "Loan added successfully",
+        "addSuccessDetail": "The loan has been added successfully",
+        "addError": "Failed to add loan",
+        "addErrorDetail": "An error occurred while adding the loan. Please try again.",
+        "updateSuccess": "Loan updated successfully",
+        "updateSuccessDetail": "The loan has been updated successfully",
+        "updateError": "Failed to update loan",
+        "updateErrorDetail": "An error occurred while updating the loan. Please try again.",
+        "deleteSuccess": "Loan deleted successfully",
+        "deleteSuccessDetail": "The loan has been deleted successfully",
+        "deleteError": "Failed to delete loan",
+        "deleteErrorDetail": "An error occurred while deleting the loan. Please try again.",
+        "payment": {
+            "addSuccess": "Payment added successfully",
+            "addSuccessDetail": "The payment has been added successfully",
+            "addError": "Failed to add payment",
+            "addErrorDetail": "An error occurred while adding the payment. Please try again.",
+            "updateSuccess": "Payment updated successfully",
+            "updateSuccessDetail": "The payment has been updated successfully",
+            "updateError": "Failed to update payment",
+            "updateErrorDetail": "An error occurred while updating the payment. Please try again.",
+            "deleteSuccess": "Payment deleted successfully",
+            "deleteSuccessDetail": "The payment has been deleted successfully",
+            "deleteError": "Failed to delete payment",
+            "deleteErrorDetail": "An error occurred while deleting the payment. Please try again."
+        }
+    },
+    "userProfile": {
+        "title": "User Profile",
+        "subtitle": "Update your personal information",
+        "basicInfo": "Basic Information",
+        "basicInfoDesc": "This information will be displayed publicly",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "emailDesc": "Email cannot be changed",
+        "phoneNumber": "Phone Number",
+        "saveChanges": "Save Changes",
+        "updateSuccess": "Profile updated successfully"
+    },
+    "passwordSettings": {
+        "title": "Change Password",
+        "subtitle": "Secure your account with a strong password",
+        "currentPassword": "Current Password",
+        "newPassword": "New Password",
+        "confirmPassword": "Confirm New Password",
+        "changeSuccess": "Password changed successfully",
+        "passwordsDoNotMatch": "New passwords do not match",
+        "changeError": "Could not change password. Current password may be incorrect.",
+        "currentPasswordRequired": "Current password is required",
+        "newPasswordRequired": "New password is required",
+        "confirmPasswordRequired": "Password confirmation is required",
+        "passwordMinLength": "Password must be at least 8 characters long"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "all": "All Notifications",
+        "description": "Manage all your notifications",
+        "markAllRead": "Mark all as read",
+        "markRead": "Mark as read",
+        "delete": "Delete notification",
+        "noNotifications": "No notifications",
+        "loadMore": "Load more",
+        "new": "New",
+        "settings": "Notification settings",
+        "emailSettings": "Email notification settings",
+        "pushSettings": "Push notifications will appear in the app when you are online. They don't require any additional permissions.",
+        "emailNotifications": "Email notifications",
+        "pushNotifications": "Push notifications",
+        "emailFrequency": "Email frequency",
+        "emailFrequencyOptions": {
+            "immediately": "Immediately",
+            "daily": "Daily digest",
+            "weekly": "Weekly digest",
+            "never": "Never"
+        },
+        "emailVerificationRequired": "Email verification required to receive notifications",
+        "verifyEmail": "Verify email",
+        "saveSettings": "Save settings",
+        "settingsSaved": "Notification settings saved",
+        "saveFailed": "Failed to save your notification settings",
+        "unsubscribe": "Unsubscribe from emails",
+        "subscribe": "Subscribe to emails",
+        "types": {
+            "all": "All notifications",
+            "expense": "Expense notifications",
+            "income": "Income notifications",
+            "loan": "Loan notifications",
+            "paymentDue": "Payment due notifications",
+            "budget": "Budget notifications",
+            "system": "System notifications",
+            "other": "Other notifications"
+        },
+        "newExpense": "New expense added",
+        "expenseUpdated": "Expense updated",
+        "expenseDeleted": "Expense deleted",
+        "newIncome": "New income added",
+        "incomeUpdated": "Income updated",
+        "incomeDeleted": "Income deleted",
+        "budgetLimit": "Budget limit reached",
+        "accountUpdate": "Account update",
+        "emailSuccess": "Email notification sent",
+        "emailFailure": "Failed to send email notification",
+        "markAllRead": "Mark all as read",
+        "loadMore": "Load more",
+        "noNotifications": "You have no notifications",
+        "unread": "Unread",
+        "read": "Read",
+        "sortNewest": "Sort by newest first",
+        "sortOldest": "Sort by oldest first"
+    },
+    "security": {
+        "title": "Security",
+        "subtitle": "Manage your account security settings",
+        "comingSoon": "Coming Soon"
+    },
+    "notFound": {
+        "title": "404 - Page Not Found",
+        "subtitle": "Page not found",
+        "description": "The page you are looking for doesn't exist or has been moved.",
+        "backHome": "Back to Home",
+        "contactSupport": "Contact Support"
+    },
+    "about": {
+        "title": "About Us",
+        "subtitle": "The journey of VangLang Budget",
+        "description": "VangLang Budget was developed by a team of finance enthusiasts with the goal of helping people manage their finances more effectively.",
+        "mission": {
+            "title": "Our Mission",
+            "content": "To help people achieve financial freedom through intelligent and intuitive financial management tools."
+        },
+        "vision": {
+            "title": "Our Vision",
+            "content": "To become Vietnam's leading personal finance management application, helping millions of people control their spending, save effectively, and achieve their financial goals."
+        },
+        "values": {
+            "title": "Core Values",
+            "simplicity": {
+                "title": "Simplicity",
+                "content": "We believe financial management shouldn't be complicated. VangLang Budget is designed with an intuitive interface that's easy for everyone to use."
+            },
+            "transparency": {
+                "title": "Transparency",
+                "content": "We're always clear about how your data is used and protected. No hidden fees, no intrusive ads."
+            },
+            "support": {
+                "title": "Support",
+                "content": "We're committed to supporting users throughout their financial journey, from setting up budgets to achieving long-term goals."
+            }
+        },
+        "team": {
+            "title": "Our Team",
+            "members": {
+                "ceo": {
+                    "name": "Nguyen Manh Dung",
+                    "role": "Co-founder & Developer",
+                    "bio": "With a passion for technology and personal finance, Nguyen Manh Dung has led the VangLang Budget development team from concept to product."
+                },
+                "cto": {
+                    "name": "Pham Nhat Hoang",
+                    "role": "Co-founder & Designer",
+                    "bio": "A UX/UI design expert with experience in the fintech industry, Pham Nhat Hoang is responsible for the user experience and interface design of VangLang Budget."
+                }
+            }
+        },
+        "history": {
+            "title": "Our History",
+            "milestones": {
+                "founding": "VangLang Budget idea was formed in February",
+                "launch": "Official launch of VangLang Budget in May",
+                "expansion": "Advanced features development planned for October"
+            }
+        }
+    },
+    "features": {
+        "title": "Features",
+        "subtitle": "Powerful financial management tools",
+        "description": "VangLang Budget provides all the features you need to effectively control your personal finances.",
+        "benefits": "Benefits",
+        "mainFeatures": {
+            "title": "Core Features",
+            "expenseTracking": {
+                "title": "Expense Tracking",
+                "description": "Record and categorize all your daily, weekly, and monthly income and expenses with an intuitive and easy-to-use interface.",
+                "benefits": [
+                    "Easily add new expenses with just a few simple steps",
+                    "Automatic categorization based on common categories",
+                    "Add location, images, and notes for each transaction",
+                    "Filter and search expenses by various criteria"
+                ]
+            },
+            "budgetManagement": {
+                "title": "Budget Management",
+                "description": "Set up and track spending budgets by category, helping you control your expenses and form healthy financial habits.",
+                "benefits": [
+                    "Set up monthly or batch-based budgets",
+                    "Alert when spending exceeds budget",
+                    "Analyze budget compliance over time",
+                    "Adjust budgets based on actual data"
+                ]
+            },
+            "financialAnalysis": {
+                "title": "Financial Analysis",
+                "description": "Detailed charts and reports help you understand your spending habits and savings opportunities.",
+                "benefits": [
+                    "Visual charts of income and expenses",
+                    "Analysis of financial trends over time",
+                    "Comparison of budget and actual spending",
+                    "Identify key spending categories and savings opportunities"
+                ]
+            },
+            "futurePlanning": {
+                "title": "Future Planning",
+                "description": "Set financial goals and track your progress, from short-term emergency funds to long-term retirement plans.",
+                "benefits": [
+                    "Set up specific, measurable SMART goals",
+                    "Automatically calculate progress and forecast completion",
+                    "Suggestions for adjustments to achieve goals faster",
+                    "Regular reminders and encouragement"
+                ]
+            },
+            "loanManagement": {
+                "title": "Loan Management",
+                "description": "Track loans, calculate interest rates, and schedule debt repayments to minimize interest costs and optimize your repayment plan.",
+                "benefits": [
+                    "Track multiple loans simultaneously",
+                    "Automatic interest calculation",
+                    "Detailed repayment scheduling",
+                    "Analysis of the best repayment scenarios"
+                ]
+            },
+            "dataSecurity": {
+                "title": "Data Security",
+                "description": "Protect your financial information with advanced encryption technologies and access controls.",
+                "benefits": [
+                    "End-to-end data encryption",
+                    "Two-factor authentication",
+                    "Automatic data backup",
+                    "No sharing of information with third parties"
+                ]
+            }
+        },
+        "comingSoon": {
+            "title": "Coming Soon",
+            "aiAdvisor": {
+                "title": "AI Financial Advisor",
+                "description": "Receive personalized recommendations based on your spending habits and financial goals.",
+                "eta": "May 2025"
+            },
+            "groupExpense": {
+                "title": "Group Expense Sharing",
+                "description": "Manage shared expenses with friends, family, or colleagues.",
+                "eta": "December 2025"
+            }
+        }
+    },
+    "contact": {
+        "title": "Contact Us",
+        "subtitle": "We're here to help you",
+        "description": "If you have any questions about VangLang Budget or need assistance, don't hesitate to contact us. Our support team is always ready to help you.",
+        "contactInfo": {
+            "title": "Contact Information",
+            "emailLabel": "Email",
+            "phoneLabel": "Phone",
+            "addressLabel": "Address",
+            "workingHoursLabel": "Working Hours",
+            "email": "support@vanglangbudget.com",
+            "phone": "+84 28 1234 5678",
+            "address": "Van Lang University Campus 3",
+            "workingHours": "Monday - Friday: 9:00 - 17:00"
+        },
+        "supportCategories": {
+            "title": "Support Categories",
+            "technical": {
+                "title": "Technical Support",
+                "description": "Having issues using VangLang Budget? Our technical team will help you solve any difficulties.",
+                "email": "technical@vanglangbudget.com"
+            },
+            "feedback": {
+                "title": "Product Feedback",
+                "description": "We always want to improve VangLang Budget. Please share your thoughts with us.",
+                "email": "feedback@vanglangbudget.com"
+            },
+            "business": {
+                "title": "Business Cooperation",
+                "description": "Interested in partnering with VangLang Budget? We'd love to connect with you.",
+                "email": "business@vanglangbudget.com"
+            }
+        },
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "questions": [
+                {
+                    "question": "How can I get support most quickly?",
+                    "answer": "The fastest way to get support is to email support@vanglangbudget.com with a detailed description of your issue. We will respond within 24 business hours."
+                },
+                {
+                    "question": "Can I suggest a new feature?",
+                    "answer": "Absolutely! We always welcome ideas from our users. Send your suggestions to feedback@vanglangbudget.com or use the feedback form on this page."
+                },
+                {
+                    "question": "Does VangLang Budget offer phone support?",
+                    "answer": "Yes, you can contact us by phone at +84 28 1234 5678 during our working hours from 9:00 to 17:00, Monday to Friday."
+                }
+            ]
+        },
+        "form": {
+            "title": "Send Us a Message",
+            "fields": {
+                "name": "Full Name",
+                "email": "Email",
+                "subject": "Subject",
+                "message": "Message",
+                "category": "Category"
+            },
+            "placeholders": {
+                "name": "Enter your full name",
+                "email": "Enter your email address",
+                "subject": "Enter message subject",
+                "message": "Enter your message",
+                "category": "Choose a contact category"
+            },
+            "categoryOther": "Other",
+            "submitButton": "Send Message",
+            "successMessage": "Your message has been sent successfully. We will respond soon.",
+            "errorMessage": "An error occurred while sending your message. Please try again."
+        },
+        "socialMedia": {
+            "facebook": {
+                "name": "Facebook",
+                "url": "https://facebook.com/vanglangbudget"
+            },
+            "twitter": {
+                "name": "Twitter",
+                "url": "https://twitter.com/vanglangbudget"
+            },
+            "linkedin": {
+                "name": "LinkedIn",
+                "url": "https://linkedin.com/company/vanglangbudget"
+            },
+            "instagram": {
+                "name": "Instagram",
+                "url": "https://instagram.com/vanglangbudget"
+            }
+        }
+    },
+    "footer": {
+        "about": "About VangLang Budget",
+        "aboutDescription": "A smart personal finance management application to help you control your spending and achieve financial freedom.",
+        "links": {
+            "title": "Links",
+            "aboutUs": "About Us",
+            "features": "Features",
+            "pricing": "Pricing",
+            "contact": "Contact"
+        },
+        "legal": {
+            "title": "Legal",
+            "terms": "Terms of Use",
+            "privacy": "Privacy Policy",
+            "cookies": "Cookie Policy"
+        },
+        "app": {
+            "title": "Download App",
+            "description": "Coming soon on iOS and Android",
+            "followUs": "Follow Us"
+        },
+        "copyright": "© {year} VangLang Budget. All rights reserved."
+    },
+    "pricing": {
+        "title": "Pricing",
+        "subtitle": "VangLang Budget service packages",
+        "description": "We are working to provide you with the best service packages. Please check back later for pricing details.",
+        "comingSoon": "Coming Soon"
+    },
+    "roadmap": {
+        "title": "Development Roadmap",
+        "description": "Explore VangLang Budget's development plan and upcoming features",
+        "phase1": {
+            "title": "Core Foundation",
+            "description": "Launch basic features and establish the foundation for personal finance management app"
+        },
+        "phase2": {
+            "title": "Artificial Intelligence",
+            "description": "Integrate artificial intelligence to analyze data and provide personalized financial recommendations"
+        },
+        "phase3": {
+            "title": "Community Features",
+            "description": "Expand the experience with community features and group expense sharing"
+        },
+        "future": {
+            "title": "Future",
+            "description": "We're always listening to user feedback and developing more useful features. Stay tuned!"
+        },
+        "timeline": {
+            "q1": "Q1",
+            "q2": "Q2",
+            "q4": "Q4",
+            "future": "Future"
+        },
+        "cta": {
+            "title": "What feature would you like to see next?",
+            "description": "We build VangLang Budget based on real user needs. Share your thoughts with us!",
+            "feedback": "Send your ideas"
+        }
+    },
+    "error": {
+        "otpRequired": "Please enter the OTP code",
+        "otpVerificationFailed": "OTP verification failed",
+        "resendOtpFailed": "Could not resend OTP code",
+        "passwordsDoNotMatch": "Passwords do not match",
+        "registrationFailed": "Registration failed",
+        "resendVerificationFailed": "Could not resend verification email",
+        "loginFailed": "Login failed"
+    },
+    "Investments": {
+        "title": "Investments",
+        "description": "Manage your investment portfolio",
+        "portfolioTab": "Portfolio",
+        "addTab": "Add Investment",
+        "analyticsTab": "Analytics",
+        "yourInvestments": "Your Investments",
+        "portfolioDescription": "Track and manage all types of investments in a unified list",
+        "addInvestment": "Add New Investment",
+        "addInvestmentDescription": "Add a new investment to your investment list",
+        "investmentAnalytics": "Investment Analytics",
+        "analyticsDescription": "View overview and analysis of your investment portfolio",
+        "loading": "Loading...",
+        "errorLoadingTitle": "Error loading data",
+        "errorLoadingDescription": "Could not load investment data. Please try again later.",
+        "noDataAvailable": "No data available",
+        "stock": "Stock",
+        "gold": "Gold",
+        "crypto": "Cryptocurrency",
+        "totalInvestment": "Total Investment",
+        "currentValue": "Current Value",
+        "totalProfitLoss": "Profit/Loss",
+        "portfolioDistribution": "Portfolio Distribution",
+        "assets": "Assets",
+        "invested": "Invested",
+        "profitLoss": "Profit/Loss",
+        "asset": "Asset",
+        "type": "Type",
+        "quantity": "Quantity",
+        "currentPrice": "Current Price",
+        "actions": "Actions",
+        "openMenu": "Open Menu",
+        "viewDetails": "View Details",
+        "addTransaction": "Add Transaction",
+        "delete": "Delete",
+        "deleteSuccess": "Deleted Successfully",
+        "deleteSuccessDescription": "Investment has been deleted successfully",
+        "deleteError": "Error deleting",
+        "deleteErrorDescription": "An error occurred while deleting the investment",
+        "noInvestments": "You don't have any investments yet",
+        "addYourFirst": "Add your first investment",
+        "confirmDelete": "Confirm Deletion",
+        "deleteWarning": "Are you sure you want to delete the {asset} investment? This action cannot be undone.",
+        "cancel": "Cancel",
+        "cancelAndClose": "Cancel",
+        "close": "Close",
+        "investmentType": "Investment Type",
+        "selectType": "Select investment type",
+        "typeDescription": "Choose the type of investment asset",
+        "assetName": "Asset Name",
+        "assetNamePlaceholder": "E.g. AAPL, Gold Bar, Bitcoin",
+        "assetNameDescription": "Enter the name of the investment asset",
+        "assetNameRequired": "Asset name is required",
+        "assetNameTooLong": "Asset name must not exceed 100 characters",
+        "symbol": "Symbol",
+        "symbolPlaceholder": "E.g. AAPL, XAU, BTC",
+        "symbolDescription": "Symbol or abbreviation of the asset",
+        "symbolRequired": "Symbol is required",
+        "symbolTooLong": "Symbol must not exceed 20 characters",
+        "currentPriceDescription": "Current price of one unit of the asset",
+        "initialTransaction": "Initial Transaction",
+        "fee": "Transaction Fee",
+        "feeDescription": "Transaction fee is calculated based on transaction value",
+        "feeRate": "Fee Rate (%)",
+        "feeRateDescription": "Typical fee rates range from 0.15% to 0.3%",
+        "feeRateDefault": "0.25",
+        "calculatedFee": "Calculated Fee",
+        "transactionValue": "Transaction Value",
+        "totalWithFee": "Total (including fee)",
+        "autoCalculate": "Auto Calculate",
+        "manualInput": "Manual Input",
+        "notes": "Notes",
+        "notesPlaceholder": "Add any notes about this investment",
+        "notesTooLong": "Notes must not exceed 500 characters",
+        "adding": "Adding...",
+        "addSuccess": "Added Successfully",
+        "addSuccessDescription": "Investment has been added successfully to your portfolio",
+        "addError": "Error adding",
+        "addErrorDescription": "An error occurred while adding the investment",
+        "typeRequired": "Please select an investment type",
+        "pricePositive": "Price must be a positive number",
+        "quantityPositive": "Quantity must be a positive number",
+        "feePositive": "Fee must be a positive number",
+        "transactionType": "Transaction Type",
+        "selectTransactionType": "Select transaction type",
+        "buy": "Buy",
+        "sell": "Sell",
+        "price": "Price",
+        "date": "Date",
+        "transactionAddedTitle": "Transaction Added",
+        "transactionAddedDescription": "Transaction has been added successfully",
+        "transactionErrorTitle": "Error Adding Transaction",
+        "transactionErrorDescription": "An error occurred while adding the transaction",
+        "lastUpdated": "Last Updated",
+        "overview": "Overview",
+        "transactions": "Transactions",
+        "totalQuantity": "Total Quantity",
+        "total": "Total",
+        "noTransactions": "No transactions",
+        "transactionDeletedTitle": "Transaction Deleted",
+        "transactionDeletedDescription": "Transaction has been deleted successfully",
+        "transactionDeleteErrorTitle": "Error Deleting Transaction",
+        "transactionDeleteErrorDescription": "An error occurred while deleting the transaction",
+        "confirmDeleteTransaction": "Confirm Transaction Deletion",
+        "deleteTransactionWarning": "Are you sure you want to delete this transaction? This action cannot be undone.",
+        "priceHistory": "Price History",
+        "purchasePriceHistory": "Purchase Price History"
+    }
+}

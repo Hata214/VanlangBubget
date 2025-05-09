@@ -1,0 +1,73 @@
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { TOKEN_COOKIE_NAME } from './services/api'
+
+// Danh sách các đường dẫn công khai không cần xác thực
+const publicPaths = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/api/',
+];
+
+// Các đường dẫn cần bỏ qua để tránh vòng lặp vô hạn
+const skipPaths = [
+    '/_next',
+    '/favicon.ico',
+    '/images',
+    '/static',
+];
+
+// Middleware chính để xử lý xác thực
+export default function middleware(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
+    // Kiểm tra nếu đường dẫn nằm trong danh sách bỏ qua
+    if (skipPaths.some(path => pathname.startsWith(path))) {
+        return NextResponse.next();
+    }
+
+    // Kiểm tra nếu đường dẫn là công khai
+    const isPublicPath = publicPaths.some(path => pathname.startsWith(path));
+
+    // Lấy token từ cookie
+    const token = request.cookies.get(TOKEN_COOKIE_NAME)?.value;
+
+    // Ghi log để debug
+    console.log('Middleware check:', {
+        path: pathname,
+        isPublicPath,
+        hasToken: !!token,
+    });
+
+    // Nếu đường dẫn không phải công khai và không có token
+    if (!isPublicPath && !token) {
+        // Chuyển hướng đến trang đăng nhập
+        const url = new URL('/login', request.url);
+        return NextResponse.redirect(url);
+    }
+
+    // Nếu đường dẫn là công khai và có token
+    if (isPublicPath && token && (pathname.startsWith('/login') || pathname.startsWith('/register'))) {
+        // Chuyển hướng đến trang chủ nếu đã đăng nhập mà vẫn truy cập các trang auth
+        const url = new URL('/dashboard', request.url);
+        return NextResponse.redirect(url);
+    }
+
+    // Cho phép request tiếp tục
+    return NextResponse.next();
+}
+
+// Cấu hình middleware chỉ áp dụng cho một số đường dẫn cụ thể
+export const config = {
+    matcher: [
+        /*
+         * Khớp với tất cả các đường dẫn ngoại trừ:
+         * 1. Các API routes (/api/*)
+         * 2. Các file tĩnh (_next/static, favicon.ico, images/*)
+         * 3. Bỏ qua khi đường dẫn đã có trong các route xử lý khác
+         */
+        '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    ],
+}; 
