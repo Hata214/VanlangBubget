@@ -996,5 +996,24 @@
             "actions": "Thao tác",
             "openMenu": "Mở menu"
         }
+    },
+    "admin": {
+        "dashboard": "Bảng điều khiển",
+        "dashboardDescription": "Xem tổng quan về số liệu thống kê của hệ thống",
+        "stats": {
+            "totalUsers": "Tổng số người dùng",
+            "registeredUsers": "Đã đăng ký trong hệ thống",
+            "totalTransactions": "Tổng số giao dịch",
+            "allTimeTransactions": "Tất cả giao dịch trong hệ thống",
+            "activeUsers": "Người dùng hoạt động",
+            "last30Days": "Hoạt động trong 30 ngày qua",
+            "todayTransactions": "Giao dịch hôm nay",
+            "today": "Được thực hiện hôm nay"
+        },
+        "recentUsers": "Người dùng gần đây",
+        "recentUsersDescription": "Các tài khoản mới được đăng ký gần đây",
+        "recentTransactions": "Giao dịch gần đây",
+        "recentTransactionsDescription": "Các giao dịch mới nhất trong hệ thống",
+        "connectBackendForData": "Kết nối backend để xem dữ liệu thực"
     }
 }

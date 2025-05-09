@@ -8,6 +8,7 @@ import compression from 'compression';
 import mongoSanitize from 'express-mongo-sanitize';
 import { errorHandler } from './middlewares/errorMiddleware.js';
 import { socketMiddleware } from './middlewares/socketMiddleware.js';
+import logger from './utils/logger.js';
 import 'dotenv/config';
 
 // Importing routes
@@ -25,6 +26,7 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import oauthRoutes from './routes/oauthRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Initialize Express app
 const app = express();
@@ -89,9 +91,28 @@ const limiter = rateLimit({
 // Apply rate limiting to all routes
 app.use('/api', limiter);
 
+// Bảo mật nghiêm ngặt hơn cho khu vực admin
+const adminLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 phút
+    max: 50, // giới hạn 50 requests trong 15 phút
+    message: 'Quá nhiều yêu cầu đến khu vực admin, vui lòng thử lại sau.'
+});
+
+// API version
+const API_VERSION = '1.0.0';
+
 // Log mọi request đến server
 app.use((req, res, next) => {
     console.log(`Incoming Request: ${req.method} ${req.originalUrl}`);
+
+    // Thêm header API version vào response
+    res.setHeader('X-API-Version', API_VERSION);
+
+    // Ghi log chi tiết hơn cho các request đến khu vực admin
+    if (req.originalUrl.startsWith('/api/admin')) {
+        logger.info(`ADMIN REQUEST: ${req.method} ${req.originalUrl} | IP: ${req.ip}`);
+    }
+
     next(); // Chuyển sang middleware hoặc route tiếp theo
 });
 
@@ -113,6 +134,10 @@ console.log('Route investments đã đăng ký ✅');
 app.use('/api/site-content', siteContentRoutes);
 console.log('Route site-content đã đăng ký ✅');
 
+// Áp dụng giới hạn tốc độ nghiêm ngặt hơn cho khu vực admin
+app.use('/api/admin', adminLimiter, adminRoutes);
+console.log('Route admin đã đăng ký với bảo mật tăng cường ✅');
+
 // import statsRoutes from './routes/statsRoutes.js';
 // app.use('/api/stats', statsRoutes);
 // console.log('Route stats đã đăng ký ✅');
@@ -126,12 +151,19 @@ app.get('/', (req, res) => {
 
 // Health check route
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', environment: process.env.NODE_ENV });
+    res.status(200).json({
+        status: 'OK',
+        environment: process.env.NODE_ENV,
+        version: API_VERSION
+    });
 });
 
 // Health check route (cho testing)
 app.get('/api/health', (req, res) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({
+        status: 'ok',
+        version: API_VERSION
+    });
 });
 
 // Error handler middleware

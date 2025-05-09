@@ -11,13 +11,12 @@ import {
     CardTitle
 } from '@/components/ui/Card'
 import {
-    UsersIcon,
-    DollarSignIcon,
-    CalendarIcon,
-    BarChart3Icon,
+    UserIcon,
+    DollarSign,
+    Calendar,
+    BarChart3,
     Activity
 } from 'lucide-react'
-import api from '@/services/api'
 
 interface StatData {
     userCount: number
@@ -37,18 +36,6 @@ export default function AdminDashboardPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const fetchStats = async () => {
-            try {
-                setLoading(true)
-                const response = await api.get('/api/admin/stats')
-                setStats(response.data)
-            } catch (error) {
-                console.error('Lỗi khi tải dữ liệu thống kê:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
         // Giả lập dữ liệu trong môi trường dev
         const loadMockData = () => {
             setStats({
@@ -60,10 +47,33 @@ export default function AdminDashboardPage() {
             setLoading(false)
         }
 
-        // Kiểm tra xem API có khả dụng không
-        fetchStats().catch(() => {
+        try {
+            const fetchStats = async () => {
+                try {
+                    setLoading(true)
+                    const response = await fetch('/api/admin/stats')
+
+                    if (response.ok) {
+                        const data = await response.json()
+                        setStats(data)
+                    } else {
+                        // Nếu API trả về lỗi, sử dụng dữ liệu mẫu
+                        loadMockData()
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi tải dữ liệu thống kê:', error)
+                    loadMockData()
+                } finally {
+                    setLoading(false)
+                }
+            }
+
+            // Thử gọi API, nếu lỗi sẽ load dữ liệu mẫu
+            fetchStats()
+        } catch (error) {
+            console.error('Lỗi khi khởi tạo trang:', error)
             loadMockData()
-        })
+        }
     }, [])
 
     const stats_cards = [
@@ -71,14 +81,14 @@ export default function AdminDashboardPage() {
             title: t('admin.stats.totalUsers'),
             value: stats.userCount.toLocaleString(),
             description: t('admin.stats.registeredUsers'),
-            icon: UsersIcon,
+            icon: UserIcon,
             color: 'bg-blue-500'
         },
         {
             title: t('admin.stats.totalTransactions'),
             value: stats.transactionCount.toLocaleString(),
             description: t('admin.stats.allTimeTransactions'),
-            icon: DollarSignIcon,
+            icon: DollarSign,
             color: 'bg-green-500'
         },
         {
@@ -92,13 +102,13 @@ export default function AdminDashboardPage() {
             title: t('admin.stats.todayTransactions'),
             value: stats.todayTransactions.toLocaleString(),
             description: t('admin.stats.today'),
-            icon: CalendarIcon,
+            icon: Calendar,
             color: 'bg-purple-500'
         }
     ]
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-6">
             <div>
                 <h1 className="text-3xl font-bold tracking-tight">{t('admin.dashboard')}</h1>
                 <p className="text-muted-foreground mt-2">

@@ -3,26 +3,55 @@ import {
     getFooterContent,
     updateFooterContent,
     getSiteContentByType,
-    updateSiteContentByType
+    updateSiteContentByType,
+    getHomepageSection,
+    updateHomepageSection,
+    getContentHistory,
+    restoreContentVersion,
+    approveHomepageContent,
+    rejectHomepageContent
 } from '../controllers/siteContentController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Route công khai để lấy nội dung footer
+// === Routes công khai ===
+// Lấy nội dung footer
 router.get('/footer', getFooterContent);
 
-// Route công khai để lấy nội dung theo loại
+// Lấy nội dung theo loại
 router.get('/:type', getSiteContentByType);
 
-// Routes yêu cầu xác thực và quyền admin
+// Lấy nội dung trang chủ theo section
+router.get('/homepage/:section', getHomepageSection);
+
+// === Routes yêu cầu xác thực và quyền Admin/SuperAdmin ===
 router.use(protect);
 router.use(restrictTo('admin', 'superadmin'));
 
-// Route cập nhật nội dung footer
+// Cập nhật nội dung footer
 router.put('/footer', updateFooterContent);
 
-// Route cập nhật nội dung theo loại
+// Lấy lịch sử chỉnh sửa nội dung
+router.get('/:type/history', getContentHistory);
+
+// Cập nhật nội dung trang chủ theo section
+router.put('/homepage/:section', updateHomepageSection);
+
+// Cập nhật nội dung theo loại
 router.put('/:type', updateSiteContentByType);
+
+// === Routes chỉ dành cho SuperAdmin ===
+// Middleware kiểm tra quyền SuperAdmin
+const superAdminOnly = restrictTo('superadmin');
+
+// Phê duyệt nội dung trang chủ
+router.post('/homepage/approve', superAdminOnly, approveHomepageContent);
+
+// Từ chối nội dung trang chủ
+router.post('/homepage/reject', superAdminOnly, rejectHomepageContent);
+
+// Khôi phục phiên bản nội dung
+router.post('/:type/restore/:version', superAdminOnly, restoreContentVersion);
 
 export default router;

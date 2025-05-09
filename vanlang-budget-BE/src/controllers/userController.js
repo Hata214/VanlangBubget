@@ -8,6 +8,7 @@ import Budget from '../models/budgetModel.js';
 import Notification from '../models/Notification.js';
 import catchAsync from '../utils/catchAsync.js';
 import logger from '../utils/logger.js';
+import mongoose from 'mongoose';
 
 /**
  * @desc    Lấy thông tin người dùng hiện tại
@@ -236,4 +237,547 @@ export const getAllUsers = catchAsync(async (req, res, next) => {
     logger.info(`Superadmin ${req.user.id} đã truy cập danh sách người dùng`);
 
     res.status(200).json(users);
+});
+
+/**
+ * @desc    Lấy danh sách tất cả người dùng với các tùy chọn lọc và phân trang
+ * @route   GET /api/admin/users
+ * @access  Private (Admin, Superadmin)
+ */
+export const getAdminUserList = catchAsync(async (req, res, next) => {
+    const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+        status,
+        sortBy = 'createdAt',
+        sortDirection = 'desc'
+    } = req.query;
+
+    // Xây dựng bộ lọc
+    const filter = {};
+
+    // Tìm kiếm theo email, tên
+    if (search) {
+        const searchRegex = new RegExp(search, 'i');
+        filter.$or = [
+            { email: searchRegex },
+            { firstName: searchRegex },
+            { lastName: searchRegex },
+            { phoneNumber: searchRegex }
+        ];
+    }
+
+    // Lọc theo vai trò
+    if (role && ['user', 'admin', 'superadmin'].includes(role)) {
+        filter.role = role;
+    }
+
+    // Lọc theo trạng thái
+    if (status === 'active') {
+        filter.active = true;
+    } else if (status === 'inactive') {
+        filter.active = false;
+    }
+
+    // Đếm tổng số bản ghi theo bộ lọc
+    const total = await User.countDocuments(filter);
+
+    // Xây dựng bộ sắp xếp
+    const sort = {};
+    sort[sortBy] = sortDirection === 'asc' ? 1 : -1;
+
+    // Tính toán phân trang
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    // Lấy danh sách người dùng
+    const users = await User.find(filter)
+        .select('-password -refreshToken')
+        .sort(sort)
+        .skip(skip)
+        .limit(parseInt(limit));
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã truy cập danh sách người dùng với bộ lọc: ${JSON.stringify(req.query)}`);
+
+    res.status(200).json({
+        status: 'success',
+        results: users.length,
+        totalPages: Math.ceil(total / parseInt(limit)),
+        currentPage: parseInt(page),
+        total,
+        data: users
+    });
+});
+
+/**
+ * @desc    Lấy thông tin chi tiết người dùng
+ * @route   GET /api/admin/users/:id
+ * @access  Private (Admin, Superadmin)
+ */
+export const getAdminUserDetail = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    const user = await User.findById(userId).select('-password -refreshToken');
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Lấy thống kê về dữ liệu người dùng
+    const stats = {
+        incomes: await Income.countDocuments({ userId }),
+        expenses: await Expense.countDocuments({ userId }),
+        loans: await Loan.countDocuments({ userId }),
+        budgets: await Budget.countDocuments({ userId })
+    };
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã xem chi tiết người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user,
+            stats
+        }
+    });
+});
+
+/**
+ * @desc    Tạo người dùng mới (dành cho admin)
+ * @route   POST /api/admin/users
+ * @access  Private (Admin, Superadmin)
+ */
+export const createAdminUser = catchAsync(async (req, res, next) => {
+    const { email, password, firstName, lastName, phoneNumber, role } = req.body;
+
+    // Kiểm tra email đã tồn tại chưa
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        return next(new AppError('Email đã được sử dụng', 400));
+    }
+
+    // Kiểm tra nếu không phải superadmin thì không thể tạo admin
+    if (req.user.role !== 'superadmin' && role === 'admin') {
+        return next(new AppError('Bạn không có quyền tạo tài khoản admin', 403));
+    }
+
+    // Không cho phép tạo superadmin
+    if (role === 'superadmin') {
+        return next(new AppError('Không thể tạo tài khoản superadmin', 403));
+    }
+
+    // Kiểm tra số lượng admin hiện tại
+    if (role === 'admin') {
+        const adminCount = await User.countDocuments({ role: 'admin' });
+        if (adminCount >= 3) {
+            return next(new AppError('Đã đạt giới hạn tối đa số lượng admin (3)', 400));
+        }
+    }
+
+    // Tạo người dùng mới
+    const newUser = await User.create({
+        email,
+        password,
+        firstName,
+        lastName,
+        phoneNumber,
+        role: role || 'user',
+        isEmailVerified: true, // Mặc định đánh dấu là đã xác minh
+        active: true
+    });
+
+    // Không trả về password
+    newUser.password = undefined;
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã tạo người dùng mới: ${newUser._id} (${newUser.email})`);
+
+    res.status(201).json({
+        status: 'success',
+        data: {
+            user: newUser
+        }
+    });
+});
+
+/**
+ * @desc    Cập nhật thông tin người dùng
+ * @route   PUT /api/admin/users/:id
+ * @access  Private (Admin, Superadmin)
+ */
+export const updateAdminUser = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+    const { firstName, lastName, phoneNumber, email } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    // Kiểm tra email mới đã tồn tại chưa (nếu có thay đổi)
+    if (email) {
+        const existingUser = await User.findOne({ email, _id: { $ne: userId } });
+        if (existingUser) {
+            return next(new AppError('Email đã được sử dụng bởi người dùng khác', 400));
+        }
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Không cho phép sửa thông tin superadmin trừ khi người sửa cũng là superadmin
+    if (user.role === 'superadmin' && req.user.role !== 'superadmin') {
+        return next(new AppError('Không có quyền sửa thông tin superadmin', 403));
+    }
+
+    // Cập nhật thông tin
+    user.firstName = firstName || user.firstName;
+    user.lastName = lastName || user.lastName;
+    user.phoneNumber = phoneNumber || user.phoneNumber;
+    user.email = email || user.email;
+
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã cập nhật thông tin người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+});
+
+/**
+ * @desc    Xóa người dùng
+ * @route   DELETE /api/admin/users/:id
+ * @access  Private (Admin, Superadmin)
+ */
+export const deleteAdminUser = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Không cho phép xóa superadmin
+    if (user.role === 'superadmin') {
+        return next(new AppError('Không thể xóa tài khoản superadmin', 403));
+    }
+
+    // Không cho phép xóa admin trừ khi người xóa là superadmin
+    if (user.role === 'admin' && req.user.role !== 'superadmin') {
+        return next(new AppError('Không có quyền xóa tài khoản admin', 403));
+    }
+
+    // Xử lý xóa mềm (đánh dấu không hoạt động)
+    user.active = false;
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã vô hiệu hóa tài khoản người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Đã vô hiệu hóa tài khoản người dùng'
+    });
+});
+
+/**
+ * @desc    Thăng cấp người dùng lên Admin
+ * @route   POST /api/admin/users/:id/promote
+ * @access  Private (SuperAdmin only)
+ */
+export const promoteToAdmin = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    // Chỉ superadmin mới có quyền thăng cấp
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền thăng cấp người dùng', 403));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Đã là admin rồi thì không cần thăng cấp nữa
+    if (user.role === 'admin') {
+        return next(new AppError('Người dùng này đã có quyền Admin', 400));
+    }
+
+    // Không thể thăng cấp superadmin
+    if (user.role === 'superadmin') {
+        return next(new AppError('Không thể thay đổi quyền của SuperAdmin', 400));
+    }
+
+    // Kiểm tra số lượng admin hiện tại
+    const adminCount = await User.countDocuments({ role: 'admin' });
+    if (adminCount >= 3) {
+        return next(new AppError('Đã đạt giới hạn tối đa số lượng admin (3)', 400));
+    }
+
+    // Thăng cấp người dùng
+    user.role = 'admin';
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`SuperAdmin ${req.user.id} đã thăng cấp người dùng ${userId} lên Admin`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+});
+
+/**
+ * @desc    Hạ cấp Admin xuống người dùng thường
+ * @route   POST /api/admin/users/:id/demote
+ * @access  Private (SuperAdmin only)
+ */
+export const demoteFromAdmin = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    // Chỉ superadmin mới có quyền hạ cấp
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền hạ cấp Admin', 403));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Chỉ hạ cấp admin
+    if (user.role !== 'admin') {
+        return next(new AppError('Người dùng này không phải Admin', 400));
+    }
+
+    // Hạ cấp admin xuống người dùng thường
+    user.role = 'user';
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`SuperAdmin ${req.user.id} đã hạ cấp Admin ${userId} xuống User`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+});
+
+/**
+ * @desc    Kích hoạt tài khoản người dùng
+ * @route   POST /api/admin/users/:id/activate
+ * @access  Private (Admin, Superadmin)
+ */
+export const activateUser = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Admin không thể kích hoạt tài khoản admin/superadmin
+    if (req.user.role === 'admin' && (user.role === 'admin' || user.role === 'superadmin')) {
+        return next(new AppError('Không có quyền kích hoạt tài khoản admin/superadmin', 403));
+    }
+
+    if (user.active) {
+        return next(new AppError('Tài khoản đã được kích hoạt', 400));
+    }
+
+    // Kích hoạt tài khoản
+    user.active = true;
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã kích hoạt tài khoản người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+});
+
+/**
+ * @desc    Vô hiệu hóa tài khoản người dùng
+ * @route   POST /api/admin/users/:id/deactivate
+ * @access  Private (Admin, Superadmin)
+ */
+export const deactivateUser = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Admin không thể vô hiệu hóa tài khoản admin/superadmin
+    if (req.user.role === 'admin' && (user.role === 'admin' || user.role === 'superadmin')) {
+        return next(new AppError('Không có quyền vô hiệu hóa tài khoản admin/superadmin', 403));
+    }
+
+    // Không cho phép vô hiệu hóa superadmin
+    if (user.role === 'superadmin') {
+        return next(new AppError('Không thể vô hiệu hóa tài khoản superadmin', 403));
+    }
+
+    if (!user.active) {
+        return next(new AppError('Tài khoản đã bị vô hiệu hóa', 400));
+    }
+
+    // Vô hiệu hóa tài khoản
+    user.active = false;
+    await user.save({ validateBeforeSave: false });
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã vô hiệu hóa tài khoản người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            user
+        }
+    });
+});
+
+/**
+ * @desc    Đặt lại mật khẩu cho người dùng
+ * @route   POST /api/admin/users/:id/reset-password
+ * @access  Private (Admin, Superadmin)
+ */
+export const resetUserPassword = catchAsync(async (req, res, next) => {
+    const userId = req.params.id;
+    const { newPassword } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return next(new AppError('ID người dùng không hợp lệ', 400));
+    }
+
+    if (!newPassword || newPassword.length < 8) {
+        return next(new AppError('Mật khẩu mới phải có ít nhất 8 ký tự', 400));
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Admin không thể đặt lại mật khẩu của admin/superadmin
+    if (req.user.role === 'admin' && (user.role === 'admin' || user.role === 'superadmin')) {
+        return next(new AppError('Không có quyền đặt lại mật khẩu của admin/superadmin', 403));
+    }
+
+    // Superadmin không thể đặt lại mật khẩu của superadmin khác
+    if (req.user.role === 'superadmin' && user.role === 'superadmin' && user._id.toString() !== req.user.id) {
+        return next(new AppError('Không thể đặt lại mật khẩu của Superadmin khác', 403));
+    }
+
+    // Đặt lại mật khẩu
+    user.password = newPassword;
+    await user.save();
+
+    // Ghi log
+    logger.info(`Admin ${req.user.id} đã đặt lại mật khẩu cho người dùng ${userId}`);
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Đã đặt lại mật khẩu thành công'
+    });
+});
+
+/**
+ * @desc    Lấy thống kê về người dùng
+ * @route   GET /api/admin/users/stats
+ * @access  Private (Admin, Superadmin)
+ */
+export const getUserStats = catchAsync(async (req, res, next) => {
+    // Tổng số người dùng
+    const totalUsers = await User.countDocuments();
+
+    // Số lượng người dùng theo vai trò
+    const usersByRole = await User.aggregate([
+        {
+            $group: {
+                _id: '$role',
+                count: { $sum: 1 }
+            }
+        }
+    ]);
+
+    // Số lượng người dùng đã xác minh email
+    const verifiedUsers = await User.countDocuments({ isEmailVerified: true });
+
+    // Số lượng người dùng hoạt động
+    const activeUsers = await User.countDocuments({ active: true });
+
+    // Người dùng mới trong 7 ngày qua
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const newUsers = await User.countDocuments({
+        createdAt: { $gte: lastWeek }
+    });
+
+    // Tạo đối tượng kết quả từ usersByRole
+    const roleStats = usersByRole.reduce((acc, curr) => {
+        acc[curr._id] = curr.count;
+        return acc;
+    }, {});
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            total: totalUsers,
+            active: activeUsers,
+            verified: verifiedUsers,
+            newLastWeek: newUsers,
+            byRole: roleStats
+        }
+    });
 });

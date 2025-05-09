@@ -46,17 +46,36 @@ import {
     ChevronRight,
     ShieldAlert,
     UserIcon,
-    Eye
+    Eye,
+    UserPlus,
+    Edit,
+    Trash2,
+    Shield,
+    ShieldOff,
+    Filter,
+    ChevronDown,
+    Mail,
+    Upload,
+    Download,
+    MoreVertical,
+    ArrowUp,
+    ArrowDown,
+    UserCheck,
+    UserMinus,
+    Ban,
+    CheckCircle
 } from 'lucide-react'
 import { format } from 'date-fns'
+import userService from '@/services/userService'
+import { toast } from 'react-hot-toast'
 
-interface User {
-    _id: string
+interface UserData {
+    id: string
     email: string
     firstName: string
     lastName: string
     role: string
-    isEmailVerified: boolean
+    active: boolean
     createdAt: string
     lastLogin?: string
 }
@@ -64,70 +83,53 @@ interface User {
 export default function AdminUsersPage() {
     const t = useTranslations()
     const { user: currentUser } = useAppSelector((state) => state.auth)
-    const [users, setUsers] = useState<User[]>([])
+    const [users, setUsers] = useState<UserData[]>([])
     const [loading, setLoading] = useState(true)
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([])
     const [searchTerm, setSearchTerm] = useState('')
+    const [currentFilter, setCurrentFilter] = useState('all')
     const [currentPage, setCurrentPage] = useState(1)
     const [totalPages, setTotalPages] = useState(1)
-    const [selectedUser, setSelectedUser] = useState<User | null>(null)
-    const [showRoleDialog, setShowRoleDialog] = useState(false)
-    const [newRole, setNewRole] = useState<string>('')
-    const [processing, setProcessing] = useState(false)
+    const [totalUsers, setTotalUsers] = useState(0)
+    const [itemsPerPage, setItemsPerPage] = useState(10)
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [modalType, setModalType] = useState<'add' | 'edit' | 'delete'>('add')
+    const [currentUser, setCurrentUser] = useState<UserData | null>(null)
+    const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
+    const [error, setError] = useState('')
+    const [roleFilter, setRoleFilter] = useState('')
+    const [statusFilter, setStatusFilter] = useState('')
+    const [sortBy, setSortBy] = useState('createdAt')
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+    const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+    const [processingUser, setProcessingUser] = useState<string | null>(null)
 
     const isSuperAdmin = currentUser?.role === 'superadmin'
 
     useEffect(() => {
         fetchUsers()
-    }, [currentPage, searchTerm])
+    }, [currentPage, searchTerm, roleFilter, statusFilter, sortBy, sortDirection])
 
     const fetchUsers = async () => {
         try {
             setLoading(true)
-            const response = await api.get('/api/users', {
-                params: {
-                    page: currentPage,
-                    limit: 10,
-                    search: searchTerm
-                }
+            const response = await userService.getUsers({
+                page: currentPage,
+                limit: 10,
+                search: searchTerm,
+                role: roleFilter,
+                status: statusFilter,
+                sortBy,
+                sortDirection
             })
 
-            // Dữ liệu mẫu cho môi trường dev
-            const mockData = {
-                users: Array.from({ length: 10 }, (_, i) => ({
-                    _id: `user_${i + 1}`,
-                    email: `user${i + 1}@example.com`,
-                    firstName: `Người dùng`,
-                    lastName: `${i + 1}`,
-                    role: i === 0 ? 'superadmin' : i < 3 ? 'admin' : 'user',
-                    isEmailVerified: Math.random() > 0.3,
-                    createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-                    lastLogin: Math.random() > 0.2 ? new Date(Date.now() - Math.random() * 1000000000).toISOString() : undefined
-                })),
-                totalPages: 5
-            }
-
-            setUsers(response?.data?.users || mockData.users)
-            setTotalPages(response?.data?.totalPages || mockData.totalPages)
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách người dùng:', error)
-
-            // Dữ liệu mẫu nếu API gặp lỗi
-            const mockData = {
-                users: Array.from({ length: 10 }, (_, i) => ({
-                    _id: `user_${i + 1}`,
-                    email: `user${i + 1}@example.com`,
-                    firstName: `Người dùng`,
-                    lastName: `${i + 1}`,
-                    role: i === 0 ? 'superadmin' : i < 3 ? 'admin' : 'user',
-                    isEmailVerified: Math.random() > 0.3,
-                    createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-                    lastLogin: Math.random() > 0.2 ? new Date(Date.now() - Math.random() * 1000000000).toISOString() : undefined
-                })),
-                totalPages: 5
-            }
-
-            setUsers(mockData.users)
-            setTotalPages(mockData.totalPages)
+            setUsers(response.data)
+            setTotalUsers(response.totalCount || response.data.length)
+            setTotalPages(Math.ceil((response.totalCount || response.data.length) / itemsPerPage))
+        } catch (err) {
+            console.error('Error fetching users:', err)
+            setError('Không thể tải danh sách người dùng')
+            toast.error('Lỗi khi tải danh sách người dùng')
         } finally {
             setLoading(false)
         }
@@ -136,41 +138,38 @@ export default function AdminUsersPage() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
         setCurrentPage(1)  // Reset về trang đầu tiên khi tìm kiếm
+        fetchUsers()
     }
 
     const handleUpdateRole = async () => {
-        if (!selectedUser || !newRole) return
+        if (!currentUser || !currentUser.role) return
 
         try {
-            setProcessing(true)
-            await api.patch(`/api/users/${selectedUser._id}/role`, { role: newRole })
+            await api.patch(`/api/users/${currentUser.id}/role`, { role: currentUser.role })
 
             // Cập nhật local state
             setUsers(prevUsers =>
                 prevUsers.map(user =>
-                    user._id === selectedUser._id ? { ...user, role: newRole } : user
+                    user.id === currentUser.id ? { ...user, role: currentUser.role } : user
                 )
             )
 
-            setShowRoleDialog(false)
-            setSelectedUser(null)
-            setNewRole('')
+            setIsModalOpen(false)
+            setCurrentUser(null)
         } catch (error) {
             console.error('Lỗi khi cập nhật vai trò:', error)
             alert(t('admin.users.roleUpdateError'))
-        } finally {
-            setProcessing(false)
         }
     }
 
-    const handleViewDetails = (user: User) => {
-        setSelectedUser(user)
+    const handleViewDetails = (user: UserData) => {
+        setCurrentUser(user)
     }
 
-    const handleOpenRoleDialog = (user: User) => {
-        setSelectedUser(user)
-        setNewRole(user.role)
-        setShowRoleDialog(true)
+    const handleOpenRoleDialog = (user: UserData) => {
+        setCurrentUser(user)
+        setModalType('edit')
+        setIsModalOpen(true)
     }
 
     const getRoleBadgeVariant = (role: string) => {
@@ -181,6 +180,139 @@ export default function AdminUsersPage() {
                 return 'default'
             default:
                 return 'secondary'
+        }
+    }
+
+    const toggleSelectUser = (userId: string) => {
+        setSelectedUsers(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
+        )
+    }
+
+    const toggleSelectAll = () => {
+        if (selectedUsers.length === users.length) {
+            setSelectedUsers([])
+        } else {
+            setSelectedUsers(users.map(user => user.id))
+        }
+    }
+
+    const toggleDropdown = (userId: string) => {
+        setDropdownOpen(dropdownOpen === userId ? null : userId)
+    }
+
+    const handleRoleChange = (userId: string, newRole: string) => {
+        console.log(`Thay đổi role của người dùng ${userId} thành ${newRole}`)
+        setUsers(prev => prev.map(user =>
+            user.id === userId ? { ...user, role: newRole } : user
+        ))
+        setDropdownOpen(null)
+    }
+
+    const handleToggleActive = (userId: string) => {
+        console.log(`Thay đổi trạng thái active của người dùng ${userId}`)
+        setUsers(prev => prev.map(user =>
+            user.id === userId ? { ...user, active: !user.active } : user
+        ))
+        setDropdownOpen(null)
+    }
+
+    const handleEditUser = (user: UserData) => {
+        setCurrentUser(user)
+        setModalType('edit')
+        setIsModalOpen(true)
+        setDropdownOpen(null)
+    }
+
+    const handleDeleteUser = (user: UserData) => {
+        setCurrentUser(user)
+        setModalType('delete')
+        setIsModalOpen(true)
+        setDropdownOpen(null)
+    }
+
+    const formatDate = (dateString: string) => {
+        if (!dateString) return 'N/A'
+        const date = new Date(dateString)
+        return new Intl.DateTimeFormat('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        }).format(date)
+    }
+
+    const applyFilter = (role = roleFilter, status = statusFilter) => {
+        setRoleFilter(role)
+        setStatusFilter(status)
+        setCurrentPage(1)
+        setShowFilterDropdown(false)
+    }
+
+    const handleSort = (column) => {
+        if (sortBy === column) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+        } else {
+            setSortBy(column)
+            setSortDirection('asc')
+        }
+    }
+
+    const handlePromoteUser = async (userId) => {
+        if (!isSuperAdmin) {
+            toast.error('Chỉ SuperAdmin mới có quyền thăng cấp người dùng')
+            return
+        }
+
+        try {
+            setProcessingUser(userId)
+            await userService.promoteToAdmin(userId)
+            toast.success('Đã thăng cấp người dùng thành Admin')
+            fetchUsers()
+        } catch (err) {
+            console.error('Error promoting user:', err)
+            toast.error('Không thể thăng cấp người dùng')
+        } finally {
+            setProcessingUser(null)
+        }
+    }
+
+    const handleDemoteAdmin = async (userId) => {
+        if (!isSuperAdmin) {
+            toast.error('Chỉ SuperAdmin mới có quyền hạ cấp Admin')
+            return
+        }
+
+        try {
+            setProcessingUser(userId)
+            await userService.demoteFromAdmin(userId)
+            toast.success('Đã hạ cấp Admin xuống người dùng thường')
+            fetchUsers()
+        } catch (err) {
+            console.error('Error demoting admin:', err)
+            toast.error('Không thể hạ cấp Admin')
+        } finally {
+            setProcessingUser(null)
+        }
+    }
+
+    const handleToggleUserStatus = async (userId, isActive) => {
+        try {
+            setProcessingUser(userId)
+            if (isActive) {
+                await userService.deactivateUser(userId)
+                toast.success('Đã vô hiệu hóa tài khoản người dùng')
+            } else {
+                await userService.activateUser(userId)
+                toast.success('Đã kích hoạt tài khoản người dùng')
+            }
+            fetchUsers()
+        } catch (err) {
+            console.error('Error toggling user status:', err)
+            toast.error(`Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản người dùng`)
+        } finally {
+            setProcessingUser(null)
         }
     }
 
@@ -247,7 +379,7 @@ export default function AdminUsersPage() {
                                     </TableRow>
                                 ) : (
                                     users.map((user) => (
-                                        <TableRow key={user._id}>
+                                        <TableRow key={user.id}>
                                             <TableCell>
                                                 {user.firstName} {user.lastName}
                                             </TableCell>
@@ -258,7 +390,7 @@ export default function AdminUsersPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {user.isEmailVerified ? t('common.yes') : t('common.no')}
+                                                {user.active ? t('common.yes') : t('common.no')}
                                             </TableCell>
                                             <TableCell>
                                                 {new Date(user.createdAt).toLocaleDateString()}
@@ -281,7 +413,7 @@ export default function AdminUsersPage() {
                                                         {isSuperAdmin && (
                                                             <DropdownMenuItem
                                                                 onClick={() => handleOpenRoleDialog(user)}
-                                                                disabled={user.role === 'superadmin' && user._id === currentUser?._id}
+                                                                disabled={user.role === 'superadmin' && user.id === currentUser?.id}
                                                             >
                                                                 <ShieldAlert className="mr-2 h-4 w-4" />
                                                                 {t('admin.users.changeRole')}
@@ -325,51 +457,51 @@ export default function AdminUsersPage() {
             </Card>
 
             {/* Dialog xem chi tiết người dùng */}
-            {selectedUser && (
-                <Dialog open={!!selectedUser && !showRoleDialog} onOpenChange={(open) => !open && setSelectedUser(null)}>
+            {currentUser && (
+                <Dialog open={!!currentUser && !isModalOpen} onOpenChange={(open) => !open && setCurrentUser(null)}>
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle>{t('admin.users.userDetails')}</DialogTitle>
                             <DialogDescription>
-                                {selectedUser.firstName} {selectedUser.lastName}
+                                {currentUser.firstName} {currentUser.lastName}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.email')}:</div>
-                                <div className="col-span-3">{selectedUser.email}</div>
+                                <div className="col-span-3">{currentUser.email}</div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.role')}:</div>
                                 <div className="col-span-3">
-                                    <Badge variant={getRoleBadgeVariant(selectedUser.role)}>
-                                        {selectedUser.role}
+                                    <Badge variant={getRoleBadgeVariant(currentUser.role)}>
+                                        {currentUser.role}
                                     </Badge>
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.verified')}:</div>
                                 <div className="col-span-3">
-                                    {selectedUser.isEmailVerified ? t('common.yes') : t('common.no')}
+                                    {currentUser.active ? t('common.yes') : t('common.no')}
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.created')}:</div>
                                 <div className="col-span-3">
-                                    {new Date(selectedUser.createdAt).toLocaleDateString()}
+                                    {new Date(currentUser.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
-                            {selectedUser.lastLogin && (
+                            {currentUser.lastLogin && (
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <div className="text-right font-medium">{t('admin.users.lastLogin')}:</div>
                                     <div className="col-span-3">
-                                        {new Date(selectedUser.lastLogin).toLocaleDateString()}
+                                        {new Date(currentUser.lastLogin).toLocaleDateString()}
                                     </div>
                                 </div>
                             )}
                         </div>
                         <DialogFooter>
-                            <Button variant="secondary" onClick={() => setSelectedUser(null)}>
+                            <Button variant="secondary" onClick={() => setCurrentUser(null)}>
                                 {t('common.close')}
                             </Button>
                         </DialogFooter>
@@ -378,7 +510,7 @@ export default function AdminUsersPage() {
             )}
 
             {/* Dialog thay đổi vai trò */}
-            <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>{t('admin.users.changeRoleTitle')}</DialogTitle>
@@ -390,14 +522,14 @@ export default function AdminUsersPage() {
                         <div className="grid grid-cols-4 items-center gap-4">
                             <div className="text-right font-medium">{t('admin.users.user')}:</div>
                             <div className="col-span-3">
-                                {selectedUser?.firstName} {selectedUser?.lastName} ({selectedUser?.email})
+                                {currentUser?.firstName} {currentUser?.lastName} ({currentUser?.email})
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <div className="text-right font-medium">{t('admin.users.currentRole')}:</div>
                             <div className="col-span-3">
-                                <Badge variant={getRoleBadgeVariant(selectedUser?.role || 'user')}>
-                                    {selectedUser?.role}
+                                <Badge variant={getRoleBadgeVariant(currentUser?.role || 'user')}>
+                                    {currentUser?.role}
                                 </Badge>
                             </div>
                         </div>
@@ -405,8 +537,8 @@ export default function AdminUsersPage() {
                             <div className="text-right font-medium">{t('admin.users.newRole')}:</div>
                             <div className="col-span-3">
                                 <select
-                                    value={newRole}
-                                    onChange={(e) => setNewRole(e.target.value)}
+                                    value={currentUser?.role || 'user'}
+                                    onChange={(e) => handleRoleChange(currentUser?.id || '', e.target.value)}
                                     className="w-full rounded-md border border-input bg-background px-3 py-2"
                                 >
                                     <option value="user">{t('admin.users.roleUser')}</option>
@@ -420,17 +552,17 @@ export default function AdminUsersPage() {
                         <Button
                             variant="secondary"
                             onClick={() => {
-                                setShowRoleDialog(false)
-                                setSelectedUser(null)
+                                setIsModalOpen(false)
+                                setCurrentUser(null)
                             }}
                         >
                             {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleUpdateRole}
-                            disabled={!newRole || newRole === selectedUser?.role || processing}
+                            disabled={!currentUser || currentUser.role === selectedUsers.length > 0}
                         >
-                            {processing ? t('common.processing') : t('common.save')}
+                            {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
