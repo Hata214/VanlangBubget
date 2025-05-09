@@ -133,15 +133,27 @@ export function Footer() {
             {/* Divider */}
             <div className="border-t border-gray-800 dark:border-gray-700/30 my-8"></div>
 
-            {/* Admin Login Link - Fixed position */}
-            {/* Hiển thị chỉ khi chưa đăng nhập */}
-            {!isUserAuthenticated && (
-                <div className="fixed bottom-4 right-4 text-sm z-50">
-                    <Link href="admin/login" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors bg-gray-800 dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg">
+            {/* Admin Link - Fixed position */}
+            <div className="fixed bottom-4 right-4 text-sm z-50">
+                {!isUserAuthenticated ? (
+                    <Link href="/admin/login" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors bg-gray-800 dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg">
                         Admin Login
                     </Link>
-                </div>
-            )}
+                ) : (
+                    // Kiểm tra user có role là admin hoặc superadmin
+                    useAuth().user?.role === 'admin' || useAuth().user?.role === 'superadmin' ? (
+                        <Link href="/admin" className="text-white dark:text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-2 rounded-md shadow-lg flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <rect width="7" height="9" x="3" y="3" rx="1" />
+                                <rect width="7" height="5" x="14" y="3" rx="1" />
+                                <rect width="7" height="9" x="14" y="12" rx="1" />
+                                <rect width="7" height="5" x="3" y="16" rx="1" />
+                            </svg>
+                            <span>Quản trị</span>
+                        </Link>
+                    ) : null
+                )}
+            </div>
 
             {/* Copyright */}
             <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
