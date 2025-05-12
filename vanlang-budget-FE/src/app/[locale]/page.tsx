@@ -14,7 +14,7 @@ export default function HomePage() {
                 <div className="flex flex-col items-center justify-center">
                     <Image
                         src="/logo-vlb.png"
-                        alt="VangLang Budget Logo"
+                        alt="VanLang Budget Logo"
                         width={80}
                         height={80}
                         className="mb-4"

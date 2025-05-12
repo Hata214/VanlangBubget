@@ -13,32 +13,26 @@ export default function RoadmapPage() {
     const completedFeatures = [
         {
             icon: <BarChart className="h-8 w-8 text-green-600" />,
-            title: t('home.features.expenseTracking.title'),
-            description: t('home.features.expenseTracking.description'),
+            title: t('features.mainFeatures.expenseTracking.title'),
+            description: t('features.mainFeatures.expenseTracking.description'),
             date: 'Q1 2025'
         },
         {
             icon: <PiggyBank className="h-8 w-8 text-green-600" />,
-            title: t('home.features.budgetManagement.title'),
-            description: t('home.features.budgetManagement.description'),
+            title: t('features.mainFeatures.budgetManagement.title'),
+            description: t('features.mainFeatures.budgetManagement.description'),
             date: 'Q1 2025'
         },
         {
             icon: <LineChart className="h-8 w-8 text-green-600" />,
-            title: t('home.features.financialAnalysis.title'),
-            description: t('home.features.financialAnalysis.description'),
-            date: 'Q1 2025'
-        },
-        {
-            icon: <Clock className="h-8 w-8 text-green-600" />,
-            title: t('home.features.futurePlanning.title'),
-            description: t('home.features.futurePlanning.description'),
+            title: t('features.mainFeatures.financialAnalysis.title'),
+            description: t('features.mainFeatures.financialAnalysis.description'),
             date: 'Q1 2025'
         },
         {
             icon: <Shield className="h-8 w-8 text-green-600" />,
-            title: t('home.features.dataSecurity.title'),
-            description: t('home.features.dataSecurity.description'),
+            title: t('features.mainFeatures.dataSecurity.title'),
+            description: t('features.mainFeatures.dataSecurity.description'),
             date: 'Q1 2025'
         }
     ];
@@ -220,4 +214,4 @@ export default function RoadmapPage() {
             </div>
         </PublicLayout>
     )
-} 
+}

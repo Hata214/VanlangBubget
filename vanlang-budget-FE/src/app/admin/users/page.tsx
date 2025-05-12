@@ -63,7 +63,9 @@ import {
     UserCheck,
     UserMinus,
     Ban,
-    CheckCircle
+    CheckCircle,
+    RefreshCw,
+    FileUp
 } from 'lucide-react'
 import { format } from 'date-fns'
 import userService from '@/services/userService'
@@ -94,7 +96,7 @@ export default function AdminUsersPage() {
     const [itemsPerPage, setItemsPerPage] = useState(10)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [modalType, setModalType] = useState<'add' | 'edit' | 'delete'>('add')
-    const [currentUser, setCurrentUser] = useState<UserData | null>(null)
+    const [selectedUser, setSelectedUser] = useState<UserData | null>(null)
     const [dropdownOpen, setDropdownOpen] = useState<string | null>(null)
     const [error, setError] = useState('')
     const [roleFilter, setRoleFilter] = useState('')
@@ -103,12 +105,27 @@ export default function AdminUsersPage() {
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
     const [showFilterDropdown, setShowFilterDropdown] = useState(false)
     const [processingUser, setProcessingUser] = useState<string | null>(null)
+    const [showCreateUserModal, setShowCreateUserModal] = useState(false)
+    const [newUserData, setNewUserData] = useState({
+        email: '',
+        firstName: '',
+        lastName: '',
+        password: '',
+        role: 'user'
+    })
 
     const isSuperAdmin = currentUser?.role === 'superadmin'
 
     useEffect(() => {
         fetchUsers()
     }, [currentPage, searchTerm, roleFilter, statusFilter, sortBy, sortDirection])
+
+    useEffect(() => {
+        const currentUserRole = localStorage.getItem('user_role');
+        const isSuperAdminUser = currentUserRole === 'superadmin';
+        console.log('Current user role from localStorage:', currentUserRole);
+        console.log('Is SuperAdmin:', isSuperAdminUser);
+    }, []);
 
     const fetchUsers = async () => {
         try {
@@ -142,20 +159,20 @@ export default function AdminUsersPage() {
     }
 
     const handleUpdateRole = async () => {
-        if (!currentUser || !currentUser.role) return
+        if (!selectedUser || !selectedUser.role) return
 
         try {
-            await api.patch(`/api/users/${currentUser.id}/role`, { role: currentUser.role })
+            await api.patch(`/api/users/${selectedUser.id}/role`, { role: selectedUser.role })
 
             // Cập nhật local state
             setUsers(prevUsers =>
                 prevUsers.map(user =>
-                    user.id === currentUser.id ? { ...user, role: currentUser.role } : user
+                    user.id === selectedUser.id ? { ...user, role: selectedUser.role } : user
                 )
             )
 
             setIsModalOpen(false)
-            setCurrentUser(null)
+            setSelectedUser(null)
         } catch (error) {
             console.error('Lỗi khi cập nhật vai trò:', error)
             alert(t('admin.users.roleUpdateError'))
@@ -163,11 +180,11 @@ export default function AdminUsersPage() {
     }
 
     const handleViewDetails = (user: UserData) => {
-        setCurrentUser(user)
+        setSelectedUser(user)
     }
 
     const handleOpenRoleDialog = (user: UserData) => {
-        setCurrentUser(user)
+        setSelectedUser(user)
         setModalType('edit')
         setIsModalOpen(true)
     }
@@ -220,14 +237,14 @@ export default function AdminUsersPage() {
     }
 
     const handleEditUser = (user: UserData) => {
-        setCurrentUser(user)
+        setSelectedUser(user)
         setModalType('edit')
         setIsModalOpen(true)
         setDropdownOpen(null)
     }
 
     const handleDeleteUser = (user: UserData) => {
-        setCurrentUser(user)
+        setSelectedUser(user)
         setModalType('delete')
         setIsModalOpen(true)
         setDropdownOpen(null)
@@ -250,7 +267,7 @@ export default function AdminUsersPage() {
         setShowFilterDropdown(false)
     }
 
-    const handleSort = (column) => {
+    const handleSort = (column: string) => {
         if (sortBy === column) {
             setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
         } else {
@@ -259,7 +276,7 @@ export default function AdminUsersPage() {
         }
     }
 
-    const handlePromoteUser = async (userId) => {
+    const handlePromoteUser = async (userId: string) => {
         if (!isSuperAdmin) {
             toast.error('Chỉ SuperAdmin mới có quyền thăng cấp người dùng')
             return
@@ -278,7 +295,7 @@ export default function AdminUsersPage() {
         }
     }
 
-    const handleDemoteAdmin = async (userId) => {
+    const handleDemoteAdmin = async (userId: string) => {
         if (!isSuperAdmin) {
             toast.error('Chỉ SuperAdmin mới có quyền hạ cấp Admin')
             return
@@ -297,7 +314,7 @@ export default function AdminUsersPage() {
         }
     }
 
-    const handleToggleUserStatus = async (userId, isActive) => {
+    const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
         try {
             setProcessingUser(userId)
             if (isActive) {
@@ -316,35 +333,164 @@ export default function AdminUsersPage() {
         }
     }
 
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        try {
+            setLoading(true)
+            await userService.createUser(newUserData)
+            toast.success('Tạo người dùng mới thành công')
+            setShowCreateUserModal(false)
+            setNewUserData({
+                email: '',
+                firstName: '',
+                lastName: '',
+                password: '',
+                role: 'user'
+            })
+            fetchUsers()
+        } catch (error) {
+            console.error('Lỗi khi tạo người dùng:', error)
+            toast.error('Không thể tạo người dùng mới')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleRefresh = () => {
+        fetchUsers()
+        toast.success('Đã tải lại danh sách người dùng')
+    }
+
+    const handleExportCSV = () => {
+        try {
+            // Tạo dữ liệu CSV
+            const headers = ['Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày tạo']
+            const data = users.map(user => [
+                `${user.firstName} ${user.lastName}`,
+                user.email,
+                user.role,
+                user.active ? 'Hoạt động' : 'Vô hiệu',
+                formatDate(user.createdAt)
+            ])
+
+            // Ghép headers và dữ liệu
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => row.join(','))
+            ].join('\n')
+
+            // Tạo blob và download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.setAttribute('href', url)
+            link.setAttribute('download', `users-${new Date().toISOString().slice(0, 10)}.csv`)
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            toast.success('Xuất dữ liệu thành công')
+        } catch (error) {
+            console.error('Lỗi khi xuất dữ liệu:', error)
+            toast.error('Không thể xuất dữ liệu')
+        }
+    }
+
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.users.title')}</h1>
-                <p className="text-muted-foreground mt-2">
-                    {t('admin.users.description')}
-                </p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">{t('admin.users.title')}</h1>
+                    <p className="text-muted-foreground mt-2">
+                        {t('admin.users.description')}
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleRefresh}
+                    >
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Làm mới
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExportCSV}
+                    >
+                        <Download className="h-4 w-4 mr-2" />
+                        Xuất CSV
+                    </Button>
+                    <Button
+                        variant="default"
+                        size="sm"
+                        onClick={() => setShowCreateUserModal(true)}
+                    >
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Tạo người dùng
+                    </Button>
+                </div>
             </div>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('admin.users.userList')}</CardTitle>
-                    <CardDescription>
-                        {t('admin.users.userListDescription')}
-                    </CardDescription>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <CardTitle>{t('admin.users.userList')}</CardTitle>
+                            <CardDescription>
+                                {t('admin.users.userListDescription')}
+                            </CardDescription>
+                        </div>
+                    </div>
 
-                    <form onSubmit={handleSearch} className="mt-4 flex w-full max-w-sm items-center space-x-2">
-                        <Input
-                            type="text"
-                            placeholder={t('admin.users.searchPlaceholder')}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1"
-                        />
-                        <Button type="submit" size="icon">
-                            <Search className="h-4 w-4" />
-                            <span className="sr-only">{t('common.search')}</span>
-                        </Button>
-                    </form>
+                    <div className="flex flex-col md:flex-row gap-4 mt-4">
+                        <form onSubmit={handleSearch} className="flex flex-1 max-w-sm items-center space-x-2">
+                            <Input
+                                type="text"
+                                placeholder={t('admin.users.searchPlaceholder')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1"
+                            />
+                            <Button type="submit" size="icon">
+                                <Search className="h-4 w-4" />
+                                <span className="sr-only">{t('common.search')}</span>
+                            </Button>
+                        </form>
+
+                        <div className="flex flex-col md:flex-row gap-2">
+                            <select
+                                value={roleFilter}
+                                onChange={(e) => {
+                                    setRoleFilter(e.target.value)
+                                    setCurrentPage(1)
+                                    fetchUsers()
+                                }}
+                                className="h-10 w-full md:w-40 rounded-md border border-input bg-background px-3 py-2"
+                            >
+                                <option value="">Tất cả vai trò</option>
+                                <option value="user">Người dùng</option>
+                                <option value="admin">Admin</option>
+                                <option value="superadmin">SuperAdmin</option>
+                            </select>
+
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => {
+                                    setStatusFilter(e.target.value)
+                                    setCurrentPage(1)
+                                    fetchUsers()
+                                }}
+                                className="h-10 w-full md:w-40 rounded-md border border-input bg-background px-3 py-2"
+                            >
+                                <option value="">Tất cả trạng thái</option>
+                                <option value="active">Hoạt động</option>
+                                <option value="inactive">Vô hiệu hóa</option>
+                            </select>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -410,13 +556,45 @@ export default function AdminUsersPage() {
                                                             <Eye className="mr-2 h-4 w-4" />
                                                             {t('admin.users.viewDetails')}
                                                         </DropdownMenuItem>
-                                                        {isSuperAdmin && (
+
+                                                        {isSuperAdmin && user.role !== 'superadmin' && (
+                                                            <>
+                                                                {user.role === 'user' ? (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handlePromoteUser(user.id)}
+                                                                        disabled={processingUser === user.id}
+                                                                    >
+                                                                        <UserCheck className="mr-2 h-4 w-4" />
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Nâng cấp lên Admin'}
+                                                                    </DropdownMenuItem>
+                                                                ) : user.role === 'admin' && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => handleDemoteAdmin(user.id)}
+                                                                        disabled={processingUser === user.id}
+                                                                    >
+                                                                        <UserMinus className="mr-2 h-4 w-4" />
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                            </>
+                                                        )}
+
+                                                        {(isSuperAdmin || (user.role !== 'admin' && user.role !== 'superadmin')) && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleOpenRoleDialog(user)}
-                                                                disabled={user.role === 'superadmin' && user.id === currentUser?.id}
+                                                                onClick={() => handleToggleUserStatus(user.id, user.active)}
+                                                                disabled={processingUser === user.id || user.role === 'superadmin'}
                                                             >
-                                                                <ShieldAlert className="mr-2 h-4 w-4" />
-                                                                {t('admin.users.changeRole')}
+                                                                {user.active ? (
+                                                                    <>
+                                                                        <Ban className="mr-2 h-4 w-4" />
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
+                                                                    </>
+                                                                )}
                                                             </DropdownMenuItem>
                                                         )}
                                                     </DropdownMenuContent>
@@ -430,78 +608,83 @@ export default function AdminUsersPage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-end space-x-2 py-4">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage <= 1}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            <span className="sr-only">{t('common.previous')}</span>
-                        </Button>
+                    <div className="flex items-center justify-between space-x-2 py-4">
                         <div>
-                            {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+                            Hiển thị {users.length} trên tổng số {totalUsers} người dùng
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage >= totalPages}
-                        >
-                            <ChevronRight className="h-4 w-4" />
-                            <span className="sr-only">{t('common.next')}</span>
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage <= 1}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                                <span className="sr-only">{t('common.previous')}</span>
+                            </Button>
+                            <div>
+                                {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+                            </div>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage >= totalPages}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                                <span className="sr-only">{t('common.next')}</span>
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
 
             {/* Dialog xem chi tiết người dùng */}
-            {currentUser && (
-                <Dialog open={!!currentUser && !isModalOpen} onOpenChange={(open) => !open && setCurrentUser(null)}>
+            {selectedUser && (
+                <Dialog open={!!selectedUser && !isModalOpen} onOpenChange={(open) => !open && setSelectedUser(null)}>
                     <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                             <DialogTitle>{t('admin.users.userDetails')}</DialogTitle>
                             <DialogDescription>
-                                {currentUser.firstName} {currentUser.lastName}
+                                {selectedUser.firstName} {selectedUser.lastName}
                             </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.email')}:</div>
-                                <div className="col-span-3">{currentUser.email}</div>
+                                <div className="col-span-3">{selectedUser.email}</div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.role')}:</div>
                                 <div className="col-span-3">
-                                    <Badge variant={getRoleBadgeVariant(currentUser.role)}>
-                                        {currentUser.role}
+                                    <Badge variant={getRoleBadgeVariant(selectedUser.role)}>
+                                        {selectedUser.role}
                                     </Badge>
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.verified')}:</div>
                                 <div className="col-span-3">
-                                    {currentUser.active ? t('common.yes') : t('common.no')}
+                                    {selectedUser.active ? t('common.yes') : t('common.no')}
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.created')}:</div>
                                 <div className="col-span-3">
-                                    {new Date(currentUser.createdAt).toLocaleDateString()}
+                                    {new Date(selectedUser.createdAt).toLocaleDateString()}
                                 </div>
                             </div>
-                            {currentUser.lastLogin && (
+                            {selectedUser.lastLogin && (
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <div className="text-right font-medium">{t('admin.users.lastLogin')}:</div>
                                     <div className="col-span-3">
-                                        {new Date(currentUser.lastLogin).toLocaleDateString()}
+                                        {new Date(selectedUser.lastLogin).toLocaleDateString()}
                                     </div>
                                 </div>
                             )}
                         </div>
                         <DialogFooter>
-                            <Button variant="secondary" onClick={() => setCurrentUser(null)}>
+                            <Button variant="secondary" onClick={() => setSelectedUser(null)}>
                                 {t('common.close')}
                             </Button>
                         </DialogFooter>
@@ -522,14 +705,14 @@ export default function AdminUsersPage() {
                         <div className="grid grid-cols-4 items-center gap-4">
                             <div className="text-right font-medium">{t('admin.users.user')}:</div>
                             <div className="col-span-3">
-                                {currentUser?.firstName} {currentUser?.lastName} ({currentUser?.email})
+                                {selectedUser?.firstName} {selectedUser?.lastName} ({selectedUser?.email})
                             </div>
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <div className="text-right font-medium">{t('admin.users.currentRole')}:</div>
                             <div className="col-span-3">
-                                <Badge variant={getRoleBadgeVariant(currentUser?.role || 'user')}>
-                                    {currentUser?.role}
+                                <Badge variant={getRoleBadgeVariant(selectedUser?.role || 'user')}>
+                                    {selectedUser?.role}
                                 </Badge>
                             </div>
                         </div>
@@ -537,8 +720,8 @@ export default function AdminUsersPage() {
                             <div className="text-right font-medium">{t('admin.users.newRole')}:</div>
                             <div className="col-span-3">
                                 <select
-                                    value={currentUser?.role || 'user'}
-                                    onChange={(e) => handleRoleChange(currentUser?.id || '', e.target.value)}
+                                    value={selectedUser?.role || 'user'}
+                                    onChange={(e) => handleRoleChange(selectedUser?.id || '', e.target.value)}
                                     className="w-full rounded-md border border-input bg-background px-3 py-2"
                                 >
                                     <option value="user">{t('admin.users.roleUser')}</option>
@@ -553,18 +736,109 @@ export default function AdminUsersPage() {
                             variant="secondary"
                             onClick={() => {
                                 setIsModalOpen(false)
-                                setCurrentUser(null)
+                                setSelectedUser(null)
                             }}
                         >
                             {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleUpdateRole}
-                            disabled={!currentUser || currentUser.role === selectedUsers.length > 0}
+                            disabled={!selectedUser || selectedUser.role === ''}
                         >
                             {t('common.save')}
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Modal tạo người dùng mới */}
+            <Dialog open={showCreateUserModal} onOpenChange={setShowCreateUserModal}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Tạo người dùng mới</DialogTitle>
+                        <DialogDescription>
+                            Nhập thông tin để tạo tài khoản người dùng mới
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleCreateUser}>
+                        <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Email:</div>
+                                <div className="col-span-3">
+                                    <Input
+                                        type="email"
+                                        value={newUserData.email}
+                                        onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
+                                        className="w-full"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Họ:</div>
+                                <div className="col-span-3">
+                                    <Input
+                                        type="text"
+                                        value={newUserData.firstName}
+                                        onChange={(e) => setNewUserData({ ...newUserData, firstName: e.target.value })}
+                                        className="w-full"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Tên:</div>
+                                <div className="col-span-3">
+                                    <Input
+                                        type="text"
+                                        value={newUserData.lastName}
+                                        onChange={(e) => setNewUserData({ ...newUserData, lastName: e.target.value })}
+                                        className="w-full"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Mật khẩu:</div>
+                                <div className="col-span-3">
+                                    <Input
+                                        type="password"
+                                        value={newUserData.password}
+                                        onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
+                                        className="w-full"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Vai trò:</div>
+                                <div className="col-span-3">
+                                    <select
+                                        value={newUserData.role}
+                                        onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
+                                        className="w-full rounded-md border border-input bg-background px-3 py-2"
+                                        required
+                                    >
+                                        <option value="user">Người dùng</option>
+                                        {isSuperAdmin && <option value="admin">Admin</option>}
+                                        {isSuperAdmin && <option value="superadmin">SuperAdmin</option>}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button
+                                variant="secondary"
+                                onClick={() => setShowCreateUserModal(false)}
+                                type="button"
+                            >
+                                Hủy
+                            </Button>
+                            <Button type="submit" disabled={loading}>
+                                {loading ? 'Đang xử lý...' : 'Tạo người dùng'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>

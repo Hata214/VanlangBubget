@@ -15,7 +15,8 @@ import {
     DollarSign,
     Calendar,
     BarChart3,
-    Activity
+    Activity,
+    Shield
 } from 'lucide-react'
 
 interface StatData {
@@ -23,6 +24,12 @@ interface StatData {
     transactionCount: number
     activeUserCount: number
     todayTransactions: number
+}
+
+interface UserInfo {
+    name: string;
+    email: string;
+    role: string;
 }
 
 export default function AdminDashboardPage() {
@@ -34,8 +41,25 @@ export default function AdminDashboardPage() {
         todayTransactions: 0
     })
     const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState<UserInfo | null>(null)
 
     useEffect(() => {
+        // Lấy thông tin người dùng từ localStorage
+        if (typeof window !== 'undefined') {
+            const userName = localStorage.getItem('user_name') || '';
+            const userEmail = localStorage.getItem('user_email') || '';
+            const userRole = localStorage.getItem('user_role') || '';
+
+            if (userEmail) {
+                setUser({
+                    name: userName,
+                    email: userEmail,
+                    role: userRole
+                });
+                console.log('Đã tải thông tin người dùng từ localStorage:', userName, userEmail, userRole);
+            }
+        }
+
         // Giả lập dữ liệu trong môi trường dev
         const loadMockData = () => {
             setStats({
@@ -85,25 +109,11 @@ export default function AdminDashboardPage() {
             color: 'bg-blue-500'
         },
         {
-            title: t('admin.stats.totalTransactions'),
-            value: stats.transactionCount.toLocaleString(),
-            description: t('admin.stats.allTimeTransactions'),
-            icon: DollarSign,
-            color: 'bg-green-500'
-        },
-        {
             title: t('admin.stats.activeUsers'),
             value: stats.activeUserCount.toLocaleString(),
             description: t('admin.stats.last30Days'),
             icon: Activity,
             color: 'bg-yellow-500'
-        },
-        {
-            title: t('admin.stats.todayTransactions'),
-            value: stats.todayTransactions.toLocaleString(),
-            description: t('admin.stats.today'),
-            icon: Calendar,
-            color: 'bg-purple-500'
         }
     ]
 
@@ -115,6 +125,36 @@ export default function AdminDashboardPage() {
                     {t('admin.dashboardDescription')}
                 </p>
             </div>
+
+            {/* Thêm thông tin người dùng đăng nhập */}
+            {user && (
+                <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-purple-100">
+                    <CardHeader>
+                        <div className="flex items-center space-x-2">
+                            <Shield className={user.role === 'superadmin' ? 'text-red-500' : 'text-blue-500'} />
+                            <CardTitle>Thông tin đăng nhập</CardTitle>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            <div className="grid grid-cols-2 gap-1">
+                                <div className="text-sm font-medium">Tên người dùng:</div>
+                                <div className="text-sm">{user.name}</div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                                <div className="text-sm font-medium">Email:</div>
+                                <div className="text-sm">{user.email}</div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-1">
+                                <div className="text-sm font-medium">Vai trò:</div>
+                                <div className={`text-sm font-bold ${user.role === 'superadmin' ? 'text-red-600' : 'text-blue-600'}`}>
+                                    {user.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {stats_cards.map((card, index) => (

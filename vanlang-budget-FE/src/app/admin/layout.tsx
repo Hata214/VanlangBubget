@@ -15,7 +15,9 @@ import {
     LogOut,
     Menu,
     X,
-    ChevronDown
+    ChevronDown,
+    Shield,
+    Activity
 } from 'lucide-react';
 import './admin.css';
 
@@ -49,12 +51,15 @@ export default function AdminLayout({
         // Kiểm tra xem người dùng đã đăng nhập hay chưa và có quyền admin không
         const checkAdminAccess = async () => {
             setIsLoading(true);
+            console.log('Kiểm tra quyền admin truy cập cho đường dẫn:', pathname);
 
             try {
                 // Lấy token từ localStorage hoặc cookie
                 const token = localStorage.getItem('auth_token') ||
                     document.cookie.split('; ')
                         .find(row => row.startsWith('auth_token='))?.split('=')[1];
+
+                console.log('Token found:', token ? 'Yes' : 'No');
 
                 if (!token) {
                     console.log("Không tìm thấy token, chuyển hướng đến trang đăng nhập");
@@ -63,61 +68,135 @@ export default function AdminLayout({
                 }
 
                 // Xử lý token giả lập trực tiếp (cho môi trường phát triển)
-                if (token.startsWith('mock_') && (token.includes('admin') || token.includes('superadmin'))) {
-                    console.log("Xác thực với token giả lập");
+                if (token.startsWith('mock_')) {
+                    console.log("Xác thực với token giả lập:", token);
 
-                    // Lấy thông tin người dùng từ localStorage
-                    const email = localStorage.getItem('user_email') || 'admin@example.com';
-                    const name = localStorage.getItem('user_name') || 'Admin User';
-                    const role = localStorage.getItem('user_role') || 'admin';
+                    // Kiểm tra nếu token có chứa admin hoặc superadmin
+                    if (token.includes('admin') || token.includes('superadmin')) {
+                        // Lấy thông tin người dùng từ localStorage
+                        const email = localStorage.getItem('user_email') || 'admin@example.com';
+                        const name = localStorage.getItem('user_name') || 'Admin User';
+                        const role = token.includes('superadmin') ? 'superadmin' : 'admin';
 
-                    setIsAuthorized(true);
-                    setUserInfo({
-                        id: '1',
-                        email: email,
-                        name: name,
-                        role: role
+                        console.log("Thông tin người dùng giả lập:", { email, name, role });
+
+                        // Cập nhật thông tin người dùng vào state
+                        setIsAuthorized(true);
+                        setUserInfo({
+                            id: role === 'superadmin' ? '1' : '2',
+                            email: email,
+                            name: name,
+                            role: role
+                        });
+
+                        localStorage.setItem('user_role', role);
+                        setIsLoading(false);
+                        return;
+                    } else {
+                        console.log("Token giả lập không hợp lệ, không có quyền admin");
+                        clearUserData();
+                        router.push('/admin/login');
+                        return;
+                    }
+                }
+
+                // Xác thực token với API admin/auth/verify
+                console.log("Gọi API xác thực token admin");
+
+                try {
+                    const response = await fetch('/api/admin/auth/verify', {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
                     });
 
-                    setIsLoading(false);
-                    return;
-                }
+                    console.log("API admin auth verify response status:", response.status);
 
-                // Xác thực token với API admin
-                console.log("Gọi API xác thực token admin");
-                const response = await fetch('/api/admin/auth', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
+                    if (response.ok) {
+                        const userData = await response.json();
+                        console.log("Xác thực admin thành công:", userData);
+
+                        if (userData.success && userData.user && ['admin', 'superadmin'].includes(userData.user.role)) {
+                            console.log("Người dùng có quyền admin:", userData.user.role);
+
+                            setIsAuthorized(true);
+                            setUserInfo(userData.user);
+
+                            // Lưu thông tin người dùng vào localStorage
+                            if (userData.user) {
+                                localStorage.setItem('user_email', userData.user.email);
+                                localStorage.setItem('user_name', userData.user.name || userData.user.email);
+                                localStorage.setItem('user_role', userData.user.role);
+                            }
+                        } else {
+                            console.log("Tài khoản không có quyền admin:", userData);
+                            clearUserData();
+                            router.push('/admin/login?error=unauthorized');
+                        }
+                    } else {
+                        // Kiểm tra nếu token đã hết hạn hoặc không hợp lệ
+                        const errorData = await response.json();
+                        console.log("Lỗi xác thực:", errorData);
+
+                        // Xóa token và chuyển hướng về trang đăng nhập
+                        clearUserData();
+                        router.push('/admin/login?error=invalid_token');
                     }
-                });
+                } catch (fetchError) {
+                    console.error("Lỗi khi gọi API xác thực:", fetchError);
 
-                if (response.ok) {
-                    const userData = await response.json();
-                    console.log("Xác thực admin thành công");
-                    setIsAuthorized(true);
-                    setUserInfo(userData.user);
+                    // Thử gọi API verify-token trực tiếp từ backend 
+                    try {
+                        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                        const directResponse = await fetch(`${backendUrl}/api/auth/verify-token`, {
+                            method: 'GET',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
 
-                    // Lưu thông tin người dùng vào localStorage
-                    if (userData.user) {
-                        localStorage.setItem('user_email', userData.user.email);
-                        localStorage.setItem('user_name', userData.user.name || userData.user.email);
-                        localStorage.setItem('user_role', userData.user.role);
+                        console.log("Backend direct verify response:", directResponse.status);
+
+                        if (directResponse.ok) {
+                            const directData = await directResponse.json();
+                            console.log("Backend direct verification success:", directData);
+
+                            // Kiểm tra quyền admin
+                            if (directData.success && directData.user &&
+                                (directData.user.role === 'admin' || directData.user.role === 'superadmin')) {
+
+                                setIsAuthorized(true);
+                                setUserInfo({
+                                    id: directData.user._id || directData.user.id,
+                                    email: directData.user.email,
+                                    name: directData.user.name || directData.user.email,
+                                    role: directData.user.role
+                                });
+
+                                // Lưu thông tin người dùng
+                                localStorage.setItem('user_email', directData.user.email);
+                                localStorage.setItem('user_name', directData.user.name || directData.user.email);
+                                localStorage.setItem('user_role', directData.user.role);
+                            } else {
+                                console.log("Tài khoản không có quyền admin từ backend API");
+                                clearUserData();
+                                router.push('/admin/login?error=unauthorized');
+                            }
+                        } else {
+                            clearUserData();
+                            router.push('/admin/login?error=backend_error');
+                        }
+                    } catch (directError) {
+                        console.error("Lỗi khi gọi backend trực tiếp:", directError);
+                        clearUserData();
+                        router.push('/admin/login?error=connection');
                     }
-                } else {
-                    console.log("Token không hợp lệ hoặc không có quyền admin");
-                    localStorage.removeItem('auth_token');
-                    localStorage.removeItem('user_role');
-                    localStorage.removeItem('user_email');
-                    localStorage.removeItem('user_name');
-
-                    // Xóa cookies
-                    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-                    router.push('/admin/login');
                 }
             } catch (error) {
-                console.error("Lỗi khi xác thực:", error);
-                router.push('/admin/login');
+                console.error("Lỗi khi xác thực quyền admin:", error);
+                clearUserData();
+                router.push('/admin/login?error=unknown');
             } finally {
                 setIsLoading(false);
             }
@@ -148,7 +227,12 @@ export default function AdminLayout({
         { icon: Users, label: 'Người dùng', path: '/admin/users', active: pathname === '/admin/users' },
         { icon: FileText, label: 'Nội dung', path: '/admin/site-content', active: pathname === '/admin/site-content' },
         { icon: Bell, label: 'Thông báo', path: '/admin/notifications', active: pathname === '/admin/notifications' },
-        { icon: CreditCard, label: 'Giao dịch', path: '/admin/transactions', active: pathname === '/admin/transactions' },
+        { icon: Activity, label: 'Lịch sử hoạt động', path: '/admin/activity-logs', active: pathname === '/admin/activity-logs' },
+    ];
+
+    // Menu items chỉ dành cho SuperAdmin
+    const superAdminItems = [
+        { icon: Shield, label: 'Quản lý Admin', path: '/admin/manage-admins', active: pathname === '/admin/manage-admins' },
     ];
 
     // Bọc tất cả các component con trong NextIntlClientProvider để hỗ trợ i18n
@@ -222,6 +306,23 @@ export default function AdminLayout({
                                     </Link>
                                 </li>
                             ))}
+
+                            {/* Hiện thị menu đặc biệt chỉ dành cho SuperAdmin */}
+                            {userInfo && userInfo.role === 'superadmin' && (
+                                <>
+                                    <li className="admin-sidebar-separator">
+                                        <div className="admin-sidebar-separator-text">Quản trị viên cao cấp</div>
+                                    </li>
+                                    {superAdminItems.map((item, index) => (
+                                        <li key={`super-admin-${index}`}>
+                                            <Link href={item.path} className={`admin-sidebar-link admin-superadmin-link ${item.active ? 'active' : ''}`}>
+                                                <item.icon size={20} />
+                                                <span className="admin-sidebar-label">{item.label}</span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </>
+                            )}
                         </ul>
                     </nav>
 
@@ -248,29 +349,29 @@ export default function AdminLayout({
                                         <div className="admin-user-avatar">
                                             {userInfo.name?.charAt(0) || userInfo.email.charAt(0)}
                                         </div>
-                                        <span className="admin-user-name">{userInfo.name || userInfo.email}</span>
+                                        <div className="admin-user-info">
+                                            <span className="admin-user-name">{userInfo.name || userInfo.email}</span>
+                                            <span className="admin-user-role">
+                                                {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                            </span>
+                                        </div>
                                         <ChevronDown size={16} />
                                     </button>
 
                                     {userMenuOpen && (
                                         <div className="admin-user-dropdown">
-                                            <div className="admin-user-info">
-                                                <div className="admin-user-details">
-                                                    <p className="admin-user-email">{userInfo.email}</p>
-                                                    <p className="admin-user-role">{userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}</p>
+                                            <div className="admin-user-dropdown-header">
+                                                <div className="admin-user-dropdown-name">{userInfo.name || userInfo.email}</div>
+                                                <div className="admin-user-dropdown-email">{userInfo.email}</div>
+                                                <div className={`admin-user-dropdown-role ${userInfo.role === 'superadmin' ? 'superadmin' : 'admin'}`}>
+                                                    {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
                                                 </div>
                                             </div>
-                                            <div className="admin-user-dropdown-item">
-                                                <Link href="/admin/settings" className="admin-user-dropdown-link">
-                                                    <Settings size={16} />
-                                                    <span>Cài đặt</span>
-                                                </Link>
-                                            </div>
-                                            <div className="admin-user-dropdown-item" onClick={handleLogout}>
-                                                <a href="#" className="admin-user-dropdown-link">
+                                            <div className="admin-user-dropdown-items">
+                                                <button className="admin-user-dropdown-item" onClick={handleLogout}>
                                                     <LogOut size={16} />
                                                     <span>Đăng xuất</span>
-                                                </a>
+                                                </button>
                                             </div>
                                         </div>
                                     )}
@@ -291,3 +392,14 @@ export default function AdminLayout({
     // Fallback - không nên đến đây nhưng để phòng ngừa
     return null;
 }
+
+// Tạo hàm riêng để xóa dữ liệu người dùng để tránh lặp code
+const clearUserData = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
+
+    // Xóa cookies
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+};

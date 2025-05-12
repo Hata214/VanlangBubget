@@ -88,16 +88,22 @@ export default function AdminSiteContentPage() {
 
             if (response && response.data) {
                 // Chuyển đổi dữ liệu từ API sang định dạng nội bộ
-                const formattedContent = Object.entries(response.data).map(([key, value], index) => ({
-                    id: `${selectedSection}-${index}`,
-                    name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-                    key: key,
-                    section: selectedSection,
-                    type: typeof value === 'string' && (value as string).includes('/images/') ? 'image' :
-                        typeof value === 'string' && (value as string).length > 100 ? 'rich_text' : 'text',
-                    value: value as string,
-                    lastUpdated: response.meta?.updatedAt || new Date().toISOString()
-                }));
+                const formattedContent = Object.entries(response.data).map(([key, value], index) => {
+                    const contentType = typeof value === 'string' && (value as string).includes('/images/') ? 'image' as const :
+                        typeof value === 'string' && (value as string).length > 100 ? 'rich_text' as const :
+                            typeof value === 'boolean' ? 'boolean' as const :
+                                (typeof value === 'string' && value.startsWith('http')) ? 'link' as const : 'text' as const;
+
+                    return {
+                        id: `${selectedSection}-${index}`,
+                        name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+                        key: key,
+                        section: selectedSection,
+                        type: contentType,
+                        value: typeof value === 'boolean' ? value.toString() : value as string,
+                        lastUpdated: response.meta?.updatedAt || new Date().toISOString()
+                    };
+                });
 
                 setContentItems(formattedContent);
             } else {
@@ -153,7 +159,7 @@ export default function AdminSiteContentPage() {
             setIsUnsavedChanges(false);
 
             // Chuẩn bị dữ liệu để gửi lên server
-            const updatedContent = {};
+            const updatedContent: Record<string, any> = {};
             contentItems.forEach(item => {
                 updatedContent[item.key] = item.value;
             });

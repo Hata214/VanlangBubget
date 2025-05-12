@@ -92,6 +92,61 @@ export const siteContentService = {
     async rejectHomepageContent(reason?: string) {
         const response = await api.post('/api/site-content/homepage/reject', { reason });
         return response.data;
+    },
+
+    /**
+     * Tạo nội dung trang chủ mới
+     * @param content Nội dung trang chủ
+     */
+    async createHomepageContent(content: any) {
+        const response = await api.post('/api/site-content/homepage', { content });
+        return response.data;
+    },
+
+    /**
+     * Lấy danh sách các templates có sẵn cho trang chủ
+     */
+    async getHomepageTemplates() {
+        const response = await api.get('/api/site-content/homepage/templates');
+        return response.data;
+    },
+
+    /**
+     * Áp dụng template cho trang chủ
+     * @param templateId ID của template
+     */
+    async applyHomepageTemplate(templateId: string) {
+        const response = await api.post(`/api/site-content/homepage/templates/${templateId}/apply`);
+        return response.data;
+    },
+
+    /**
+     * Lấy cấu trúc nội dung cho mỗi section
+     * @param section Tên section
+     */
+    async getSectionStructure(section: string) {
+        const response = await api.get(`/api/site-content/structure/${section}`);
+        return response.data;
+    },
+
+    /**
+     * Thêm phần mới vào một section (chẳng hạn thêm testimonial mới)
+     * @param section Tên section
+     * @param itemData Dữ liệu phần tử mới
+     */
+    async addSectionItem(section: string, itemData: any) {
+        const response = await api.post(`/api/site-content/homepage/${section}/items`, { item: itemData });
+        return response.data;
+    },
+
+    /**
+     * Xóa phần tử khỏi một section
+     * @param section Tên section
+     * @param itemId ID của phần tử
+     */
+    async removeSectionItem(section: string, itemId: string) {
+        const response = await api.delete(`/api/site-content/homepage/${section}/items/${itemId}`);
+        return response.data;
     }
 };
 

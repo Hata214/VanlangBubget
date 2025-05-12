@@ -55,7 +55,7 @@ export function Footer() {
                             <li>
                                 <a href="/roadmap" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <ExternalLinkIcon className="w-4 h-4 mr-2" />
-                                    <span>{t('roadmap.title')}</span>
+                                    <span>{t('footer.links.roadmap')}</span>
                                 </a>
                             </li>
                             <li>

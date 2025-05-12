@@ -14,9 +14,9 @@
     "errorLoadingTitle": "Lỗi khi tải dữ liệu",
     "errorLoadingDescription": "Không thể tải dữ liệu đầu tư. Vui lòng thử lại sau.",
     "noDataAvailable": "Không có dữ liệu",
-    "stock": "Cổ phiếu",
-    "gold": "Vàng",
-    "crypto": "Tiền điện tử",
+    "stockType": "Cổ phiếu",
+    "goldType": "Vàng",
+    "cryptoType": "Tiền điện tử",
     "totalInvestment": "Tổng đầu tư",
     "currentValue": "Giá trị hiện tại",
     "totalProfitLoss": "Lợi nhuận/Lỗ",
@@ -133,7 +133,7 @@
     "targetPrice": "Giá mục tiêu",
     "noAlertsYet": "Bạn chưa có cảnh báo giá nào",
     "addAlertDescription": "Thêm cảnh báo để được thông báo khi giá đạt mục tiêu",
-    "gold": {
+    "goldInvestment": {
         "title": "Giá vàng hôm nay",
         "description": "Cập nhật giá vàng mới nhất từ các thương hiệu uy tín",
         "updatePrice": "Cập nhật giá",

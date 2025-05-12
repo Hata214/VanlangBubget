@@ -14,6 +14,15 @@ import {
     getUserStats
 } from '../controllers/userController.js';
 import logger from '../utils/logger.js';
+import { adminDashboard } from '../controllers/adminController.js';
+import {
+    getAdminList,
+    createAdmin,
+    updateAdmin,
+    deleteAdmin,
+    toggleAdminStatus,
+    getAdminActivityLogs
+} from '../controllers/adminManagementController.js';
 
 const router = express.Router();
 
@@ -61,5 +70,24 @@ router.post('/users/:id/reset-password', resetUserPassword);
 // === Các routes quản lý admin khác có thể thêm vào đây ===
 
 console.log('❗ adminRoutes: Các routes quản lý người dùng đã được đăng ký ✅');
+
+/**
+ * Các routes dành riêng cho superadmin
+ */
+router.use('/manage', restrictTo('superadmin'));
+router.get('/manage/list', getAdminList);
+router.post('/manage/create', createAdmin);
+router.put('/manage/update/:id', updateAdmin);
+router.delete('/manage/delete/:id', deleteAdmin);
+router.patch('/manage/toggle-status/:id', toggleAdminStatus);
+
+/**
+ * Lấy lịch sử hoạt động của admin
+ * - Superadmin có thể xem tất cả
+ * - Admin chỉ có thể xem lịch sử của mình
+ */
+router.get('/activity-logs/:adminId', getAdminActivityLogs);
+
+router.get('/dashboard', adminDashboard);
 
 export default router; 

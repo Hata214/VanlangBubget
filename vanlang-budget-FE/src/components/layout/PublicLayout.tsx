@@ -34,11 +34,11 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
     // Các trang trong thanh điều hướng
     const navLinks = [
-        { href: '/about', label: t('footer.links.aboutUs') },
-        { href: '/features', label: t('footer.links.features') },
-        { href: '/roadmap', label: t('roadmap.title') },
-        { href: '/pricing', label: t('footer.links.pricing') },
-        { href: '/contact', label: t('footer.links.contact') }
+        { href: '/about', label: t('header.links.aboutUs') },
+        { href: '/features', label: t('header.links.features') },
+        { href: '/roadmap', label: t('header.links.roadmap') },
+        { href: '/pricing', label: t('header.links.pricing') },
+        { href: '/contact', label: t('header.links.contact') }
     ]
 
     const handleLogout = () => {
@@ -137,10 +137,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                             ) : (
                                 <div className="hidden md:flex space-x-3">
                                     <Link href="/login">
-                                        <Button variant="outline">{t('auth.login')}</Button>
+                                        <Button variant="outline">{t('header.buttons.login')}</Button>
                                     </Link>
                                     <Link href="/register">
-                                        <Button>{t('auth.register')}</Button>
+                                        <Button>{t('header.buttons.register')}</Button>
                                     </Link>
                                 </div>
                             )}

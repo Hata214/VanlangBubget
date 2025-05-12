@@ -11,9 +11,13 @@ interface HomepageSectionProps {
     onUpdate?: () => void;
 }
 
+interface ContentData {
+    [key: string]: string | number | boolean;
+}
+
 export default function HomepageSection({ section, title, defaultContent, onUpdate }: HomepageSectionProps) {
-    const [content, setContent] = useState<any>(defaultContent || {});
-    const [originalContent, setOriginalContent] = useState<any>({});
+    const [content, setContent] = useState<ContentData>(defaultContent || {});
+    const [originalContent, setOriginalContent] = useState<ContentData>({});
     const [isEditing, setIsEditing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [previewMode, setPreviewMode] = useState(false);
@@ -83,7 +87,7 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
     };
 
     const handleInputChange = (key: string, value: any) => {
-        setContent(prev => ({
+        setContent((prev: ContentData) => ({
             ...prev,
             [key]: value
         }));

@@ -215,15 +215,15 @@ export function LoanList({ loans, isLoading, onEdit, onDelete, onRowClick }: Loa
     const getInterestRateTypeText = (type: Loan['interestRateType']) => {
         switch (type) {
             case 'DAY':
-                return t('loan.interestRateType.day', { defaultMessage: 'ngày' })
+                return t('loan.interestRateTypes.day', { defaultMessage: 'ngày' })
             case 'WEEK':
-                return t('loan.interestRateType.week', { defaultMessage: 'tuần' })
+                return t('loan.interestRateTypes.week', { defaultMessage: 'tuần' })
             case 'MONTH':
-                return t('loan.interestRateType.month', { defaultMessage: 'tháng' })
+                return t('loan.interestRateTypes.month', { defaultMessage: 'tháng' })
             case 'QUARTER':
-                return t('loan.interestRateType.quarter', { defaultMessage: 'quý' })
+                return t('loan.interestRateTypes.quarter', { defaultMessage: 'quý' })
             case 'YEAR':
-                return t('loan.interestRateType.year', { defaultMessage: 'năm' })
+                return t('loan.interestRateTypes.year', { defaultMessage: 'năm' })
             default:
                 return 'năm'
         }

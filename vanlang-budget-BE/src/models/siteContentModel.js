@@ -17,7 +17,74 @@ const siteContentSchema = new mongoose.Schema(
         },
         content: {
             type: mongoose.Schema.Types.Mixed,
-            required: [true, 'Nội dung là bắt buộc']
+            required: [true, 'Nội dung là bắt buộc'],
+            validate: {
+                validator: function (content) {
+                    // Kiểm tra cấu trúc nội dung cho trang chủ
+                    if (this.type === 'homepage') {
+                        const requiredSections = ['hero', 'features', 'testimonials', 'pricing'];
+                        const requiredKeys = {
+                            hero: ['title', 'subtitle', 'imageUrl', 'buttonText', 'buttonLink'],
+                            features: ['title', 'subtitle', 'items'],
+                            testimonials: ['title', 'subtitle', 'items'],
+                            pricing: ['title', 'subtitle', 'plans']
+                        };
+
+                        // Kiểm tra các section bắt buộc
+                        for (const section of requiredSections) {
+                            if (!content[section]) return false;
+
+                            // Kiểm tra các khóa bắt buộc trong mỗi section
+                            for (const key of requiredKeys[section]) {
+                                if (!content[section][key]) return false;
+                            }
+
+                            // Kiểm tra cấu trúc mảng nếu có
+                            if (section === 'features' && (!Array.isArray(content.features.items) || content.features.items.length === 0)) {
+                                return false;
+                            }
+
+                            if (section === 'testimonials' && (!Array.isArray(content.testimonials.items) || content.testimonials.items.length === 0)) {
+                                return false;
+                            }
+
+                            if (section === 'pricing' && (!Array.isArray(content.pricing.plans) || content.pricing.plans.length === 0)) {
+                                return false;
+                            }
+                        }
+
+                        // Kiểm tra cấu trúc của mỗi item trong features
+                        if (content.features && Array.isArray(content.features.items)) {
+                            for (const item of content.features.items) {
+                                if (!item.title || !item.description || !item.icon) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        // Kiểm tra cấu trúc của mỗi item trong testimonials
+                        if (content.testimonials && Array.isArray(content.testimonials.items)) {
+                            for (const item of content.testimonials.items) {
+                                if (!item.name || !item.position || !item.quote || !item.avatarUrl) {
+                                    return false;
+                                }
+                            }
+                        }
+
+                        // Kiểm tra cấu trúc của mỗi plan trong pricing
+                        if (content.pricing && Array.isArray(content.pricing.plans)) {
+                            for (const plan of content.pricing.plans) {
+                                if (!plan.name || !plan.price || !Array.isArray(plan.features)) {
+                                    return false;
+                                }
+                            }
+                        }
+                    }
+
+                    return true;
+                },
+                message: 'Cấu trúc nội dung trang chủ không hợp lệ'
+            }
         },
         lastUpdatedBy: {
             type: mongoose.Schema.Types.ObjectId,
@@ -114,7 +181,15 @@ siteContentSchema.statics.getHomepageContent = async function (language = 'vi') 
         return homepageContent.content[language];
     }
 
-    return homepageContent.content;
+    // Trả về cả thông tin meta (version, updatedAt, v.v.) kèm theo nội dung
+    return {
+        content: homepageContent.content,
+        version: homepageContent.version,
+        updatedAt: homepageContent.updatedAt,
+        updatedBy: homepageContent.lastUpdatedBy,
+        status: homepageContent.status,
+        sections: homepageContent.sections
+    };
 };
 
 /**
@@ -167,6 +242,42 @@ siteContentSchema.statics.updateHomepageContent = async function (content, userI
             runValidators: true
         }
     );
+};
+
+/**
+ * Phương thức tĩnh để cập nhật một section cụ thể của trang chủ
+ */
+siteContentSchema.statics.updateHomepageSection = async function (sectionName, sectionContent, userId, options = {}) {
+    const existingContent = await this.findOne({ type: 'homepage' });
+    if (!existingContent) {
+        // Nếu chưa có nội dung trang chủ, tạo mới với section này
+        const newContent = { [sectionName]: sectionContent };
+        return this.updateHomepageContent(newContent, userId, options);
+    }
+
+    // Tạo bản sao nội dung hiện tại
+    const updatedContent = { ...existingContent.content };
+
+    // Cập nhật section được chỉ định
+    updatedContent[sectionName] = sectionContent;
+
+    // Gọi phương thức cập nhật đầy đủ
+    return this.updateHomepageContent(updatedContent, userId, options);
+};
+
+/**
+ * Phương thức tĩnh để lấy một section cụ thể của trang chủ
+ */
+siteContentSchema.statics.getHomepageSection = async function (sectionName, language = 'vi') {
+    const homepageContent = await this.findOne({ type: 'homepage' });
+    if (!homepageContent || !homepageContent.content) return null;
+
+    // Xử lý nội dung theo ngôn ngữ nếu được hỗ trợ
+    if (language && language !== 'vi' && homepageContent.content[language]) {
+        return homepageContent.content[language][sectionName] || null;
+    }
+
+    return homepageContent.content[sectionName] || null;
 };
 
 /**

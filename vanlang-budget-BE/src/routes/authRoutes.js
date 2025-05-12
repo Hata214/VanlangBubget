@@ -203,6 +203,68 @@ router.post('/logout', protect, logout);
 
 /**
  * @swagger
+ * /api/auth/verify-token:
+ *   get:
+ *     summary: Xác thực token và lấy thông tin người dùng
+ *     description: Kiểm tra xem token có hợp lệ không và trả về thông tin người dùng từ token
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token hợp lệ, trả về thông tin người dùng
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                       example: 60d0fe4f5311236168a109ca
+ *                     email:
+ *                       type: string
+ *                       example: user@example.com
+ *                     firstName:
+ *                       type: string
+ *                       example: Nguyễn
+ *                     lastName:
+ *                       type: string
+ *                       example: Văn A
+ *                     role:
+ *                       type: string
+ *                       example: admin
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+router.get('/verify-token', protect, (req, res) => {
+    try {
+        // req.user được thiết lập bởi middleware protect
+        console.log('Token verification successful for user:', req.user._id);
+        console.log('User role:', req.user.role);
+
+        return res.status(200).json({
+            success: true,
+            user: req.user
+        });
+    } catch (error) {
+        console.error('Error in verify-token endpoint:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Lỗi xác thực token'
+        });
+    }
+});
+
+/**
+ * @swagger
  * /api/auth/refresh-token:
  *   post:
  *     summary: Làm mới token JWT

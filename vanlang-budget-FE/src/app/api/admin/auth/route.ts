@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
             const data = await response.json();
             console.log('Backend response status:', response.status);
 
-            // Kiểm tra quyền admin
+            // Kiểm tra quyền admin hoặc superadmin
             if (response.ok && data.user && (data.user.role === 'admin' || data.user.role === 'superadmin')) {
                 console.log('Đăng nhập admin thành công:', data.user.email, 'Role:', data.user.role);
 
@@ -125,15 +125,21 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
     try {
+        console.log('Admin token verification API called');
+
         // Lấy token từ header Authorization
         const headersList = headers();
         const authHeader = headersList.get('Authorization');
 
+        console.log('Auth header received:', authHeader ? 'Yes' : 'No');
+
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return NextResponse.json({ error: 'Token không hợp lệ' }, { status: 401 });
+            console.log('Invalid authorization header format');
+            return NextResponse.json({ success: false, error: 'Token không hợp lệ' }, { status: 401 });
         }
 
         const token = authHeader.split(' ')[1];
+        console.log('Token extracted:', token ? `${token.substring(0, 15)}...` : 'invalid');
 
         // Xử lý token giả lập
         if (token.startsWith('mock_')) {
@@ -141,7 +147,9 @@ export async function GET(request: NextRequest) {
 
             // Kiểm tra token giả lập có hợp lệ không
             if (token.includes('superadmin')) {
+                console.log('Verified mock token: superadmin role');
                 return NextResponse.json({
+                    success: true,
                     user: {
                         id: '1',
                         email: 'superadmin@control.vn',
@@ -150,7 +158,9 @@ export async function GET(request: NextRequest) {
                     }
                 });
             } else if (token.includes('admin')) {
+                console.log('Verified mock token: admin role');
                 return NextResponse.json({
+                    success: true,
                     user: {
                         id: '2',
                         email: 'admin@example.com',
@@ -159,33 +169,68 @@ export async function GET(request: NextRequest) {
                     }
                 });
             } else {
-                return NextResponse.json({ error: 'Token không hợp lệ' }, { status: 401 });
+                console.log('Invalid mock token role');
+                return NextResponse.json({ success: false, error: 'Token không hợp lệ' }, { status: 401 });
             }
         }
 
         // Gọi API backend để xác thực token thật
         try {
+            console.log('Verifying real token with backend API');
             const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-            const response = await fetch(`${backendUrl}/api/admin/auth`, {
+            const verifyEndpoint = `${backendUrl}/api/auth/verify-token`;
+            console.log('Verification endpoint:', verifyEndpoint);
+
+            const response = await fetch(verifyEndpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
 
+            console.log('Backend verification response status:', response.status);
+
             // Nếu backend API trả về thành công
             if (response.ok) {
                 const userData = await response.json();
-                return NextResponse.json(userData);
+                console.log('Backend verification success, user role:', userData.user?.role);
+
+                // Kiểm tra xem user có quyền admin hoặc superadmin không
+                if (userData.user && (userData.user.role === 'admin' || userData.user.role === 'superadmin')) {
+                    return NextResponse.json({
+                        success: true,
+                        user: {
+                            id: userData.user._id || userData.user.id,
+                            email: userData.user.email,
+                            name: userData.user.name || `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim(),
+                            role: userData.user.role
+                        }
+                    });
+                } else {
+                    console.log('User không có quyền admin:', userData.user?.role);
+                    return NextResponse.json({
+                        success: false,
+                        error: 'Không có quyền truy cập trang quản trị'
+                    }, { status: 403 });
+                }
             } else {
                 console.log('Backend xác thực không thành công:', response.status);
-                return NextResponse.json({ error: 'Token không hợp lệ hoặc hết hạn' }, { status: 401 });
+                return NextResponse.json({
+                    success: false,
+                    error: 'Token không hợp lệ hoặc hết hạn'
+                }, { status: 401 });
             }
         } catch (error) {
             console.error('Lỗi khi xác thực với backend:', error);
-            return NextResponse.json({ error: 'Lỗi kết nối đến máy chủ xác thực' }, { status: 500 });
+            return NextResponse.json({
+                success: false,
+                error: 'Lỗi kết nối đến máy chủ xác thực'
+            }, { status: 500 });
         }
     } catch (error) {
         console.error('Lỗi xác thực admin:', error);
-        return NextResponse.json({ error: 'Lỗi xác thực' }, { status: 500 });
+        return NextResponse.json({
+            success: false,
+            error: 'Lỗi xác thực'
+        }, { status: 500 });
     }
 } 

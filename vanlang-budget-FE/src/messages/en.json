@@ -1,12 +1,29 @@
 {
     "app": {
-        "name": "VangLang Budget",
+        "name": "VanLang Budget",
         "description": "Personal Finance Management App"
+    },
+    "header": {
+        "links": {
+            "aboutUs": "About Us",
+            "features": "Features",
+            "pricing": "Pricing",
+            "contact": "Contact",
+            "roadmap": "Roadmap"
+        },
+        "buttons": {
+            "login": "Login",
+            "register": "Register"
+        },
+        "theme": {
+            "light": "Light",
+            "dark": "Dark"
+        }
     },
     "home": {
         "hero": {
             "title": "Smart personal finance management",
-            "description": "VangLang Budget helps you track expenses, manage budgets, and achieve your financial goals with ease.",
+            "description": "VanLang Budget helps you track expenses, manage budgets, and achieve your financial goals with ease.",
             "getStarted": "Get Started",
             "learnMore": "Learn More"
         },
@@ -17,7 +34,7 @@
         },
         "features": {
             "title": "Key Features",
-            "subtitle": "VangLang Budget provides all the tools you need to manage your finances effectively",
+            "subtitle": "VanLang Budget provides all the tools you need to manage your finances effectively",
             "expenseTracking": {
                 "title": "Expense Tracking",
                 "description": "Record all your income and expenses easily and quickly."
@@ -87,14 +104,14 @@
         },
         "faq": {
             "title": "Frequently Asked Questions",
-            "subtitle": "Answers to common questions about VangLang Budget",
+            "subtitle": "Answers to common questions about VanLang Budget",
             "questions": [
                 {
-                    "question": "Is VangLang Budget free?",
-                    "answer": "Yes, VangLang Budget is completely free for all users. You can use all the basic features without paying."
+                    "question": "Is VanLang Budget free?",
+                    "answer": "Yes, VanLang Budget is completely free for all users. You can use all the basic features without paying."
                 },
                 {
-                    "question": "How do I start using VangLang Budget?",
+                    "question": "How do I start using VanLang Budget?",
                     "answer": "It's simple! Just sign up for an account, log in, and start adding your income and expenses. The app will automatically generate reports and charts for you to track."
                 },
                 {
@@ -102,8 +119,8 @@
                     "answer": "We take security seriously. All your data is encrypted and only you can access it. We never share your personal information with third parties."
                 },
                 {
-                    "question": "Can I use VangLang Budget on my phone?",
-                    "answer": "Yes, VangLang Budget is a responsive web application that works well on all devices including computers, tablets, and mobile phones."
+                    "question": "Can I use VanLang Budget on my phone?",
+                    "answer": "Yes, VanLang Budget is a responsive web application that works well on all devices including computers, tablets, and mobile phones."
                 }
             ]
         },
@@ -143,7 +160,7 @@
         "userProfile": "User Profile",
         "userProfileDesc": "Update your personal information",
         "manageProfile": "Manage Profile",
-        "notifications": "Notifications",
+        "notificationSection": "Notifications",
         "notificationsDesc": "Manage notification settings",
         "manageNotifications": "Manage Notifications",
         "security": "Security",
@@ -155,10 +172,10 @@
         "currencyFormatDesc": "Set currency and display format",
         "changeCurrency": "Change Currency",
         "about": "About",
-        "aboutDesc": "Information about VangLang Budget",
+        "aboutDesc": "Information about VanLang Budget",
         "aboutApp": "About the app",
         "logoutDesc": "Log out from your current account",
-        "notifications": {
+        "notificationSettings": {
             "saveSuccess": "Notification settings saved successfully",
             "saveError": "An error occurred while saving notification settings"
         }
@@ -219,7 +236,7 @@
         "networkError": "Network error",
         "date": "Date",
         "type": "Type",
-        "category": "Category",
+        "categoryCommon": "Category",
         "description": "Description",
         "amount": "Amount",
         "actions": "Actions",
@@ -234,7 +251,14 @@
         "profile": "Profile",
         "settings": "Settings",
         "help": "Help",
-        "signOut": "Sign Out"
+        "signOut": "Sign Out",
+        "close": "Close",
+        "delete": "Delete",
+        "deleting": "Deleting...",
+        "actionCannotBeUndone": "This action cannot be undone.",
+        "max": "maximum",
+        "saving": "Saving...",
+        "add": "Add"
     },
     "dashboard": {
         "financialOverview": "Financial Overview",
@@ -266,7 +290,7 @@
         "noIncome": "No income found",
         "amount": "Amount",
         "description": "Description",
-        "category": "Category",
+        "categoryLabel": "Category",
         "date": "Date",
         "customCategory": "Custom category",
         "startDate": "Start date",
@@ -277,7 +301,7 @@
         "enterDescription": "Enter description",
         "selectCategory": "Select category",
         "enterCustomCategory": "Enter custom category name",
-        "category": {
+        "categories": {
             "salary": "Salary",
             "bonus": "Bonus",
             "investment": "Investment",
@@ -306,10 +330,10 @@
         "deleteConfirm": "Are you sure you want to delete this expense?",
         "total": "Total Expenses",
         "noExpense": "No expense found",
-        "amount": "Amount",
-        "description": "Description",
-        "category": "Category",
-        "date": "Date",
+        "amountExpense": "Amount",
+        "descriptionExpense": "Description",
+        "categoryExpense": "Category",
+        "dateExpense": "Date",
         "customCategory": "Custom category",
         "byCategory": "Expenses by Category",
         "location": "Location",
@@ -347,7 +371,7 @@
         "geocodingError": "Location not found on map",
         "unableToShowOnMap": "Unable to show location on map",
         "findOnMap": "Find on map",
-        "category": {
+        "expenseCategories": {
             "food": "Food",
             "transport": "Transport",
             "shopping": "Shopping",
@@ -396,7 +420,7 @@
         "description": "Description",
         "lender": "Lender",
         "interestRate": "Interest Rate",
-        "interestRateType": "Time Unit",
+        "interestRateTypeLabel": "Time Unit",
         "startDate": "Start Date",
         "dueDate": "Due Date",
         "status": "Status",
@@ -422,7 +446,22 @@
         },
         "totalRepayment": "Total repayment",
         "autoUpdateStatus": "Automatically update status based on due date",
-        "interestRateType": {
+        "paymentDate": "Payment Date",
+        "paymentAmount": "Payment Amount",
+        "paymentHistory": "Payment History",
+        "addPayment": "Add Payment",
+        "editPayment": "Edit Payment",
+        "deletePayment": "Delete Payment",
+        "deletePaymentConfirm": "Are you sure you want to delete this payment?",
+        "noPayments": "No payments yet",
+        "attachments": "Attachments",
+        "files": "files",
+        "pdfDocument": "PDF Document",
+        "attachment": "Attachment",
+        "errorCalculatingInterest": "Error calculating interest",
+        "acceptedFileTypes": "Accepts image files and PDF",
+        "preview": "Preview",
+        "interestRateTypes": {
             "day": "Day",
             "week": "Week",
             "month": "Month",
@@ -433,8 +472,12 @@
             "individual": "Individual",
             "bank": "Bank",
             "credit": "Credit",
-            "company": "Company",
             "other": "Other"
+        },
+        "statusOptions": {
+            "active": "Active",
+            "paid": "Paid",
+            "overdue": "Overdue"
         },
         "addSuccess": "Loan added successfully",
         "addSuccessDetail": "The loan has been added successfully",
@@ -494,11 +537,11 @@
         "title": "Notifications",
         "all": "All Notifications",
         "description": "Manage all your notifications",
-        "markAllRead": "Mark all as read",
+        "markAllReadBtn": "Mark all as read",
         "markRead": "Mark as read",
         "delete": "Delete notification",
-        "noNotifications": "No notifications",
-        "loadMore": "Load more",
+        "noNotificationsText": "No notifications",
+        "loadMoreBtn": "Load more",
         "new": "New",
         "settings": "Notification settings",
         "emailSettings": "Email notification settings",
@@ -539,9 +582,6 @@
         "accountUpdate": "Account update",
         "emailSuccess": "Email notification sent",
         "emailFailure": "Failed to send email notification",
-        "markAllRead": "Mark all as read",
-        "loadMore": "Load more",
-        "noNotifications": "You have no notifications",
         "unread": "Unread",
         "read": "Read",
         "sortNewest": "Sort by newest first",
@@ -561,8 +601,8 @@
     },
     "about": {
         "title": "About Us",
-        "subtitle": "The journey of VangLang Budget",
-        "description": "VangLang Budget was developed by a team of finance enthusiasts with the goal of helping people manage their finances more effectively.",
+        "subtitle": "The journey of VanLang Budget",
+        "description": "VanLang Budget was developed by a team of finance enthusiasts with the goal of helping people manage their finances more effectively.",
         "mission": {
             "title": "Our Mission",
             "content": "To help people achieve financial freedom through intelligent and intuitive financial management tools."
@@ -575,7 +615,7 @@
             "title": "Core Values",
             "simplicity": {
                 "title": "Simplicity",
-                "content": "We believe financial management shouldn't be complicated. VangLang Budget is designed with an intuitive interface that's easy for everyone to use."
+                "content": "We believe financial management shouldn't be complicated. VanLang Budget is designed with an intuitive interface that's easy for everyone to use."
             },
             "transparency": {
                 "title": "Transparency",
@@ -592,20 +632,20 @@
                 "ceo": {
                     "name": "Nguyen Manh Dung",
                     "role": "Co-founder & Developer",
-                    "bio": "With a passion for technology and personal finance, Nguyen Manh Dung has led the VangLang Budget development team from concept to product."
+                    "bio": "With a passion for technology and personal finance, Nguyen Manh Dung has led the VanLang Budget development team from concept to product."
                 },
                 "cto": {
                     "name": "Pham Nhat Hoang",
                     "role": "Co-founder & Designer",
-                    "bio": "A UX/UI design expert with experience in the fintech industry, Pham Nhat Hoang is responsible for the user experience and interface design of VangLang Budget."
+                    "bio": "A UX/UI design expert with experience in the fintech industry, Pham Nhat Hoang is responsible for the user experience and interface design of VanLang Budget."
                 }
             }
         },
         "history": {
             "title": "Our History",
             "milestones": {
-                "founding": "VangLang Budget idea was formed in February",
-                "launch": "Official launch of VangLang Budget in May",
+                "founding": "VanLang Budget idea was formed in February",
+                "launch": "Official launch of VanLang Budget in May",
                 "expansion": "Advanced features development planned for October"
             }
         }
@@ -613,7 +653,7 @@
     "features": {
         "title": "Features",
         "subtitle": "Powerful financial management tools",
-        "description": "VangLang Budget provides all the features you need to effectively control your personal finances.",
+        "description": "VanLang Budget provides all the features you need to effectively control your personal finances.",
         "benefits": "Benefits",
         "mainFeatures": {
             "title": "Core Features",
@@ -680,14 +720,19 @@
         },
         "comingSoon": {
             "title": "Coming Soon",
-            "aiAdvisor": {
-                "title": "AI Financial Advisor",
-                "description": "Receive personalized recommendations based on your spending habits and financial goals.",
-                "eta": "May 2025"
+            "bankSync": {
+                "title": "Bank Synchronization",
+                "description": "Integrate directly with your bank accounts to automatically update transactions.",
+                "eta": "June 2025"
             },
             "groupExpense": {
-                "title": "Group Expense Sharing",
-                "description": "Manage shared expenses with friends, family, or colleagues.",
+                "title": "Group Expenses",
+                "description": "Share and manage expenses with friends, family, or colleagues",
+                "eta": "August 2025"
+            },
+            "aiAdvisor": {
+                "title": "Smart AI Advisor",
+                "description": "Receive personalized recommendations based on your spending habits and financial goals.",
                 "eta": "December 2025"
             }
         }
@@ -695,14 +740,14 @@
     "contact": {
         "title": "Contact Us",
         "subtitle": "We're here to help you",
-        "description": "If you have any questions about VangLang Budget or need assistance, don't hesitate to contact us. Our support team is always ready to help you.",
+        "description": "If you have any questions about VanLang Budget or need assistance, don't hesitate to contact us. Our support team is always ready to help you.",
         "contactInfo": {
             "title": "Contact Information",
             "emailLabel": "Email",
             "phoneLabel": "Phone",
             "addressLabel": "Address",
             "workingHoursLabel": "Working Hours",
-            "email": "support@vanglangbudget.com",
+            "email": "support@vanlangbudget.com",
             "phone": "+84 28 1234 5678",
             "address": "Van Lang University Campus 3",
             "workingHours": "Monday - Friday: 9:00 - 17:00"
@@ -711,18 +756,18 @@
             "title": "Support Categories",
             "technical": {
                 "title": "Technical Support",
-                "description": "Having issues using VangLang Budget? Our technical team will help you solve any difficulties.",
-                "email": "technical@vanglangbudget.com"
+                "description": "Having issues using VanLang Budget? Our technical team will help you solve any difficulties.",
+                "email": "technical@vanlangbudget.com"
             },
             "feedback": {
                 "title": "Product Feedback",
-                "description": "We always want to improve VangLang Budget. Please share your thoughts with us.",
-                "email": "feedback@vanglangbudget.com"
+                "description": "We always want to improve VanLang Budget. Please share your thoughts with us.",
+                "email": "feedback@vanlangbudget.com"
             },
             "business": {
                 "title": "Business Cooperation",
-                "description": "Interested in partnering with VangLang Budget? We'd love to connect with you.",
-                "email": "business@vanglangbudget.com"
+                "description": "Interested in partnering with VanLang Budget? We'd love to connect with you.",
+                "email": "business@vanlangbudget.com"
             }
         },
         "faq": {
@@ -730,14 +775,14 @@
             "questions": [
                 {
                     "question": "How can I get support most quickly?",
-                    "answer": "The fastest way to get support is to email support@vanglangbudget.com with a detailed description of your issue. We will respond within 24 business hours."
+                    "answer": "The fastest way to get support is to email support@vanlangbudget.com with a detailed description of your issue. We will respond within 24 business hours."
                 },
                 {
                     "question": "Can I suggest a new feature?",
-                    "answer": "Absolutely! We always welcome ideas from our users. Send your suggestions to feedback@vanglangbudget.com or use the feedback form on this page."
+                    "answer": "Absolutely! We always welcome ideas from our users. Send your suggestions to feedback@vanlangbudget.com or use the feedback form on this page."
                 },
                 {
-                    "question": "Does VangLang Budget offer phone support?",
+                    "question": "Does VanLang Budget offer phone support?",
                     "answer": "Yes, you can contact us by phone at +84 28 1234 5678 during our working hours from 9:00 to 17:00, Monday to Friday."
                 }
             ]
@@ -766,24 +811,24 @@
         "socialMedia": {
             "facebook": {
                 "name": "Facebook",
-                "url": "https://facebook.com/vanglangbudget"
+                "url": "https://facebook.com/vanlangbudget"
             },
             "twitter": {
                 "name": "Twitter",
-                "url": "https://twitter.com/vanglangbudget"
+                "url": "https://twitter.com/vanlangbudget"
             },
             "linkedin": {
                 "name": "LinkedIn",
-                "url": "https://linkedin.com/company/vanglangbudget"
+                "url": "https://linkedin.com/company/vanlangbudget"
             },
             "instagram": {
                 "name": "Instagram",
-                "url": "https://instagram.com/vanglangbudget"
+                "url": "https://instagram.com/vanlangbudget"
             }
         }
     },
     "footer": {
-        "about": "About VangLang Budget",
+        "about": "About VanLang Budget",
         "aboutDescription": "A smart personal finance management application to help you control your spending and achieve financial freedom.",
         "links": {
             "title": "Links",
@@ -803,17 +848,17 @@
             "description": "Coming soon on iOS and Android",
             "followUs": "Follow Us"
         },
-        "copyright": "© {year} VangLang Budget. All rights reserved."
+        "copyright": "© {year} VanLang Budget. All rights reserved."
     },
     "pricing": {
         "title": "Pricing",
-        "subtitle": "VangLang Budget service packages",
+        "subtitle": "VanLang Budget service packages",
         "description": "We are working to provide you with the best service packages. Please check back later for pricing details.",
         "comingSoon": "Coming Soon"
     },
     "roadmap": {
         "title": "Development Roadmap",
-        "description": "Explore VangLang Budget's development plan and upcoming features",
+        "description": "Explore VanLang Budget's development plan and upcoming features",
         "phase1": {
             "title": "Core Foundation",
             "description": "Launch basic features and establish the foundation for personal finance management app"
@@ -838,7 +883,7 @@
         },
         "cta": {
             "title": "What feature would you like to see next?",
-            "description": "We build VangLang Budget based on real user needs. Share your thoughts with us!",
+            "description": "We build VanLang Budget based on real user needs. Share your thoughts with us!",
             "feedback": "Send your ideas"
         }
     },
@@ -958,5 +1003,133 @@
         "deleteTransactionWarning": "Are you sure you want to delete this transaction? This action cannot be undone.",
         "priceHistory": "Price History",
         "purchasePriceHistory": "Purchase Price History"
+    },
+    "admin": {
+        "dashboard": "Dashboard",
+        "dashboardDescription": "View system statistics overview",
+        "logout": "Logout",
+        "header": {
+            "title": "System Administration",
+            "userSettings": "User Settings",
+            "profile": "Profile",
+            "settings": "Settings",
+            "darkMode": "Dark Mode",
+            "lightMode": "Light Mode"
+        },
+        "stats": {
+            "totalUsers": "Total Users",
+            "registeredUsers": "Registered in the system",
+            "totalTransactions": "Total Transactions",
+            "allTimeTransactions": "All-time system transactions",
+            "activeUsers": "Active Users",
+            "last30Days": "Active in the last 30 days",
+            "todayTransactions": "Today's Transactions",
+            "today": "Made today"
+        },
+        "recentUsers": "Recent Users",
+        "recentUsersDescription": "Recently registered accounts",
+        "recentTransactions": "Recent Transactions",
+        "recentTransactionsDescription": "Latest transactions in the system",
+        "connectBackendForData": "Connect backend to see real data",
+        "users": {
+            "title": "User Management",
+            "description": "Manage user accounts in the system",
+            "userList": "User List",
+            "userListDescription": "List of all registered users in the system",
+            "searchPlaceholder": "Search by name, email...",
+            "name": "Name",
+            "email": "Email",
+            "role": "Role",
+            "verified": "Verified",
+            "created": "Created Date",
+            "lastLogin": "Last Login",
+            "actions": "Actions",
+            "viewDetails": "View Details",
+            "changeRoleTitle": "Change Role",
+            "changeRoleDescription": "Update user's role",
+            "user": "User",
+            "currentRole": "Current Role",
+            "newRole": "New Role",
+            "roleUser": "User",
+            "roleAdmin": "Administrator",
+            "roleSuperadmin": "Super Administrator",
+            "roleUpdateError": "Error updating role",
+            "userDetails": "User Details",
+            "noUsersFound": "No users found",
+            "createUser": "Create New User",
+            "createUserDescription": "Add a new user account to the system",
+            "firstName": "First Name",
+            "lastName": "Last Name",
+            "password": "Password",
+            "createUserSuccess": "User created successfully",
+            "createUserError": "Error creating user",
+            "promoteToAdmin": "Promote to Admin",
+            "demoteToUser": "Demote to User",
+            "deactivateUser": "Deactivate Account",
+            "activateUser": "Activate Account",
+            "processing": "Processing...",
+            "refreshList": "Refresh List",
+            "exportCsv": "Export CSV",
+            "showingUsers": "Showing {showing} of {total} users",
+            "allRoles": "All Roles",
+            "allStatus": "All Status",
+            "statusActive": "Active",
+            "statusInactive": "Inactive"
+        },
+        "notifications": {
+            "title": "Notification Management",
+            "description": "Manage and send notifications to users",
+            "notificationList": "Notification List",
+            "notificationListDescription": "List of all notifications sent in the system",
+            "searchPlaceholder": "Search notifications...",
+            "createNotification": "Create New Notification",
+            "createNotificationDescription": "Create and send a new notification to users",
+            "titleRequired": "Title is required",
+            "messageRequired": "Message is required",
+            "recipientRequired": "Please select at least one recipient",
+            "createSuccess": "Notification created successfully",
+            "createError": "Error creating notification",
+            "notificationTitle": "Notification Title",
+            "notificationMessage": "Notification Message",
+            "notificationType": "Notification Type",
+            "typeInfo": "Information",
+            "typeWarning": "Warning",
+            "typeSuccess": "Success",
+            "typeError": "Error",
+            "recipients": "Recipients",
+            "sendToAll": "Send to all users",
+            "sendToAdmins": "Only send to administrators",
+            "specificUsers": "Send to specific users",
+            "specificUsersDescription": "Enter a list of emails, separated by commas",
+            "sendNotification": "Send Notification",
+            "cancel": "Cancel",
+            "preview": "Preview",
+            "delete": "Delete",
+            "viewDetails": "View Details",
+            "notificationDetails": "Notification Details",
+            "sentTo": "Sent To",
+            "sentDate": "Sent Date",
+            "sentCount": "Recipient Count",
+            "close": "Close",
+            "confirmDelete": "Confirm Deletion",
+            "deleteWarning": "Are you sure you want to delete this notification?",
+            "deleteSuccess": "Notification deleted successfully",
+            "deleteError": "Error deleting notification",
+            "noNotificationsFound": "No notifications found",
+            "refreshList": "Refresh List",
+            "createTitle": "Create New Notification",
+            "createDescription": "Create and send a new notification to users",
+            "selectType": "Select notification type",
+            "emailsPlaceholder": "Email1@example.com, Email2@example.com",
+            "send": "Send Notification",
+            "allUsers": "All Users",
+            "adminUsers": "Administrators",
+            "regularUsers": "Regular Users",
+            "message": "Message",
+            "type": "Type",
+            "created": "Created Date",
+            "createNew": "Create New",
+            "actions": "Actions"
+        }
     }
 }

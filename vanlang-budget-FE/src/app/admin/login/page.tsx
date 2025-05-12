@@ -41,6 +41,32 @@ export default function AdminLoginPage() {
         // Thêm lớp admin-login-layout vào body
         if (typeof window !== 'undefined') {
             document.body.classList.add('admin-login-layout');
+
+            // Kiểm tra lỗi từ query parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorParam = urlParams.get('error');
+
+            if (errorParam) {
+                switch (errorParam) {
+                    case 'unauthorized':
+                        setError('Tài khoản của bạn không có quyền truy cập vào trang quản trị.');
+                        break;
+                    case 'invalid_token':
+                        setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+                        break;
+                    case 'backend_error':
+                        setError('Lỗi kết nối đến máy chủ xác thực. Vui lòng thử lại sau.');
+                        break;
+                    case 'connection':
+                        setError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra kết nối mạng.');
+                        break;
+                    default:
+                        setError('Đã xảy ra lỗi. Vui lòng đăng nhập lại.');
+                }
+            }
+
+            // Kiểm tra nếu người dùng đã đăng nhập với quyền admin
+            checkExistingAdminSession();
         }
 
         // Cleanup function khi component unmount
@@ -52,15 +78,56 @@ export default function AdminLoginPage() {
         };
     }, []);
 
+    // Kiểm tra xem có phiên đăng nhập admin đang tồn tại không
+    const checkExistingAdminSession = async () => {
+        const token = localStorage.getItem('auth_token');
+        const role = localStorage.getItem('user_role');
+
+        if (token && (role === 'admin' || role === 'superadmin')) {
+            try {
+                // Kiểm tra token có hợp lệ không
+                const response = await fetch('/api/admin/auth/verify', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    if (data.success && data.user &&
+                        (data.user.role === 'admin' || data.user.role === 'superadmin')) {
+                        console.log('Người dùng đã đăng nhập với vai trò:', data.user.role);
+                        // Chuyển hướng đến trang dashboard
+                        router.push('/admin/dashboard');
+                        return;
+                    }
+                }
+
+                // Nếu token không hợp lệ, xóa dữ liệu đăng nhập cũ
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user_role');
+                localStorage.removeItem('user_email');
+                localStorage.removeItem('user_name');
+
+                // Xóa cookies
+                document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+            } catch (error) {
+                console.error('Lỗi khi kiểm tra phiên đăng nhập:', error);
+                // Không hiển thị lỗi này cho người dùng, chỉ ghi log
+            }
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
         try {
-            // Tạo một token giả lập cho môi trường phát triển nếu cần
-            const mockSuccessLogin = email === 'superadmin@control.vn' && password === 'Admin123!';
-
             // Gọi API xác thực
             const response = await fetch('/api/admin/auth', {
                 method: 'POST',
@@ -75,6 +142,12 @@ export default function AdminLoginPage() {
             // Kiểm tra phản hồi từ server
             if (response.ok && data.success) {
                 console.log('Đăng nhập thành công với role:', data.user.role);
+
+                if (data.user.role !== 'admin' && data.user.role !== 'superadmin') {
+                    setError('Tài khoản của bạn không có quyền truy cập vào trang quản trị.');
+                    setLoading(false);
+                    return;
+                }
 
                 // Lưu token vào cookie và localStorage
                 const token = data.token;
@@ -94,38 +167,14 @@ export default function AdminLoginPage() {
                 localStorage.setItem('user_email', data.user.email);
                 localStorage.setItem('user_name', data.user.name || email.split('@')[0]);
 
-                console.log('Token đã được lưu, đang chuyển hướng đến /admin/dashboard');
+                console.log(`Đăng nhập thành công với vai trò ${role}, đang chuyển hướng đến /admin/dashboard`);
 
                 // Thêm delay nhỏ để đảm bảo dữ liệu được lưu trước khi chuyển hướng
                 setTimeout(() => {
                     router.push('/admin/dashboard');
                 }, 100);
-            } else if (mockSuccessLogin) {
-                // Xử lý đăng nhập mẫu cho môi trường phát triển
-                console.log('Đăng nhập mẫu thành công');
-
-                // Tạo token giả lập (trong thực tế đây sẽ là JWT hợp lệ)
-                const mockToken = `mock_${Date.now()}_superadmin_token`;
-
-                // Lưu vào cả cookie và localStorage
-                setCookie('auth_token', mockToken, {
-                    maxAge: 60 * 60 * 24,
-                    path: '/',
-                    secure: process.env.NODE_ENV === 'production',
-                    sameSite: 'strict'
-                });
-
-                localStorage.setItem('auth_token', mockToken);
-                localStorage.setItem('user_role', 'superadmin');
-                localStorage.setItem('user_email', email);
-                localStorage.setItem('user_name', 'Super Admin');
-
-                console.log('Token mẫu đã được lưu, đang chuyển hướng đến /admin/dashboard');
-
-                setTimeout(() => {
-                    router.push('/admin/dashboard');
-                }, 100);
             } else {
+                // Xử lý lỗi dựa trên phản hồi từ server
                 setError(data.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
             }
         } catch (error) {

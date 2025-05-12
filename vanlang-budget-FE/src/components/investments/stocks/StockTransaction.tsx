@@ -216,7 +216,7 @@ export function StockTransaction({ stockSymbol, onTransactionAdded }: StockTrans
             createdAt: new Date(),
         };
 
-        setTransactions(prev => [newTransaction, ...prev]);
+        setTransactions((prev: StockTransactionData[]) => [newTransaction, ...prev]);
 
         // Reset form
         form.reset({
@@ -249,7 +249,7 @@ export function StockTransaction({ stockSymbol, onTransactionAdded }: StockTrans
         console.log('Xóa giao dịch:', id);
 
         // Xóa khỏi danh sách (giả lập)
-        setTransactions(prev => prev.filter(transaction => transaction.id !== id));
+        setTransactions((prev: StockTransactionData[]) => prev.filter(transaction => transaction.id !== id));
 
         toast.success(
             "Đã xóa giao dịch",

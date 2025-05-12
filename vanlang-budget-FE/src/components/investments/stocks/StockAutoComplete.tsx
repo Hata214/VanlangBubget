@@ -202,7 +202,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
             event.stopPropagation(); // Ngăn không cho sự kiện click lan tỏa
         }
 
-        setFavoriteStocks(prev => {
+        setFavoriteStocks((prev: string[]) => {
             const isCurrentlyFavorite = prev.includes(symbol);
 
             if (isCurrentlyFavorite) {

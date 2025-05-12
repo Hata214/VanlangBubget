@@ -85,11 +85,11 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
 
     // Danh sách đơn vị thời gian cho lãi suất
     const INTEREST_RATE_TYPES = [
-        { value: 'DAY', label: t('loan.interestRateType.day') },
-        { value: 'WEEK', label: t('loan.interestRateType.week') },
-        { value: 'MONTH', label: t('loan.interestRateType.month') },
-        { value: 'QUARTER', label: t('loan.interestRateType.quarter') },
-        { value: 'YEAR', label: t('loan.interestRateType.year') },
+        { value: 'DAY', label: t('loan.interestRateTypes.day') },
+        { value: 'WEEK', label: t('loan.interestRateTypes.week') },
+        { value: 'MONTH', label: t('loan.interestRateTypes.month') },
+        { value: 'QUARTER', label: t('loan.interestRateTypes.quarter') },
+        { value: 'YEAR', label: t('loan.interestRateTypes.year') },
     ]
 
     // Danh sách trạng thái khoản vay

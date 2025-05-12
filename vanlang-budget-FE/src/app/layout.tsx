@@ -9,12 +9,12 @@ const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
     title: {
-        template: '%s | VangLang Budget',
-        default: 'VangLang Budget',
+        template: '%s | VanLang Budget',
+        default: 'VanLang Budget',
     },
     description: 'Ứng dụng quản lý tài chính cá nhân',
     keywords: ['quản lý tài chính', 'chi tiêu', 'thu nhập', 'ngân sách', 'khoản vay'],
-    authors: [{ name: 'VangLang Budget Team' }],
+    authors: [{ name: 'VanLang Budget Team' }],
     viewport: 'width=device-width, initial-scale=1',
     robots: 'index, follow',
     icons: [

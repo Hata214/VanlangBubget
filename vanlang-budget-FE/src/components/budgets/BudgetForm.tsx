@@ -1,6 +1,7 @@
 'use client'
 
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/Button'
@@ -24,14 +25,14 @@ import {
 } from '@/components/ui/Form'
 import { Budget } from '@/types'
 
-const budgetSchema = z.object({
-    category: z.string().min(1, 'Vui lòng chọn danh mục'),
-    amount: z.number().min(1, 'Số tiền phải lớn hơn 0'),
-    month: z.number().min(1, 'Vui lòng chọn tháng'),
-    year: z.number().min(2024, 'Vui lòng chọn năm'),
+const budgetSchema = (t: any) => z.object({
+    category: z.string().min(1, t('budget.categoryError')),
+    amount: z.number().min(1, t('budget.amountError')),
+    month: z.number().min(1, t('budget.monthError')),
+    year: z.number().min(2024, t('budget.yearError')),
 })
 
-type BudgetFormValues = z.infer<typeof budgetSchema>
+type BudgetFormValues = z.infer<ReturnType<typeof budgetSchema>>
 
 interface BudgetFormProps {
     initialData?: Budget
@@ -42,8 +43,10 @@ interface BudgetFormProps {
 }
 
 export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, categories }: BudgetFormProps) {
+    const t = useTranslations();
+
     const form = useForm<BudgetFormValues>({
-        resolver: zodResolver(budgetSchema),
+        resolver: zodResolver(budgetSchema(t)),
         defaultValues: initialData || {
             category: '',
             amount: 0,
@@ -60,11 +63,11 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                     name="category"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Danh mục</FormLabel>
+                            <FormLabel>{t('budget.category')}</FormLabel>
                             <FormControl>
                                 <Select onValueChange={field.onChange} value={field.value || ''}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn danh mục" />
+                                        <SelectValue placeholder={t('budget.selectCategory')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {categories.map((category) => (
@@ -85,11 +88,11 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                     name="amount"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Số tiền</FormLabel>
+                            <FormLabel>{t('budget.amount')}</FormLabel>
                             <FormControl>
                                 <Input
                                     type="number"
-                                    placeholder="Nhập số tiền"
+                                    placeholder={t('budget.enterAmount')}
                                     {...field}
                                     onChange={(e) => field.onChange(Number(e.target.value))}
                                 />
@@ -104,11 +107,11 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                     name="month"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Tháng</FormLabel>
+                            <FormLabel>{t('budget.month')}</FormLabel>
                             <FormControl>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn tháng" />
+                                        <SelectValue placeholder={t('budget.selectMonth')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.from({ length: 12 }, (_, i) => (
@@ -129,11 +132,11 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                     name="year"
                     render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Năm</FormLabel>
+                            <FormLabel>{t('budget.year')}</FormLabel>
                             <FormControl>
                                 <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ''}>
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn năm" />
+                                        <SelectValue placeholder={t('budget.selectYear')} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.from({ length: 5 }, (_, i) => {
@@ -154,13 +157,13 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
 
                 <div className="flex justify-end gap-4">
                     <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-                        Hủy
+                        {t('common.cancel')}
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                        {initialData ? 'Cập nhật' : 'Thêm'} ngân sách
+                        {initialData ? t('budget.edit') : t('budget.add')}
                     </Button>
                 </div>
             </form>
         </Form>
     )
-} 
+}

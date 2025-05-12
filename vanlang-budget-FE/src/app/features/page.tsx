@@ -46,42 +46,72 @@ export default function FeaturesPage() {
             id: 'expense-tracking',
             title: t('features.mainFeatures.expenseTracking.title'),
             description: t('features.mainFeatures.expenseTracking.description'),
-            benefits: t.raw('features.mainFeatures.expenseTracking.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.expenseTracking.benefits'))
+                ? t.raw('features.mainFeatures.expenseTracking.benefits')
+                : [t('features.mainFeatures.expenseTracking.benefits.0'),
+                t('features.mainFeatures.expenseTracking.benefits.1'),
+                t('features.mainFeatures.expenseTracking.benefits.2'),
+                t('features.mainFeatures.expenseTracking.benefits.3')],
             iconName: 'BarChart3'
         },
         {
             id: 'budget-management',
             title: t('features.mainFeatures.budgetManagement.title'),
             description: t('features.mainFeatures.budgetManagement.description'),
-            benefits: t.raw('features.mainFeatures.budgetManagement.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.budgetManagement.benefits'))
+                ? t.raw('features.mainFeatures.budgetManagement.benefits')
+                : [t('features.mainFeatures.budgetManagement.benefits.0'),
+                t('features.mainFeatures.budgetManagement.benefits.1'),
+                t('features.mainFeatures.budgetManagement.benefits.2'),
+                t('features.mainFeatures.budgetManagement.benefits.3')],
             iconName: 'PiggyBank'
         },
         {
             id: 'financial-analysis',
             title: t('features.mainFeatures.financialAnalysis.title'),
             description: t('features.mainFeatures.financialAnalysis.description'),
-            benefits: t.raw('features.mainFeatures.financialAnalysis.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.financialAnalysis.benefits'))
+                ? t.raw('features.mainFeatures.financialAnalysis.benefits')
+                : [t('features.mainFeatures.financialAnalysis.benefits.0'),
+                t('features.mainFeatures.financialAnalysis.benefits.1'),
+                t('features.mainFeatures.financialAnalysis.benefits.2'),
+                t('features.mainFeatures.financialAnalysis.benefits.3')],
             iconName: 'LineChart'
         },
         {
             id: 'future-planning',
             title: t('features.mainFeatures.futurePlanning.title'),
             description: t('features.mainFeatures.futurePlanning.description'),
-            benefits: t.raw('features.mainFeatures.futurePlanning.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.futurePlanning.benefits'))
+                ? t.raw('features.mainFeatures.futurePlanning.benefits')
+                : [t('features.mainFeatures.futurePlanning.benefits.0'),
+                t('features.mainFeatures.futurePlanning.benefits.1'),
+                t('features.mainFeatures.futurePlanning.benefits.2'),
+                t('features.mainFeatures.futurePlanning.benefits.3')],
             iconName: 'Clock'
         },
         {
             id: 'loan-management',
             title: t('features.mainFeatures.loanManagement.title'),
             description: t('features.mainFeatures.loanManagement.description'),
-            benefits: t.raw('features.mainFeatures.loanManagement.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.loanManagement.benefits'))
+                ? t.raw('features.mainFeatures.loanManagement.benefits')
+                : [t('features.mainFeatures.loanManagement.benefits.0'),
+                t('features.mainFeatures.loanManagement.benefits.1'),
+                t('features.mainFeatures.loanManagement.benefits.2'),
+                t('features.mainFeatures.loanManagement.benefits.3')],
             iconName: 'CreditCard'
         },
         {
             id: 'data-security',
             title: t('features.mainFeatures.dataSecurity.title'),
             description: t('features.mainFeatures.dataSecurity.description'),
-            benefits: t.raw('features.mainFeatures.dataSecurity.benefits') as string[],
+            benefits: Array.isArray(t.raw('features.mainFeatures.dataSecurity.benefits'))
+                ? t.raw('features.mainFeatures.dataSecurity.benefits')
+                : [t('features.mainFeatures.dataSecurity.benefits.0'),
+                t('features.mainFeatures.dataSecurity.benefits.1'),
+                t('features.mainFeatures.dataSecurity.benefits.2'),
+                t('features.mainFeatures.dataSecurity.benefits.3')],
             iconName: 'Shield'
         }
     ];
@@ -89,14 +119,14 @@ export default function FeaturesPage() {
     // Tính năng sắp ra mắt
     const comingSoonFeatures = [
         {
-            title: t('features.comingSoon.aiAdvisor.title'),
-            description: t('features.comingSoon.aiAdvisor.description'),
-            eta: t('features.comingSoon.aiAdvisor.eta')
+            title: t('features.comingSoon.aiAdvisor.title') || "Smart AI Advisor",
+            description: t('features.comingSoon.aiAdvisor.description') || "Analyze and provide personalized financial advice based on spending behavior",
+            eta: t('features.comingSoon.aiAdvisor.eta') || "Q2 2025"
         },
         {
-            title: t('features.comingSoon.groupExpense.title'),
-            description: t('features.comingSoon.groupExpense.description'),
-            eta: t('features.comingSoon.groupExpense.eta')
+            title: t('features.comingSoon.groupExpense.title') || "Group Expenses",
+            description: t('features.comingSoon.groupExpense.description') || "Share and manage expenses with friends, family, or colleagues",
+            eta: t('features.comingSoon.groupExpense.eta') || "Q4 2025"
         }
     ];
 
@@ -140,7 +170,7 @@ export default function FeaturesPage() {
                                     <div className="space-y-2">
                                         <p className="font-semibold text-gray-900 dark:text-white">{t('features.benefits')}:</p>
                                         <ul className="space-y-2">
-                                            {feature.benefits.map((benefit, index) => (
+                                            {feature.benefits.map((benefit: string, index: number) => (
                                                 <li key={index} className="flex items-start">
                                                     <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
                                                     <span>{benefit}</span>

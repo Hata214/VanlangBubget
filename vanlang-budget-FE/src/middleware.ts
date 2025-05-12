@@ -28,18 +28,30 @@ export async function middleware(request: NextRequest) {
 
         try {
             // Xác thực giả lập cho token demo nếu token bắt đầu bằng "mock_"
-            if (token.startsWith('mock_') && (token.includes('admin') || token.includes('superadmin'))) {
-                console.log('Mock token detected, bypassing verification');
-                // Cho phép truy cập với token giả lập
-                return NextResponse.next();
+            if (token.startsWith('mock_')) {
+                console.log('Mock token detected, checking role in mock token');
+
+                // Kiểm tra xem token có chứa admin hoặc superadmin không
+                if (token.includes('admin') || token.includes('superadmin')) {
+                    console.log('Valid admin role in mock token, access granted');
+                    // Cho phép truy cập với token giả lập
+                    return NextResponse.next();
+                } else {
+                    console.log('Invalid role in mock token, access denied');
+                    const redirectResponse = NextResponse.redirect(new URL('/admin/login', request.url));
+                    redirectResponse.cookies.delete('auth_token');
+                    return redirectResponse;
+                }
             }
 
             // Xác thực token thật với API admin
             console.log('Verifying token with API');
-            const apiUrl = new URL('/api/admin/auth', request.nextUrl.origin).toString();
-            console.log('API URL:', apiUrl);
+            // Sử dụng endpoint xác thực mới
+            const apiUrl = new URL('/api/admin/auth/verify', request.nextUrl.origin).toString();
+            console.log('API verification URL:', apiUrl);
 
             const response = await fetch(apiUrl, {
+                method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -54,9 +66,27 @@ export async function middleware(request: NextRequest) {
                 return redirectResponse;
             }
 
-            console.log('Token verified successfully');
-            // Token hợp lệ và có quyền admin, cho phép tiếp tục
-            return NextResponse.next();
+            try {
+                // Kiểm tra quyền từ response
+                const userData = await response.json();
+                console.log('Token verification response:', userData);
+
+                if (!userData.success || !userData.user || !['admin', 'superadmin'].includes(userData.user.role)) {
+                    console.log('User does not have admin privileges:', userData.user?.role);
+                    const redirectResponse = NextResponse.redirect(new URL('/admin/login', request.url));
+                    redirectResponse.cookies.delete('auth_token');
+                    return redirectResponse;
+                }
+
+                console.log('Token verified successfully with role:', userData.user.role);
+                // Token hợp lệ và có quyền admin/superadmin, cho phép tiếp tục
+                return NextResponse.next();
+            } catch (parseError) {
+                console.error('Error parsing verification response:', parseError);
+                const redirectResponse = NextResponse.redirect(new URL('/admin/login', request.url));
+                redirectResponse.cookies.delete('auth_token');
+                return redirectResponse;
+            }
         } catch (error) {
             console.error('Middleware authentication error:', error);
 
@@ -81,19 +111,29 @@ export async function middleware(request: NextRequest) {
                 }
 
                 // Xác thực token với API admin
-                const apiUrl = new URL('/api/admin/auth', request.nextUrl.origin).toString();
+                const apiUrl = new URL('/api/admin/auth/verify', request.nextUrl.origin).toString();
                 console.log('Verifying token on login page:', apiUrl);
 
                 const response = await fetch(apiUrl, {
+                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
 
                 if (response.ok) {
-                    console.log('User already logged in, redirecting to dashboard');
-                    // Nếu token hợp lệ và đã đăng nhập, chuyển hướng đến trang dashboard
-                    return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+                    try {
+                        // Kiểm tra quyền từ response
+                        const userData = await response.json();
+
+                        if (userData.success && userData.user && ['admin', 'superadmin'].includes(userData.user.role)) {
+                            console.log('User already logged in with role:', userData.user.role);
+                            return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+                        }
+                    } catch (parseError) {
+                        console.error('Error parsing login page verification response:', parseError);
+                        // Nếu có lỗi parsing, cho phép tiếp tục đến trang đăng nhập
+                    }
                 }
             } catch (error) {
                 console.error('Middleware login check error:', error);

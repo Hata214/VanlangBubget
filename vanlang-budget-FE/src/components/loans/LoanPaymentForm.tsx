@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { NumberInput } from '@/components/ui/NumberInput'
@@ -28,6 +29,7 @@ export function LoanPaymentForm({
     onSubmit,
     isSubmitting,
 }: LoanPaymentFormProps) {
+    const t = useTranslations();
     const [amount, setAmount] = useState(initialData?.amount || 0)
     const [paymentDate, setPaymentDate] = useState(
         initialData?.paymentDate || new Date().toISOString().split('T')[0]
@@ -83,7 +85,7 @@ export function LoanPaymentForm({
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1">
                 <label htmlFor="amount" className="text-sm font-medium">
-                    Số tiền (tối đa {formatCurrency(remainingAmount)})
+                    {t('loan.paymentAmount')} ({t('common.max')} {formatCurrency(remainingAmount)})
                 </label>
                 <NumberInput
                     currency="đ"
@@ -96,7 +98,7 @@ export function LoanPaymentForm({
 
             <div className="space-y-1">
                 <label htmlFor="paymentDate" className="text-sm font-medium">
-                    Ngày trả
+                    {t('loan.paymentDate')}
                 </label>
                 <Input
                     id="paymentDate"
@@ -109,7 +111,7 @@ export function LoanPaymentForm({
 
             <div className="space-y-1">
                 <label htmlFor="description" className="text-sm font-medium">
-                    Ghi chú
+                    {t('common.description')}
                 </label>
                 <Textarea
                     id="description"
@@ -121,7 +123,7 @@ export function LoanPaymentForm({
 
             <div className="space-y-2">
                 <label htmlFor="attachments" className="text-sm font-medium">
-                    Tệp đính kèm
+                    {t('loan.attachments')}
                 </label>
                 <Input
                     id="attachments"
@@ -131,7 +133,7 @@ export function LoanPaymentForm({
                     accept="image/*,.pdf"
                 />
                 <p className="text-xs text-gray-500">
-                    Chấp nhận file ảnh và PDF
+                    {t('loan.acceptedFileTypes')}
                 </p>
 
                 {/* File Previews */}
@@ -142,13 +144,13 @@ export function LoanPaymentForm({
                                 {preview.endsWith('.pdf') ? (
                                     <div className="flex items-center gap-2 p-4 border rounded">
                                         <FileText className="w-8 h-8 text-blue-500" />
-                                        <span className="text-sm truncate">PDF Document</span>
+                                        <span className="text-sm truncate">{t('loan.pdfDocument')}</span>
                                     </div>
                                 ) : (
                                     <div className="relative aspect-square">
                                         <img
                                             src={preview}
-                                            alt={`Preview ${index + 1}`}
+                                            alt={`${t('loan.preview')} ${index + 1}`}
                                             className="w-full h-full object-cover rounded"
                                         />
                                     </div>
@@ -168,9 +170,9 @@ export function LoanPaymentForm({
 
             <div className="flex justify-end gap-2">
                 <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? 'Đang lưu...' : initialData ? 'Cập nhật' : 'Thêm'}
+                    {isSubmitting ? t('common.saving') : initialData ? t('common.update') : t('common.add')}
                 </Button>
             </div>
         </form>
     )
-} 
+}

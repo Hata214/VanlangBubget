@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/Alert'
@@ -28,6 +29,7 @@ export function LoanPaymentList({
     onEditPayment,
     onDeletePayment,
 }: LoanPaymentListProps) {
+    const t = useTranslations();
     const [selectedPayment, setSelectedPayment] = useState<LoanPayment | null>(null)
     const [showAddModal, setShowAddModal] = useState(false)
     const [showEditModal, setShowEditModal] = useState(false)
@@ -80,21 +82,21 @@ export function LoanPaymentList({
 
     const columns = [
         {
-            header: 'Ngày trả',
+            header: t('loan.paymentDate'),
             accessor: (payment: LoanPayment) => formatDate(payment.paymentDate),
             className: 'w-32',
         },
         {
-            header: 'Số tiền',
+            header: t('loan.paymentAmount'),
             accessor: (payment: LoanPayment) => formatCurrency(payment.amount),
             className: 'w-32 text-right',
         },
         {
-            header: 'Ghi chú',
+            header: t('common.description'),
             accessor: 'description' as const,
         },
         {
-            header: 'Tệp đính kèm',
+            header: t('loan.attachments'),
             accessor: (payment: LoanPayment) => (
                 payment.attachments && payment.attachments.length > 0 ? (
                     <button
@@ -106,7 +108,7 @@ export function LoanPaymentList({
                         className="flex items-center gap-1 text-blue-600 hover:text-blue-700"
                     >
                         <FileText className="w-4 h-4" />
-                        <span>{payment.attachments.length} tệp</span>
+                        <span>{payment.attachments.length} {t('loan.files')}</span>
                     </button>
                 ) : null
             ),
@@ -145,21 +147,21 @@ export function LoanPaymentList({
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold">Lịch sử trả</h2>
-                <Button onClick={() => setShowAddModal(true)}>Thêm khoản trả</Button>
+                <h2 className="text-lg font-semibold">{t('loan.paymentHistory')}</h2>
+                <Button onClick={() => setShowAddModal(true)}>{t('loan.addPayment')}</Button>
             </div>
 
             <Table
                 columns={columns}
                 data={payments}
                 isLoading={isLoading}
-                emptyMessage="Chưa có khoản trả nào"
+                emptyMessage={t('loan.noPayments')}
             />
 
             <Modal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                title="Thêm khoản trả"
+                title={t('loan.addPayment')}
             >
                 <LoanPaymentForm
                     loanId={loanId}
@@ -175,7 +177,7 @@ export function LoanPaymentList({
                     setShowEditModal(false)
                     setSelectedPayment(null)
                 }}
-                title="Chỉnh sửa khoản trả"
+                title={t('loan.editPayment')}
             >
                 {selectedPayment && (
                     <LoanPaymentForm
@@ -199,11 +201,11 @@ export function LoanPaymentList({
                     setShowDeleteModal(false)
                     setSelectedPayment(null)
                 }}
-                title="Xóa khoản trả"
+                title={t('loan.deletePayment')}
             >
                 <Alert variant="destructive">
-                    <AlertTitle>Bạn có chắc chắn muốn xóa khoản trả này?</AlertTitle>
-                    <AlertDescription>Hành động này không thể hoàn tác.</AlertDescription>
+                    <AlertTitle>{t('loan.deletePaymentConfirm')}</AlertTitle>
+                    <AlertDescription>{t('common.actionCannotBeUndone')}</AlertDescription>
                 </Alert>
                 <div className="flex justify-end gap-2 mt-4">
                     <Button
@@ -213,14 +215,14 @@ export function LoanPaymentList({
                             setSelectedPayment(null)
                         }}
                     >
-                        Hủy
+                        {t('common.cancel')}
                     </Button>
                     <Button
                         variant="destructive"
                         onClick={handleDelete}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting ? 'Đang xóa...' : 'Xóa'}
+                        {isSubmitting ? t('common.deleting') : t('common.delete')}
                     </Button>
                 </div>
             </Modal>
@@ -231,7 +233,7 @@ export function LoanPaymentList({
                     setShowAttachmentsModal(false)
                     setSelectedPayment(null)
                 }}
-                title="Tệp đính kèm"
+                title={t('loan.attachments')}
             >
                 {selectedPayment?.attachments && (
                     <div className="grid grid-cols-2 gap-4">
@@ -245,7 +247,7 @@ export function LoanPaymentList({
                                         className="flex items-center gap-2 p-4 border rounded hover:bg-gray-50"
                                     >
                                         <FileText className="w-8 h-8 text-blue-500" />
-                                        <span className="text-sm truncate">PDF Document</span>
+                                        <span className="text-sm truncate">{t('loan.pdfDocument')}</span>
                                     </a>
                                 ) : (
                                     <a
@@ -256,7 +258,7 @@ export function LoanPaymentList({
                                     >
                                         <img
                                             src={attachment}
-                                            alt={`Attachment ${index + 1}`}
+                                            alt={`${t('loan.attachment')} ${index + 1}`}
                                             className="w-full aspect-square object-cover rounded"
                                         />
                                     </a>
@@ -268,4 +270,4 @@ export function LoanPaymentList({
             </Modal>
         </div>
     )
-} 
+}

@@ -1,12 +1,29 @@
 {
     "app": {
-        "name": "VangLang Budget",
+        "name": "VanLang Budget",
         "description": "Ứng dụng Quản lý Tài chính Cá nhân"
+    },
+    "header": {
+        "links": {
+            "aboutUs": "Về chúng tôi",
+            "features": "Tính năng",
+            "pricing": "Bảng giá",
+            "contact": "Liên hệ",
+            "roadmap": "Lộ trình"
+        },
+        "buttons": {
+            "login": "Đăng nhập",
+            "register": "Đăng ký"
+        },
+        "theme": {
+            "light": "Sáng",
+            "dark": "Tối"
+        }
     },
     "home": {
         "hero": {
             "title": "Quản lý tài chính cá nhân một cách thông minh",
-            "description": "VangLang Budget giúp bạn theo dõi thu chi, quản lý ngân sách và đạt được mục tiêu tài chính một cách dễ dàng.",
+            "description": "VanLang Budget giúp bạn theo dõi thu chi, quản lý ngân sách và đạt được mục tiêu tài chính một cách dễ dàng.",
             "getStarted": "Bắt đầu ngay",
             "learnMore": "Tìm hiểu thêm"
         },
@@ -15,12 +32,19 @@
             "transactionsManaged": "Giao dịch được quản lý",
             "savingsIncrease": "Tăng khả năng tiết kiệm"
         },
+        "screenshots": {
+            "title": "Giao diện trực quan, dễ sử dụng",
+            "subtitle": "Thiết kế hiện đại, thân thiện với người dùng giúp bạn quản lý tài chính dễ dàng",
+            "financialOverview": "Tổng quan tài chính",
+            "incomeAnalysis": "Phân tích thu nhập",
+            "expenseManagement": "Quản lý chi tiêu"
+        },
         "features": {
-            "title": "Tính năng nổi bật",
-            "subtitle": "VangLang Budget cung cấp đầy đủ các công cụ bạn cần để quản lý tài chính hiệu quả",
+            "title": "Tính năng chính",
+            "subtitle": "VanLang Budget cung cấp tất cả các công cụ bạn cần để quản lý tài chính hiệu quả",
             "expenseTracking": {
-                "title": "Theo dõi thu chi",
-                "description": "Ghi lại tất cả các khoản thu nhập và chi tiêu của bạn một cách dễ dàng và nhanh chóng."
+                "title": "Theo dõi chi tiêu",
+                "description": "Ghi lại tất cả thu nhập và chi tiêu của bạn một cách dễ dàng và nhanh chóng."
             },
             "budgetManagement": {
                 "title": "Quản lý ngân sách",
@@ -28,27 +52,20 @@
             },
             "financialAnalysis": {
                 "title": "Phân tích tài chính",
-                "description": "Xem báo cáo và biểu đồ chi tiết về tình hình tài chính của bạn theo thời gian thực."
+                "description": "Xem báo cáo chi tiết và biểu đồ về tình hình tài chính của bạn theo thời gian thực."
             },
             "futurePlanning": {
-                "title": "Lên kế hoạch tương lai",
-                "description": "Đặt mục tiêu tài chính và theo dõi tiến độ thực hiện của bạn."
+                "title": "Lập kế hoạch tương lai",
+                "description": "Đặt mục tiêu tài chính và theo dõi tiến độ của bạn."
             },
             "loanManagement": {
                 "title": "Quản lý khoản vay",
-                "description": "Theo dõi các khoản vay, tính lãi suất và lịch trả nợ một cách dễ dàng."
+                "description": "Theo dõi các khoản vay, tính lãi suất và lập lịch trả nợ."
             },
             "dataSecurity": {
-                "title": "Bảo mật thông tin",
-                "description": "Dữ liệu của bạn được mã hóa và bảo vệ an toàn với các tiêu chuẩn bảo mật cao nhất."
+                "title": "Bảo mật dữ liệu",
+                "description": "Bảo vệ thông tin tài chính của bạn với công nghệ mã hóa tiên tiến."
             }
-        },
-        "screenshots": {
-            "title": "Giao diện trực quan, dễ sử dụng",
-            "subtitle": "Thiết kế hiện đại, thân thiện với người dùng giúp bạn quản lý tài chính dễ dàng",
-            "financialOverview": "Tổng quan tài chính",
-            "incomeAnalysis": "Phân tích thu nhập",
-            "expenseManagement": "Quản lý chi tiêu"
         },
         "testimonials": {
             "title": "Người dùng nói gì về chúng tôi"
@@ -87,14 +104,14 @@
         },
         "faq": {
             "title": "Câu hỏi thường gặp",
-            "subtitle": "Giải đáp những thắc mắc phổ biến về VangLang Budget",
+            "subtitle": "Giải đáp những thắc mắc phổ biến về VanLang Budget",
             "questions": [
                 {
-                    "question": "VangLang Budget có miễn phí không?",
-                    "answer": "Có, VangLang Budget hoàn toàn miễn phí cho tất cả người dùng. Bạn có thể sử dụng tất cả các tính năng cơ bản mà không cần trả phí."
+                    "question": "VanLang Budget có miễn phí không?",
+                    "answer": "Có, VanLang Budget hoàn toàn miễn phí cho tất cả người dùng. Bạn có thể sử dụng tất cả các tính năng cơ bản mà không cần trả phí."
                 },
                 {
-                    "question": "Làm thế nào để bắt đầu sử dụng VangLang Budget?",
+                    "question": "Làm thế nào để bắt đầu sử dụng VanLang Budget?",
                     "answer": "Đơn giản! Bạn chỉ cần đăng ký tài khoản, đăng nhập và bắt đầu thêm các khoản thu chi của mình. Ứng dụng sẽ tự động tạo báo cáo và biểu đồ để bạn theo dõi."
                 },
                 {
@@ -102,8 +119,8 @@
                     "answer": "Chúng tôi coi trọng vấn đề bảo mật. Tất cả dữ liệu của bạn được mã hóa và chỉ bạn mới có thể truy cập. Chúng tôi không bao giờ chia sẻ thông tin cá nhân của bạn với bên thứ ba."
                 },
                 {
-                    "question": "Tôi có thể sử dụng VangLang Budget trên điện thoại không?",
-                    "answer": "Có, VangLang Budget là ứng dụng web responsive, hoạt động tốt trên mọi thiết bị bao gồm máy tính, tablet và điện thoại di động."
+                    "question": "Tôi có thể sử dụng VanLang Budget trên điện thoại không?",
+                    "answer": "Có, VanLang Budget là ứng dụng web responsive, hoạt động tốt trên mọi thiết bị bao gồm máy tính, tablet và điện thoại di động."
                 }
             ]
         },
@@ -112,6 +129,93 @@
             "description": "Đăng ký ngay hôm nay và bắt đầu hành trình đạt được tự do tài chính của bạn.",
             "getStarted": "Bắt đầu miễn phí",
             "contact": "Liên hệ với chúng tôi"
+        }
+    },
+    "features": {
+        "title": "Tính năng",
+        "subtitle": "Công cụ quản lý tài chính mạnh mẽ",
+        "description": "VanLang Budget cung cấp tất cả các tính năng bạn cần để kiểm soát hiệu quả tài chính cá nhân của mình.",
+        "benefits": "Lợi ích",
+        "mainFeatures": {
+            "title": "Tính năng chính",
+            "expenseTracking": {
+                "title": "Theo dõi thu chi",
+                "description": "Ghi lại và phân loại tất cả thu nhập, chi tiêu hàng ngày, hàng tuần và hàng tháng với giao diện trực quan và dễ sử dụng.",
+                "benefits": [
+                    "Dễ dàng thêm chi phí mới chỉ với vài bước đơn giản",
+                    "Tự động phân loại dựa trên các danh mục phổ biến",
+                    "Thêm vị trí, hình ảnh và ghi chú cho mỗi giao dịch",
+                    "Lọc và tìm kiếm chi tiêu theo nhiều tiêu chí"
+                ]
+            },
+            "budgetManagement": {
+                "title": "Quản lý ngân sách",
+                "description": "Thiết lập và theo dõi ngân sách chi tiêu theo danh mục, giúp bạn kiểm soát chi tiêu và hình thành thói quen tài chính lành mạnh.",
+                "benefits": [
+                    "Thiết lập ngân sách hàng tháng hoặc theo lô",
+                    "Cảnh báo khi chi tiêu vượt quá ngân sách",
+                    "Phân tích việc tuân thủ ngân sách theo thời gian",
+                    "Điều chỉnh ngân sách dựa trên dữ liệu thực tế"
+                ]
+            },
+            "financialAnalysis": {
+                "title": "Phân tích tài chính",
+                "description": "Biểu đồ và báo cáo chi tiết giúp bạn hiểu thói quen chi tiêu và cơ hội tiết kiệm của mình.",
+                "benefits": [
+                    "Biểu đồ trực quan về thu nhập và chi tiêu",
+                    "Phân tích xu hướng tài chính theo thời gian",
+                    "So sánh ngân sách và chi tiêu thực tế",
+                    "Xác định các danh mục chi tiêu chính và cơ hội tiết kiệm"
+                ]
+            },
+            "futurePlanning": {
+                "title": "Lên kế hoạch tương lai",
+                "description": "Đặt mục tiêu tài chính và theo dõi tiến độ của bạn, từ quỹ khẩn cấp ngắn hạn đến kế hoạch hưu trí dài hạn.",
+                "benefits": [
+                    "Thiết lập các mục tiêu SMART cụ thể, có thể đo lường được",
+                    "Tự động tính toán tiến độ và dự báo hoàn thành",
+                    "Đề xuất điều chỉnh để đạt được mục tiêu nhanh hơn",
+                    "Nhắc nhở và khuyến khích thường xuyên"
+                ]
+            },
+            "loanManagement": {
+                "title": "Quản lý khoản vay",
+                "description": "Theo dõi các khoản vay, tính lãi suất và lên lịch trả nợ để giảm thiểu chi phí lãi và tối ưu hóa kế hoạch trả nợ của bạn.",
+                "benefits": [
+                    "Theo dõi nhiều khoản vay cùng lúc",
+                    "Tính toán lãi suất tự động",
+                    "Lên lịch trả nợ chi tiết",
+                    "Phân tích các kịch bản trả nợ tốt nhất"
+                ]
+            },
+            "dataSecurity": {
+                "title": "Bảo mật thông tin",
+                "description": "Bảo vệ thông tin tài chính của bạn với công nghệ mã hóa tiên tiến và kiểm soát truy cập.",
+                "benefits": [
+                    "Mã hóa dữ liệu đầu cuối",
+                    "Xác thực hai yếu tố",
+                    "Sao lưu dữ liệu tự động",
+                    "Không chia sẻ thông tin với bên thứ ba"
+                ]
+            }
+        },
+        "comingSoon": {
+            "title": "Sắp ra mắt",
+            "bankSync": {
+                "title": "Đồng bộ hóa ngân hàng",
+                "description": "Tích hợp trực tiếp với tài khoản ngân hàng của bạn để tự động cập nhật giao dịch.",
+                "eta": "Tháng 6/2025"
+            },
+            "groupExpense": {
+                "title": "Chi tiêu nhóm",
+                "description": "Chia sẻ và quản lý chi tiêu cùng bạn bè, gia đình hoặc đồng nghiệp",
+                "eta": "Tháng 8/2025"
+            },
+            "aiAdvisor": {
+                "title": "Tư vấn AI thông minh",
+                "description": "Nhận đề xuất cá nhân hóa dựa trên thói quen chi tiêu và mục tiêu tài chính của bạn.",
+                "eta": "Tháng 12/2025"
+            }
         }
     },
     "navigation": {
@@ -143,7 +247,7 @@
         "userProfile": "Thông tin cá nhân",
         "userProfileDesc": "Cập nhật thông tin cá nhân của bạn",
         "manageProfile": "Quản lý thông tin",
-        "notifications": "Thông báo",
+        "notificationSection": "Thông báo",
         "notificationsDesc": "Quản lý cài đặt thông báo",
         "manageNotifications": "Quản lý thông báo",
         "security": "Bảo mật",
@@ -155,10 +259,10 @@
         "currencyFormatDesc": "Cài đặt loại tiền tệ và định dạng hiển thị",
         "changeCurrency": "Thay đổi tiền tệ",
         "about": "Giới thiệu",
-        "aboutDesc": "Thông tin về ứng dụng VangLang Budget",
+        "aboutDesc": "Thông tin về ứng dụng VanLang Budget",
         "aboutApp": "Về ứng dụng",
         "logoutDesc": "Đăng xuất khỏi tài khoản hiện tại",
-        "notifications": {
+        "notificationSettings": {
             "saveSuccess": "Cài đặt thông báo đã được lưu thành công",
             "saveError": "Đã xảy ra lỗi khi lưu cài đặt thông báo"
         }
@@ -220,6 +324,8 @@
         "date": "Ngày",
         "type": "Loại",
         "category": "Danh mục",
+        "categoryCommon": "Danh mục",
+        "selectCategory": "Chọn danh mục",
         "description": "Mô tả",
         "amount": "Số tiền",
         "actions": "Thao tác",
@@ -235,7 +341,72 @@
         "settings": "Cài đặt",
         "help": "Trợ giúp",
         "signOut": "Đăng xuất",
-        "close": "Đóng"
+        "close": "Đóng",
+        "filterDate": "Lọc theo ngày",
+        "month": "Tháng",
+        "year": "Năm",
+        "selectMonth": "Chọn tháng",
+        "selectYear": "Chọn năm",
+        "delete": "Xóa",
+        "deleting": "Đang xóa...",
+        "actionCannotBeUndone": "Hành động này không thể hoàn tác.",
+        "max": "tối đa",
+        "saving": "Đang lưu...",
+        "add": "Thêm"
+    },
+    "notifications": {
+        "title": "Thông báo",
+        "all": "Tất cả thông báo",
+        "description": "Quản lý tất cả thông báo của bạn",
+        "markAllReadBtn": "Đánh dấu tất cả đã đọc",
+        "markRead": "Đánh dấu đã đọc",
+        "delete": "Xóa thông báo",
+        "noNotificationsText": "Không có thông báo",
+        "loadMoreBtn": "Tải thêm",
+        "new": "Mới",
+        "settings": "Cài đặt thông báo",
+        "emailSettings": "Cài đặt thông báo qua email",
+        "pushSettings": "Thông báo đẩy sẽ xuất hiện trong ứng dụng khi bạn đang trực tuyến. Chúng không yêu cầu quyền bổ sung nào.",
+        "emailNotifications": "Thông báo qua email",
+        "pushNotifications": "Thông báo đẩy",
+        "emailFrequency": "Tần suất email",
+        "emailFrequencyOptions": {
+            "immediately": "Ngay lập tức",
+            "daily": "Tóm tắt hàng ngày",
+            "weekly": "Tóm tắt hàng tuần",
+            "never": "Không bao giờ"
+        },
+        "emailVerificationRequired": "Yêu cầu xác thực email để nhận thông báo",
+        "verifyEmail": "Xác thực email",
+        "saveSettings": "Lưu cài đặt",
+        "settingsSaved": "Cài đặt thông báo đã được lưu",
+        "saveFailed": "Không thể lưu cài đặt thông báo của bạn",
+        "unsubscribe": "Hủy đăng ký email",
+        "subscribe": "Đăng ký nhận email",
+        "types": {
+            "all": "Tất cả thông báo",
+            "expense": "Thông báo chi tiêu",
+            "income": "Thông báo thu nhập",
+            "loan": "Thông báo khoản vay",
+            "paymentDue": "Thông báo thanh toán đến hạn",
+            "budget": "Thông báo ngân sách",
+            "system": "Thông báo hệ thống",
+            "other": "Thông báo khác"
+        },
+        "newExpense": "Đã thêm chi tiêu mới",
+        "expenseUpdated": "Đã cập nhật chi tiêu",
+        "expenseDeleted": "Đã xóa chi tiêu",
+        "newIncome": "Đã thêm thu nhập mới",
+        "incomeUpdated": "Đã cập nhật thu nhập",
+        "incomeDeleted": "Đã xóa thu nhập",
+        "budgetLimit": "Đã đạt giới hạn ngân sách",
+        "accountUpdate": "Cập nhật tài khoản",
+        "emailSuccess": "Đã gửi thông báo qua email",
+        "emailFailure": "Không thể gửi thông báo qua email",
+        "unread": "Chưa đọc",
+        "read": "Đã đọc",
+        "sortNewest": "Sắp xếp theo mới nhất",
+        "sortOldest": "Sắp xếp theo cũ nhất"
     },
     "dashboard": {
         "financialOverview": "Tổng quan tài chính",
@@ -267,7 +438,7 @@
         "noIncome": "Không tìm thấy khoản thu nhập nào",
         "amount": "Số tiền",
         "description": "Mô tả",
-        "category": "Danh mục",
+        "categoryLabel": "Danh mục",
         "date": "Ngày",
         "customCategory": "Danh mục tùy chỉnh",
         "startDate": "Từ ngày",
@@ -279,6 +450,14 @@
         "selectCategory": "Chọn danh mục",
         "enterCustomCategory": "Nhập tên danh mục mới",
         "category": {
+            "salary": "Lương",
+            "bonus": "Thưởng",
+            "investment": "Đầu tư",
+            "business": "Kinh doanh",
+            "savings": "Tiền tiết kiệm",
+            "other": "Khác"
+        },
+        "categories": {
             "salary": "Lương",
             "bonus": "Thưởng",
             "investment": "Đầu tư",
@@ -308,56 +487,53 @@
         "total": "Tổng Chi tiêu",
         "noExpense": "Không tìm thấy khoản chi tiêu nào",
         "amount": "Số tiền",
+        "amountExpense": "Số tiền",
         "description": "Mô tả",
-        "category": "Danh mục",
-        "date": "Ngày",
+        "descriptionExpense": "Mô tả",
+        "categoryExpense": "Danh mục",
+        "dateExpense": "Ngày",
         "customCategory": "Danh mục tùy chỉnh",
         "byCategory": "Chi tiêu theo Danh mục",
         "location": "Vị trí",
-        "enterLocation": "Nhập địa chỉ tại đây",
-        "locationHint": "Nhập địa chỉ hoặc dùng GPS để xác định vị trí",
-        "manualLocation": "Vị trí nhập tay",
-        "manualAddressOnly": "Địa chỉ nhập tay",
-        "useGpsLocation": "Dùng GPS",
-        "usingGpsLocation": "Đang dùng vị trí GPS",
-        "usingManualLocation": "Đang dùng địa chỉ nhập tay",
-        "geocodeAddress": "Tìm vị trí từ địa chỉ",
-        "geocodingAddress": "Đang tìm vị trí trên bản đồ...",
+        "addLocation": "Thêm vị trí",
+        "removeLocation": "Xóa vị trí",
+        "searchLocation": "Tìm kiếm vị trí",
+        "locationPlaceholder": "Nhập địa chỉ hoặc tên địa điểm",
+        "locationNotFound": "Không tìm thấy vị trí",
+        "locationAdded": "Đã thêm vị trí",
+        "locationRemoved": "Đã xóa vị trí",
+        "attachImage": "Đính kèm hình ảnh",
+        "removeImage": "Xóa hình ảnh",
+        "imageAdded": "Đã thêm hình ảnh",
+        "imageRemoved": "Đã xóa hình ảnh",
+        "imageUploadError": "Lỗi khi tải lên hình ảnh",
+        "imageSizeLimit": "Kích thước hình ảnh không được vượt quá 5MB",
+        "imageTypeLimit": "Chỉ chấp nhận các định dạng hình ảnh: JPG, PNG, GIF",
         "geocodingError": "Không tìm thấy vị trí trên bản đồ",
         "unableToShowOnMap": "Không thể hiển thị vị trí trên bản đồ",
         "findOnMap": "Tìm trên bản đồ",
-        "address": "Địa chỉ",
-        "coordinates": "Tọa độ",
-        "getCurrentLocation": "Lấy vị trí hiện tại",
-        "locationDetails": "Chi tiết vị trí",
-        "noLocationData": "Không có thông tin vị trí",
-        "viewOnMap": "Xem trên bản đồ",
-        "openInGoogleMaps": "Mở trong Google Maps",
-        "locationLoading": "Đang xác định vị trí...",
-        "locationError": "Lỗi khi xác định vị trí",
-        "locationPermissionDenied": "Bạn đã từ chối quyền truy cập vị trí",
-        "locationUnavailable": "Không thể xác định vị trí hiện tại",
-        "locationTimeout": "Quá thời gian chờ xác định vị trí",
-        "locationNotSupported": "Trình duyệt không hỗ trợ định vị",
-        "requiredField": "Trường này là bắt buộc",
-        "invalidAmount": "Vui lòng nhập số tiền hợp lệ",
-        "invalidDate": "Vui lòng nhập ngày hợp lệ",
-        "formNote": "Các trường có dấu * là bắt buộc",
-        "loadingAddressData": "Đang tải thông tin địa chỉ...",
-        "addressNotFound": "Không tìm thấy địa chỉ",
-        "addressFound": "Đã tìm thấy địa chỉ",
-        "addressDetails": "Chi tiết địa chỉ",
-        "addressSuggestions": "Gợi ý địa chỉ",
-        "startDate": "Từ ngày",
-        "endDate": "Đến ngày",
-        "minAmount": "Số tiền tối thiểu",
-        "maxAmount": "Số tiền tối đa",
         "enterAmount": "Nhập số tiền",
         "enterDescription": "Nhập mô tả",
         "selectCategory": "Chọn danh mục",
         "enterCustomCategory": "Nhập tên danh mục mới",
-        "selectLocation": "Chọn vị trí",
+        "openInGoogleMaps": "Mở trong Google Maps",
+        "enterLocation": "Nhập địa chỉ",
+        "useGpsLocation": "Sử dụng GPS",
+        "usingGpsLocation": "Đang sử dụng vị trí GPS",
+        "usingManualLocation": "Đang sử dụng địa chỉ thủ công",
+        "locationHint": "Nhập địa chỉ hoặc sử dụng GPS để xác định vị trí",
+        "getCurrentLocation": "Lấy vị trí hiện tại",
         "category": {
+            "food": "Ăn uống",
+            "transport": "Di chuyển",
+            "shopping": "Mua sắm",
+            "entertainment": "Giải trí",
+            "bills": "Hóa đơn",
+            "health": "Sức khỏe",
+            "education": "Giáo dục",
+            "other": "Khác"
+        },
+        "expenseCategories": {
             "food": "Ăn uống",
             "transport": "Di chuyển",
             "shopping": "Mua sắm",
@@ -381,49 +557,61 @@
         "deleteErrorDetail": "Đã xảy ra lỗi khi xóa khoản chi tiêu. Vui lòng thử lại."
     },
     "loan": {
-        "prepaymentAmount": "Số tiền trả trước",
-        "enterPrepaymentAmount": "Nhập số tiền trả trước",
         "manage": "Khoản vay",
-        "add": "Thêm khoản vay",
+        "add": "Thêm Khoản vay",
         "edit": "Sửa Khoản vay",
         "delete": "Xóa Khoản vay",
         "deleteConfirm": "Bạn có chắc chắn muốn xóa khoản vay này không?",
-        "totalDebt": "Tổng nợ",
-        "totalLoanAmount": "Tổng tiền vay",
-        "totalDebtWithInterest": "Tổng tiền phải trả",
+        "total": "Tổng Khoản vay",
+        "totalLoanAmount": "Tổng số tiền vay",
+        "totalDebtWithInterest": "Tổng số tiền phải trả",
+        "interest": "Lãi",
         "noLoan": "Không tìm thấy khoản vay nào",
-        "loanList": "Danh sách Khoản vay",
-        "amount": "Số tiền vay",
+        "amount": "Số tiền",
         "description": "Mô tả",
         "lender": "Người cho vay",
         "interestRate": "Lãi suất",
-        "interestRateType": "Đơn vị thời gian",
+        "interestRateTypeLabel": "Đơn vị thời gian",
         "startDate": "Ngày bắt đầu",
         "dueDate": "Ngày đáo hạn",
         "status": "Trạng thái",
         "active": "Đang vay",
         "paid": "Đã trả",
         "overdue": "Quá hạn",
-        "enterAmount": "Nhập số tiền",
-        "enterDescription": "Nhập mô tả khoản vay",
-        "enterLender": "Nhập tên người cho vay",
-        "enterInterestRate": "Nhập lãi suất",
-        "selectLender": "Chọn người cho vay",
-        "enterCustomLender": "Nhập tên người cho vay khác",
-        "selectInterestRateType": "Chọn đơn vị thời gian",
-        "estimatedInterest": "Số tiền lãi dự tính:",
-        "estimatedInterestNote": "Tổng số tiền phải trả (Gốc + Lãi):",
-        "interest": "Lãi",
-        "total": "Tổng",
-        "autoUpdateStatus": "Tự động cập nhật trạng thái dựa trên ngày đáo hạn",
-        "principalToRepay": "Số tiền gốc phải trả:",
-        "interestCalculationMethodLabel": "Phương pháp tính lãi",
-        "interestCalculationMethod": {
-            "simple": "Lãi đơn (tháng, quý, năm)",
-            "dailyForBank": "Lãi theo ngày (ngày, tuần)"
-        },
+        "paymentSchedule": "Lịch trả nợ",
+        "paymentAmount": "Số tiền trả",
+        "paymentDate": "Ngày trả",
+        "paymentStatus": "Trạng thái",
+        "addPayment": "Thêm khoản trả",
+        "editPayment": "Sửa khoản trả",
+        "deletePayment": "Xóa khoản trả",
+        "deletePaymentConfirm": "Bạn có chắc chắn muốn xóa khoản trả này không?",
+        "noPayments": "Chưa có khoản trả nào",
+        "remainingAmount": "Số tiền còn lại",
+        "paidAmount": "Số tiền đã trả",
+        "nextPayment": "Khoản trả tiếp theo",
+        "paymentHistory": "Lịch sử trả nợ",
+        "calculateInterest": "Tính lãi suất",
+        "totalInterest": "Tổng lãi",
         "totalRepayment": "Tổng số tiền phải trả",
-        "interestRateType": {
+        "autoUpdateStatus": "Tự động cập nhật trạng thái dựa trên ngày đáo hạn",
+        "attachments": "Tệp đính kèm",
+        "files": "tệp",
+        "pdfDocument": "Tài liệu PDF",
+        "attachment": "Tệp đính kèm",
+        "enterAmount": "Nhập số tiền",
+        "enterDescription": "Nhập mô tả",
+        "enterPrepaymentAmount": "Nhập số tiền trả trước",
+        "selectLender": "Chọn người cho vay",
+        "enterCustomLender": "Nhập tên người cho vay",
+        "enterInterestRate": "Nhập lãi suất",
+        "principalToRepay": "Số tiền gốc phải trả",
+        "estimatedInterest": "Lãi dự tính",
+        "interestCalculationMethodLabel": "Phương pháp tính lãi",
+        "errorCalculatingInterest": "Lỗi khi tính lãi suất",
+        "acceptedFileTypes": "Chấp nhận file ảnh và PDF",
+        "preview": "Xem trước",
+        "interestRateTypes": {
             "day": "Ngày",
             "week": "Tuần",
             "month": "Tháng",
@@ -434,8 +622,18 @@
             "individual": "Cá nhân",
             "bank": "Ngân hàng",
             "credit": "Tín dụng",
-            "company": "Công ty",
             "other": "Khác"
+        },
+        "statusOptions": {
+            "active": "Đang vay",
+            "paid": "Đã trả",
+            "overdue": "Quá hạn"
+        },
+        "paymentStatusOptions": {
+            "pending": "Chưa trả",
+            "paid": "Đã trả",
+            "partial": "Trả một phần",
+            "late": "Trả muộn"
         },
         "addSuccess": "Thêm khoản vay thành công",
         "addSuccessDetail": "Khoản vay đã được thêm thành công",
@@ -449,553 +647,49 @@
         "deleteSuccessDetail": "Khoản vay đã được xóa thành công",
         "deleteError": "Xóa khoản vay thất bại",
         "deleteErrorDetail": "Đã xảy ra lỗi khi xóa khoản vay. Vui lòng thử lại.",
-        "payment": {
-            "addSuccess": "Thêm thanh toán thành công",
-            "addSuccessDetail": "Khoản thanh toán đã được thêm thành công",
-            "addError": "Thêm thanh toán thất bại",
-            "addErrorDetail": "Đã xảy ra lỗi khi thêm khoản thanh toán. Vui lòng thử lại.",
-            "updateSuccess": "Cập nhật thanh toán thành công",
-            "updateSuccessDetail": "Khoản thanh toán đã được cập nhật thành công",
-            "updateError": "Cập nhật thanh toán thất bại",
-            "updateErrorDetail": "Đã xảy ra lỗi khi cập nhật khoản thanh toán. Vui lòng thử lại.",
-            "deleteSuccess": "Xóa thanh toán thành công",
-            "deleteSuccessDetail": "Khoản thanh toán đã được xóa thành công",
-            "deleteError": "Xóa thanh toán thất bại",
-            "deleteErrorDetail": "Đã xảy ra lỗi khi xóa khoản thanh toán. Vui lòng thử lại."
-        }
+        "paymentAddSuccess": "Thêm khoản trả thành công",
+        "paymentAddError": "Thêm khoản trả thất bại",
+        "paymentUpdateSuccess": "Cập nhật khoản trả thành công",
+        "paymentUpdateError": "Cập nhật khoản trả thất bại",
+        "paymentDeleteSuccess": "Xóa khoản trả thành công",
+        "paymentDeleteError": "Xóa khoản trả thất bại"
     },
-    "userProfile": {
-        "title": "Thông tin cá nhân",
-        "subtitle": "Cập nhật thông tin cá nhân của bạn",
-        "basicInfo": "Thông tin cơ bản",
-        "basicInfoDesc": "Thông tin này sẽ được hiển thị công khai",
-        "firstName": "Tên",
-        "lastName": "Họ",
-        "email": "Email",
-        "emailDesc": "Email không thể thay đổi",
-        "phoneNumber": "Số điện thoại",
-        "saveChanges": "Lưu thay đổi",
-        "updateSuccess": "Cập nhật thông tin thành công"
-    },
-    "passwordSettings": {
-        "title": "Thay đổi mật khẩu",
-        "subtitle": "Bảo mật tài khoản của bạn bằng mật khẩu mạnh",
-        "currentPassword": "Mật khẩu hiện tại",
-        "newPassword": "Mật khẩu mới",
-        "confirmPassword": "Xác nhận mật khẩu mới",
-        "changeSuccess": "Thay đổi mật khẩu thành công",
-        "passwordsDoNotMatch": "Mật khẩu mới không khớp",
-        "changeError": "Không thể đổi mật khẩu. Mật khẩu hiện tại có thể không đúng.",
-        "currentPasswordRequired": "Mật khẩu hiện tại là bắt buộc",
-        "newPasswordRequired": "Mật khẩu mới là bắt buộc",
-        "confirmPasswordRequired": "Xác nhận mật khẩu là bắt buộc",
-        "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự"
-    },
-    "notifications": {
-        "title": "Thông báo",
-        "subtitle": "Quản lý và theo dõi thông báo của bạn",
-        "all": "Tất cả thông báo",
-        "description": "Quản lý tất cả thông báo của bạn",
-        "markAllRead": "Đánh dấu tất cả đã đọc",
-        "markRead": "Đánh dấu đã đọc",
-        "delete": "Xóa thông báo",
-        "deleteRead": "Xóa thông báo đã đọc",
-        "yourNotifications": "Thông báo của bạn",
-        "noNotifications": "Bạn chưa có thông báo nào",
-        "emptyMessage": "Các thông báo mới sẽ xuất hiện ở đây",
-        "loadMore": "Tải thêm",
-        "new": "Mới",
-        "settings": "Cài đặt thông báo",
-        "emailSettings": "Cài đặt thông báo qua email",
-        "pushSettings": "Thông báo đẩy sẽ xuất hiện trong ứng dụng khi bạn trực tuyến. Chúng không yêu cầu bất kỳ quyền bổ sung nào.",
-        "emailNotifications": "Thông báo qua email",
-        "pushNotifications": "Thông báo đẩy",
-        "emailFrequency": "Tần suất email",
-        "emailFrequencyOptions": {
-            "immediately": "Ngay lập tức",
-            "daily": "Tóm tắt hàng ngày",
-            "weekly": "Tóm tắt hàng tuần",
-            "never": "Không bao giờ"
-        },
-        "emailVerificationRequired": "Yêu cầu xác minh email để nhận thông báo",
-        "verifyEmail": "Xác minh email",
-        "saveSettings": "Lưu cài đặt",
-        "settingsSaved": "Cài đặt thông báo đã được lưu",
-        "saveFailed": "Đã xảy ra lỗi khi lưu cài đặt thông báo của bạn",
-        "unsubscribe": "Hủy đăng ký email",
-        "subscribe": "Đăng ký email",
-        "types": {
-            "all": "Tất cả thông báo",
-            "expense": "Thông báo chi tiêu",
-            "income": "Thông báo thu nhập",
-            "loan": "Thông báo khoản vay",
-            "paymentDue": "Thông báo thanh toán đến hạn",
-            "budget": "Thông báo ngân sách",
-            "system": "Thông báo hệ thống",
-            "other": "Thông báo khác"
-        },
-        "newExpense": "Đã thêm chi tiêu mới",
-        "expenseUpdated": "Đã cập nhật chi tiêu",
-        "expenseDeleted": "Đã xóa chi tiêu",
-        "newIncome": "Đã thêm thu nhập mới",
-        "incomeUpdated": "Đã cập nhật thu nhập",
-        "incomeDeleted": "Đã xóa thu nhập",
-        "budgetLimit": "Đã đạt giới hạn ngân sách",
-        "accountUpdate": "Cập nhật tài khoản",
-        "emailSuccess": "Đã gửi thông báo qua email",
-        "emailFailure": "Không thể gửi thông báo qua email",
-        "unread": "Chưa đọc",
-        "read": "Đã đọc",
-        "sortNewest": "Sắp xếp theo mới nhất",
-        "sortOldest": "Sắp xếp theo cũ nhất"
-    },
-    "security": {
-        "title": "Bảo mật",
-        "subtitle": "Quản lý cài đặt bảo mật tài khoản của bạn",
-        "comingSoon": "Sắp ra mắt"
-    },
-    "notFound": {
-        "title": "404 - Không tìm thấy trang",
-        "subtitle": "Không tìm thấy trang",
-        "description": "Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.",
-        "backHome": "Trở về trang chủ",
-        "contactSupport": "Liên hệ hỗ trợ"
-    },
-    "about": {
-        "title": "Về chúng tôi",
-        "subtitle": "Hành trình của VangLang Budget",
-        "description": "VangLang Budget được phát triển bởi một nhóm các nhà phát triển đam mê tài chính với mục tiêu giúp mọi người quản lý tài chính hiệu quả hơn.",
-        "mission": {
-            "title": "Sứ mệnh của chúng tôi",
-            "content": "Giúp mọi người đạt được tự do tài chính thông qua các công cụ quản lý tài chính thông minh và trực quan."
-        },
-        "vision": {
-            "title": "Tầm nhìn của chúng tôi",
-            "content": "Trở thành ứng dụng quản lý tài chính cá nhân hàng đầu tại Việt Nam, giúp hàng triệu người kiểm soát chi tiêu, tiết kiệm hiệu quả và đạt được mục tiêu tài chính."
-        },
-        "values": {
-            "title": "Giá trị cốt lõi",
-            "simplicity": {
-                "title": "Đơn giản",
-                "content": "Chúng tôi tin rằng quản lý tài chính không nên phức tạp. VangLang Budget được thiết kế với giao diện trực quan, dễ sử dụng cho tất cả mọi người."
-            },
-            "transparency": {
-                "title": "Minh bạch",
-                "content": "Chúng tôi luôn rõ ràng về cách dữ liệu của bạn được sử dụng và bảo vệ. Không có phí ẩn, không có quảng cáo gây phiền nhiễu."
-            },
-            "support": {
-                "title": "Hỗ trợ",
-                "content": "Chúng tôi cam kết hỗ trợ người dùng trong suốt hành trình tài chính, từ việc thiết lập ngân sách đến đạt được mục tiêu dài hạn."
-            }
-        },
-        "team": {
-            "title": "Đội ngũ của chúng tôi",
-            "members": {
-                "ceo": {
-                    "name": "Nguyễn Mạnh Dũng",
-                    "role": "Đồng sáng lập & Nhà phát triển",
-                    "bio": "Với niềm đam mê về công nghệ và tài chính cá nhân, Nguyễn Mạnh Dũng đã lãnh đạo đội ngũ phát triển VangLang Budget từ ý tưởng đến sản phẩm."
-                },
-                "cto": {
-                    "name": "Phạm Nhật Hoàng",
-                    "role": "Đồng sáng lập & Nhà thiết kế",
-                    "bio": "Chuyên gia thiết kế UX/UI với kinh nghiệm trong ngành fintech, Phạm Nhật Hoàng chịu trách nhiệm về trải nghiệm người dùng và thiết kế giao diện của VangLang Budget."
-                }
-            }
-        },
-        "history": {
-            "title": "Lịch sử của chúng tôi",
-            "milestones": {
-                "founding": "Ý tưởng VangLang Budget được hình thành vào tháng 2",
-                "launch": "Ra mắt chính thức VangLang Budget vào tháng 5",
-                "expansion": "Phát triển các tính năng nâng cao dự kiến vào tháng 10"
-            }
-        }
-    },
-    "features": {
-        "title": "Tính năng",
-        "subtitle": "Công cụ quản lý tài chính mạnh mẽ",
-        "description": "VangLang Budget cung cấp tất cả các tính năng bạn cần để kiểm soát hiệu quả tài chính cá nhân của mình.",
-        "benefits": "Lợi ích",
-        "mainFeatures": {
-            "title": "Tính năng cốt lõi",
-            "expenseTracking": {
-                "title": "Theo dõi chi tiêu",
-                "description": "Ghi lại và phân loại tất cả thu nhập và chi tiêu hàng ngày, hàng tuần và hàng tháng của bạn với giao diện trực quan và dễ sử dụng.",
-                "benefits": [
-                    "Dễ dàng thêm chi tiêu mới chỉ với vài bước đơn giản",
-                    "Tự động phân loại dựa trên các danh mục phổ biến",
-                    "Thêm vị trí, hình ảnh và ghi chú cho từng giao dịch",
-                    "Lọc và tìm kiếm chi tiêu theo nhiều tiêu chí khác nhau"
-                ]
-            },
-            "budgetManagement": {
-                "title": "Quản lý ngân sách",
-                "description": "Thiết lập và theo dõi ngân sách chi tiêu theo danh mục, giúp bạn kiểm soát chi tiêu và hình thành thói quen tài chính lành mạnh.",
-                "benefits": [
-                    "Thiết lập ngân sách hàng tháng hoặc theo đợt",
-                    "Cảnh báo khi chi tiêu vượt quá ngân sách",
-                    "Phân tích việc tuân thủ ngân sách theo thời gian",
-                    "Điều chỉnh ngân sách dựa trên dữ liệu thực tế"
-                ]
-            },
-            "financialAnalysis": {
-                "title": "Phân tích tài chính",
-                "description": "Các biểu đồ và báo cáo chi tiết giúp bạn hiểu thói quen chi tiêu và cơ hội tiết kiệm.",
-                "benefits": [
-                    "Biểu đồ trực quan về thu nhập và chi tiêu",
-                    "Phân tích xu hướng tài chính theo thời gian",
-                    "So sánh ngân sách và chi tiêu thực tế",
-                    "Xác định các danh mục chi tiêu chính và cơ hội tiết kiệm"
-                ]
-            },
-            "futurePlanning": {
-                "title": "Lập kế hoạch tương lai",
-                "description": "Thiết lập mục tiêu tài chính và theo dõi tiến độ của bạn, từ quỹ khẩn cấp ngắn hạn đến kế hoạch hưu trí dài hạn.",
-                "benefits": [
-                    "Thiết lập các mục tiêu SMART cụ thể, có thể đo lường",
-                    "Tự động tính toán tiến độ và dự báo hoàn thành",
-                    "Gợi ý điều chỉnh để đạt được mục tiêu nhanh hơn",
-                    "Nhắc nhở và khuyến khích thường xuyên"
-                ]
-            },
-            "loanManagement": {
-                "title": "Quản lý khoản vay",
-                "description": "Theo dõi các khoản vay, tính lãi suất và lập lịch trả nợ để giảm thiểu chi phí lãi và tối ưu hóa kế hoạch trả nợ của bạn.",
-                "benefits": [
-                    "Theo dõi nhiều khoản vay cùng lúc",
-                    "Tự động tính toán lãi suất",
-                    "Lập lịch trả nợ chi tiết",
-                    "Phân tích các kịch bản trả nợ tốt nhất"
-                ]
-            },
-            "dataSecurity": {
-                "title": "Bảo mật dữ liệu",
-                "description": "Bảo vệ thông tin tài chính của bạn với công nghệ mã hóa tiên tiến và kiểm soát truy cập.",
-                "benefits": [
-                    "Mã hóa dữ liệu đầu-cuối",
-                    "Xác thực hai yếu tố",
-                    "Sao lưu dữ liệu tự động",
-                    "Không chia sẻ thông tin với bên thứ ba"
-                ]
-            }
-        },
-        "comingSoon": {
-            "title": "Sắp ra mắt",
-            "aiAdvisor": {
-                "title": "Cố vấn tài chính AI",
-                "description": "Nhận các khuyến nghị cá nhân hóa dựa trên thói quen chi tiêu và mục tiêu tài chính của bạn.",
-                "eta": "Tháng 5/2025"
-            },
-            "groupExpense": {
-                "title": "Chia sẻ chi phí nhóm",
-                "description": "Quản lý chi phí chung với bạn bè, gia đình hoặc đồng nghiệp.",
-                "eta": "Tháng 12/2025"
-            }
-        }
-    },
-    "contact": {
-        "title": "Liên hệ với chúng tôi",
-        "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
-        "description": "Nếu bạn có bất kỳ câu hỏi nào về VangLang Budget hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
-        "contactInfo": {
-            "title": "Thông tin liên hệ",
-            "emailLabel": "Email",
-            "phoneLabel": "Điện thoại",
-            "addressLabel": "Địa chỉ",
-            "workingHoursLabel": "Giờ làm việc",
-            "email": "support@vanglangbudget.com",
-            "phone": "+84 28 1234 5678",
-            "address": "Đại học Văn Lang cơ sở 3",
-            "workingHours": "Thứ Hai - Thứ Sáu: 9:00 - 17:00"
-        },
-        "supportCategories": {
-            "title": "Danh mục hỗ trợ",
-            "technical": {
-                "title": "Hỗ trợ kỹ thuật",
-                "description": "Gặp vấn đề khi sử dụng VangLang Budget? Đội ngũ kỹ thuật của chúng tôi sẽ giúp bạn giải quyết mọi khó khăn.",
-                "email": "technical@vanglangbudget.com"
-            },
-            "feedback": {
-                "title": "Phản hồi sản phẩm",
-                "description": "Chúng tôi luôn muốn cải thiện VangLang Budget. Hãy chia sẻ ý kiến của bạn với chúng tôi.",
-                "email": "feedback@vanglangbudget.com"
-            },
-            "business": {
-                "title": "Hợp tác kinh doanh",
-                "description": "Bạn quan tâm đến việc hợp tác với VangLang Budget? Chúng tôi mong muốn được kết nối với bạn.",
-                "email": "business@vanglangbudget.com"
-            }
-        },
-        "faq": {
-            "title": "Câu hỏi thường gặp",
-            "questions": [
-                {
-                    "question": "Làm thế nào để nhận được hỗ trợ nhanh nhất?",
-                    "answer": "Cách nhanh nhất để nhận hỗ trợ là gửi email đến support@vanglangbudget.com với mô tả chi tiết về vấn đề của bạn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc."
-                },
-                {
-                    "question": "Tôi có thể đề xuất tính năng mới không?",
-                    "answer": "Tất nhiên! Chúng tôi luôn hoan nghênh ý tưởng từ người dùng. Gửi đề xuất của bạn đến feedback@vanglangbudget.com hoặc sử dụng biểu mẫu phản hồi trên trang này."
-                },
-                {
-                    "question": "VangLang Budget có hỗ trợ qua điện thoại không?",
-                    "answer": "Có, bạn có thể liên hệ với chúng tôi qua điện thoại theo số +84 28 1234 5678 trong giờ làm việc từ 9:00 đến 17:00, Thứ Hai đến Thứ Sáu."
-                }
-            ]
-        },
-        "form": {
-            "title": "Gửi tin nhắn cho chúng tôi",
-            "fields": {
-                "name": "Họ và tên",
-                "email": "Email",
-                "subject": "Tiêu đề",
-                "message": "Nội dung",
-                "category": "Danh mục"
-            },
-            "placeholders": {
-                "name": "Nhập họ và tên của bạn",
-                "email": "Nhập địa chỉ email của bạn",
-                "subject": "Nhập tiêu đề tin nhắn",
-                "message": "Nhập nội dung tin nhắn của bạn",
-                "category": "Chọn danh mục liên hệ"
-            },
-            "categoryOther": "Khác",
-            "submitButton": "Gửi tin nhắn",
-            "successMessage": "Tin nhắn của bạn đã được gửi thành công. Chúng tôi sẽ phản hồi sớm.",
-            "errorMessage": "Đã xảy ra lỗi khi gửi tin nhắn của bạn. Vui lòng thử lại."
-        },
-        "socialMedia": {
-            "facebook": {
-                "name": "Facebook",
-                "url": "https://facebook.com/vanglangbudget"
-            },
-            "twitter": {
-                "name": "Twitter",
-                "url": "https://twitter.com/vanglangbudget"
-            },
-            "linkedin": {
-                "name": "LinkedIn",
-                "url": "https://linkedin.com/company/vanglangbudget"
-            },
-            "instagram": {
-                "name": "Instagram",
-                "url": "https://instagram.com/vanglangbudget"
-            }
-        }
-    },
-    "footer": {
-        "about": "Về VangLang Budget",
-        "aboutDescription": "Ứng dụng quản lý tài chính cá nhân thông minh giúp bạn kiểm soát chi tiêu và đạt được tự do tài chính.",
-        "links": {
-            "title": "Liên kết",
-            "aboutUs": "Về chúng tôi",
-            "features": "Tính năng",
-            "pricing": "Bảng giá",
-            "contact": "Liên hệ"
-        },
-        "legal": {
-            "title": "Pháp lý",
-            "terms": "Điều khoản sử dụng",
-            "privacy": "Chính sách bảo mật",
-            "cookies": "Chính sách cookie"
-        },
-        "app": {
-            "title": "Tải ứng dụng",
-            "description": "Sắp ra mắt trên iOS và Android",
-            "followUs": "Theo dõi chúng tôi"
-        },
-        "copyright": "© {year} VangLang Budget. Đã đăng ký bản quyền."
-    },
-    "pricing": {
-        "title": "Bảng giá",
-        "subtitle": "Các gói dịch vụ của VangLang Budget",
-        "description": "Chúng tôi đang làm việc để cung cấp cho bạn các gói dịch vụ tốt nhất. Vui lòng quay lại sau để biết thông tin chi tiết về bảng giá.",
-        "comingSoon": "Sắp ra mắt"
-    },
-    "roadmap": {
-        "title": "Lộ trình phát triển",
-        "description": "Khám phá kế hoạch phát triển của VangLang Budget và tính năng sắp ra mắt",
-        "phase1": {
-            "title": "Nền tảng cốt lõi",
-            "description": "Ra mắt các tính năng cơ bản và thiết lập nền tảng cho ứng dụng quản lý tài chính cá nhân"
-        },
-        "phase2": {
-            "title": "Trí tuệ nhân tạo",
-            "description": "Tích hợp trí tuệ nhân tạo để phân tích dữ liệu và đưa ra gợi ý tài chính cá nhân hóa"
-        },
-        "phase3": {
-            "title": "Tính năng cộng đồng",
-            "description": "Mở rộng trải nghiệm với các tính năng cộng đồng và chia sẻ chi phí nhóm"
-        },
-        "future": {
-            "title": "Tương lai",
-            "description": "Chúng tôi luôn lắng nghe phản hồi từ người dùng và phát triển thêm nhiều tính năng hữu ích. Hãy theo dõi!"
-        },
-        "timeline": {
-            "q1": "Quý 1",
-            "q2": "Quý 2",
-            "q4": "Quý 4",
-            "future": "Tương lai"
-        },
-        "cta": {
-            "title": "Bạn muốn thấy tính năng nào tiếp theo?",
-            "description": "Chúng tôi xây dựng VangLang Budget dựa trên nhu cầu thực tế của người dùng. Hãy chia sẻ ý kiến của bạn!",
-            "feedback": "Gửi ý tưởng"
-        }
-    },
-    "error": {
-        "otpRequired": "Vui lòng nhập mã OTP",
-        "otpVerificationFailed": "Xác thực OTP thất bại",
-        "resendOtpFailed": "Không thể gửi lại mã OTP",
-        "passwordsDoNotMatch": "Mật khẩu xác nhận không khớp",
-        "registrationFailed": "Đăng ký thất bại",
-        "resendVerificationFailed": "Không thể gửi lại email xác thực",
-        "loginFailed": "Đăng nhập thất bại"
-    },
-    "Investments": {
-        "back": "Quay lại",
-        "title": "Đầu tư",
-        "description": "Theo dõi và quản lý các khoản đầu tư của bạn.",
-        "yourInvestments": "Danh mục đầu tư của bạn",
-        "addInvestment": "Thêm khoản đầu tư",
-        "addInvestmentDescription": "Thêm một khoản đầu tư mới vào danh mục của bạn",
-        "closeForm": "Đóng form",
-        "toggleDebugOpen": "Hiển thị debug",
-        "toggleDebugClose": "Ẩn debug",
-        "totalValue": "Tổng giá trị",
-        "performance": "Hiệu suất",
-        "assetAllocation": "Phân bổ tài sản",
-        "recentActivity": "Hoạt động gần đây",
-        "noInvestments": "Bạn chưa có khoản đầu tư nào.",
-        "addYourFirst": "Thêm khoản đầu tư đầu tiên",
-        "type": "Loại đầu tư",
-        "symbol": "Mã",
-        "name": "Tên",
-        "quantity": "Số lượng",
-        "purchasePrice": "Giá mua",
-        "currentPrice": "Giá hiện tại",
-        "purchaseDate": "Ngày mua",
-        "marketValue": "Giá trị thị trường",
-        "totalCost": "Tổng vốn",
-        "profitLoss": "Lời/Lỗ",
-        "returnPercentage": "Tỷ suất (%)",
-        "actions": "Thao tác",
-        "edit": "Sửa",
-        "delete": "Xóa",
-        "confirmDelete": "Bạn có chắc chắn muốn xóa khoản đầu tư này không?",
-        "stock": "Cổ phiếu",
-        "gold": {
-            "title": "Vàng",
-            "label": "Vàng",
-            "description": "Đầu tư vào vàng"
-        },
-        "crypto": "Tiền điện tử",
-        "other": "Khác",
-        "investmentGuideTitle": "Hướng dẫn đầu tư cơ bản",
-        "investmentGuideSubTitle": "Tìm hiểu về các loại hình đầu tư phổ biến và cách bắt đầu.",
-        "goldInvestmentGuide": {
-            "title": "Hướng dẫn đầu tư vàng",
-            "bullet1": "Thêm chi tiết về các khoản đầu tư vàng bạn đã mua",
-            "bullet2": "Theo dõi giá trị đầu tư vàng của bạn theo thời gian",
-            "bullet3": "Xem tổng quan về danh mục đầu tư vàng trong phần \"Danh mục đầu tư\"",
-            "bullet4": "Cập nhật giá vàng hiện tại theo thông tin bạn có để theo dõi lợi nhuận/lỗ"
-        },
-        "learnMore": "Tìm hiểu thêm",
-        "viewAll": "Xem tất cả",
-        "investmentsList": "Danh sách các khoản đầu tư",
-        "investmentListDescription": "Quản lý tất cả các khoản đầu tư của bạn một cách hiệu quả.",
-        "errorLoadingTitle": "Lỗi tải dữ liệu",
-        "errorLoadingDescription": "Không thể tải dữ liệu đầu tư. Vui lòng thử lại sau.",
-        "addSuccess": "Thêm thành công",
-        "addSuccessDescription": "Khoản đầu tư đã được thêm vào danh mục của bạn.",
-        "filterAll": "Tất cả",
-        "redirectingToInvestments": "Đang chuyển hướng đến trang đầu tư...",
-        "portfolioSummary": "Tổng quan danh mục đầu tư",
-        "totalInvestments": "Tổng số khoản đầu tư",
-        "totalInvested": "Tổng vốn đầu tư",
-        "totalProfitLoss": "Tổng lợi nhuận/lỗ",
-        "asset": "Tài sản",
-        "invested": "Đã đầu tư",
-        "currentValue": "Giá trị hiện tại",
-        "allInvestments": "Tất cả khoản đầu tư",
-        "debug": {
-            "title": "Debug - Dữ liệu đầu tư",
-            "items": "items",
-            "close": "Đóng",
-            "noData": "Không có dữ liệu đầu tư"
-        },
-        "deleteSuccess": "Xóa thành công",
-        "deleteSuccessDescription": "Đã xóa khoản đầu tư khỏi danh mục của bạn",
-        "deleteError": "Lỗi khi xóa",
-        "deleteErrorDescription": "Không thể xóa khoản đầu tư. Vui lòng thử lại sau.",
-        "viewDetails": "Xem chi tiết",
-        "addTransaction": "Thêm giao dịch",
-        "updatePrice": "Cập nhật giá",
-        "openMenu": "Mở menu",
-        "cancel": "Hủy",
-        "deleteWarning": "Bạn có chắc chắn muốn xóa khoản đầu tư {asset}? Hành động này không thể hoàn tác.",
-        "price": "Giá",
-        "fee": "Phí",
-        "total": "Tổng",
-        "date": "Ngày",
-        "buy": "Mua",
-        "sell": "Bán",
-        "notes": "Ghi chú",
-        "adding": "Đang thêm...",
-        "overview": "Tổng quan",
-        "transactions": "Giao dịch",
-        "totalQuantity": "Tổng số lượng",
-        "priceHistory": "Lịch sử giá",
-        "lastUpdated": "Cập nhật lần cuối",
-        "noTransactions": "Không có giao dịch nào",
-        "confirmDeleteTransaction": "Xác nhận xóa giao dịch",
-        "deleteTransactionWarning": "Bạn có chắc chắn muốn xóa giao dịch này? Hành động này không thể hoàn tác.",
-        "deleting": "Đang xóa...",
-        "transactionDeletedTitle": "Đã xóa giao dịch",
-        "transactionDeletedDescription": "Giao dịch đã được xóa thành công",
-        "transactionDeleteErrorTitle": "Lỗi khi xóa giao dịch",
-        "transactionDeleteErrorDescription": "Không thể xóa giao dịch. Vui lòng thử lại sau.",
-        "transactionType": "Loại giao dịch",
-        "transactionValue": "Giá trị giao dịch",
-        "autoCalculate": "Tự động tính",
-        "feeRate": "Tỷ lệ phí",
-        "feeRateDescription": "Tỷ lệ phí (% giá trị giao dịch)",
-        "totalWithFee": "Tổng cộng (bao gồm phí)",
-        "notesPlaceholder": "Thêm ghi chú về giao dịch này...",
-        "cancelAndClose": "Hủy và đóng",
-        "enterPrice": "Nhập giá mới",
-        "update": "Cập nhật",
-        "close": "Đóng",
-        "common": {
-            "close": "Đóng"
-        }
-    },
-    "StockMarketPage": {
-        "title": "Thị trường chứng khoán",
-        "description": "Theo dõi biến động thị trường và cổ phiếu",
-        "backToPortfolio": "Quay lại danh mục đầu tư",
-        "featuredStocks": "Cổ phiếu nổi bật",
-        "marketChart": "Biểu đồ thị trường",
-        "marketChartPlaceholder": "Nội dung biểu đồ sẽ được thêm vào đây",
-        "stockList": "Danh sách cổ phiếu",
-        "loadingStockList": "Đang tải danh sách cổ phiếu...",
-        "errorStockList": "Không thể tải danh sách cổ phiếu.",
-        "popular": "Phổ biến",
-        "gainers": "Tăng mạnh",
-        "losers": "Giảm mạnh",
-        "table": {
-            "stock": "Cổ phiếu",
-            "industry": "Ngành",
-            "quantity": "Số lượng",
-            "averagePrice": "Giá TB",
-            "currentPrice": "Giá hiện tại",
-            "investmentValue": "Giá trị nắm giữ",
-            "marketValue": "Giá trị thị trường",
-            "profitLoss": "Lợi nhuận/Lỗ",
-            "actions": "Thao tác",
-            "openMenu": "Mở menu"
-        }
+    "budget": {
+        "manage": "Ngân sách",
+        "add": "Thêm Ngân sách",
+        "edit": "Sửa Ngân sách",
+        "delete": "Xóa Ngân sách",
+        "deleteConfirm": "Bạn có chắc chắn muốn xóa ngân sách này không?",
+        "total": "Tổng Ngân sách",
+        "noBudget": "Không tìm thấy ngân sách nào",
+        "amount": "Số tiền",
+        "category": "Danh mục",
+        "month": "Tháng",
+        "year": "Năm",
+        "remaining": "Còn lại",
+        "spent": "Đã chi",
+        "progress": "Tiến độ",
+        "status": "Trạng thái",
+        "selectCategory": "Chọn danh mục",
+        "enterAmount": "Nhập số tiền",
+        "selectMonth": "Chọn tháng",
+        "selectYear": "Chọn năm",
+        "amountError": "Số tiền phải lớn hơn 0",
+        "categoryError": "Vui lòng chọn danh mục",
+        "monthError": "Vui lòng chọn tháng",
+        "yearError": "Vui lòng chọn năm",
+        "addSuccess": "Thêm ngân sách thành công",
+        "addSuccessDetail": "Ngân sách đã được thêm thành công",
+        "addError": "Thêm ngân sách thất bại",
+        "addErrorDetail": "Đã xảy ra lỗi khi thêm ngân sách. Vui lòng thử lại.",
+        "updateSuccess": "Cập nhật ngân sách thành công",
+        "updateSuccessDetail": "Ngân sách đã được cập nhật thành công",
+        "updateError": "Cập nhật ngân sách thất bại",
+        "updateErrorDetail": "Đã xảy ra lỗi khi cập nhật ngân sách. Vui lòng thử lại.",
+        "deleteSuccess": "Xóa ngân sách thành công",
+        "deleteSuccessDetail": "Ngân sách đã được xóa thành công",
+        "deleteError": "Xóa ngân sách thất bại",
+        "deleteErrorDetail": "Đã xảy ra lỗi khi xóa ngân sách. Vui lòng thử lại."
     },
     "admin": {
         "dashboard": "Bảng điều khiển",
@@ -1014,6 +708,308 @@
         "recentUsersDescription": "Các tài khoản mới được đăng ký gần đây",
         "recentTransactions": "Giao dịch gần đây",
         "recentTransactionsDescription": "Các giao dịch mới nhất trong hệ thống",
-        "connectBackendForData": "Kết nối backend để xem dữ liệu thực"
+        "connectBackendForData": "Kết nối backend để xem dữ liệu thực",
+        "users": {
+            "title": "Quản lý người dùng",
+            "description": "Quản lý tài khoản người dùng trong hệ thống",
+            "userList": "Danh sách người dùng",
+            "userListDescription": "Danh sách tất cả người dùng đã đăng ký trong hệ thống",
+            "searchPlaceholder": "Tìm kiếm theo tên, email...",
+            "name": "Họ tên",
+            "email": "Email",
+            "role": "Vai trò",
+            "verified": "Đã xác thực",
+            "created": "Ngày tạo",
+            "lastLogin": "Đăng nhập cuối",
+            "actions": "Thao tác",
+            "viewDetails": "Xem chi tiết",
+            "changeRoleTitle": "Thay đổi vai trò",
+            "changeRoleDescription": "Cập nhật vai trò của người dùng",
+            "user": "Người dùng",
+            "currentRole": "Vai trò hiện tại",
+            "newRole": "Vai trò mới",
+            "roleUser": "Người dùng",
+            "roleAdmin": "Quản trị viên",
+            "roleSuperadmin": "Quản trị viên cấp cao",
+            "roleUpdateError": "Lỗi khi cập nhật vai trò",
+            "userDetails": "Thông tin người dùng",
+            "noUsersFound": "Không tìm thấy người dùng nào",
+            "createUser": "Tạo người dùng mới",
+            "createUserDescription": "Thêm một tài khoản người dùng mới vào hệ thống",
+            "firstName": "Họ",
+            "lastName": "Tên",
+            "password": "Mật khẩu",
+            "createUserSuccess": "Tạo người dùng thành công",
+            "createUserError": "Lỗi khi tạo người dùng",
+            "promoteToAdmin": "Nâng cấp lên Admin",
+            "demoteToUser": "Hạ cấp xuống người dùng",
+            "deactivateUser": "Vô hiệu hóa tài khoản",
+            "activateUser": "Kích hoạt tài khoản",
+            "processing": "Đang xử lý...",
+            "refreshList": "Làm mới danh sách",
+            "exportCsv": "Xuất CSV",
+            "showingUsers": "Hiển thị {showing} trên tổng số {total} người dùng",
+            "allRoles": "Tất cả vai trò",
+            "allStatus": "Tất cả trạng thái",
+            "statusActive": "Hoạt động",
+            "statusInactive": "Vô hiệu hóa"
+        },
+        "notifications": {
+            "title": "Quản lý thông báo",
+            "description": "Quản lý và gửi thông báo tới người dùng",
+            "notificationList": "Danh sách thông báo",
+            "notificationListDescription": "Danh sách tất cả thông báo đã gửi trong hệ thống",
+            "searchPlaceholder": "Tìm kiếm thông báo...",
+            "createNotification": "Tạo thông báo mới",
+            "createNotificationDescription": "Tạo và gửi thông báo mới tới người dùng",
+            "titleRequired": "Tiêu đề không được để trống",
+            "messageRequired": "Nội dung không được để trống",
+            "recipientRequired": "Vui lòng chọn ít nhất một người nhận",
+            "createSuccess": "Tạo thông báo thành công",
+            "createError": "Lỗi khi tạo thông báo",
+            "notificationTitle": "Tiêu đề thông báo",
+            "notificationMessage": "Nội dung thông báo",
+            "notificationType": "Loại thông báo",
+            "typeInfo": "Thông tin",
+            "typeWarning": "Cảnh báo",
+            "typeSuccess": "Thành công",
+            "typeError": "Lỗi",
+            "recipients": "Người nhận",
+            "sendToAll": "Gửi cho tất cả người dùng",
+            "sendToAdmins": "Chỉ gửi cho quản trị viên",
+            "specificUsers": "Gửi cho người dùng cụ thể",
+            "specificUsersDescription": "Nhập danh sách email, cách nhau bằng dấu phẩy",
+            "sendNotification": "Gửi thông báo",
+            "cancel": "Hủy",
+            "preview": "Xem trước",
+            "delete": "Xóa",
+            "viewDetails": "Xem chi tiết",
+            "notificationDetails": "Chi tiết thông báo",
+            "sentTo": "Gửi đến",
+            "sentDate": "Ngày gửi",
+            "sentCount": "Số người nhận",
+            "close": "Đóng",
+            "confirmDelete": "Xác nhận xóa",
+            "deleteWarning": "Bạn có chắc chắn muốn xóa thông báo này không?",
+            "deleteSuccess": "Xóa thông báo thành công",
+            "deleteError": "Lỗi khi xóa thông báo",
+            "noNotificationsFound": "Không tìm thấy thông báo nào",
+            "refreshList": "Làm mới danh sách",
+            "createTitle": "Tạo thông báo mới",
+            "createDescription": "Tạo và gửi thông báo mới đến người dùng",
+            "selectType": "Chọn loại thông báo",
+            "emailsPlaceholder": "Email1@example.com, Email2@example.com",
+            "send": "Gửi thông báo",
+            "allUsers": "Tất cả người dùng",
+            "adminUsers": "Quản trị viên",
+            "regularUsers": "Người dùng thường",
+            "message": "Nội dung",
+            "type": "Loại",
+            "created": "Ngày tạo",
+            "createNew": "Tạo mới",
+            "actions": "Thao tác"
+        }
+    },
+    "footer": {
+        "about": "Về VanLang Budget",
+        "aboutDescription": "Ứng dụng quản lý tài chính cá nhân thông minh giúp bạn kiểm soát chi tiêu và đạt được tự do tài chính.",
+        "links": {
+            "title": "Liên kết",
+            "aboutUs": "Về chúng tôi",
+            "features": "Tính năng",
+            "pricing": "Bảng giá",
+            "contact": "Liên hệ",
+            "roadmap": "Lộ trình"
+        },
+        "legal": {
+            "title": "Pháp lý",
+            "terms": "Điều khoản sử dụng",
+            "privacy": "Chính sách bảo mật",
+            "cookies": "Chính sách cookie"
+        },
+        "app": {
+            "title": "Tải ứng dụng",
+            "description": "Sắp ra mắt trên iOS và Android",
+            "followUs": "Theo dõi chúng tôi"
+        },
+        "copyright": "© {year} VanLang Budget. Tất cả quyền được bảo lưu."
+    },
+    "about": {
+        "title": "Về Chúng Tôi",
+        "subtitle": "Hành trình của VanLang Budget",
+        "description": "VanLang Budget được phát triển bởi một nhóm những người yêu thích tài chính với mục tiêu giúp mọi người quản lý tài chính hiệu quả hơn.",
+        "mission": {
+            "title": "Sứ Mệnh",
+            "content": "Giúp mọi người đạt được tự do tài chính thông qua các công cụ quản lý tài chính thông minh và trực quan."
+        },
+        "vision": {
+            "title": "Tầm Nhìn",
+            "content": "Trở thành ứng dụng quản lý tài chính cá nhân hàng đầu tại Việt Nam, giúp hàng triệu người kiểm soát chi tiêu, tiết kiệm hiệu quả và đạt được mục tiêu tài chính."
+        },
+        "values": {
+            "title": "Giá Trị Cốt Lõi",
+            "simplicity": {
+                "title": "Đơn Giản",
+                "content": "Chúng tôi tin rằng quản lý tài chính không nên phức tạp. VanLang Budget được thiết kế với giao diện trực quan, dễ sử dụng cho tất cả mọi người."
+            },
+            "transparency": {
+                "title": "Minh Bạch",
+                "content": "Chúng tôi luôn rõ ràng về cách dữ liệu của bạn được sử dụng và bảo vệ. Không có phí ẩn, không có quảng cáo xâm lấn."
+            },
+            "support": {
+                "title": "Hỗ Trợ",
+                "content": "Chúng tôi cam kết hỗ trợ người dùng trong suốt hành trình tài chính, từ việc thiết lập ngân sách đến đạt được mục tiêu dài hạn."
+            }
+        },
+        "team": {
+            "title": "Đội Ngũ",
+            "members": {
+                "ceo": {
+                    "name": "Nguyễn Mạnh Dũng",
+                    "role": "Đồng sáng lập & Nhà phát triển",
+                    "bio": "Với niềm đam mê về công nghệ và tài chính cá nhân, Nguyễn Mạnh Dũng đã dẫn dắt đội ngũ phát triển VanLang Budget từ ý tưởng đến sản phẩm."
+                },
+                "cto": {
+                    "name": "Phạm Nhật Hoàng",
+                    "role": "Đồng sáng lập & Thiết kế",
+                    "bio": "Là chuyên gia thiết kế UX/UI với kinh nghiệm trong ngành công nghệ tài chính, Phạm Nhật Hoàng chịu trách nhiệm về trải nghiệm người dùng và thiết kế giao diện của VanLang Budget."
+                }
+            }
+        },
+        "history": {
+            "title": "Lịch Sử",
+            "milestones": {
+                "founding": "Ý tưởng VanLang Budget được hình thành vào tháng 2",
+                "launch": "Ra mắt chính thức VanLang Budget vào tháng 5",
+                "expansion": "Phát triển tính năng nâng cao dự kiến vào tháng 10"
+            }
+        }
+    },
+    "contact": {
+        "title": "Liên Hệ",
+        "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
+        "description": "Nếu bạn có bất kỳ câu hỏi gì về VanLang Budget hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
+        "contactInfo": {
+            "title": "Thông Tin Liên Hệ",
+            "emailLabel": "Email",
+            "phoneLabel": "Điện thoại",
+            "addressLabel": "Địa chỉ",
+            "workingHoursLabel": "Giờ làm việc",
+            "email": "support@vanlangbudget.com",
+            "phone": "+84 28 1234 5678",
+            "address": "Trường Đại học Văn Lang Cơ sở 3",
+            "workingHours": "Thứ Hai - Thứ Sáu: 9:00 - 17:00"
+        },
+        "supportCategories": {
+            "title": "Danh Mục Hỗ Trợ",
+            "technical": {
+                "title": "Hỗ Trợ Kỹ Thuật",
+                "description": "Gặp vấn đề khi sử dụng VanLang Budget? Đội ngũ kỹ thuật của chúng tôi sẽ giúp bạn giải quyết mọi khó khăn.",
+                "email": "technical@vanlangbudget.com"
+            },
+            "feedback": {
+                "title": "Phản Hồi Sản Phẩm",
+                "description": "Chúng tôi luôn muốn cải thiện VanLang Budget. Hãy chia sẻ ý kiến của bạn với chúng tôi.",
+                "email": "feedback@vanlangbudget.com"
+            },
+            "business": {
+                "title": "Hợp Tác Kinh Doanh",
+                "description": "Quan tâm đến việc hợp tác với VanLang Budget? Chúng tôi rất muốn kết nối với bạn.",
+                "email": "business@vanlangbudget.com"
+            }
+        },
+        "faq": {
+            "title": "Câu Hỏi Thường Gặp",
+            "questions": [
+                {
+                    "question": "Làm thế nào để nhận hỗ trợ nhanh nhất?",
+                    "answer": "Cách nhanh nhất để nhận hỗ trợ là gửi email đến support@vanlangbudget.com với mô tả chi tiết về vấn đề của bạn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc."
+                },
+                {
+                    "question": "Tôi có thể đề xuất tính năng mới không?",
+                    "answer": "Tất nhiên! Chúng tôi luôn hoan nghênh ý tưởng từ người dùng. Gửi đề xuất của bạn đến feedback@vanlangbudget.com hoặc sử dụng biểu mẫu phản hồi trên trang này."
+                },
+                {
+                    "question": "VanLang Budget có hỗ trợ qua điện thoại không?",
+                    "answer": "Có, bạn có thể liên hệ với chúng tôi qua số điện thoại +84 28 1234 5678 trong giờ làm việc từ 9:00 đến 17:00, Thứ Hai đến Thứ Sáu."
+                }
+            ]
+        },
+        "form": {
+            "title": "Gửi Tin Nhắn",
+            "fields": {
+                "name": "Họ và tên",
+                "email": "Email",
+                "subject": "Tiêu đề",
+                "message": "Tin nhắn",
+                "category": "Danh mục"
+            },
+            "placeholders": {
+                "name": "Nhập họ tên của bạn",
+                "email": "Nhập địa chỉ email của bạn",
+                "subject": "Nhập tiêu đề tin nhắn",
+                "message": "Nhập nội dung tin nhắn",
+                "category": "Chọn danh mục liên hệ"
+            },
+            "categoryOther": "Khác",
+            "submitButton": "Gửi tin nhắn",
+            "successMessage": "Tin nhắn của bạn đã được gửi thành công. Chúng tôi sẽ phản hồi sớm.",
+            "errorMessage": "Đã xảy ra lỗi khi gửi tin nhắn của bạn. Vui lòng thử lại."
+        },
+        "socialMedia": {
+            "facebook": {
+                "name": "Facebook",
+                "url": "https://facebook.com/vanlangbudget"
+            },
+            "twitter": {
+                "name": "Twitter",
+                "url": "https://twitter.com/vanlangbudget"
+            },
+            "linkedin": {
+                "name": "LinkedIn",
+                "url": "https://linkedin.com/company/vanlangbudget"
+            },
+            "instagram": {
+                "name": "Instagram",
+                "url": "https://instagram.com/vanlangbudget"
+            }
+        }
+    },
+    "pricing": {
+        "title": "Bảng Giá",
+        "subtitle": "Các gói dịch vụ VanLang Budget",
+        "description": "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá.",
+        "comingSoon": "Sắp Ra Mắt"
+    },
+    "roadmap": {
+        "title": "Lộ Trình Phát Triển",
+        "description": "Khám phá kế hoạch phát triển và các tính năng sắp ra mắt của VanLang Budget",
+        "phase1": {
+            "title": "Nền Tảng Cơ Bản",
+            "description": "Ra mắt các tính năng cơ bản và thiết lập nền tảng cho ứng dụng quản lý tài chính cá nhân"
+        },
+        "phase2": {
+            "title": "Trí Tuệ Nhân Tạo",
+            "description": "Tích hợp trí tuệ nhân tạo để phân tích dữ liệu và đưa ra các khuyến nghị tài chính cá nhân hóa"
+        },
+        "phase3": {
+            "title": "Tính Năng Cộng Đồng",
+            "description": "Mở rộng trải nghiệm với các tính năng cộng đồng và chia sẻ chi tiêu nhóm"
+        },
+        "future": {
+            "title": "Tương Lai",
+            "description": "Chúng tôi luôn lắng nghe phản hồi từ người dùng và phát triển thêm nhiều tính năng hữu ích. Hãy theo dõi nhé!"
+        },
+        "timeline": {
+            "q1": "Q1",
+            "q2": "Q2",
+            "q4": "Q4",
+            "future": "Tương lai"
+        },
+        "cta": {
+            "title": "Bạn muốn thấy tính năng nào tiếp theo?",
+            "description": "Chúng tôi xây dựng VanLang Budget dựa trên nhu cầu thực tế của người dùng. Hãy chia sẻ ý kiến của bạn với chúng tôi!",
+            "feedback": "Gửi ý tưởng của bạn"
+        }
     }
 }
