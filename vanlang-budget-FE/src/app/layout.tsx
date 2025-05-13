@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import ClientWrapper from '@/components/layout/ClientWrapper'
 import { Toaster } from "@/components/ui/Toaster";
+import { Providers } from '../components/providers/Providers';
+import { SiteContentProvider } from '@/components/SiteContentProvider';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -26,17 +28,26 @@ export const metadata: Metadata = {
 // Server component root layout
 export default function RootLayout({
     children,
+    params
 }: {
-    children: React.ReactNode
+    children: React.ReactNode,
+    params: { locale: string }
 }) {
     return (
-        <html suppressHydrationWarning>
+        <html lang={params.locale} suppressHydrationWarning>
+            <head>
+                {/* ...existing head content... */}
+            </head>
             <body className={inter.className}>
-                <ClientWrapper>
-                    {children}
-                </ClientWrapper>
+                <Providers>
+                    <SiteContentProvider initialLanguage={params.locale as 'vi' | 'en'}>
+                        <ClientWrapper>
+                            {children}
+                        </ClientWrapper>
+                    </SiteContentProvider>
+                </Providers>
                 <Toaster />
             </body>
         </html>
     )
-} 
+}

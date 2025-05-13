@@ -47,114 +47,103 @@ const instance = axios.create({
 })
 
 // Lưu token vào cookie và localStorage để bảo đảm persistence
-export const saveTokenToCookie = (token: string | object, refreshToken?: string) => {
+export const saveTokenToCookie = (accessTokenInput: string | object, refreshTokenInput?: string) => {
     try {
-        // Xử lý token là object hoặc string
-        let tokenString = typeof token === 'string' ? token : JSON.stringify(token);
-        let tokenObject: any = typeof token === 'string' ? { accessToken: token } : token;
+        let accessToken: string;
+        let refreshToken: string | undefined = refreshTokenInput;
 
-        // Nếu có cả token và refreshToken, lưu dưới dạng object
-        if (refreshToken) {
-            tokenObject = {
-                accessToken: typeof token === 'string' ? token : (token as any).accessToken || token,
-                refreshToken: refreshToken
-            };
-            tokenString = JSON.stringify(tokenObject);
+        if (typeof accessTokenInput === 'object' && accessTokenInput !== null) {
+            accessToken = (accessTokenInput as any).accessToken || (accessTokenInput as any).token || '';
+            // If refreshTokenInput is not provided, try to get it from the object
+            if (!refreshToken) {
+                refreshToken = (accessTokenInput as any).refreshToken;
+            }
+        } else {
+            accessToken = accessTokenInput as string;
         }
 
-        // Đảm bảo token có cấu trúc đúng
-        if (typeof tokenObject === 'object' && !tokenObject.accessToken && tokenObject.token) {
-            tokenObject = {
-                accessToken: tokenObject.token,
-                refreshToken: tokenObject.refreshToken || refreshToken || ''
-            };
-            tokenString = JSON.stringify(tokenObject);
+        if (!accessToken) {
+            console.error('saveTokenToCookie: accessToken is missing.');
+            return;
         }
 
-        // Lưu token chính
-        setCookie(TOKEN_COOKIE_NAME, tokenString, cookieOptions);
+        // Lưu access token
+        setCookie(TOKEN_COOKIE_NAME, accessToken, cookieOptions);
         if (typeof window !== 'undefined') {
-            localStorage.setItem(TOKEN_COOKIE_NAME, tokenString);
-            // Đảm bảo token sẽ tồn tại sau khi tải lại trang
-            sessionStorage.setItem(TOKEN_COOKIE_NAME, tokenString);
+            localStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
+            sessionStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
+        }
+        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        console.log('Đã lưu access token thành công.');
+
+        // Lưu refresh token nếu có
+        if (refreshToken) {
+            setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieOptions);
+            if (typeof window !== 'undefined') {
+                localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+                sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+            }
+            console.log('Đã lưu refresh token thành công.');
+        } else {
+            // Nếu không có refresh token mới, xóa refresh token cũ nếu có
+            deleteCookie(REFRESH_TOKEN_COOKIE_NAME);
+            if (typeof window !== 'undefined') {
+                localStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
+                sessionStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
+            }
+            console.log('Không có refresh token mới, đã xóa refresh token cũ (nếu có).');
         }
 
-        // Đảm bảo token được set cho axios
-        if (tokenObject.accessToken) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${tokenObject.accessToken}`;
-        }
-
-        console.log('Đã lưu token thành công vào cả cookie và localStorage');
     } catch (error) {
         console.error('Lỗi khi lưu token:', error);
     }
 }
 
-// Lấy token từ cookie hoặc localStorage, kiểm tra cả hai nơi lưu trữ
+// Lấy access token từ cookie hoặc localStorage
 export const getToken = (): string | null => {
     try {
-        // Biến để theo dõi đang ở trang đăng nhập hay đăng xuất
         const isLoginPage = typeof window !== 'undefined' &&
             (window.location.pathname.includes('/login') || window.location.pathname.includes('/register'));
 
-        // Kiểm tra cookie trước
-        const tokenFromCookie = getCookie(TOKEN_COOKIE_NAME) as string | null;
-        let tokenFromLocalStorage = null;
-        let tokenFromSession = null;
+        // Ưu tiên cookie
+        let token = getCookie(TOKEN_COOKIE_NAME) as string | null;
 
-        // Kiểm tra localStorage và sessionStorage
-        if (typeof window !== 'undefined') {
-            tokenFromLocalStorage = localStorage.getItem(TOKEN_COOKIE_NAME);
-            tokenFromSession = sessionStorage.getItem(TOKEN_COOKIE_NAME);
-        }
-
-        // Ưu tiên token từ cookie
-        if (tokenFromCookie) {
-            console.log('Lấy token từ cookie thành công');
-
-            // Đồng bộ với localStorage và sessionStorage nếu chưa có
-            if (typeof window !== 'undefined' && !tokenFromLocalStorage) {
-                localStorage.setItem(TOKEN_COOKIE_NAME, tokenFromCookie);
-            }
-            if (typeof window !== 'undefined' && !tokenFromSession) {
-                sessionStorage.setItem(TOKEN_COOKIE_NAME, tokenFromCookie);
-            }
-
-            return tokenFromCookie;
-        }
-
-        // Kiểm tra localStorage nếu không có trong cookie
-        if (tokenFromLocalStorage) {
-            // Đồng bộ lại cookie từ localStorage
-            setCookie(TOKEN_COOKIE_NAME, tokenFromLocalStorage, cookieOptions);
-            console.log('Lấy token từ localStorage thành công, đã đồng bộ vào cookie');
-
-            // Đồng bộ với sessionStorage nếu chưa có
-            if (typeof window !== 'undefined' && !tokenFromSession) {
-                sessionStorage.setItem(TOKEN_COOKIE_NAME, tokenFromLocalStorage);
-            }
-
-            return tokenFromLocalStorage;
-        }
-
-        // Kiểm tra sessionStorage nếu không có ở các nơi khác
-        if (tokenFromSession) {
-            // Đồng bộ lại cookie và localStorage từ sessionStorage
-            setCookie(TOKEN_COOKIE_NAME, tokenFromSession, cookieOptions);
+        if (token) {
+            console.log('Lấy access token từ cookie thành công');
+            // Sync to localStorage/sessionStorage if missing there
             if (typeof window !== 'undefined') {
-                localStorage.setItem(TOKEN_COOKIE_NAME, tokenFromSession);
+                if (!localStorage.getItem(TOKEN_COOKIE_NAME)) localStorage.setItem(TOKEN_COOKIE_NAME, token);
+                if (!sessionStorage.getItem(TOKEN_COOKIE_NAME)) sessionStorage.setItem(TOKEN_COOKIE_NAME, token);
             }
-            console.log('Lấy token từ sessionStorage thành công, đã đồng bộ vào cookie và localStorage');
-            return tokenFromSession;
+            return token;
         }
 
-        // Chỉ hiển thị thông báo khi không ở trang đăng nhập/đăng ký
+        // Fallback to localStorage
+        if (typeof window !== 'undefined') {
+            token = localStorage.getItem(TOKEN_COOKIE_NAME);
+            if (token) {
+                console.log('Lấy access token từ localStorage, đồng bộ vào cookie.');
+                setCookie(TOKEN_COOKIE_NAME, token, cookieOptions);
+                if (!sessionStorage.getItem(TOKEN_COOKIE_NAME)) sessionStorage.setItem(TOKEN_COOKIE_NAME, token);
+                return token;
+            }
+
+            // Fallback to sessionStorage
+            token = sessionStorage.getItem(TOKEN_COOKIE_NAME);
+            if (token) {
+                console.log('Lấy access token từ sessionStorage, đồng bộ vào cookie và localStorage.');
+                setCookie(TOKEN_COOKIE_NAME, token, cookieOptions);
+                localStorage.setItem(TOKEN_COOKIE_NAME, token);
+                return token;
+            }
+        }
+
         if (!isLoginPage) {
-            console.warn('Không tìm thấy token trong cả cookie, localStorage và sessionStorage');
+            console.warn('Không tìm thấy access token.');
         }
         return null;
     } catch (error) {
-        console.error('Lỗi khi lấy token:', error);
+        console.error('Lỗi khi lấy access token:', error);
         return null;
     }
 }
@@ -162,43 +151,58 @@ export const getToken = (): string | null => {
 // Lấy refresh token từ cookie hoặc localStorage
 export const getRefreshToken = (): string | null => {
     try {
-        // Kiểm tra cookie trước
-        const refreshTokenFromCookie = getCookie(REFRESH_TOKEN_COOKIE_NAME) as string | null
-
-        if (refreshTokenFromCookie) {
-            return refreshTokenFromCookie
+        // Ưu tiên cookie
+        let token = getCookie(REFRESH_TOKEN_COOKIE_NAME) as string | null;
+        if (token) {
+            console.log('Lấy refresh token từ cookie thành công');
+            if (typeof window !== 'undefined') {
+                if (!localStorage.getItem(REFRESH_TOKEN_COOKIE_NAME)) localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, token);
+                if (!sessionStorage.getItem(REFRESH_TOKEN_COOKIE_NAME)) sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, token);
+            }
+            return token;
         }
 
-        // Kiểm tra localStorage nếu không có trong cookie
-        const refreshTokenFromLocalStorage = localStorage.getItem(REFRESH_TOKEN_COOKIE_NAME)
+        // Fallback to localStorage
+        if (typeof window !== 'undefined') {
+            token = localStorage.getItem(REFRESH_TOKEN_COOKIE_NAME);
+            if (token) {
+                console.log('Lấy refresh token từ localStorage, đồng bộ vào cookie.');
+                setCookie(REFRESH_TOKEN_COOKIE_NAME, token, cookieOptions);
+                if (!sessionStorage.getItem(REFRESH_TOKEN_COOKIE_NAME)) sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, token);
+                return token;
+            }
 
-        if (refreshTokenFromLocalStorage) {
-            // Đồng bộ lại cookie từ localStorage
-            setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshTokenFromLocalStorage, cookieOptions)
-            return refreshTokenFromLocalStorage
+            // Fallback to sessionStorage
+            token = sessionStorage.getItem(REFRESH_TOKEN_COOKIE_NAME);
+            if (token) {
+                console.log('Lấy refresh token từ sessionStorage, đồng bộ vào cookie và localStorage.');
+                setCookie(REFRESH_TOKEN_COOKIE_NAME, token, cookieOptions);
+                localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, token);
+                return token;
+            }
         }
-
-        return null
+        console.warn('Không tìm thấy refresh token.');
+        return null;
     } catch (error) {
-        console.error('Lỗi khi lấy refresh token:', error)
-        return null
+        console.error('Lỗi khi lấy refresh token:', error);
+        return null;
     }
 }
 
 // Xóa token và refresh token khi đăng xuất
 export const removeTokens = () => {
     try {
+        const deleteOpts = { path: cookieOptions.path };
         // Xóa khỏi cookies
-        deleteCookie(TOKEN_COOKIE_NAME)
-        deleteCookie(REFRESH_TOKEN_COOKIE_NAME)
+        deleteCookie(TOKEN_COOKIE_NAME, deleteOpts);
+        deleteCookie(REFRESH_TOKEN_COOKIE_NAME, deleteOpts);
 
         // Xóa khỏi localStorage
         if (typeof window !== 'undefined') {
-            localStorage.removeItem(TOKEN_COOKIE_NAME)
-            localStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME)
-            // Xóa thêm từ sessionStorage
-            sessionStorage.removeItem(TOKEN_COOKIE_NAME)
-            sessionStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME)
+            localStorage.removeItem(TOKEN_COOKIE_NAME);
+            localStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
+            sessionStorage.removeItem(TOKEN_COOKIE_NAME);
+            sessionStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
         }
 
         // Xóa Authorization header trong instance axios
@@ -355,6 +359,14 @@ instance.interceptors.response.use(
             // Kiểm tra nếu không phải đang ở trang đăng nhập hoặc đăng ký
             if (!currentPath.includes('/login') && !currentPath.includes('/register')) {
                 console.log('Chuyển hướng đến trang đăng nhập do lỗi xác thực');
+
+                // Kiểm tra URL request, bỏ qua site-content để tránh chuyển hướng không cần thiết
+                const requestUrl = originalRequest?.url || '';
+                if (requestUrl.includes('/api/site-content/')) {
+                    console.log('Bỏ qua chuyển hướng đăng nhập cho API site-content:', requestUrl);
+                    return Promise.reject(error);
+                }
+
                 // Ngăn việc chuyển hướng nhiều lần bằng cách kiểm tra localStorage
                 if (!localStorage.getItem('redirecting_to_login')) {
                     localStorage.setItem('redirecting_to_login', 'true');
@@ -451,4 +463,4 @@ if (typeof window !== 'undefined') {
 }
 
 // Export instance axios để các module khác có thể sử dụng
-export default instance; 
+export default instance;

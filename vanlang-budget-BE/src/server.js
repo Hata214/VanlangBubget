@@ -20,6 +20,8 @@ import loanPaymentRoutes from './routes/loanPaymentRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
+import siteContentRoutes from './routes/siteContentRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 
 // Import middlewares
 import { errorHandler } from './middlewares/errorMiddleware.js';
@@ -134,6 +136,12 @@ logger.info('User routes registered successfully');
 app.use('/api/investments', investmentRoutes);
 logger.info('Investment routes registered successfully');
 
+app.use('/api/site-content', siteContentRoutes);
+logger.info('Site content routes registered successfully');
+
+app.use('/api/admin', adminRoutes);
+logger.info('Admin routes registered successfully');
+
 // Error handler middleware
 app.use(errorHandler);
 
@@ -185,4 +193,4 @@ mongoose.connection.on('error', (err) => {
 // Call connect function
 connectDB();
 
-export default app; 
+export default app;

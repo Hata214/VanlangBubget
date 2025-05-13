@@ -80,8 +80,11 @@ export default function AdminLoginPage() {
 
     // Kiểm tra xem có phiên đăng nhập admin đang tồn tại không
     const checkExistingAdminSession = async () => {
-        const token = localStorage.getItem('auth_token');
+        // Kiểm tra cả hai tên cookie có thể được sử dụng
+        const token = localStorage.getItem('token') || localStorage.getItem('auth_token');
         const role = localStorage.getItem('user_role');
+
+        console.log('Kiểm tra phiên đăng nhập hiện tại:', { token: token ? 'Có' : 'Không', role });
 
         if (token && (role === 'admin' || role === 'superadmin')) {
             try {
@@ -93,12 +96,22 @@ export default function AdminLoginPage() {
                     }
                 });
 
+                console.log('Kết quả xác thực token:', response.status, response.statusText);
+
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Dữ liệu xác thực:', data);
 
                     if (data.success && data.user &&
                         (data.user.role === 'admin' || data.user.role === 'superadmin')) {
                         console.log('Người dùng đã đăng nhập với vai trò:', data.user.role);
+
+                        // Đảm bảo token được lưu với tên 'token' để phù hợp với middleware
+                        if (!localStorage.getItem('token')) {
+                            localStorage.setItem('token', token);
+                            document.cookie = `token=${token}; path=/; max-age=${60 * 60 * 24}`;
+                        }
+
                         // Chuyển hướng đến trang dashboard
                         router.push('/admin/dashboard');
                         return;
@@ -107,12 +120,14 @@ export default function AdminLoginPage() {
 
                 // Nếu token không hợp lệ, xóa dữ liệu đăng nhập cũ
                 localStorage.removeItem('auth_token');
+                localStorage.removeItem('token');
                 localStorage.removeItem('user_role');
                 localStorage.removeItem('user_email');
                 localStorage.removeItem('user_name');
 
                 // Xóa cookies
                 document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
                 document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 
             } catch (error) {
@@ -153,8 +168,8 @@ export default function AdminLoginPage() {
                 const token = data.token;
                 const role = data.user.role;
 
-                // Lưu cookie với maxAge 24 giờ
-                setCookie('auth_token', token, {
+                // Lưu cookie với maxAge 24 giờ - sử dụng tên 'token' để phù hợp với middleware
+                setCookie('token', token, {
                     maxAge: 60 * 60 * 24,
                     path: '/',
                     secure: process.env.NODE_ENV === 'production',
@@ -162,10 +177,13 @@ export default function AdminLoginPage() {
                 });
 
                 // Lưu thông tin người dùng vào localStorage
-                localStorage.setItem('auth_token', token);
+                localStorage.setItem('token', token);
                 localStorage.setItem('user_role', role);
                 localStorage.setItem('user_email', data.user.email);
                 localStorage.setItem('user_name', data.user.name || email.split('@')[0]);
+
+                // Lưu thêm với tên cũ để tương thích với code cũ
+                localStorage.setItem('auth_token', token);
 
                 console.log(`Đăng nhập thành công với vai trò ${role}, đang chuyển hướng đến /admin/dashboard`);
 
@@ -217,18 +235,21 @@ export default function AdminLoginPage() {
         // Tạo token giả lập
         const mockToken = `mock_${Date.now()}_superadmin_token`;
 
-        // Lưu vào cả cookie và localStorage
-        setCookie('auth_token', mockToken, {
+        // Lưu vào cả cookie và localStorage với tên 'token' để phù hợp với middleware
+        setCookie('token', mockToken, {
             maxAge: 60 * 60 * 24,
             path: '/',
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         });
 
-        localStorage.setItem('auth_token', mockToken);
+        localStorage.setItem('token', mockToken);
         localStorage.setItem('user_role', 'superadmin');
         localStorage.setItem('user_email', 'superadmin@control.vn');
         localStorage.setItem('user_name', 'Super Admin');
+
+        // Lưu thêm với tên cũ để tương thích với code cũ
+        localStorage.setItem('auth_token', mockToken);
 
         console.log('Đăng nhập khẩn cấp thành công, chuyển hướng đến trang dashboard');
         setTimeout(() => {
@@ -486,23 +507,23 @@ export default function AdminLoginPage() {
                     from { opacity: 0; transform: translateY(-10px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
-                
+
                 input:focus {
                     border-color: #4f46e5 !important;
                     box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1) !important;
                 }
-                
+
                 button[type="submit"]:hover:not(:disabled) {
                     background: linear-gradient(to right, #4338ca, #4f46e5) !important;
                     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
                     transform: translateY(-1px) !important;
                 }
-                
+
                 button[type="submit"]:active:not(:disabled) {
                     transform: translateY(0) !important;
                     box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15) !important;
                 }
-                
+
                 .admin-back-button:hover {
                     color: #4f46e5 !important;
                 }

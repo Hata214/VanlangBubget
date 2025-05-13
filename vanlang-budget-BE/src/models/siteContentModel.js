@@ -10,8 +10,8 @@ const siteContentSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Loại nội dung là bắt buộc'],
             enum: {
-                values: ['footer', 'about', 'terms', 'privacy', 'homepage', 'faq', 'contact'],
-                message: 'Loại nội dung phải là một trong những giá trị: footer, about, terms, privacy, homepage, faq, contact'
+                values: ['footer', 'about', 'terms', 'privacy', 'homepage', 'faq', 'contact', 'roadmap', 'pricing'],
+                message: 'Loại nội dung phải là một trong những giá trị: footer, about, terms, privacy, homepage, faq, contact, roadmap, pricing'
             },
             unique: true
         },
@@ -173,23 +173,28 @@ siteContentSchema.statics.updateFooterContent = async function (content, userId)
  * Phương thức tĩnh để lấy nội dung trang chủ
  */
 siteContentSchema.statics.getHomepageContent = async function (language = 'vi') {
-    const homepageContent = await this.findOne({ type: 'homepage' });
-    if (!homepageContent) return null;
+    try {
+        const homepageContent = await this.findOne({ type: 'homepage' });
+        if (!homepageContent) return null;
 
-    // Xử lý nội dung theo ngôn ngữ nếu được hỗ trợ
-    if (language && language !== 'vi' && homepageContent.content[language]) {
-        return homepageContent.content[language];
+        // Xử lý nội dung theo ngôn ngữ nếu được hỗ trợ
+        if (language && language !== 'vi' && homepageContent.content[language]) {
+            return homepageContent.content[language];
+        }
+
+        // Trả về cả thông tin meta (version, updatedAt, v.v.) kèm theo nội dung
+        return {
+            content: homepageContent.content,
+            version: homepageContent.version,
+            updatedAt: homepageContent.updatedAt,
+            updatedBy: homepageContent.lastUpdatedBy,
+            status: homepageContent.status,
+            sections: homepageContent.sections
+        };
+    } catch (error) {
+        console.error('Lỗi khi lấy nội dung trang chủ:', error);
+        return null;
     }
-
-    // Trả về cả thông tin meta (version, updatedAt, v.v.) kèm theo nội dung
-    return {
-        content: homepageContent.content,
-        version: homepageContent.version,
-        updatedAt: homepageContent.updatedAt,
-        updatedBy: homepageContent.lastUpdatedBy,
-        status: homepageContent.status,
-        sections: homepageContent.sections
-    };
 };
 
 /**

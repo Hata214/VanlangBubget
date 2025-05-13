@@ -76,10 +76,20 @@ export async function PUT(
         const { type } = params;
         const { content, status, language } = await request.json();
 
-        // Lấy token từ cookie hoặc từ session
-        const token = (session as any).accessToken ||
-            request.cookies.get('access_token')?.value ||
-            '';
+        // Lấy token từ cookie hoặc từ session - kiểm tra cả hai tên cookie có thể được sử dụng
+        const tokenFromSession = (session as any).accessToken;
+        const tokenFromCookie = request.cookies.get('token')?.value ||
+            request.cookies.get('auth_token')?.value ||
+            request.cookies.get('access_token')?.value;
+
+        // Sử dụng token từ bất kỳ nguồn nào có sẵn
+        const token = tokenFromSession || tokenFromCookie || '';
+
+        console.log('API site-content PUT - token check:', {
+            sessionToken: tokenFromSession ? 'Có' : 'Không',
+            cookieToken: tokenFromCookie ? 'Có' : 'Không',
+            finalToken: token ? 'Có' : 'Không'
+        });
 
         // Gọi API backend
         const response = await fetch(`${process.env.BACKEND_URL}/api/site-content/${type}`, {
@@ -108,4 +118,4 @@ export async function PUT(
             { status: 500 }
         );
     }
-} 
+}

@@ -54,12 +54,27 @@ export default function AdminLayout({
             console.log('Kiểm tra quyền admin truy cập cho đường dẫn:', pathname);
 
             try {
-                // Lấy token từ localStorage hoặc cookie
-                const token = localStorage.getItem('auth_token') ||
-                    document.cookie.split('; ')
-                        .find(row => row.startsWith('auth_token='))?.split('=')[1];
+                // Lấy token từ localStorage hoặc cookie - kiểm tra cả hai tên cookie có thể được sử dụng
+                const tokenFromLocalStorage = localStorage.getItem('token');
+                const authTokenFromLocalStorage = localStorage.getItem('auth_token');
 
-                console.log('Token found:', token ? 'Yes' : 'No');
+                // Kiểm tra cookie
+                const tokenFromCookie = document.cookie.split('; ')
+                    .find(row => row.startsWith('token='))?.split('=')[1];
+                const authTokenFromCookie = document.cookie.split('; ')
+                    .find(row => row.startsWith('auth_token='))?.split('=')[1];
+
+                // Sử dụng token từ bất kỳ nguồn nào có sẵn
+                const token = tokenFromLocalStorage || authTokenFromLocalStorage ||
+                    tokenFromCookie || authTokenFromCookie;
+
+                console.log('Token check in admin layout:', {
+                    tokenLocalStorage: tokenFromLocalStorage ? 'Có' : 'Không',
+                    authTokenLocalStorage: authTokenFromLocalStorage ? 'Có' : 'Không',
+                    tokenCookie: tokenFromCookie ? 'Có' : 'Không',
+                    authTokenCookie: authTokenFromCookie ? 'Có' : 'Không',
+                    finalToken: token ? 'Có' : 'Không'
+                });
 
                 if (!token) {
                     console.log("Không tìm thấy token, chuyển hướng đến trang đăng nhập");
@@ -146,7 +161,7 @@ export default function AdminLayout({
                 } catch (fetchError) {
                     console.error("Lỗi khi gọi API xác thực:", fetchError);
 
-                    // Thử gọi API verify-token trực tiếp từ backend 
+                    // Thử gọi API verify-token trực tiếp từ backend
                     try {
                         const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
                         const directResponse = await fetch(`${backendUrl}/api/auth/verify-token`, {
@@ -206,10 +221,19 @@ export default function AdminLayout({
     }, [pathname, router, isPublicPage]);
 
     const handleLogout = () => {
+        // Xóa tất cả các token từ localStorage
+        localStorage.removeItem('token');
         localStorage.removeItem('auth_token');
         localStorage.removeItem('user_role');
+        localStorage.removeItem('user_email');
+        localStorage.removeItem('user_name');
+
+        // Xóa tất cả các cookie
+        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+        console.log('Đã đăng xuất và xóa tất cả token');
         router.push('/admin/login');
     };
 
@@ -395,11 +419,17 @@ export default function AdminLayout({
 
 // Tạo hàm riêng để xóa dữ liệu người dùng để tránh lặp code
 const clearUserData = () => {
+    // Xóa tất cả các token từ localStorage
+    localStorage.removeItem('token');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_role');
     localStorage.removeItem('user_email');
     localStorage.removeItem('user_name');
 
-    // Xóa cookies
+    // Xóa tất cả các cookie
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+    console.log('Đã xóa tất cả dữ liệu người dùng');
 };

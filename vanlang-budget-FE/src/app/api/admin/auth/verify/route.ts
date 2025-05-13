@@ -26,6 +26,13 @@ export async function GET(request: NextRequest) {
         const token = authHeader.split(' ')[1];
         console.log('Token extracted:', token ? `${token.substring(0, 15)}...` : 'invalid');
 
+        // Thêm log để debug
+        console.log('Đang xác thực token admin trong /verify endpoint:', {
+            tokenLength: token?.length,
+            tokenStart: token?.substring(0, 15),
+            isMockToken: token?.startsWith('mock_')
+        });
+
         // Xử lý token giả lập
         if (token.startsWith('mock_')) {
             console.log('Processing mock token:', token);
@@ -127,4 +134,4 @@ export async function GET(request: NextRequest) {
             error: 'Lỗi xác thực'
         }, { status: 500 });
     }
-} 
+}

@@ -1,629 +1,209 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
-import { useAppSelector } from '@/redux/hooks';
-import {
-    Edit,
-    Trash2,
-    Save,
-    Plus,
-    X,
-    FileText,
-    Home,
-    ScrollText,
-    Mail,
-    ImageIcon,
-    Check,
-    RotateCcw,
-    ChevronDown,
-    ChevronUp
-} from 'lucide-react';
-import siteContentService from '@/services/siteContentService';
+import { ArrowLeft, Save, RefreshCw } from 'lucide-react';
+import AdminLayout from '@/components/admin/AdminLayout';
+import SectionTabs from '@/components/admin/site-content/SectionTabs';
 import HomepageSection from '@/components/admin/site-content/HomepageSection';
-import ContentHistory from '@/components/admin/site-content/ContentHistory';
-import ContentApproval from '@/components/admin/site-content/ContentApproval';
+import siteContentService from '@/services/siteContentService';
 import { toast } from 'react-hot-toast';
+import { useAppSelector } from '@/redux/hooks';
 
-// Định nghĩa kiểu dữ liệu cho nội dung trang web
-interface ContentSection {
-    id: string;
-    name: string;
-    key: string;
-    section: string;
-    type: 'text' | 'image' | 'rich_text' | 'link' | 'boolean';
-    value: string;
-    lastUpdated: string;
-    updatedBy?: string;
+interface ApiResponse {
+    data: any;
+    success: boolean;
+    meta?: {
+        updatedAt?: string;
+        source?: string;
+    };
 }
 
-export default function AdminSiteContentPage() {
-    const t = useTranslations();
-    const { user } = useAppSelector(state => state.auth);
+export default function SiteContentPage() {
+    const [selectedSection, setSelectedSection] = useState<string>('home-vi');
+    const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>('vi');
+    const [content, setContent] = useState<any>({});
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isSaving, setIsSaving] = useState<boolean>(false);
+    const [hasChanges, setHasChanges] = useState<boolean>(false);
+    const { user } = useAppSelector((state) => state.auth);
     const isSuperAdmin = user?.role === 'superadmin';
 
-    const [selectedSection, setSelectedSection] = useState<string>('home');
-    const [contentItems, setContentItems] = useState<ContentSection[]>([]);
-    const [homepageContent, setHomepageContent] = useState<any>(null);
-    const [loading, setLoading] = useState(true);
-    const [editItem, setEditItem] = useState<string | null>(null);
-    const [editValue, setEditValue] = useState<string>('');
-    const [expandedSection, setExpandedSection] = useState<string | null>('hero');
-    const [searchTerm, setSearchTerm] = useState('');
-    const [isUnsavedChanges, setIsUnsavedChanges] = useState(false);
-    const [showHistory, setShowHistory] = useState(false);
-    const [refreshKey, setRefreshKey] = useState(0);
-
-    // Tải dữ liệu
     useEffect(() => {
-        if (selectedSection === 'home') {
-            fetchHomepageContent();
-        } else {
-            fetchSectionContent();
-        }
-    }, [selectedSection, refreshKey]);
+        loadContent();
+    }, [selectedSection]);
 
-    // Tải nội dung trang chủ
-    const fetchHomepageContent = async () => {
+    const loadContent = async () => {
+        setIsLoading(true);
         try {
-            setLoading(true);
-            const response = await siteContentService.getContentByType('homepage');
-
-            if (response && response.data) {
-                setHomepageContent(response.data);
-            }
+            const response: ApiResponse = await siteContentService.getContentByType(selectedSection);
+            setContent(response.data || {});
         } catch (error) {
-            console.error('Lỗi khi tải nội dung trang chủ:', error);
-            toast.error('Không thể tải nội dung trang chủ');
+            console.error('Lỗi khi tải nội dung:', error);
+            toast.error('Không thể tải nội dung. Vui lòng thử lại sau.');
         } finally {
-            setLoading(false);
+            setIsLoading(false);
         }
     };
 
-    // Tải nội dung các trang khác
-    const fetchSectionContent = async () => {
-        try {
-            setLoading(true);
-            const response = await siteContentService.getContentByType(selectedSection);
-
-            if (response && response.data) {
-                // Chuyển đổi dữ liệu từ API sang định dạng nội bộ
-                const formattedContent = Object.entries(response.data).map(([key, value], index) => {
-                    const contentType = typeof value === 'string' && (value as string).includes('/images/') ? 'image' as const :
-                        typeof value === 'string' && (value as string).length > 100 ? 'rich_text' as const :
-                            typeof value === 'boolean' ? 'boolean' as const :
-                                (typeof value === 'string' && value.startsWith('http')) ? 'link' as const : 'text' as const;
-
-                    return {
-                        id: `${selectedSection}-${index}`,
-                        name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
-                        key: key,
-                        section: selectedSection,
-                        type: contentType,
-                        value: typeof value === 'boolean' ? value.toString() : value as string,
-                        lastUpdated: response.meta?.updatedAt || new Date().toISOString()
-                    };
-                });
-
-                setContentItems(formattedContent);
-            } else {
-                setContentItems([]);
-            }
-        } catch (error) {
-            console.error(`Lỗi khi tải nội dung ${selectedSection}:`, error);
-            toast.error(`Không thể tải nội dung ${selectedSection}`);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Xử lý thay đổi section
-    const handleSectionChange = (section: string) => {
-        if (isUnsavedChanges) {
-            if (confirm('Bạn có thay đổi chưa lưu. Bạn có muốn tiếp tục không?')) {
-                setSelectedSection(section);
-                setIsUnsavedChanges(false);
+    const handleSectionChange = (newSection: string) => {
+        if (hasChanges) {
+            // Hiển thị xác nhận nếu có thay đổi chưa lưu
+            if (window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn chuyển sang phần khác không?')) {
+                setSelectedSection(newSection);
+                setHasChanges(false);
             }
         } else {
-            setSelectedSection(section);
+            setSelectedSection(newSection);
         }
-
-        setShowHistory(false);
     };
 
-    // Xử lý chỉnh sửa mục
-    const handleEdit = (item: ContentSection) => {
-        setEditItem(item.id);
-        setEditValue(item.value);
-    };
-
-    // Xử lý hủy chỉnh sửa
-    const handleCancelEdit = () => {
-        setEditItem(null);
-        setEditValue('');
-    };
-
-    // Xử lý lưu thay đổi
-    const handleSave = async (item: ContentSection) => {
+    const handleSaveContent = async () => {
+        setIsSaving(true);
         try {
-            // Cập nhật dữ liệu local trước
-            setContentItems(prev =>
-                prev.map(i =>
-                    i.id === item.id
-                        ? { ...i, value: editValue, lastUpdated: new Date().toISOString() }
-                        : i
-                )
-            );
-
-            setEditItem(null);
-            setIsUnsavedChanges(false);
-
-            // Chuẩn bị dữ liệu để gửi lên server
-            const updatedContent: Record<string, any> = {};
-            contentItems.forEach(item => {
-                updatedContent[item.key] = item.value;
-            });
-
-            // Gửi yêu cầu cập nhật lên server
-            await siteContentService.updateContentByType(selectedSection, updatedContent);
-
+            await siteContentService.updateContentByType(selectedSection, content);
             toast.success(isSuperAdmin
-                ? 'Cập nhật nội dung thành công!'
+                ? 'Đã lưu thành công!'
                 : 'Đã gửi nội dung để SuperAdmin phê duyệt!');
-
+            setHasChanges(false);
         } catch (error) {
-            console.error('Lỗi khi cập nhật nội dung:', error);
-            toast.error('Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại.');
+            console.error('Lỗi khi lưu nội dung:', error);
+            toast.error('Không thể lưu nội dung. Vui lòng thử lại sau.');
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    // Xử lý đóng mở section
-    const toggleSection = (section: string) => {
-        setExpandedSection(expandedSection === section ? null : section);
+    const handleContentChange = (newContent: any) => {
+        setContent(newContent);
+        setHasChanges(true);
     };
 
-    // Xử lý khi nội dung được cập nhật
-    const handleContentUpdated = () => {
-        setRefreshKey(prev => prev + 1);
+    const handleLanguageChange = (language: 'vi' | 'en') => {
+        if (hasChanges) {
+            // Hiển thị xác nhận nếu có thay đổi chưa lưu
+            if (window.confirm('Bạn có thay đổi chưa lưu. Bạn có chắc chắn muốn chuyển ngôn ngữ không?')) {
+                setCurrentLanguage(language);
+                // Cập nhật lại selectedSection với ngôn ngữ mới
+                const sectionBase = selectedSection.split('-')[0];
+                setSelectedSection(`${sectionBase}-${language}`);
+                setHasChanges(false);
+            }
+        } else {
+            setCurrentLanguage(language);
+            // Cập nhật lại selectedSection với ngôn ngữ mới
+            const sectionBase = selectedSection.split('-')[0];
+            setSelectedSection(`${sectionBase}-${language}`);
+        }
     };
 
-    // Lọc nội dung theo từ khóa tìm kiếm
-    const filteredContent = searchTerm
-        ? contentItems.filter(item =>
-            item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.value.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.key.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-        : contentItems;
+    const handleResetToFallback = async () => {
+        if (window.confirm('Bạn có chắc chắn muốn khôi phục nội dung mặc định? Điều này sẽ xóa tất cả các thay đổi tùy chỉnh.')) {
+            setIsLoading(true);
+            try {
+                await siteContentService.initializeHomepageContent(currentLanguage);
+                toast.success('Đã khôi phục nội dung mặc định');
+                await loadContent();
+            } catch (error) {
+                console.error('Lỗi khi khôi phục nội dung mặc định:', error);
+                toast.error('Không thể khôi phục nội dung mặc định. Vui lòng thử lại sau.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
 
-    const homepageSections = homepageContent ? Object.keys(homepageContent) : [];
-
-    // Render trang chủ
-    const renderHomepageContent = () => {
-        if (loading) {
+    const renderSectionContent = () => {
+        if (isLoading) {
             return (
-                <div className="admin-loading-container">
-                    <div className="admin-loading-spinner"></div>
-                    <p>Đang tải nội dung...</p>
+                <div className="flex items-center justify-center h-64">
+                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                 </div>
             );
         }
 
-        if (showHistory) {
-            return (
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-medium">Lịch sử chỉnh sửa trang chủ</h2>
-                        <button
-                            onClick={() => setShowHistory(false)}
-                            className="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-md text-sm"
-                        >
-                            Quay lại nội dung
-                        </button>
+        // Xác định section hiện tại từ selectedSection
+        const [sectionName] = selectedSection.split('-');
+
+        // Render dựa trên section hiện tại
+        switch (sectionName) {
+            case 'home':
+            case 'hero':
+            case 'features':
+            case 'testimonials':
+            case 'pricing':
+                return (
+                    <HomepageSection
+                        section={sectionName}
+                        title={sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}
+                        defaultContent={content}
+                        onUpdate={() => {
+                            loadContent();
+                            setHasChanges(false);
+                        }}
+                    />
+                );
+            default:
+                // Các section khác
+                return (
+                    <div className="p-4 space-y-4">
+                        <h2 className="text-2xl font-bold">{sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}</h2>
+                        <p className="text-gray-500">Đang phát triển...</p>
                     </div>
-                    <ContentHistory contentType="homepage" onRestore={handleContentUpdated} />
-                </div>
-            );
+                );
         }
-
-        return (
-            <>
-                <ContentApproval
-                    contentType="homepage"
-                    onApprove={handleContentUpdated}
-                    onReject={handleContentUpdated}
-                />
-
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-medium">Quản lý nội dung trang chủ</h2>
-                    <div className="space-x-2">
-                        <button
-                            onClick={() => setShowHistory(true)}
-                            className="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-md text-sm"
-                        >
-                            Xem lịch sử chỉnh sửa
-                        </button>
-                    </div>
-                </div>
-
-                {homepageSections.length === 0 ? (
-                    <div className="admin-empty-state">
-                        <p>Chưa có nội dung nào cho trang chủ</p>
-                        <p className="text-sm text-gray-500 mt-1">Vui lòng thêm nội dung mới</p>
-                    </div>
-                ) : (
-                    <>
-                        {homepageSections.map(section => (
-                            <HomepageSection
-                                key={section}
-                                section={section}
-                                title={section.charAt(0).toUpperCase() + section.slice(1).replace(/([A-Z])/g, ' $1')}
-                                defaultContent={homepageContent[section]}
-                                onUpdate={handleContentUpdated}
-                            />
-                        ))}
-                    </>
-                )}
-            </>
-        );
     };
 
     return (
-        <div className="admin-site-content-page p-6">
-            <div className="admin-site-content-header">
-                <h1 className="text-3xl font-bold tracking-tight">Quản lý nội dung trang web</h1>
-                <p className="text-muted-foreground mt-2">
-                    Chỉnh sửa và quản lý nội dung hiển thị trên trang web
-                </p>
-            </div>
+        <AdminLayout>
+            <div className="container mx-auto px-4 py-8">
+                <div className="flex items-center justify-between mb-8">
+                    <h1 className="text-3xl font-bold">Quản lý nội dung trang web</h1>
+                    <div className="flex space-x-4">
+                        <button
+                            onClick={handleResetToFallback}
+                            disabled={isSaving || isLoading}
+                            className="flex items-center px-4 py-2 rounded-md bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                        >
+                            <RefreshCw size={16} className="mr-2" />
+                            <span>Khôi phục mặc định</span>
+                        </button>
 
-            <div className="admin-site-content-container mt-6">
-                {/* Sidebar điều hướng */}
-                <div className="admin-site-content-sidebar">
-                    <div className="admin-site-content-search">
-                        <input
-                            type="text"
-                            placeholder="Tìm kiếm nội dung..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="admin-search-input w-full"
+                        <button
+                            onClick={handleSaveContent}
+                            disabled={isSaving || !hasChanges}
+                            className="flex items-center px-4 py-2 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isSaving ? (
+                                <>
+                                    <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent mr-2" />
+                                    <span>Đang lưu...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save size={16} className="mr-2" />
+                                    <span>Lưu thay đổi</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="md:col-span-1">
+                        <SectionTabs
+                            onSectionChange={handleSectionChange}
+                            selectedSection={selectedSection}
+                            currentLanguage={currentLanguage}
+                            onLanguageChange={handleLanguageChange}
+                            className="sticky top-20"
                         />
                     </div>
-                    <nav className="admin-site-content-nav mt-4">
-                        <ul>
-                            <li className={`admin-site-content-nav-item ${selectedSection === 'home' ? 'active' : ''}`}>
-                                <button
-                                    onClick={() => handleSectionChange('home')}
-                                    className="admin-site-content-nav-button"
-                                >
-                                    <Home size={18} />
-                                    <span>Trang chủ</span>
-                                </button>
-                            </li>
-                            <li className={`admin-site-content-nav-item ${selectedSection === 'about' ? 'active' : ''}`}>
-                                <button
-                                    onClick={() => handleSectionChange('about')}
-                                    className="admin-site-content-nav-button"
-                                >
-                                    <FileText size={18} />
-                                    <span>Giới thiệu</span>
-                                </button>
-                            </li>
-                            <li className={`admin-site-content-nav-item ${selectedSection === 'features' ? 'active' : ''}`}>
-                                <button
-                                    onClick={() => handleSectionChange('features')}
-                                    className="admin-site-content-nav-button"
-                                >
-                                    <ScrollText size={18} />
-                                    <span>Tính năng</span>
-                                </button>
-                            </li>
-                            <li className={`admin-site-content-nav-item ${selectedSection === 'contact' ? 'active' : ''}`}>
-                                <button
-                                    onClick={() => handleSectionChange('contact')}
-                                    className="admin-site-content-nav-button"
-                                >
-                                    <Mail size={18} />
-                                    <span>Liên hệ</span>
-                                </button>
-                            </li>
-                        </ul>
-                    </nav>
-                </div>
 
-                {/* Nội dung chính */}
-                <div className="admin-site-content-main">
-                    <div className="admin-site-content-main-header">
-                        <h2 className="admin-site-content-main-title">
-                            {selectedSection === 'home' && 'Trang chủ'}
-                            {selectedSection === 'about' && 'Giới thiệu'}
-                            {selectedSection === 'features' && 'Tính năng'}
-                            {selectedSection === 'contact' && 'Liên hệ'}
-                        </h2>
+                    <div className="md:col-span-3 bg-white p-6 rounded-lg shadow-md">
+                        {renderSectionContent()}
                     </div>
-
-                    {/* Nội dung trang chủ */}
-                    {selectedSection === 'home' && renderHomepageContent()}
-
-                    {/* Nội dung các phần khác */}
-                    {selectedSection !== 'home' && (
-                        <>
-                            {loading ? (
-                                <div className="admin-loading-container">
-                                    <div className="admin-loading-spinner"></div>
-                                    <p>Đang tải nội dung...</p>
-                                </div>
-                            ) : searchTerm ? (
-                                // Hiển thị kết quả tìm kiếm
-                                <div className="admin-search-results">
-                                    <h3 className="admin-search-results-title">Kết quả tìm kiếm: {filteredContent.length} mục</h3>
-                                    {filteredContent.length === 0 ? (
-                                        <div className="admin-empty-state">
-                                            <p>Không tìm thấy nội dung phù hợp</p>
-                                        </div>
-                                    ) : (
-                                        <div className="admin-content-items">
-                                            {filteredContent.map(item => (
-                                                <div className="admin-content-item" key={item.id}>
-                                                    <div className="admin-content-item-header">
-                                                        <div className="admin-content-item-title">
-                                                            <span>{item.name}</span>
-                                                            <span className="admin-content-item-key">{item.key}</span>
-                                                        </div>
-                                                        <div className="admin-content-item-actions">
-                                                            <button
-                                                                className="admin-content-item-button"
-                                                                onClick={() => handleEdit(item)}
-                                                            >
-                                                                <Edit size={16} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="admin-content-item-body">
-                                                        {editItem === item.id ? (
-                                                            <div className="admin-content-item-edit">
-                                                                {item.type === 'rich_text' ? (
-                                                                    <textarea
-                                                                        value={editValue}
-                                                                        onChange={(e) => {
-                                                                            setEditValue(e.target.value);
-                                                                            setIsUnsavedChanges(true);
-                                                                        }}
-                                                                        className="admin-content-item-textarea"
-                                                                        rows={5}
-                                                                    />
-                                                                ) : item.type === 'image' ? (
-                                                                    <div className="admin-content-item-image-edit">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editValue}
-                                                                            onChange={(e) => {
-                                                                                setEditValue(e.target.value);
-                                                                                setIsUnsavedChanges(true);
-                                                                            }}
-                                                                            className="admin-content-item-input"
-                                                                            placeholder="Đường dẫn hình ảnh"
-                                                                        />
-                                                                        <div className="admin-content-item-image-preview">
-                                                                            {editValue && (
-                                                                                <img
-                                                                                    src={editValue}
-                                                                                    alt="Preview"
-                                                                                    onError={(e) => {
-                                                                                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                                                                                    }}
-                                                                                />
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editValue}
-                                                                        onChange={(e) => {
-                                                                            setEditValue(e.target.value);
-                                                                            setIsUnsavedChanges(true);
-                                                                        }}
-                                                                        className="admin-content-item-input"
-                                                                    />
-                                                                )}
-                                                                <div className="admin-content-item-edit-actions">
-                                                                    <button
-                                                                        className="admin-content-item-button admin-content-item-button-save"
-                                                                        onClick={() => handleSave(item)}
-                                                                    >
-                                                                        <Save size={16} />
-                                                                        <span>Lưu</span>
-                                                                    </button>
-                                                                    <button
-                                                                        className="admin-content-item-button"
-                                                                        onClick={handleCancelEdit}
-                                                                    >
-                                                                        <X size={16} />
-                                                                        <span>Hủy</span>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="admin-content-item-value">
-                                                                {item.type === 'image' ? (
-                                                                    <div className="admin-content-item-image">
-                                                                        <ImageIcon size={16} className="admin-content-item-image-icon" />
-                                                                        <span>{item.value}</span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <p>
-                                                                        {item.value.length > 100
-                                                                            ? `${item.value.substring(0, 100)}...`
-                                                                            : item.value}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="admin-content-item-footer">
-                                                        <div className="admin-content-item-meta">
-                                                            <span className="admin-content-item-type">
-                                                                {item.type === 'text' && 'Văn bản'}
-                                                                {item.type === 'rich_text' && 'Văn bản phong phú'}
-                                                                {item.type === 'image' && 'Hình ảnh'}
-                                                                {item.type === 'link' && 'Liên kết'}
-                                                                {item.type === 'boolean' && 'Có/Không'}
-                                                            </span>
-                                                            <span className="admin-content-item-date">
-                                                                Cập nhật: {formatDate(item.lastUpdated)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                // Hiển thị nội dung theo section
-                                <div className="admin-content-sections">
-                                    {filteredContent.length === 0 ? (
-                                        <div className="admin-empty-state">
-                                            <p>Không có nội dung cho phần này</p>
-                                        </div>
-                                    ) : (
-                                        <div className="admin-content-items">
-                                            {filteredContent.map(item => (
-                                                <div className="admin-content-item" key={item.id}>
-                                                    <div className="admin-content-item-header">
-                                                        <div className="admin-content-item-title">
-                                                            <span>{item.name}</span>
-                                                            <span className="admin-content-item-key">{item.key}</span>
-                                                        </div>
-                                                        <div className="admin-content-item-actions">
-                                                            <button
-                                                                className="admin-content-item-button"
-                                                                onClick={() => handleEdit(item)}
-                                                            >
-                                                                <Edit size={16} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="admin-content-item-body">
-                                                        {editItem === item.id ? (
-                                                            <div className="admin-content-item-edit">
-                                                                {item.type === 'rich_text' ? (
-                                                                    <textarea
-                                                                        value={editValue}
-                                                                        onChange={(e) => {
-                                                                            setEditValue(e.target.value);
-                                                                            setIsUnsavedChanges(true);
-                                                                        }}
-                                                                        className="admin-content-item-textarea"
-                                                                        rows={5}
-                                                                    />
-                                                                ) : item.type === 'image' ? (
-                                                                    <div className="admin-content-item-image-edit">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={editValue}
-                                                                            onChange={(e) => {
-                                                                                setEditValue(e.target.value);
-                                                                                setIsUnsavedChanges(true);
-                                                                            }}
-                                                                            className="admin-content-item-input"
-                                                                            placeholder="Đường dẫn hình ảnh"
-                                                                        />
-                                                                        <div className="admin-content-item-image-preview">
-                                                                            {editValue && (
-                                                                                <img
-                                                                                    src={editValue}
-                                                                                    alt="Preview"
-                                                                                    onError={(e) => {
-                                                                                        (e.target as HTMLImageElement).src = '/placeholder-image.jpg';
-                                                                                    }}
-                                                                                />
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editValue}
-                                                                        onChange={(e) => {
-                                                                            setEditValue(e.target.value);
-                                                                            setIsUnsavedChanges(true);
-                                                                        }}
-                                                                        className="admin-content-item-input"
-                                                                    />
-                                                                )}
-                                                                <div className="admin-content-item-edit-actions">
-                                                                    <button
-                                                                        className="admin-content-item-button admin-content-item-button-save"
-                                                                        onClick={() => handleSave(item)}
-                                                                    >
-                                                                        <Save size={16} />
-                                                                        <span>Lưu</span>
-                                                                    </button>
-                                                                    <button
-                                                                        className="admin-content-item-button"
-                                                                        onClick={handleCancelEdit}
-                                                                    >
-                                                                        <X size={16} />
-                                                                        <span>Hủy</span>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="admin-content-item-value">
-                                                                {item.type === 'image' ? (
-                                                                    <div className="admin-content-item-image">
-                                                                        <ImageIcon size={16} className="admin-content-item-image-icon" />
-                                                                        <span>{item.value}</span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <p>
-                                                                        {item.value.length > 100
-                                                                            ? `${item.value.substring(0, 100)}...`
-                                                                            : item.value}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <div className="admin-content-item-footer">
-                                                        <div className="admin-content-item-meta">
-                                                            <span className="admin-content-item-type">
-                                                                {item.type === 'text' && 'Văn bản'}
-                                                                {item.type === 'rich_text' && 'Văn bản phong phú'}
-                                                                {item.type === 'image' && 'Hình ảnh'}
-                                                                {item.type === 'link' && 'Liên kết'}
-                                                                {item.type === 'boolean' && 'Có/Không'}
-                                                            </span>
-                                                            <span className="admin-content-item-date">
-                                                                Cập nhật: {formatDate(item.lastUpdated)}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </>
-                    )}
                 </div>
             </div>
-        </div>
+        </AdminLayout>
     );
-
-    // Hàm định dạng ngày tháng
-    function formatDate(dateString: string) {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        }).format(date);
-    }
-}
+} 

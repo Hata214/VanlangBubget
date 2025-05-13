@@ -1,6 +1,8 @@
 import SiteContent from '../models/siteContentModel.js';
 import AppError from '../utils/appError.js';
 import logger from '../utils/logger.js';
+import defaultHomepageContent from '../data/defaultHomepageContent.js';
+import { createHomepageContent, updateHomepageContent } from '../scripts/initHomepageContent.js';
 
 /**
  * @desc    Lấy nội dung footer
@@ -60,7 +62,9 @@ export const getSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { language } = req.query;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage'];
+        console.log(`getSiteContentByType được gọi với type=${type}, language=${language}`);
+
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -69,6 +73,21 @@ export const getSiteContentByType = async (req, res, next) => {
         // Xử lý đặc biệt cho homepage
         if (type === 'homepage') {
             const homepageContent = await SiteContent.getHomepageContent(language);
+
+            // Nếu không có dữ liệu, trả về dữ liệu mặc định
+            if (!homepageContent) {
+                logger.info('Không tìm thấy nội dung trang chủ, trả về dữ liệu mặc định');
+                return res.status(200).json({
+                    status: 'success',
+                    data: {
+                        content: defaultHomepageContent,
+                        version: 1,
+                        status: 'published',
+                        sections: Object.keys(defaultHomepageContent)
+                    }
+                });
+            }
+
             return res.status(200).json({
                 status: 'success',
                 data: homepageContent
@@ -97,7 +116,7 @@ export const updateSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { content, status } = req.body;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage'];
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -168,11 +187,21 @@ export const getHomepageSection = async (req, res, next) => {
 
         const homepage = await SiteContent.findOne({ type: 'homepage' });
 
+        // Nếu không có dữ liệu trong DB, sử dụng dữ liệu mặc định
         if (!homepage) {
-            return res.status(200).json({
-                status: 'success',
-                data: null
-            });
+            // Kiểm tra xem section có tồn tại trong dữ liệu mặc định không
+            if (defaultHomepageContent[section]) {
+                logger.info(`Không tìm thấy nội dung trang chủ, trả về dữ liệu mặc định cho section: ${section}`);
+                return res.status(200).json({
+                    status: 'success',
+                    data: defaultHomepageContent[section]
+                });
+            } else {
+                return res.status(200).json({
+                    status: 'success',
+                    data: null
+                });
+            }
         }
 
         // Kiểm tra nếu có hỗ trợ ngôn ngữ được yêu cầu
@@ -268,7 +297,7 @@ export const getContentHistory = async (req, res, next) => {
     try {
         const { type } = req.params;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage'];
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -295,7 +324,7 @@ export const restoreContentVersion = async (req, res, next) => {
     try {
         const { type, version } = req.params;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage'];
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -460,5 +489,44 @@ export const rejectHomepageContent = async (req, res, next) => {
     } catch (error) {
         logger.error('Lỗi khi từ chối nội dung trang chủ:', error);
         next(new AppError('Không thể từ chối nội dung trang chủ', 500));
+    }
+};
+
+/**
+ * @desc    Khởi tạo dữ liệu mặc định cho trang chủ
+ * @route   POST /api/site-content/homepage/initialize
+ * @access  Private (SuperAdmin only)
+ */
+export const initializeHomepageContent = async (req, res, next) => {
+    try {
+        // Kiểm tra xem đã có dữ liệu trang chủ chưa
+        const existingHomepage = await SiteContent.findOne({ type: 'homepage' });
+
+        let result;
+        if (existingHomepage) {
+            // Nếu đã có dữ liệu, cập nhật
+            logger.info(`SuperAdmin ${req.user.email} đang cập nhật dữ liệu mặc định cho trang chủ`);
+            result = await updateHomepageContent();
+            logger.info(`Dữ liệu trang chủ đã được cập nhật thành công bởi ${req.user.email}`);
+        } else {
+            // Nếu chưa có dữ liệu, tạo mới
+            logger.info(`SuperAdmin ${req.user.email} đang tạo dữ liệu mặc định cho trang chủ`);
+            result = await createHomepageContent();
+            logger.info(`Dữ liệu trang chủ đã được tạo thành công bởi ${req.user.email}`);
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: existingHomepage ? 'Dữ liệu trang chủ đã được cập nhật thành công' : 'Dữ liệu trang chủ đã được tạo thành công',
+            data: {
+                content: result.content,
+                version: result.version,
+                status: result.status,
+                sections: result.sections
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi khởi tạo dữ liệu trang chủ:', error);
+        next(new AppError('Không thể khởi tạo dữ liệu trang chủ', 500));
     }
 };

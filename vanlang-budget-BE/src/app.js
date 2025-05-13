@@ -41,26 +41,32 @@ const allowedOrigins = process.env.NODE_ENV === 'development'
 
 console.log('CORS Allowed Origins:', allowedOrigins);
 
-app.use(cors({
-    // Sử dụng cách cấu hình đơn giản hơn cho development
-    origin: process.env.NODE_ENV === 'development' ? true : allowedOrigins,
-    credentials: true,
-    exposedHeaders: ['Content-Disposition'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'Pragma', 'Expires']
-}));
+// app.use(cors({
+//     // Sử dụng cách cấu hình đơn giản hơn cho development
+//     origin: process.env.NODE_ENV === 'development' ? true : allowedOrigins,
+//     credentials: true,
+//     exposedHeaders: ['Content-Disposition'],
+//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'Pragma', 'Expires']
+// }));
 
 // Add OPTIONS preflight response for all routes
-app.options('*', cors());
+// app.options('*', cors());
 
 // Security middleware
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false,
-}));
+// app.use(helmet({
+//     contentSecurityPolicy: false,
+//     crossOriginEmbedderPolicy: false,
+// }));
 
 // Body parser
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// app.use(express.json({ limit: '10mb' }));
+// app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Middleware debug sớm
+app.use((req, res, next) => {
+    console.log('Early middleware check:', req.method, req.originalUrl);
+    next();
+});
 
 // Cookie parser
 app.use(cookieParser());
@@ -87,6 +93,13 @@ const limiter = rateLimit({
     max: parseInt(process.env.RATE_LIMIT_MAX) || 100, // default: 100 requests per window
     message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau.'
 });
+
+// Middleware debug trước siteContentRoutes
+app.use('/api/site-content', (req, res, next) => {
+    console.log('Request reached site-content middleware:', req.originalUrl);
+    next(); // Chuyển tiếp yêu cầu
+}, siteContentRoutes);
+console.log('Route site-content đã đăng ký ✅');
 
 // Apply rate limiting to all routes
 app.use('/api', limiter);
@@ -131,9 +144,6 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/investments', investmentRoutes);
 console.log('Route investments đã đăng ký ✅');
 
-app.use('/api/site-content', siteContentRoutes);
-console.log('Route site-content đã đăng ký ✅');
-
 // Áp dụng giới hạn tốc độ nghiêm ngặt hơn cho khu vực admin
 app.use('/api/admin', adminLimiter, adminRoutes);
 console.log('Route admin đã đăng ký với bảo mật tăng cường ✅');
@@ -164,6 +174,12 @@ app.get('/api/health', (req, res) => {
         status: 'ok',
         version: API_VERSION
     });
+});
+
+// Catch-all middleware ở cấp độ app
+app.use((req, res, next) => {
+    console.log('App-level catch-all middleware matched:', req.method, req.originalUrl);
+    res.status(404).send('Not Found - App Catch-all');
 });
 
 // Error handler middleware

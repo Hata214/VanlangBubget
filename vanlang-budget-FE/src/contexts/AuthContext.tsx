@@ -2,7 +2,8 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { logout, setCredentials } from '@/redux/features/authSlice';
-import { authService } from '@/services/authService';
+import { authService } from '@/services/authService'; // Keep for getUserProfile, refreshToken, register
+import { signIn, signOut, useSession } from 'next-auth/react'; // Import signIn, signOut, useSession
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { TOKEN_COOKIE_NAME, cookieOptions, saveTokenToCookie, removeTokens } from '@/services/api';
@@ -50,183 +51,103 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
     const dispatch = useAppDispatch();
-    const { user, token } = useAppSelector((state) => state.auth);
+    const { data: session, status } = useSession(); // Use NextAuth's session
+    const reduxUser = useAppSelector((state) => state.auth.user);
+    const reduxToken = useAppSelector((state) => state.auth.token);
 
-    // Lấy trạng thái xác thực từ Redux store
-    const isAuthenticated = !!user && !!token;
+    // Determine isAuthenticated based on NextAuth session and potentially custom logic
+    const isAuthenticated = status === 'authenticated';
+    const user = session?.user || reduxUser; // Prefer session user, fallback to redux user
 
-    // Truy cập an toàn vào token
-    let accessToken = null;
-    let refreshToken = null;
+    // accessToken and refreshToken can be derived if needed, or managed by NextAuth
+    // For simplicity, let's assume NextAuth handles token refresh via its JWT strategy
+    // The custom backend token is set in cookies by CredentialsProvider
+    const accessToken = (reduxToken as any)?.accessToken || (session as any)?.accessToken || null;
+    const refreshToken = (reduxToken as any)?.refreshToken || (session as any)?.refreshToken || null;
 
-    if (token && typeof token === 'object') {
-        accessToken = token.accessToken || null;
-        refreshToken = token.refreshToken || null;
-    }
 
-    // Khởi tạo auth từ cookie khi component được mount
+    // Initialize custom aspects or sync Redux store with NextAuth session
     useEffect(() => {
-        const initializeAuth = async () => {
-            try {
-                // Kiểm tra xem đã có token trong cookie chưa
-                const tokenFromCookie = Cookies.get('token');
-                const tokenFromLocalStorage = localStorage.getItem('token');
-
-                // Ưu tiên token từ localStorage nếu có
-                const availableToken = tokenFromLocalStorage || tokenFromCookie;
-
-                console.log('Khởi tạo auth với token:', availableToken ? 'Đã có token' : 'Không có token');
-
-                if (!availableToken) {
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Đồng bộ token giữa cookie và localStorage
-                if (tokenFromLocalStorage && !tokenFromCookie) {
-                    Cookies.set('token', tokenFromLocalStorage, cookieOptions);
-                } else if (tokenFromCookie && !tokenFromLocalStorage) {
-                    localStorage.setItem('token', tokenFromCookie);
-                }
-
-                // Parse token từ cookie
-                try {
-                    const parsedToken = JSON.parse(availableToken);
-
-                    // Thiết lập token cho axios
-                    if (parsedToken.accessToken) {
-                        axios.defaults.headers.common['Authorization'] = `Bearer ${parsedToken.accessToken}`;
-
-                        // Lưu lại token một lần nữa để đảm bảo tính nhất quán
-                        saveTokenToCookie(parsedToken);
-                    } else {
-                        console.error('Token không có accessToken');
-                        setIsLoading(false);
-                        return;
-                    }
-
-                    if (!isAuthenticated) {
-                        try {
-                            // Lấy thông tin người dùng từ API
-                            const userData = await authService.getUserProfile();
-                            console.log('Dữ liệu user:', userData);
-
-                            if (userData && userData.user) {
-                                // Cập nhật Redux store với thông tin người dùng và token
-                                dispatch(setCredentials({
-                                    user: {
-                                        _id: userData.user.id || userData.user._id,
-                                        email: userData.user.email,
-                                        firstName: userData.user.firstName || '',
-                                        lastName: userData.user.lastName || '',
-                                        role: userData.user.role || 'user',
-                                        isEmailVerified: userData.user.isEmailVerified || false
-                                    },
-                                    token: parsedToken
-                                }));
-                                console.log('Xác thực người dùng từ token đã lưu');
-                            }
-                        } catch (apiError) {
-                            console.error('Lỗi khi lấy thông tin người dùng:', apiError);
-
-                            // Thử làm mới token trước khi xóa
-                            try {
-                                if (parsedToken.refreshToken) {
-                                    const newToken = await authService.refreshToken(parsedToken.refreshToken);
-                                    if (newToken) {
-                                        console.log('Đã làm mới token thành công');
-                                        saveTokenToCookie(newToken);
-                                        window.location.reload(); // Tải lại trang để áp dụng token mới
-                                        return;
-                                    }
-                                }
-                            } catch (refreshError) {
-                                console.error('Không thể làm mới token:', refreshError);
-                            }
-
-                            // Nếu thất bại và không thể refresh, xóa token
-                            removeTokens();
-                            delete axios.defaults.headers.common['Authorization'];
-                        }
-                    }
-                } catch (parseError) {
-                    console.error('Lỗi khi parse token:', parseError);
-                    removeTokens();
-                }
-            } catch (error) {
-                console.error('Lỗi khi khởi tạo xác thực:', error);
-            } finally {
-                setIsLoading(false);
+        setIsLoading(status === 'loading');
+        if (status === 'authenticated' && session?.user) {
+            // Sync NextAuth session user to Redux if not already there or different
+            // This assumes the structure of session.user matches what setCredentials expects
+            if (!reduxUser || reduxUser.id !== (session.user as any).id) {
+                const nextAuthUser = session.user as any;
+                dispatch(setCredentials({
+                    user: {
+                        _id: nextAuthUser.id,
+                        email: nextAuthUser.email,
+                        firstName: nextAuthUser.firstName || (nextAuthUser.name?.split(' ')[0] || ''),
+                        lastName: nextAuthUser.lastName || (nextAuthUser.name?.split(' ').slice(1).join(' ') || ''),
+                        role: nextAuthUser.role || 'user',
+                        isEmailVerified: nextAuthUser.isEmailVerified || false,
+                    },
+                    // Token from NextAuth session is not directly available here.
+                    // The actual backend token is in HttpOnly cookie managed by NextAuth backend
+                    // or the cookie set by CredentialsProvider.
+                    // For Redux, we might store a marker or rely on NextAuth session.
+                    token: { accessToken: "next-auth-session", refreshToken: "next-auth-session" } // Placeholder
+                }));
             }
-        };
-
-        initializeAuth();
-    }, [dispatch, isAuthenticated]);
-
-    // Thiết lập token mặc định cho axios
-    useEffect(() => {
-        if (accessToken) {
-            axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        } else {
-            delete axios.defaults.headers.common['Authorization'];
+        } else if (status === 'unauthenticated') {
+            // Clear Redux auth state if NextAuth session is lost
+            if (reduxUser) {
+                dispatch(logout());
+            }
         }
-    }, [accessToken]);
+    }, [session, status, dispatch, reduxUser]);
 
-    // Đăng nhập
+
+    // Đăng nhập using NextAuth
     const handleLogin = async (email: string, password: string) => {
+        setIsLoading(true);
+        setError(null);
         try {
-            setIsLoading(true);
-            setError(null);
+            const result = await signIn('credentials', {
+                redirect: false, // Handle redirect manually or let NextAuth handle it based on pages config
+                email,
+                password,
+            });
 
-            const data = await authService.login(email, password);
+            if (result?.error) {
+                setError(result.error);
+                setIsLoading(false);
+                throw new Error(result.error);
+            }
 
-            // Đảm bảo cấu trúc dữ liệu trả về tương thích với setCredentials
-            dispatch(setCredentials({
-                user: {
-                    _id: data.user.id,
-                    email: data.user.email,
-                    firstName: data.user.firstName || '',
-                    lastName: data.user.lastName || '',
-                    role: 'user', // Giá trị mặc định nếu API không trả về
-                    isEmailVerified: false // Giá trị mặc định nếu API không trả về
-                },
-                token: data.token
-            }));
-
-            // Lưu token được xử lý bởi authService.login rồi
-            // Không cần phải làm lại ở đây
-
-            router.push('/dashboard');
+            // On successful signIn, useSession() will update, triggering useEffect to sync Redux.
+            // NextAuth's default behavior (or pages.signIn config) might handle redirection.
+            // If manual redirect is needed:
+            // router.push('/dashboard'); // Or based on callbackUrl from signIn result
+            setIsLoading(false);
+            // router.push('/dashboard'); // Let NextAuth handle redirection based on its config or callbackUrl
         } catch (error: any) {
-            setError(error.response?.data?.message || 'Đăng nhập thất bại');
+            setError(error.message || 'Đăng nhập thất bại');
+            setIsLoading(false);
             throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 
-    // Đăng xuất
+    // Đăng xuất using NextAuth
     const handleLogout = async () => {
-        try {
-            setIsLoading(true);
-            await authService.logout();
-            dispatch(logout());
-            // removeTokens() đã được gọi trong authService.logout()
-            router.push('/login');
-        } catch (error: any) {
-            console.error('Đăng xuất thất bại:', error);
-        } finally {
-            setIsLoading(false);
-        }
+        setIsLoading(true);
+        // Custom backend logout if needed (e.g., invalidate refresh token on server)
+        // await authService.logout(); // This might clear the custom cookie
+        await signOut({ redirect: false }); // signOut from NextAuth, handles session & cookie
+        dispatch(logout()); // Clear Redux state
+        removeTokens(); // Clear custom cookies if any are still managed separately
+        delete axios.defaults.headers.common['Authorization'];
+        router.push('/admin/login'); // Or let NextAuth handle redirect
+        setIsLoading(false);
     };
 
-    // Đăng ký tài khoản mới
+    // Đăng ký tài khoản mới - this still uses custom backend directly
+    // After successful registration, it should ideally trigger the NextAuth login flow
     const register = async (userData: RegisterData) => {
+        setIsLoading(true);
+        setError(null);
         try {
-            setIsLoading(true);
-            setError(null);
-
-            // Chuyển đổi dữ liệu đăng ký để phù hợp với API
             const registerData = {
                 name: `${userData.firstName} ${userData.lastName}`,
                 email: userData.email,
@@ -234,26 +155,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 firstName: userData.firstName,
                 lastName: userData.lastName
             };
-
             await authService.register(registerData);
-
-            // Đăng nhập sau khi đăng ký thành công
+            // After successful registration, log in using the NextAuth flow
             await handleLogin(userData.email, userData.password);
         } catch (error: any) {
             setError(error.response?.data?.message || 'Đăng ký thất bại');
-            throw error;
-        } finally {
             setIsLoading(false);
+            throw error;
         }
     };
+
+    // Setup axios interceptor for custom backend token if still needed for some calls
+    // This part might be redundant if all authenticated calls go through NextAuth's session handling
+    // or if NextAuth's JWT is passed. For now, keep if authService still uses it.
+    useEffect(() => {
+        const currentToken = Cookies.get(TOKEN_COOKIE_NAME); // This should be the raw access token string
+        if (currentToken) {
+            console.log('AuthContext: Setting axios default header from TOKEN_COOKIE_NAME');
+            axios.defaults.headers.common['Authorization'] = `Bearer ${currentToken}`;
+        } else {
+            console.log('AuthContext: No TOKEN_COOKIE_NAME found, clearing axios default header');
+            delete axios.defaults.headers.common['Authorization'];
+        }
+    }, [status]); // Re-run when NextAuth session status changes
 
     return (
         <AuthContext.Provider
             value={{
                 isAuthenticated,
-                accessToken,
-                refreshToken,
-                user, // Thêm user vào giá trị provider
+                accessToken, // This might be less relevant if relying on NextAuth session
+                refreshToken, // Same as above
+                user,
                 login: handleLogin,
                 logout: handleLogout,
                 register,
