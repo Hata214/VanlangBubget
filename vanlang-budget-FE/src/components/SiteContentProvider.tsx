@@ -55,6 +55,7 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
         // Ánh xạ path sang loại nội dung
         const contentTypeMap: Record<string, string> = {
             '': 'homepage',
+            'home': 'homepage',
             'homepage': 'homepage',
             'about': 'about',
             'features': 'features',

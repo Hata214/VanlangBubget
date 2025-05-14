@@ -26,6 +26,11 @@ export const siteContentService = {
                 }
             }
 
+            // Chuẩn hóa loại nội dung
+            if (actualType === 'home') {
+                actualType = 'homepage';
+            }
+
             console.log(`Lấy nội dung cho type=${actualType}, language=${actualLanguage}`);
 
             const params = actualLanguage ? { language: actualLanguage } : {};
@@ -233,6 +238,11 @@ export const siteContentService = {
                     actualType = parts[0];
                     language = parts[1];
                 }
+            }
+
+            // Chuẩn hóa loại nội dung
+            if (actualType === 'home') {
+                actualType = 'homepage';
             }
 
             console.log(`Kiểm tra trạng thái cho type=${actualType}, language=${language}`);

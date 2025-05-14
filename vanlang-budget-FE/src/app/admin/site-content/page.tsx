@@ -19,7 +19,7 @@ interface ApiResponse {
 }
 
 export default function SiteContentPage() {
-    const [selectedSection, setSelectedSection] = useState<string>('home-vi');
+    const [selectedSection, setSelectedSection] = useState<string>('homepage-vi');
     const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>('vi');
     const [content, setContent] = useState<any>({});
     const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -127,6 +127,7 @@ export default function SiteContentPage() {
         // Render dựa trên section hiện tại
         switch (sectionName) {
             case 'home':
+            case 'homepage':
             case 'hero':
             case 'features':
             case 'testimonials':
@@ -206,4 +207,4 @@ export default function SiteContentPage() {
             </div>
         </AdminLayout>
     );
-} 
+}

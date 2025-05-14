@@ -23,11 +23,11 @@ export default function SectionTabs({
     // Cấu trúc sections - mỗi section chính có các sub-section
     const sections = [
         {
-            id: 'home',
+            id: 'homepage',
             label: currentLanguage === 'vi' ? 'Trang chủ' : 'Home',
             icon: <Home size={18} />,
             subsections: [
-                { id: 'home', label: currentLanguage === 'vi' ? 'Tất cả' : 'All' },
+                { id: 'homepage', label: currentLanguage === 'vi' ? 'Tất cả' : 'All' },
                 { id: 'hero', label: 'Hero' },
             ]
         },
@@ -64,7 +64,7 @@ export default function SectionTabs({
     ];
 
     // Lấy section hiện tại và subsection
-    const [activeMainSection, setActiveMainSection] = useState<string>('home');
+    const [activeMainSection, setActiveMainSection] = useState<string>('homepage');
     const [activeSubSection, setActiveSubSection] = useState<string | null>(null);
 
     // Tìm section chính từ selectedSection
@@ -122,8 +122,8 @@ export default function SectionTabs({
                     {/* Nút cho trang tổng thể */}
                     <button
                         className={`px-4 py-2 rounded-md text-sm font-medium ${activeSubSection === null
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted hover:bg-muted/80'
+                            ? 'bg-primary text-primary-foreground'
+                            : 'bg-muted hover:bg-muted/80'
                             }`}
                         onClick={() => onSectionChange(`${section.id}-${currentLanguage}`)}
                     >
@@ -135,8 +135,8 @@ export default function SectionTabs({
                         <button
                             key={subsection.id}
                             className={`px-4 py-2 rounded-md text-sm font-medium ${activeSubSection === subsection.id
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-muted hover:bg-muted/80'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted hover:bg-muted/80'
                                 }`}
                             onClick={() => handleSubSectionChange(section.id, subsection.id)}
                         >
@@ -192,4 +192,4 @@ export default function SectionTabs({
             }}
         />
     );
-} 
+}
