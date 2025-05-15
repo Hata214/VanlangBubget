@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toast } from 'react-hot-toast';
 import api from '@/services/api';
+import PreviewImage from './PreviewImage';
 
 interface ImageEditorProps {
   value: string;
@@ -137,13 +138,10 @@ export default function ImageEditor({
             </Button>
           </div>
           <div className="flex justify-center p-2">
-            <img
+            <PreviewImage
               src={imageUrl}
               alt="Preview"
-              className="max-h-48 object-contain rounded-md"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = '/images/placeholder.png';
-              }}
+              maxHeight="150px"
             />
           </div>
         </div>
@@ -218,13 +216,10 @@ export default function ImageEditor({
                     className="border rounded-md p-2 cursor-pointer hover:border-blue-500 transition-colors"
                     onClick={() => handleSelectImage(url)}
                   >
-                    <img
+                    <PreviewImage
                       src={url}
                       alt={`Image ${index + 1}`}
-                      className="w-full h-32 object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/images/placeholder.png';
-                      }}
+                      maxHeight="120px"
                     />
                   </div>
                 ))}

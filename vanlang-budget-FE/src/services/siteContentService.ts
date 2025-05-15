@@ -126,6 +126,17 @@ export const siteContentService = {
     },
 
     /**
+     * Cập nhật nội dung trang chủ
+     * @param content Nội dung cần cập nhật
+     * @param language Ngôn ngữ (mặc định: vi)
+     */
+    async updateHomepageContent(content: any, language?: string) {
+        const actualLanguage = language || 'vi';
+        const response = await axios.put(`${API_ENDPOINTS.SITE_CONTENT}/homepage?lang=${actualLanguage}`, content);
+        return response.data;
+    },
+
+    /**
      * Lấy lịch sử chỉnh sửa nội dung
      * @param type Loại nội dung
      */
@@ -162,6 +173,25 @@ export const siteContentService = {
     },
 
     /**
+     * Phê duyệt nội dung theo loại (chỉ dành cho SuperAdmin)
+     * @param type Loại nội dung
+     */
+    async approveContentByType(type: string) {
+        const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/approve`);
+        return response.data;
+    },
+
+    /**
+     * Từ chối nội dung theo loại (chỉ dành cho SuperAdmin)
+     * @param type Loại nội dung
+     * @param reason Lý do từ chối
+     */
+    async rejectContentByType(type: string, reason?: string) {
+        const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/reject`, { reason });
+        return response.data;
+    },
+
+    /**
      * Khởi tạo dữ liệu mặc định cho trang chủ (chỉ dành cho SuperAdmin)
      * @param language Ngôn ngữ (mặc định: vi)
      */
@@ -169,6 +199,39 @@ export const siteContentService = {
         const fallbackContent = this.getFallbackContent(`homepage-${language}`);
         const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/homepage/initialize?lang=${language}`, fallbackContent);
         return response.data;
+    },
+
+    /**
+     * Khởi tạo dữ liệu mặc định cho một loại nội dung cụ thể
+     * @param type Loại nội dung (about, features, roadmap, pricing, contact)
+     * @param language Ngôn ngữ (mặc định: vi)
+     */
+    async initializeContentByType(type: string, language?: string) {
+        const actualLanguage = language || 'vi';
+        const fallbackContent = this.getFallbackContent(`${type}-${actualLanguage}`);
+
+        try {
+            const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/initialize?lang=${actualLanguage}`, fallbackContent);
+            return response.data;
+        } catch (error) {
+            console.error(`Lỗi khi khởi tạo nội dung ${type}:`, error);
+
+            // Nếu API chưa hỗ trợ, thử cập nhật trực tiếp
+            try {
+                const updateResponse = await this.updateContentByType(type, fallbackContent);
+                return {
+                    success: true,
+                    data: updateResponse.data,
+                    meta: {
+                        source: 'fallback',
+                        updatedAt: new Date().toISOString()
+                    }
+                };
+            } catch (updateError) {
+                console.error(`Lỗi khi cập nhật nội dung ${type}:`, updateError);
+                throw updateError;
+            }
+        }
     },
 
     /**
@@ -207,7 +270,7 @@ export const siteContentService = {
     },
 
     /**
-     * Thêm phần mới vào một section (chẳng hạn thêm testimonial mới)
+     * Thêm phần mới vào một section của trang chủ (chẳng hạn thêm testimonial mới)
      * @param section Tên section
      * @param itemData Dữ liệu phần tử mới
      */
@@ -217,12 +280,34 @@ export const siteContentService = {
     },
 
     /**
-     * Xóa phần tử khỏi một section
+     * Xóa phần tử khỏi một section của trang chủ
      * @param section Tên section
      * @param itemId ID của phần tử
      */
     async removeSectionItem(section: string, itemId: string) {
         const response = await axios.delete(`/api/site-content/homepage/${section}/items/${itemId}`);
+        return response.data;
+    },
+
+    /**
+     * Thêm phần mới vào một section của trang khác
+     * @param type Loại nội dung (about, features, roadmap, pricing, contact)
+     * @param section Tên section
+     * @param itemData Dữ liệu phần tử mới
+     */
+    async addContentTypeItem(type: string, section: string, itemData: any) {
+        const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/${section}/items`, { item: itemData });
+        return response.data;
+    },
+
+    /**
+     * Xóa phần tử khỏi một section của trang khác
+     * @param type Loại nội dung (about, features, roadmap, pricing, contact)
+     * @param section Tên section
+     * @param itemId ID của phần tử
+     */
+    async removeContentTypeItem(type: string, section: string, itemId: string) {
+        const response = await axios.delete(`${API_ENDPOINTS.SITE_CONTENT}/${type}/${section}/items/${itemId}`);
         return response.data;
     },
 

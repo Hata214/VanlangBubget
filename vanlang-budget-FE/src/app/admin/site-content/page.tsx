@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, RefreshCw, Eye } from 'lucide-react';
+import { ArrowLeft, Save, RefreshCw, Eye, CheckCircle, XCircle } from 'lucide-react';
 import SectionTabs from '@/components/admin/site-content/SectionTabs';
 import HomepageSection from '@/components/admin/site-content/HomepageSection';
 import HomepagePreview from '@/components/admin/site-content/HomepagePreview';
@@ -158,12 +158,75 @@ export default function SiteContentPage() {
         if (window.confirm('Bạn có chắc chắn muốn khôi phục nội dung mặc định? Điều này sẽ xóa tất cả các thay đổi tùy chỉnh.')) {
             setIsLoading(true);
             try {
-                await siteContentService.initializeHomepageContent(currentLanguage);
-                toast.success('Đã khôi phục nội dung mặc định');
+                // Xác định loại nội dung từ selectedSection
+                const [sectionType] = selectedSection.split('-');
+
+                if (sectionType === 'homepage' || sectionType === 'home' ||
+                    sectionType === 'hero' || sectionType === 'features' ||
+                    sectionType === 'testimonials' || sectionType === 'cta') {
+                    // Đối với các section thuộc trang chủ
+                    await siteContentService.initializeHomepageContent(currentLanguage);
+                } else {
+                    // Đối với các trang riêng biệt
+                    await siteContentService.initializeContentByType(sectionType, currentLanguage);
+                }
+
+                toast.success(`Đã khôi phục nội dung mặc định cho ${getPageTitle(selectedSection)}`);
                 await loadContent();
             } catch (error) {
                 console.error('Lỗi khi khôi phục nội dung mặc định:', error);
                 toast.error('Không thể khôi phục nội dung mặc định. Vui lòng thử lại sau.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
+    // Hàm phê duyệt nội dung (chỉ dành cho SuperAdmin)
+    const handleApproveContent = async () => {
+        if (window.confirm('Bạn có chắc chắn muốn phê duyệt nội dung này?')) {
+            setIsLoading(true);
+            try {
+                // Xác định loại nội dung từ selectedSection
+                const [sectionType] = selectedSection.split('-');
+
+                if (sectionType === 'homepage' || sectionType === 'home') {
+                    await siteContentService.approveHomepageContent();
+                } else {
+                    await siteContentService.approveContentByType(sectionType);
+                }
+
+                toast.success(`Đã phê duyệt nội dung cho ${getPageTitle(selectedSection)}`);
+                await loadContent();
+            } catch (error) {
+                console.error('Lỗi khi phê duyệt nội dung:', error);
+                toast.error('Không thể phê duyệt nội dung. Vui lòng thử lại sau.');
+            } finally {
+                setIsLoading(false);
+            }
+        }
+    };
+
+    // Hàm từ chối nội dung (chỉ dành cho SuperAdmin)
+    const handleRejectContent = async () => {
+        const reason = prompt('Vui lòng nhập lý do từ chối:');
+        if (reason !== null) {
+            setIsLoading(true);
+            try {
+                // Xác định loại nội dung từ selectedSection
+                const [sectionType] = selectedSection.split('-');
+
+                if (sectionType === 'homepage' || sectionType === 'home') {
+                    await siteContentService.rejectHomepageContent(reason);
+                } else {
+                    await siteContentService.rejectContentByType(sectionType, reason);
+                }
+
+                toast.success(`Đã từ chối nội dung cho ${getPageTitle(selectedSection)}`);
+                await loadContent();
+            } catch (error) {
+                console.error('Lỗi khi từ chối nội dung:', error);
+                toast.error('Không thể từ chối nội dung. Vui lòng thử lại sau.');
             } finally {
                 setIsLoading(false);
             }
@@ -187,7 +250,6 @@ export default function SiteContentPage() {
             case 'home':
             case 'homepage':
             case 'hero':
-            case 'features':
             case 'testimonials':
             case 'cta':
                 // Các section thuộc trang chủ
@@ -195,6 +257,20 @@ export default function SiteContentPage() {
                     <HomepageSection
                         section={sectionName}
                         title={sectionName.charAt(0).toUpperCase() + sectionName.slice(1)}
+                        defaultContent={content}
+                        currentLanguage={currentLanguage}
+                        onUpdate={() => {
+                            loadContent();
+                            setHasChanges(false);
+                        }}
+                    />
+                );
+            case 'features':
+                // Trang Tính năng
+                return (
+                    <HomepageSection
+                        section={sectionName}
+                        title="Tính năng"
                         defaultContent={content}
                         currentLanguage={currentLanguage}
                         onUpdate={() => {
@@ -300,6 +376,28 @@ export default function SiteContentPage() {
                         <RefreshCw size={16} className="mr-2" />
                         <span>Khôi phục mặc định</span>
                     </button>
+
+                    {/* Nút phê duyệt và từ chối chỉ hiển thị cho SuperAdmin */}
+                    {user?.role === 'superadmin' && (
+                        <>
+                            <button
+                                onClick={handleApproveContent}
+                                disabled={isSaving || isLoading}
+                                className="flex items-center px-4 py-2 rounded-md bg-green-100 text-green-800 hover:bg-green-200"
+                            >
+                                <CheckCircle size={16} className="mr-2" />
+                                <span>Phê duyệt</span>
+                            </button>
+                            <button
+                                onClick={handleRejectContent}
+                                disabled={isSaving || isLoading}
+                                className="flex items-center px-4 py-2 rounded-md bg-orange-100 text-orange-800 hover:bg-orange-200"
+                            >
+                                <XCircle size={16} className="mr-2" />
+                                <span>Từ chối</span>
+                            </button>
+                        </>
+                    )}
 
                     <button
                         onClick={handleSaveContent}
@@ -413,23 +511,28 @@ export default function SiteContentPage() {
                     <div className="border rounded-md p-4 preview-container">
                         {(() => {
                             // Xác định component xem trước dựa trên section
-                            if (selectedSection.startsWith('homepage') ||
-                                selectedSection.startsWith('hero') ||
-                                selectedSection.startsWith('features') ||
-                                selectedSection.startsWith('testimonials') ||
-                                selectedSection.startsWith('cta')) {
+                            const [sectionType] = selectedSection.split('-');
+
+                            // Xử lý các section của trang chủ
+                            if (sectionType === 'homepage' || sectionType === 'home') {
                                 return <HomepagePreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('about')) {
-                                return <AboutPreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('features')) {
+                            }
+                            // Xử lý các section con của trang chủ
+                            else if (['hero', 'testimonials', 'cta'].includes(sectionType)) {
+                                return <HomepagePreview content={content} onUpdate={loadContent} section={sectionType} />;
+                            }
+                            // Xử lý các trang riêng biệt
+                            else if (sectionType === 'features') {
                                 return <FeaturesPreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('roadmap')) {
+                            } else if (sectionType === 'about') {
+                                return <AboutPreview content={content} onUpdate={loadContent} />;
+                            } else if (sectionType === 'roadmap') {
                                 return <RoadmapPreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('pricing')) {
+                            } else if (sectionType === 'pricing') {
                                 return <PricingPreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('contact')) {
+                            } else if (sectionType === 'contact') {
                                 return <ContactPreview content={content} onUpdate={loadContent} />;
-                            } else if (selectedSection.startsWith('footer')) {
+                            } else if (sectionType === 'footer') {
                                 return <FooterPreview content={content} onUpdate={loadContent} />;
                             } else {
                                 return (

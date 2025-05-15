@@ -6,13 +6,16 @@ import { Edit, Save, X } from 'lucide-react';
 import siteContentService from '@/services/siteContentService';
 import { useAppSelector } from '@/redux/hooks';
 import { useSiteContent } from '@/components/SiteContentProvider';
+import ImageEditor from './ImageEditor';
+import PreviewImage from './PreviewImage';
 
 interface HomepagePreviewProps {
     content: any;
     onUpdate: () => void;
+    section?: string; // Thêm prop section để hiển thị một section cụ thể
 }
 
-export default function HomepagePreview({ content, onUpdate }: HomepagePreviewProps) {
+export default function HomepagePreview({ content, onUpdate, section }: HomepagePreviewProps) {
     const { content: siteContent, language, refreshContent } = useSiteContent();
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editValue, setEditValue] = useState<string>('');
@@ -78,45 +81,33 @@ export default function HomepagePreview({ content, onUpdate }: HomepagePreviewPr
         setEditingField(null);
     };
 
+    // Hàm xử lý thay đổi giá trị
     const handleInputChange = (key: string, value: any) => {
-        // Phân tích key để cập nhật đúng vị trí trong nested object
-        const keys = key.split('.');
-        const lastKey = keys.pop();
+        // Tạo một bản sao của updatedContent
+        const newContent = { ...updatedContent };
 
-        setUpdatedContent((prev: any) => {
-            const newContent = { ...prev };
+        // Phân tách key thành các phần (ví dụ: 'hero.title' -> ['hero', 'title'])
+        const keyParts = key.split('.');
 
-            // Tìm đến object cần cập nhật
-            let current = newContent;
-            for (const k of keys) {
-                if (!current[k]) current[k] = {};
-                current = current[k];
+        // Tạo hoặc cập nhật giá trị trong newContent
+        let current = newContent;
+        for (let i = 0; i < keyParts.length - 1; i++) {
+            if (!current[keyParts[i]]) {
+                current[keyParts[i]] = {};
             }
-
-            // Cập nhật giá trị
-            if (lastKey) current[lastKey] = value;
-
-            return newContent;
-        });
-
-        // Kiểm tra xem trường này có thay đổi so với giá trị ban đầu không
-        const originalValue = getNestedValue(content, key);
-        const fieldChanged = value !== originalValue;
-
-        // Cập nhật danh sách các trường đã thay đổi
-        if (fieldChanged) {
-            if (!changedFields.includes(key)) {
-                setChangedFields([...changedFields, key]);
-            }
-        } else {
-            setChangedFields(changedFields.filter(field => field !== key));
+            current = current[keyParts[i]];
         }
-    };
 
-    // Hàm lấy giá trị từ nested object theo path (vd: "hero.title")
-    const getNestedValue = (obj: any, path: string) => {
-        const keys = path.split('.');
-        return keys.reduce((o, k) => (o || {})[k], obj);
+        // Cập nhật giá trị cuối cùng
+        current[keyParts[keyParts.length - 1]] = value;
+
+        // Cập nhật state
+        setUpdatedContent(newContent);
+
+        // Thêm key vào danh sách các trường đã thay đổi nếu chưa có
+        if (!changedFields.includes(key)) {
+            setChangedFields([...changedFields, key]);
+        }
     };
 
     // Hàm lưu tất cả thay đổi
@@ -150,47 +141,295 @@ export default function HomepagePreview({ content, onUpdate }: HomepagePreviewPr
     };
 
     // Render một trường có thể chỉnh sửa
-    const renderEditableField = (key: string, value: any, className: string = '') => {
+    const renderEditableField = (key: string, value: any, className: string = '', type: string = 'text') => {
         if (editingField === key) {
+            if (type === 'image') {
+                return (
+                    <div className="p-2 bg-white rounded-lg shadow-md border border-blue-200">
+                        <ImageEditor
+                            value={editValue as string}
+                            onChange={(url) => setEditValue(url)}
+                            placeholder="Nhập URL hình ảnh hoặc tải lên"
+                        />
+                        <div className="flex justify-end space-x-2 mt-2">
+                            <button
+                                onClick={() => saveInlineEdit(key)}
+                                className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm flex items-center"
+                            >
+                                <Save size={14} className="mr-1" />
+                                Lưu
+                            </button>
+                            <button
+                                onClick={cancelInlineEdit}
+                                className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm flex items-center"
+                            >
+                                <X size={14} className="mr-1" />
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
             return (
-                <div className="inline-flex items-center bg-blue-50 p-1 rounded border border-blue-200">
+                <div className="p-2 bg-white rounded-lg shadow-md border border-blue-200">
                     <input
                         ref={inputRef}
                         type="text"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveInlineEdit(key);
-                            if (e.key === 'Escape') cancelInlineEdit();
-                        }}
-                        className="flex-1 p-1 text-sm border-none focus:ring-0 bg-transparent"
-                        autoFocus
+                        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Nhập nội dung..."
                     />
-                    <button
-                        onClick={() => saveInlineEdit(key)}
-                        className="p-1 text-green-600 hover:text-green-800"
-                    >
-                        <Save size={16} />
-                    </button>
-                    <button
-                        onClick={cancelInlineEdit}
-                        className="p-1 text-red-600 hover:text-red-800"
-                    >
-                        <X size={16} />
-                    </button>
+                    <div className="flex justify-end space-x-2 mt-2">
+                        <button
+                            onClick={() => saveInlineEdit(key)}
+                            className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 text-sm flex items-center"
+                        >
+                            <Save size={14} className="mr-1" />
+                            Lưu
+                        </button>
+                        <button
+                            onClick={cancelInlineEdit}
+                            className="px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm flex items-center"
+                        >
+                            <X size={14} className="mr-1" />
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        if (type === 'image') {
+            return (
+                <div
+                    className={`editable-content cursor-pointer hover:shadow-lg transition-all ${className}`}
+                    onClick={() => startInlineEdit(key, value)}
+                    data-field={key}
+                >
+                    <div className="relative group">
+                        <PreviewImage
+                            src={value}
+                            alt={key.split('.').pop() || 'Image'}
+                            maxHeight="300px"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                            <button className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center">
+                                <Edit size={16} className="mr-2" />
+                                Chỉnh sửa hình ảnh
+                            </button>
+                        </div>
+                    </div>
                 </div>
             );
         }
 
         return (
             <span
-                className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
+                className={`editable-content cursor-pointer hover:bg-blue-50 hover:shadow-sm transition-all px-1 py-0.5 rounded ${className}`}
                 onClick={() => startInlineEdit(key, value)}
                 data-field={key}
             >
-                {value}
-                <Edit size={14} className="inline-block ml-1 text-gray-400 opacity-0 group-hover:opacity-100" />
+                {value || <span className="text-gray-400 italic">Nhấp để thêm nội dung</span>}
             </span>
+        );
+    };
+
+    // Hàm render từng section riêng biệt
+    const renderSection = () => {
+        switch (section) {
+            case 'hero':
+                return renderHeroSection();
+            case 'features':
+                return renderFeaturesSection();
+            case 'testimonials':
+                return renderTestimonialsSection();
+            case 'cta':
+                return renderCtaSection();
+            case 'stats':
+                return renderStatsSection();
+            case 'pricing':
+                return renderPricingSection();
+            case 'screenshots':
+                return renderScreenshotsSection();
+            default:
+                return null;
+        }
+    };
+
+    // Hàm render Hero Section
+    function renderHeroSection() {
+        return (
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-col md:flex-row items-center">
+                        <div className="md:w-1/2 mb-8 md:mb-0">
+                            <h1 className="text-4xl font-bold mb-4 group">
+                                {renderEditableField('hero.title', updatedContent?.hero?.title || 'Quản lý tài chính cá nhân một cách thông minh', 'text-4xl font-bold')}
+                            </h1>
+                            <p className="text-xl mb-8 group">
+                                {renderEditableField('hero.description', updatedContent?.hero?.description || 'VanLang Budget giúp bạn theo dõi thu chi, quản lý ngân sách và đạt được mục tiêu tài chính một cách dễ dàng', 'text-xl')}
+                            </p>
+                            <div className="flex space-x-4">
+                                <button className="bg-white text-indigo-700 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
+                                    {renderEditableField('hero.primaryButtonText', updatedContent?.hero?.primaryButtonText || 'Bắt đầu ngay')}
+                                </button>
+                                <button className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10 transition-colors">
+                                    {renderEditableField('hero.secondaryButtonText', updatedContent?.hero?.secondaryButtonText || 'Tìm hiểu thêm')}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="md:w-1/2 flex justify-center">
+                            <div className="w-full max-w-md">
+                                {renderEditableField('hero.image', updatedContent?.hero?.image || '/images/homepage/hero.png', 'rounded-lg shadow-xl', 'image')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Features Section
+    function renderFeaturesSection() {
+        return (
+            <div className="py-16 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="mb-8">
+                        <h1 className="text-3xl font-bold mb-2 group">
+                            {renderEditableField('features.title', updatedContent?.features?.title || 'Tính năng', 'text-3xl font-bold')}
+                        </h1>
+                        <p className="text-gray-600 group">
+                            {renderEditableField('features.description', updatedContent?.features?.description || 'Công cụ quản lý tài chính thông minh', 'text-gray-600')}
+                        </p>
+                    </div>
+
+                    <div className="border rounded-lg p-6 mb-8">
+                        <p className="text-gray-700 group">
+                            {renderEditableField('features.overview', updatedContent?.features?.overview || 'VanLang Budget cung cấp các công cụ tài chính hiện đại để kiểm soát thu chi, lập kế hoạch và theo dõi mục tiêu.', 'text-gray-700')}
+                        </p>
+                    </div>
+
+                    <h2 className="text-2xl font-bold mb-6 text-center group">
+                        {renderEditableField('features.mainFeaturesTitle', updatedContent?.features?.mainFeaturesTitle || 'Tính năng chính', 'text-2xl font-bold')}
+                    </h2>
+
+                    <div className="grid md:grid-cols-2 gap-6 mb-8">
+                        {/* Feature 1: Theo dõi thu chi */}
+                        <div className="border rounded-lg p-6 hover:shadow-md transition-shadow">
+                            <div className="flex items-start mb-4">
+                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 mr-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-lg font-semibold group">
+                                    {renderEditableField('features.feature1.title', updatedContent?.features?.feature1?.title || 'Theo dõi thu chi', 'text-lg font-semibold')}
+                                </h3>
+                            </div>
+                            <p className="text-gray-600 mb-4 ml-14 group">
+                                {renderEditableField('features.feature1.description', updatedContent?.features?.feature1?.description || 'Ghi lại và phân loại các khoản thu chi, tạo báo cáo tổng hợp, theo dõi lịch sử giao dịch và phân tích xu hướng chi tiêu.', 'text-gray-600')}
+                            </p>
+                        </div>
+
+                        {/* Thêm các tính năng khác ở đây */}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Stats Section
+    function renderStatsSection() {
+        return (
+            <div className="py-16 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('stats.title', updatedContent?.stats?.title || 'Dữ liệu tài chính toàn diện', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('stats.description', updatedContent?.stats?.description || 'Giúp bạn hiểu rõ tình hình tài chính cá nhân', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Pricing Section
+    function renderPricingSection() {
+        return (
+            <div className="py-16 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('pricing.title', updatedContent?.pricing?.title || 'Bảng giá', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('pricing.description', updatedContent?.pricing?.description || 'Chọn gói phù hợp với nhu cầu của bạn', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render CTA Section
+    function renderCtaSection() {
+        return (
+            <div className="bg-indigo-700 text-white py-16">
+                <div className="container mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold mb-4 group">
+                        {renderEditableField('cta.title', updatedContent?.cta?.title || 'Sẵn sàng bắt đầu?', 'text-3xl font-bold')}
+                    </h2>
+                    <p className="text-xl mb-8 max-w-2xl mx-auto group">
+                        {renderEditableField('cta.description', updatedContent?.cta?.description || 'Đăng ký ngay hôm nay để trải nghiệm tất cả các tính năng', 'text-xl')}
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button className="bg-white text-indigo-700 px-8 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors group">
+                            {renderEditableField('cta.buttonText', updatedContent?.cta?.buttonText || 'Đăng ký ngay')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Testimonials Section
+    function renderTestimonialsSection() {
+        return (
+            <div className="py-16 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('testimonials.title', updatedContent?.testimonials?.title || 'Người dùng nói gì về chúng tôi', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('testimonials.description', updatedContent?.testimonials?.description || 'Khám phá trải nghiệm của người dùng với VanLang Budget', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Screenshots Section
+    function renderScreenshotsSection() {
+        return (
+            <div className="py-16 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('screenshots.title', updatedContent?.screenshots?.title || 'Giao diện trực quan', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('screenshots.description', updatedContent?.screenshots?.description || 'Khám phá giao diện người dùng thân thiện và dễ sử dụng của VanLang Budget', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
         );
     };
 
@@ -210,109 +449,100 @@ export default function HomepagePreview({ content, onUpdate }: HomepagePreviewPr
                 </div>
             )}
 
+            {/* Render section cụ thể hoặc toàn bộ trang */}
+            {section ? renderSection() : (
+                <>
+                    {/* Hero Section */}
+                    {renderHeroSection()}
 
+                    {/* Features Section */}
+                    {renderFeaturesSection()}
 
-            {/* Navigation Menu */}
-            <div className="bg-white shadow-sm">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center justify-between py-4">
-                        <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-2">
-                                <div className="w-8 h-8 bg-indigo-600 rounded-sm flex items-center justify-center text-white font-bold text-xs">
-                                    VLB
-                                </div>
-                                <span className="font-bold text-xl text-indigo-700">
-                                    VanLang Budget
-                                </span>
-                            </div>
-                        </div>
-                        <div className="hidden md:flex items-center space-x-6">
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Trang chủ
-                            </a>
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Giới thiệu
-                            </a>
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Tính năng
-                            </a>
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Lộ trình
-                            </a>
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Bảng giá
-                            </a>
-                            <a href="#" className="text-gray-700 hover:text-indigo-600 font-medium">
-                                Liên hệ
-                            </a>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <button className="bg-indigo-100 text-indigo-700 px-3 py-1 rounded-md text-sm font-medium">
-                                VI
-                            </button>
-                            <button className="bg-indigo-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-700 transition-colors">
-                                Đăng nhập
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                    {/* Stats Section */}
+                    {renderStatsSection()}
 
-            {/* Hero Section */}
+                    {/* Pricing Section */}
+                    {renderPricingSection()}
+
+                    {/* CTA Section */}
+                    {renderCtaSection()}
+                </>
+            )}
+        </div>
+    );
+
+    // Hàm render Hero Section
+    function renderHeroSection() {
+        return (
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white py-16">
                 <div className="container mx-auto px-4">
-                    <div className="max-w-3xl">
-                        <h1 className="text-4xl font-bold mb-4 group">
-                            {renderEditableField('hero.title', updatedContent?.hero?.title || 'Tiêu đề trang chủ', 'text-4xl font-bold')}
-                        </h1>
-                        <p className="text-xl mb-8 group">
-                            {renderEditableField('hero.description', updatedContent?.hero?.description || 'Mô tả trang chủ', 'text-xl')}
-                        </p>
-                        <div className="flex space-x-4">
-                            <button className="bg-white text-indigo-700 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
-                                {renderEditableField('hero.primaryButtonText', updatedContent?.hero?.primaryButtonText || 'Bắt đầu ngay')}
-                            </button>
-                            <button className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10 transition-colors">
-                                {renderEditableField('hero.secondaryButtonText', updatedContent?.hero?.secondaryButtonText || 'Tìm hiểu thêm')}
-                            </button>
+                    <div className="flex flex-col md:flex-row items-center">
+                        <div className="md:w-1/2 mb-8 md:mb-0">
+                            <h1 className="text-4xl font-bold mb-4 group">
+                                {renderEditableField('hero.title', updatedContent?.hero?.title || 'Quản lý tài chính cá nhân một cách thông minh', 'text-4xl font-bold')}
+                            </h1>
+                            <p className="text-xl mb-8 group">
+                                {renderEditableField('hero.description', updatedContent?.hero?.description || 'VanLang Budget giúp bạn theo dõi thu chi, quản lý ngân sách và đạt được mục tiêu tài chính một cách dễ dàng', 'text-xl')}
+                            </p>
+                            <div className="flex space-x-4">
+                                <button className="bg-white text-indigo-700 px-6 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors">
+                                    {renderEditableField('hero.primaryButtonText', updatedContent?.hero?.primaryButtonText || 'Bắt đầu ngay')}
+                                </button>
+                                <button className="border border-white text-white px-6 py-3 rounded-md font-medium hover:bg-white/10 transition-colors">
+                                    {renderEditableField('hero.secondaryButtonText', updatedContent?.hero?.secondaryButtonText || 'Tìm hiểu thêm')}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="md:w-1/2 flex justify-center">
+                            <div className="w-full max-w-md">
+                                {renderEditableField('hero.image', updatedContent?.hero?.image || '/images/homepage/hero.png', 'rounded-lg shadow-xl', 'image')}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+        );
+    }
 
-            {/* Features Section */}
+    // Hàm render Stats Section
+    function renderStatsSection() {
+        return (
+            <div className="py-16 bg-gray-50">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('stats.title', updatedContent?.stats?.title || 'Dữ liệu tài chính toàn diện', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('stats.description', updatedContent?.stats?.description || 'Giúp bạn hiểu rõ tình hình tài chính cá nhân', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Hàm render Pricing Section
+    function renderPricingSection() {
+        return (
             <div className="py-16 bg-white">
                 <div className="container mx-auto px-4">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl font-bold mb-4 group">
-                            {renderEditableField('features.title', updatedContent?.features?.title || 'Tính năng nổi bật', 'text-3xl font-bold')}
+                            {renderEditableField('pricing.title', updatedContent?.pricing?.title || 'Bảng giá', 'text-3xl font-bold')}
                         </h2>
                         <p className="text-gray-600 max-w-2xl mx-auto group">
-                            {renderEditableField('features.description', updatedContent?.features?.description || 'Mô tả các tính năng chính của ứng dụng', 'text-gray-600')}
+                            {renderEditableField('pricing.description', updatedContent?.pricing?.description || 'Chọn gói phù hợp với nhu cầu của bạn', 'text-gray-600')}
                         </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {[1, 2, 3].map((index) => (
-                            <div key={index} className="p-6 border rounded-lg hover:shadow-md transition-shadow">
-                                <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600 mb-4">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                    </svg>
-                                </div>
-                                <h3 className="text-xl font-semibold mb-2 group">
-                                    {renderEditableField(`features.items.${index - 1}.title`, updatedContent?.features?.items?.[index - 1]?.title || `Tính năng ${index}`, 'text-xl font-semibold')}
-                                </h3>
-                                <p className="text-gray-600 group">
-                                    {renderEditableField(`features.items.${index - 1}.description`, updatedContent?.features?.items?.[index - 1]?.description || `Mô tả chi tiết về tính năng ${index}`, 'text-gray-600')}
-                                </p>
-                            </div>
-                        ))}
                     </div>
                 </div>
             </div>
+        );
+    }
 
-            {/* CTA Section */}
+    // Hàm render CTA Section
+    function renderCtaSection() {
+        return (
             <div className="bg-indigo-700 text-white py-16">
                 <div className="container mx-auto px-4 text-center">
                     <h2 className="text-3xl font-bold mb-4 group">
@@ -325,119 +555,45 @@ export default function HomepagePreview({ content, onUpdate }: HomepagePreviewPr
                         <button className="bg-white text-indigo-700 px-8 py-3 rounded-md font-medium hover:bg-gray-100 transition-colors group">
                             {renderEditableField('cta.buttonText', updatedContent?.cta?.buttonText || 'Đăng ký ngay')}
                         </button>
-                        <button className="bg-transparent border border-white text-white px-8 py-3 rounded-md font-medium hover:bg-white/10 transition-colors group">
-                            {renderEditableField('cta.loginButtonText', updatedContent?.cta?.loginButtonText || 'Đăng nhập')}
-                        </button>
                     </div>
                 </div>
             </div>
+        );
+    }
 
-            {/* Footer */}
-            <footer className="bg-gray-800 text-white py-12">
+    // Hàm render Testimonials Section
+    function renderTestimonialsSection() {
+        return (
+            <div className="py-16 bg-gray-50">
                 <div className="container mx-auto px-4">
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">
-                                {renderEditableField('footer.companyTitle', updatedContent?.footer?.companyTitle || 'VanLang Budget')}
-                            </h3>
-                            <p className="text-gray-400 mb-4">
-                                {renderEditableField('footer.companyDescription', updatedContent?.footer?.companyDescription || 'Giải pháp quản lý tài chính cá nhân thông minh giúp bạn kiểm soát chi tiêu và đạt được mục tiêu tài chính.')}
-                            </p>
-                        </div>
-
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">
-                                {renderEditableField('footer.linksTitle', updatedContent?.footer?.linksTitle || 'Liên kết nhanh')}
-                            </h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.links.home', updatedContent?.footer?.links?.home || 'Trang chủ')}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.links.about', updatedContent?.footer?.links?.about || 'Giới thiệu')}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.links.features', updatedContent?.footer?.links?.features || 'Tính năng')}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.links.pricing', updatedContent?.footer?.links?.pricing || 'Bảng giá')}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">
-                                {renderEditableField('footer.legalTitle', updatedContent?.footer?.legalTitle || 'Pháp lý')}
-                            </h3>
-                            <ul className="space-y-2">
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.legal.terms', updatedContent?.footer?.legal?.terms || 'Điều khoản sử dụng')}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.legal.privacy', updatedContent?.footer?.legal?.privacy || 'Chính sách bảo mật')}
-                                    </a>
-                                </li>
-                                <li>
-                                    <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                                        {renderEditableField('footer.legal.cookies', updatedContent?.footer?.legal?.cookies || 'Chính sách cookie')}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 className="text-lg font-semibold mb-4">
-                                {renderEditableField('footer.contactTitle', updatedContent?.footer?.contactTitle || 'Liên hệ')}
-                            </h3>
-                            <ul className="space-y-2">
-                                <li className="flex items-center text-gray-400">
-                                    <span className="mr-2">📧</span>
-                                    {renderEditableField('footer.contact.email', updatedContent?.footer?.contact?.email || 'support@vanlangbudget.com')}
-                                </li>
-                                <li className="flex items-center text-gray-400">
-                                    <span className="mr-2">📱</span>
-                                    {renderEditableField('footer.contact.phone', updatedContent?.footer?.contact?.phone || '(+84) 123 456 789')}
-                                </li>
-                                <li className="flex items-center text-gray-400">
-                                    <span className="mr-2">🏢</span>
-                                    {renderEditableField('footer.contact.address', updatedContent?.footer?.contact?.address || 'Văn Lang University, Hồ Chí Minh City')}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
-                        <p className="text-gray-400 text-sm group">
-                            {renderEditableField('footer.copyright', updatedContent?.footer?.copyright || '© 2023 VanLang Budget. Tất cả các quyền được bảo lưu.')}
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('testimonials.title', updatedContent?.testimonials?.title || 'Người dùng nói gì về chúng tôi', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('testimonials.description', updatedContent?.testimonials?.description || 'Khám phá trải nghiệm của người dùng với VanLang Budget', 'text-gray-600')}
                         </p>
-                        <div className="flex space-x-4 mt-4 md:mt-0">
-                            <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('footer.social.facebook', updatedContent?.footer?.social?.facebook || 'Facebook')}
-                            </a>
-                            <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('footer.social.twitter', updatedContent?.footer?.social?.twitter || 'Twitter')}
-                            </a>
-                            <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('footer.social.linkedin', updatedContent?.footer?.social?.linkedin || 'LinkedIn')}
-                            </a>
-                            <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('footer.social.instagram', updatedContent?.footer?.social?.instagram || 'Instagram')}
-                            </a>
-                        </div>
                     </div>
                 </div>
-            </footer>
-        </div>
-    );
+            </div>
+        );
+    }
+
+    // Hàm render Screenshots Section
+    function renderScreenshotsSection() {
+        return (
+            <div className="py-16 bg-white">
+                <div className="container mx-auto px-4">
+                    <div className="text-center mb-12">
+                        <h2 className="text-3xl font-bold mb-4 group">
+                            {renderEditableField('screenshots.title', updatedContent?.screenshots?.title || 'Giao diện trực quan', 'text-3xl font-bold')}
+                        </h2>
+                        <p className="text-gray-600 max-w-2xl mx-auto group">
+                            {renderEditableField('screenshots.description', updatedContent?.screenshots?.description || 'Khám phá giao diện người dùng thân thiện và dễ sử dụng của VanLang Budget', 'text-gray-600')}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 }
