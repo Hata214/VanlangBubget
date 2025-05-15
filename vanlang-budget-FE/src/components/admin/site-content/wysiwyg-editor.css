@@ -1,0 +1,389 @@
+/* CSS cho WYSIWYG Editor */
+
+/* Làm nổi bật các phần tử có thể chỉnh sửa trong bảng xem trước */
+.admin-section-preview [class*="border-gray-200"] {
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.admin-section-preview [class*="border-gray-200"]:hover {
+  border-color: #3b82f6 !important;
+  background-color: rgba(59, 130, 246, 0.05);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section-preview [class*="border-gray-200"]::after {
+  content: "Nhấp để chỉnh sửa";
+  position: absolute;
+  top: -25px;
+  right: 10px;
+  background-color: #3b82f6;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.admin-section-preview [class*="border-gray-200"]:hover::after {
+  opacity: 1;
+}
+
+/* Hiệu ứng hover cho các phần tử có thể chỉnh sửa */
+.editable-field:hover,
+.editable-image:hover,
+.editable-button:hover {
+  position: relative;
+  z-index: 10;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-field:not(.editing):hover>*:first-child,
+.editable-image:not(.editing):hover .relative,
+.editable-button:not(.editing):hover .relative {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Hiệu ứng khi đang chỉnh sửa */
+.editable-field.editing,
+.editable-image.editing,
+.editable-button.editing {
+  z-index: 20;
+}
+
+/* Hiển thị biểu tượng chỉnh sửa khi hover */
+.editable-field:hover .edit-icon,
+.editable-image:hover .edit-icon,
+.editable-button:hover .edit-icon {
+  opacity: 1;
+}
+
+/* Hiệu ứng pulse cho các phần tử có thể chỉnh sửa */
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+
+  70% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Hiệu ứng highlight cho các phần tử có thể chỉnh sửa */
+@keyframes highlight-editable {
+  0% {
+    background-color: rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+
+  50% {
+    background-color: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+  }
+
+  100% {
+    background-color: rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+/* Hiệu ứng đường viền nhấp nháy */
+@keyframes border-pulse {
+  0% {
+    border-color: rgba(59, 130, 246, 0.7);
+  }
+
+  50% {
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  100% {
+    border-color: rgba(59, 130, 246, 0.7);
+  }
+}
+
+/* Lớp highlight-editable */
+.highlight-editable {
+  position: relative;
+  z-index: 1;
+  animation: highlight-editable 2s ease-in-out;
+  transform: scale(1.02);
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+/* Thêm đường viền nhấp nháy */
+.highlight-editable::after {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border: 2px dashed #3b82f6;
+  border-radius: 6px;
+  animation: border-pulse 2s infinite;
+  z-index: -1;
+}
+
+/* Thêm tooltip cho phần tử được highlight */
+.highlight-editable::before {
+  content: 'Nhấp để chỉnh sửa';
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #3b82f6;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Áp dụng hiệu ứng pulse cho các phần tử khi trang mới tải */
+.admin-section-preview .editable-field>*:first-child,
+.admin-section-preview .editable-image .relative,
+.admin-section-preview .editable-button .relative {
+  animation: pulse-border 2s ease-out 1, highlight-editable 3s ease-out 1;
+}
+
+/* Đảm bảo các phần tử chỉnh sửa có kích thước tối thiểu */
+.editable-field>*:first-child {
+  min-height: 1.5rem;
+  min-width: 2rem;
+}
+
+/* Đảm bảo các textarea có chiều cao tối thiểu */
+.editable-field textarea {
+  min-height: 5rem;
+}
+
+/* Đảm bảo các modal chỉnh sửa hiển thị đúng */
+.fixed.inset-0.bg-black.bg-opacity-70 {
+  z-index: 9999;
+}
+
+/* Đảm bảo các nút trong modal chỉnh sửa hiển thị đúng */
+.fixed.inset-0.bg-black.bg-opacity-70 button {
+  cursor: pointer;
+}
+
+/* Hiệu ứng khi hover vào nút */
+.fixed.inset-0.bg-black.bg-opacity-70 button:hover {
+  opacity: 0.9;
+}
+
+/* Đảm bảo các input và textarea có viền khi focus */
+.editable-field input:focus,
+.editable-field textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Đảm bảo các phần tử chỉnh sửa có padding đủ */
+.editable-field>*:first-child {
+  padding: 0.25rem;
+}
+
+/* Đảm bảo các phần tử chỉnh sửa có transition mượt mà */
+.editable-field>*:first-child,
+.editable-image .relative,
+.editable-button .relative {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Đảm bảo các phần tử chỉnh sửa có cursor pointer */
+.editable-field>*:first-child,
+.editable-image .relative,
+.editable-button .relative {
+  cursor: pointer;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-content {
+  position: relative;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-content:hover {
+  background-color: rgba(59, 130, 246, 0.05);
+  border: 1px dashed rgba(59, 130, 246, 0.3);
+  border-radius: 4px;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-content:hover::after {
+  content: "Nhấp để chỉnh sửa";
+  position: absolute;
+  top: -25px;
+  right: 0;
+  background-color: rgba(59, 130, 246, 0.9);
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-content:hover::before {
+  content: "";
+  position: absolute;
+  top: -5px;
+  right: 10px;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid rgba(59, 130, 246, 0.9);
+  transform: rotate(180deg);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Hiệu ứng đặc biệt cho preview-container */
+.preview-container .editable-content {
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.preview-container .editable-content:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px dashed rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Hiệu ứng khi nhấp vào để chỉnh sửa */
+.editable-content:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* Hiệu ứng khi lưu thành công */
+@keyframes saved-highlight {
+  0% {
+    background-color: rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+
+  30% {
+    background-color: rgba(34, 197, 94, 0.2);
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.3);
+  }
+
+  100% {
+    background-color: rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.saved-highlight {
+  animation: saved-highlight 2s ease-out;
+  position: relative;
+}
+
+.saved-highlight::after {
+  content: '✓ Đã lưu';
+  position: absolute;
+  top: -25px;
+  right: 10px;
+  background-color: #22c55e;
+  color: white;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-in-out, fadeOut 1.5s ease-in-out 1.5s forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hiệu ứng fadeIn cho các phần tử */
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Hiệu ứng fadeIn từ dưới lên */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.3s ease-in-out;
+}
+
+/* Hiệu ứng scale khi xuất hiện */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease-in-out;
+}
+
+/* Hiệu ứng khi hover vào các phần tử có thể chỉnh sửa */
+.editable-field:hover,
+.editable-image:hover,
+.editable-button:hover {
+  outline: 2px dashed rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}

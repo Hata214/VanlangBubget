@@ -32,6 +32,22 @@ router.get('/homepage', (req, res, next) => {
 // Lấy nội dung trang chủ theo section
 router.get('/homepage/:section', getHomepageSection);
 
+// === Route mới: Xử lý truy cập trực tiếp đến các section của homepage ===
+router.get('/:sectionType', (req, res, next) => {
+    const { sectionType } = req.params;
+    const homepageSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
+
+    if (homepageSections.includes(sectionType)) {
+        console.log(`Chuyển hướng truy cập từ /${sectionType} sang /homepage/${sectionType}`);
+        // Chuyển hướng đến route homepage/:section
+        req.params.section = sectionType;
+        return getHomepageSection(req, res, next);
+    }
+
+    // Nếu không phải section của homepage, xử lý như bình thường
+    next();
+});
+
 // Lấy nội dung theo loại (bao gồm homepage)
 router.get('/:type', getSiteContentByType);
 

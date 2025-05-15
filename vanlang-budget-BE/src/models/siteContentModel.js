@@ -20,70 +20,34 @@ const siteContentSchema = new mongoose.Schema(
             required: [true, 'Nội dung là bắt buộc'],
             validate: {
                 validator: function (content) {
-                    // Kiểm tra cấu trúc nội dung cho trang chủ
+                    // Kiểm tra tối thiểu cho nội dung trang chủ
                     if (this.type === 'homepage') {
-                        const requiredSections = ['hero', 'features', 'testimonials', 'pricing'];
-                        const requiredKeys = {
-                            hero: ['title', 'subtitle', 'imageUrl', 'buttonText', 'buttonLink'],
-                            features: ['title', 'subtitle', 'items'],
-                            testimonials: ['title', 'subtitle', 'items'],
-                            pricing: ['title', 'subtitle', 'plans']
-                        };
-
-                        // Kiểm tra các section bắt buộc
-                        for (const section of requiredSections) {
-                            if (!content[section]) return false;
-
-                            // Kiểm tra các khóa bắt buộc trong mỗi section
-                            for (const key of requiredKeys[section]) {
-                                if (!content[section][key]) return false;
-                            }
-
-                            // Kiểm tra cấu trúc mảng nếu có
-                            if (section === 'features' && (!Array.isArray(content.features.items) || content.features.items.length === 0)) {
-                                return false;
-                            }
-
-                            if (section === 'testimonials' && (!Array.isArray(content.testimonials.items) || content.testimonials.items.length === 0)) {
-                                return false;
-                            }
-
-                            if (section === 'pricing' && (!Array.isArray(content.pricing.plans) || content.pricing.plans.length === 0)) {
-                                return false;
-                            }
+                        // Kiểm tra content phải là một object
+                        if (typeof content !== 'object' || content === null) {
+                            console.log('Nội dung không phải là object');
+                            return false;
                         }
 
-                        // Kiểm tra cấu trúc của mỗi item trong features
-                        if (content.features && Array.isArray(content.features.items)) {
-                            for (const item of content.features.items) {
-                                if (!item.title || !item.description || !item.icon) {
-                                    return false;
-                                }
-                            }
+                        // Kiểm tra tối thiểu phải có ít nhất một section
+                        const validSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
+                        const hasAtLeastOneSection = validSections.some(section => {
+                            return content[section] && typeof content[section] === 'object';
+                        });
+
+                        if (!hasAtLeastOneSection) {
+                            console.log('Nội dung homepage phải có ít nhất một section hợp lệ');
+                            return false;
                         }
 
-                        // Kiểm tra cấu trúc của mỗi item trong testimonials
-                        if (content.testimonials && Array.isArray(content.testimonials.items)) {
-                            for (const item of content.testimonials.items) {
-                                if (!item.name || !item.position || !item.quote || !item.avatarUrl) {
-                                    return false;
-                                }
-                            }
-                        }
-
-                        // Kiểm tra cấu trúc của mỗi plan trong pricing
-                        if (content.pricing && Array.isArray(content.pricing.plans)) {
-                            for (const plan of content.pricing.plans) {
-                                if (!plan.name || !plan.price || !Array.isArray(plan.features)) {
-                                    return false;
-                                }
-                            }
-                        }
+                        // Lưu các section vào trường sections
+                        this.sections = Object.keys(content).filter(key =>
+                            validSections.includes(key) && content[key] && typeof content[key] === 'object'
+                        );
                     }
 
                     return true;
                 },
-                message: 'Cấu trúc nội dung trang chủ không hợp lệ'
+                message: 'Cấu trúc nội dung trang chủ không hợp lệ. Phải có ít nhất một section hợp lệ.'
             }
         },
         lastUpdatedBy: {

@@ -245,13 +245,15 @@ export default function AdminLayout({
         setUserMenuOpen(!userMenuOpen);
     };
 
-    // Menu items
+    // Menu items - Các mục menu chính của Admin
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard', active: pathname === '/admin/dashboard' },
         { icon: Users, label: 'Người dùng', path: '/admin/users', active: pathname === '/admin/users' },
-        { icon: FileText, label: 'Nội dung', path: '/admin/site-content', active: pathname === '/admin/site-content' },
+        { icon: FileText, label: 'Quản lý nội dung', path: '/admin/site-content', active: pathname.startsWith('/admin/site-content') },
+        { icon: CreditCard, label: 'Giao dịch', path: '/admin/transactions', active: pathname === '/admin/transactions' },
         { icon: Bell, label: 'Thông báo', path: '/admin/notifications', active: pathname === '/admin/notifications' },
         { icon: Activity, label: 'Lịch sử hoạt động', path: '/admin/activity-logs', active: pathname === '/admin/activity-logs' },
+        { icon: Settings, label: 'Cài đặt', path: '/admin/settings', active: pathname === '/admin/settings' },
     ];
 
     // Menu items chỉ dành cho SuperAdmin

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Home, FileText, ScrollText, Mail, DollarSign, Image } from 'lucide-react';
+import { Home, FileText, ScrollText, Mail, DollarSign } from 'lucide-react';
 import ContentTabs from './ContentTabs';
 import { toast } from 'react-hot-toast';
 
@@ -27,8 +27,10 @@ export default function SectionTabs({
             label: currentLanguage === 'vi' ? 'Trang chủ' : 'Home',
             icon: <Home size={18} />,
             subsections: [
-                { id: 'homepage', label: currentLanguage === 'vi' ? 'Tất cả' : 'All' },
-                { id: 'hero', label: 'Hero' },
+                { id: 'hero', label: currentLanguage === 'vi' ? 'Banner chính' : 'Hero' },
+                { id: 'features', label: currentLanguage === 'vi' ? 'Tính năng' : 'Features' },
+                { id: 'testimonials', label: currentLanguage === 'vi' ? 'Đánh giá' : 'Testimonials' },
+                { id: 'cta', label: currentLanguage === 'vi' ? 'Kêu gọi hành động' : 'Call to Action' }
             ]
         },
         {
@@ -87,21 +89,14 @@ export default function SectionTabs({
         }
     }, [selectedSection]);
 
-    // Xử lý khi chọn một section chính
-    const handleSectionChange = (sectionId: string) => {
+    // Xử lý khi chọn một section hoặc subsection
+    const handleSectionSelect = (sectionId: string, subSectionId?: string) => {
         setActiveMainSection(sectionId);
-        setActiveSubSection(null);
+        setActiveSubSection(subSectionId || null);
 
         // Gửi sự kiện thay đổi section lên component cha
-        onSectionChange(`${sectionId}-${currentLanguage}`);
-    };
-
-    // Xử lý khi chọn một subsection
-    const handleSubSectionChange = (sectionId: string, subSectionId: string) => {
-        setActiveSubSection(subSectionId);
-
-        // Gửi sự kiện thay đổi section lên component cha
-        onSectionChange(`${subSectionId}-${currentLanguage}`);
+        const selectedId = subSectionId || sectionId;
+        onSectionChange(`${selectedId}-${currentLanguage}`);
     };
 
     // Tạo tab chính
@@ -125,7 +120,7 @@ export default function SectionTabs({
                             ? 'bg-primary text-primary-foreground'
                             : 'bg-muted hover:bg-muted/80'
                             }`}
-                        onClick={() => onSectionChange(`${section.id}-${currentLanguage}`)}
+                        onClick={() => handleSectionSelect(section.id)}
                     >
                         {currentLanguage === 'vi' ? 'Tất cả' : 'All Content'}
                     </button>
@@ -138,7 +133,7 @@ export default function SectionTabs({
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-muted hover:bg-muted/80'
                                 }`}
-                            onClick={() => handleSubSectionChange(section.id, subsection.id)}
+                            onClick={() => handleSectionSelect(section.id, subsection.id)}
                         >
                             {subsection.label}
                         </button>

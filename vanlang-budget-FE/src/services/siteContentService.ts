@@ -33,13 +33,30 @@ export const siteContentService = {
 
             console.log(`Lấy nội dung cho type=${actualType}, language=${actualLanguage}`);
 
-            const params = actualLanguage ? { language: actualLanguage } : {};
-            const response = await axios.get(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, { params });
-            return response.data;
+            // Kiểm tra xem có dữ liệu fallback không trước khi gọi API
+            const fallbackData = this.getFallbackContent(`${actualType}-${actualLanguage || 'vi'}`);
+
+            try {
+                const params = actualLanguage ? { language: actualLanguage } : {};
+                const response = await axios.get(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, { params });
+                return response.data;
+            } catch (apiError) {
+                console.error(`Lỗi khi lấy nội dung ${type} từ API:`, apiError);
+
+                // Trả về dữ liệu fallback nếu API thất bại
+                return {
+                    success: true,
+                    data: fallbackData,
+                    meta: {
+                        source: 'fallback',
+                        updatedAt: new Date().toISOString()
+                    }
+                };
+            }
         } catch (error) {
             console.error(`Lỗi khi lấy nội dung ${type}:`, error);
 
-            // Trả về dữ liệu fallback nếu API thất bại
+            // Trả về dữ liệu fallback nếu có lỗi xử lý
             return {
                 success: true,
                 data: this.getFallbackContent(type),

@@ -185,6 +185,15 @@ export const getHomepageSection = async (req, res, next) => {
         const { section } = req.params;
         const { language } = req.query;
 
+        console.log(`getHomepageSection được gọi với section=${section}, language=${language}`);
+
+        // Kiểm tra tính hợp lệ của section
+        const validSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
+        if (!section || !validSections.includes(section)) {
+            console.log(`Section không hợp lệ: ${section}`);
+            return next(new AppError(`Section không hợp lệ: ${section}`, 400));
+        }
+
         const homepage = await SiteContent.findOne({ type: 'homepage' });
 
         // Nếu không có dữ liệu trong DB, sử dụng dữ liệu mặc định
@@ -197,6 +206,7 @@ export const getHomepageSection = async (req, res, next) => {
                     data: defaultHomepageContent[section]
                 });
             } else {
+                logger.info(`Section ${section} không tồn tại trong dữ liệu mặc định`);
                 return res.status(200).json({
                     status: 'success',
                     data: null
@@ -206,17 +216,43 @@ export const getHomepageSection = async (req, res, next) => {
 
         // Kiểm tra nếu có hỗ trợ ngôn ngữ được yêu cầu
         let content = homepage.content;
+
+        // Log nội dung hiện tại để debug
+        console.log(`Nội dung trang chủ hiện tại có sections: ${Object.keys(content).join(', ')}`);
+
         if (language && language !== 'vi' && content[language] && content[language][section]) {
+            console.log(`Trả về nội dung section ${section} cho ngôn ngữ ${language}`);
             return res.status(200).json({
                 status: 'success',
                 data: content[language][section]
             });
         }
 
+        // Kiểm tra xem section có tồn tại không
+        if (!content[section]) {
+            console.log(`Section ${section} không tồn tại trong nội dung trang chủ, sử dụng dữ liệu mặc định`);
+            // Nếu không có trong DB, sử dụng dữ liệu mặc định
+            if (defaultHomepageContent[section]) {
+                return res.status(200).json({
+                    status: 'success',
+                    data: defaultHomepageContent[section],
+                    meta: {
+                        source: 'fallback'
+                    }
+                });
+            } else {
+                return res.status(200).json({
+                    status: 'success',
+                    data: null
+                });
+            }
+        }
+
         // Trả về nội dung section chỉ định
+        console.log(`Trả về nội dung section ${section} từ database`);
         res.status(200).json({
             status: 'success',
-            data: content[section] || null
+            data: content[section]
         });
     } catch (error) {
         logger.error(`Lỗi khi lấy section ${req.params.section} của trang chủ:`, error);
