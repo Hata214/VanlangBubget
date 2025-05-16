@@ -513,10 +513,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                             />
                         </div>
 
-                        <div className="flex justify-between items-center mt-6">
-                            <Button type="button" variant="outline" onClick={() => router.back()}>
-                                Hủy
-                            </Button>
+                        <div className="flex justify-end items-center mt-6">
                             <Button type="submit" disabled={isLoading} className="bg-amber-500 hover:bg-amber-600">
                                 {isLoading ? 'Đang xử lý...' : 'Thêm khoản đầu tư vàng'}
                             </Button>
@@ -526,4 +523,4 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
             </form>
         </Form>
     );
-} 
+}

@@ -15,7 +15,7 @@ export default function InvestmentFilter({ activeFilter, onFilterChange }: Inves
     const filters = [
         { key: 'stock', label: t('stock') },
         { key: 'gold', label: t('gold.title') },
-        { key: 'crypto', label: t('crypto') },
+        { key: 'realestate', label: t('realestate.title') },
     ];
 
     return (
@@ -24,10 +24,10 @@ export default function InvestmentFilter({ activeFilter, onFilterChange }: Inves
                 <Badge
                     key={filter.key}
                     variant="outline"
-                    className={`cursor-pointer hover:bg-gray-100 
+                    className={`cursor-pointer hover:bg-gray-100
           ${filter.key === 'stock' ? 'bg-blue-50 text-blue-700 border-blue-200' : ''}
           ${filter.key === 'gold' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' : ''}
-          ${filter.key === 'crypto' ? 'bg-purple-50 text-purple-700 border-purple-200' : ''}
+          ${filter.key === 'realestate' ? 'bg-green-50 text-green-700 border-green-200' : ''}
           ${activeFilter === filter.key ? 'ring-2 ring-offset-1' : ''}`}
                     onClick={() => onFilterChange(activeFilter === filter.key ? null : filter.key)}
                 >
@@ -37,4 +37,4 @@ export default function InvestmentFilter({ activeFilter, onFilterChange }: Inves
             <span className="text-sm text-muted-foreground">— {t('allInvestments')}</span>
         </div>
     );
-} 
+}

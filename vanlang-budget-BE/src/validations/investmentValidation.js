@@ -28,7 +28,47 @@ const createInvestmentSchema = Joi.object({
     currentPrice: Joi.number().min(0).optional().messages({ // Giá hiện tại (nếu có)
         'number.base': 'Giá hiện tại phải là số',
         'number.min': 'Giá hiện tại không được âm'
-    })
+    }),
+    // Các trường cho đầu tư đất đai
+    propertyType: Joi.string().valid('residential', 'agricultural', 'commercial', 'project', 'other').when('type', {
+        is: 'realestate',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    address: Joi.string().trim().when('type', {
+        is: 'realestate',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    legalStatus: Joi.string().valid('redbook', 'pinkbook', 'handwritten', 'pending', 'other').when('type', {
+        is: 'realestate',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    area: Joi.number().min(0).when('type', {
+        is: 'realestate',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    frontWidth: Joi.number().min(0).optional(),
+    depth: Joi.number().min(0).optional(),
+    additionalFees: Joi.number().min(0).default(0).optional(),
+    ownershipType: Joi.string().valid('personal', 'shared', 'business', 'other').when('type', {
+        is: 'realestate',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    investmentPurpose: Joi.string().valid('holding', 'appreciation', 'development', 'other').optional(),
+    currentStatus: Joi.string().valid('holding', 'sold', 'renting', 'other').optional(),
+    // Thêm trường transaction để hỗ trợ giao dịch ban đầu
+    transaction: Joi.object({
+        type: Joi.string().valid(...allowedTransactionTypes).optional(),
+        price: Joi.number().min(0).optional(),
+        quantity: Joi.number().min(0).optional(),
+        fee: Joi.number().min(0).default(0).optional(),
+        date: Joi.date().iso().max('now').optional(),
+        notes: Joi.string().trim().allow('', null).optional()
+    }).optional()
 });
 
 // Schema để cập nhật thông tin cơ bản của khoản đầu tư
@@ -39,7 +79,18 @@ const updateInvestmentSchema = Joi.object({
     currentPrice: Joi.number().min(0).optional().messages({ // Cho phép cập nhật giá
         'number.base': 'Giá hiện tại phải là số',
         'number.min': 'Giá hiện tại không được âm'
-    })
+    }),
+    // Các trường cho đầu tư đất đai
+    propertyType: Joi.string().valid('residential', 'agricultural', 'commercial', 'project', 'other').optional(),
+    address: Joi.string().trim().optional(),
+    legalStatus: Joi.string().valid('redbook', 'pinkbook', 'handwritten', 'pending', 'other').optional(),
+    area: Joi.number().min(0).optional(),
+    frontWidth: Joi.number().min(0).optional(),
+    depth: Joi.number().min(0).optional(),
+    additionalFees: Joi.number().min(0).optional(),
+    ownershipType: Joi.string().valid('personal', 'shared', 'business', 'other').optional(),
+    investmentPurpose: Joi.string().valid('holding', 'appreciation', 'development', 'other').optional(),
+    currentStatus: Joi.string().valid('holding', 'sold', 'renting', 'other').optional()
     // Không cho phép thay đổi type hoặc symbol ở đây
     // Các trường khác như interestRate, endDate... sẽ cần schema riêng nếu cần cập nhật
 }).min(1); // Yêu cầu ít nhất một trường để cập nhật
@@ -179,4 +230,4 @@ export {
     typeParamSchema,
     batchUpdatePriceSchema,
     stockSymbolParamSchema
-}; 
+};

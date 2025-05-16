@@ -906,6 +906,9 @@
         "portfolioDescription": "Track and manage all types of investments in a unified list",
         "addInvestment": "Add New Investment",
         "addInvestmentDescription": "Add a new investment to your investment list",
+        "closeForm": "Close Form",
+        "toggleDebugOpen": "Show Debug",
+        "toggleDebugClose": "Hide Debug",
         "investmentAnalytics": "Investment Analytics",
         "analyticsDescription": "View overview and analysis of your investment portfolio",
         "loading": "Loading...",
@@ -913,8 +916,106 @@
         "errorLoadingDescription": "Could not load investment data. Please try again later.",
         "noDataAvailable": "No data available",
         "stock": "Stock",
-        "gold": "Gold",
-        "crypto": "Cryptocurrency",
+        "gold": {
+            "title": "Gold"
+        },
+        "realestate": {
+            "title": "Real Estate",
+            "propertyTypes": {
+                "residential": "Residential Land",
+                "agricultural": "Agricultural Land",
+                "commercial": "Commercial Land",
+                "project": "Project Land",
+                "other": "Other"
+            },
+            "legalStatuses": {
+                "redbook": "Red Book (Full Ownership)",
+                "pinkbook": "Pink Book",
+                "handwritten": "Handwritten Agreement",
+                "pending": "Pending Certificate",
+                "other": "Other"
+            },
+            "ownershipTypes": {
+                "personal": "Personal",
+                "shared": "Shared Ownership",
+                "business": "Business",
+                "other": "Other"
+            },
+            "investmentPurposes": {
+                "holding": "Asset Holding",
+                "appreciation": "Value Appreciation",
+                "development": "Development/Rental",
+                "other": "Other"
+            },
+            "currentStatuses": {
+                "holding": "Holding",
+                "sold": "Sold",
+                "renting": "Renting",
+                "other": "Other"
+            },
+            "formLabels": {
+                "propertyName": "Property Name",
+                "propertyType": "Property Type",
+                "address": "Full Address",
+                "legalStatus": "Legal Status",
+                "area": "Area (m²)",
+                "frontWidth": "Front Width (m)",
+                "depth": "Depth (m)",
+                "purchasePrice": "Purchase Price (VND)",
+                "additionalFees": "Additional Fees",
+                "purchaseDate": "Purchase Date",
+                "ownershipType": "Ownership Type",
+                "investmentPurpose": "Investment Purpose",
+                "currentStatus": "Current Status",
+                "notes": "Notes"
+            },
+            "formDescriptions": {
+                "propertyName": "Name to identify your investment",
+                "propertyType": "Type of real estate you're investing in",
+                "address": "Full address of the property",
+                "legalStatus": "Legal documentation status",
+                "area": "Land area in square meters",
+                "frontWidth": "Front width (optional)",
+                "depth": "Land depth (optional)",
+                "purchasePrice": "Property purchase price",
+                "additionalFees": "Notary, brokerage, taxes...",
+                "purchaseDate": "Property purchase date",
+                "ownershipType": "Property ownership type",
+                "investmentPurpose": "Real estate investment purpose",
+                "currentStatus": "Current status of the property",
+                "notes": "Additional information about the investment"
+            },
+            "tooltips": {
+                "propertyName": "Descriptive name of your property",
+                "propertyType": "Type of real estate investment",
+                "address": "Full address of the property",
+                "legalStatus": "Legal documentation status of the property",
+                "area": "Land area in square meters",
+                "frontWidth": "Front width in meters",
+                "depth": "Land depth in meters",
+                "purchasePrice": "Property purchase price",
+                "additionalFees": "Additional costs like notary, brokerage...",
+                "purchaseDate": "Property purchase date",
+                "ownershipType": "Property ownership type",
+                "investmentPurpose": "Real estate investment purpose",
+                "currentStatus": "Current status of the property",
+                "notes": "Additional notes about the real estate investment"
+            },
+            "placeholders": {
+                "propertyName": "E.g.: Land plot in An Phu Residential Area, Lot B5...",
+                "address": "Number, street, ward/commune, district, province/city",
+                "notes": "Enter notes about this investment..."
+            },
+            "cardTitles": {
+                "propertyInfo": "Property Information",
+                "legalAndArea": "Legal Status and Area",
+                "financeAndTransaction": "Finance and Transaction",
+                "otherInfo": "Other Information"
+            },
+            "buttons": {
+                "addRealEstate": "Add Real Estate Investment"
+            }
+        },
         "totalInvestment": "Total Investment",
         "currentValue": "Current Value",
         "totalProfitLoss": "Profit/Loss",
@@ -1002,7 +1103,19 @@
         "confirmDeleteTransaction": "Confirm Transaction Deletion",
         "deleteTransactionWarning": "Are you sure you want to delete this transaction? This action cannot be undone.",
         "priceHistory": "Price History",
-        "purchasePriceHistory": "Purchase Price History"
+        "purchasePriceHistory": "Purchase Price History",
+        "investmentsList": "Investment List",
+        "investmentList": "Investment List",
+        "investmentListDescription": "Manage all your investments (stocks, gold, real estate) in a unified list",
+        "allInvestments": "All Investments",
+        "goldInvestmentGuide": {
+            "title": "Gold Investment Guide",
+            "bullet1": "Gold is considered a safe-haven asset during economic uncertainty",
+            "bullet2": "Track gold prices regularly to make informed investment decisions",
+            "bullet3": "Consider diversifying your gold investments across different forms (physical gold, ETFs, mining stocks)",
+            "bullet4": "Be aware of storage costs and security concerns with physical gold"
+        },
+        "redirectingToInvestments": "Redirecting to investments page..."
     },
     "admin": {
         "dashboard": "Dashboard",

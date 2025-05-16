@@ -3,7 +3,8 @@ import {
     getToken,
     refreshToken,
     TOKEN_COOKIE_NAME,
-    removeTokens
+    removeTokens,
+    API_URL
 } from '../services/api'
 
 // Hàm đảm bảo token có tiền tố "Bearer "
@@ -20,7 +21,7 @@ const formatTokenForHeader = (token: string) => {
 }
 
 const instance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+    baseURL: API_URL,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -28,7 +29,7 @@ const instance = axios.create({
 })
 
 // Log thông tin API URL để debug
-console.log('API URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
+console.log('Axios instance using API URL:', API_URL);
 
 instance.interceptors.request.use(
     (config) => {
@@ -122,4 +123,4 @@ instance.interceptors.response.use(
     }
 )
 
-export default instance 
+export default instance

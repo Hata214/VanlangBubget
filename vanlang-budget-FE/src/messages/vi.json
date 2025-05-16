@@ -1073,11 +1073,110 @@
         "addError": "Lỗi khi thêm đầu tư",
         "addErrorDescription": "Đã xảy ra lỗi khi thêm khoản đầu tư",
         "stock": "Cổ phiếu",
-        "gold": "Vàng",
-        "crypto": "Tiền điện tử",
+        "gold": {
+            "title": "Vàng"
+        },
+        "realestate": {
+            "title": "Đất đai",
+            "propertyTypes": {
+                "residential": "Đất thổ cư",
+                "agricultural": "Đất nông nghiệp",
+                "commercial": "Đất thương mại/dịch vụ",
+                "project": "Đất dự án",
+                "other": "Khác"
+            },
+            "legalStatuses": {
+                "redbook": "Sổ đỏ chính chủ",
+                "pinkbook": "Sổ hồng",
+                "handwritten": "Giấy tay",
+                "pending": "Đang chờ cấp sổ",
+                "other": "Khác"
+            },
+            "ownershipTypes": {
+                "personal": "Cá nhân",
+                "shared": "Đồng sở hữu",
+                "business": "Doanh nghiệp",
+                "other": "Khác"
+            },
+            "investmentPurposes": {
+                "holding": "Giữ tài sản",
+                "appreciation": "Chờ tăng giá",
+                "development": "Xây nhà/cho thuê",
+                "other": "Khác"
+            },
+            "currentStatuses": {
+                "holding": "Đang giữ",
+                "sold": "Đã bán",
+                "renting": "Đang cho thuê",
+                "other": "Khác"
+            },
+            "formLabels": {
+                "propertyName": "Tên bất động sản",
+                "propertyType": "Loại đất",
+                "address": "Địa chỉ cụ thể",
+                "legalStatus": "Tình trạng pháp lý",
+                "area": "Diện tích (m²)",
+                "frontWidth": "Mặt tiền (m)",
+                "depth": "Chiều sâu (m)",
+                "purchasePrice": "Giá mua (VNĐ)",
+                "additionalFees": "Phí phát sinh",
+                "purchaseDate": "Ngày mua",
+                "ownershipType": "Hình thức sở hữu",
+                "investmentPurpose": "Mục đích đầu tư",
+                "currentStatus": "Tình trạng hiện tại",
+                "notes": "Ghi chú"
+            },
+            "formDescriptions": {
+                "propertyName": "Tên để nhận diện khoản đầu tư",
+                "propertyType": "Loại bất động sản bạn đầu tư",
+                "address": "Địa chỉ đầy đủ của bất động sản",
+                "legalStatus": "Tình trạng giấy tờ pháp lý",
+                "area": "Diện tích đất tính bằng mét vuông",
+                "frontWidth": "Chiều rộng mặt tiền (tùy chọn)",
+                "depth": "Chiều sâu của lô đất (tùy chọn)",
+                "purchasePrice": "Giá mua bất động sản",
+                "additionalFees": "Phí công chứng, môi giới, thuế...",
+                "purchaseDate": "Ngày mua bất động sản",
+                "ownershipType": "Hình thức sở hữu bất động sản",
+                "investmentPurpose": "Mục đích đầu tư bất động sản",
+                "currentStatus": "Tình trạng hiện tại của bất động sản",
+                "notes": "Thông tin bổ sung về khoản đầu tư"
+            },
+            "tooltips": {
+                "propertyName": "Tên mô tả bất động sản của bạn",
+                "propertyType": "Loại bất động sản đầu tư",
+                "address": "Địa chỉ đầy đủ của bất động sản",
+                "legalStatus": "Tình trạng giấy tờ pháp lý của bất động sản",
+                "area": "Diện tích đất tính bằng mét vuông",
+                "frontWidth": "Chiều rộng mặt tiền tính bằng mét",
+                "depth": "Chiều sâu của lô đất tính bằng mét",
+                "purchasePrice": "Giá mua bất động sản",
+                "additionalFees": "Các khoản phí phát sinh như công chứng, môi giới...",
+                "purchaseDate": "Ngày mua bất động sản",
+                "ownershipType": "Hình thức sở hữu bất động sản",
+                "investmentPurpose": "Mục đích đầu tư bất động sản",
+                "currentStatus": "Tình trạng hiện tại của bất động sản",
+                "notes": "Ghi chú thêm về khoản đầu tư bất động sản"
+            },
+            "placeholders": {
+                "propertyName": "Ví dụ: Đất nền khu dân cư An Phú, Lô B5...",
+                "address": "Số, đường, phường/xã, quận/huyện, tỉnh/thành",
+                "notes": "Nhập ghi chú về khoản đầu tư này..."
+            },
+            "cardTitles": {
+                "propertyInfo": "Thông tin bất động sản",
+                "legalAndArea": "Pháp lý và diện tích",
+                "financeAndTransaction": "Tài chính và giao dịch",
+                "otherInfo": "Thông tin khác"
+            },
+            "buttons": {
+                "addRealEstate": "Thêm đầu tư đất đai"
+            }
+        },
         "allInvestments": "Tất cả các khoản đầu tư",
         "investmentList": "Danh sách đầu tư",
-        "investmentListDescription": "Quản lý tất cả các khoản đầu tư (cổ phiếu, vàng, tiền điện tử) trong một danh sách thống nhất",
+        "investmentsList": "Danh sách đầu tư",
+        "investmentListDescription": "Quản lý tất cả các khoản đầu tư (cổ phiếu, vàng, đất đai) trong một danh sách thống nhất",
         "noInvestments": "Bạn chưa có khoản đầu tư nào",
         "addYourFirst": "Thêm khoản đầu tư đầu tiên",
         "asset": "Tài sản",
@@ -1101,6 +1200,9 @@
         "cancel": "Hủy bỏ",
         "addInvestment": "Thêm đầu tư mới",
         "addInvestmentDescription": "Thêm khoản đầu tư mới vào danh sách đầu tư của bạn",
+        "closeForm": "Đóng form",
+        "toggleDebugOpen": "Hiện debug",
+        "toggleDebugClose": "Ẩn debug",
         "priceAlerts": "Cảnh báo giá",
         "priceAlertsDescription": "Nhận thông báo khi giá đạt đến ngưỡng mục tiêu",
         "portfolioSummary": "Tổng quan danh mục đầu tư",
@@ -1163,6 +1265,14 @@
         "confirmDeleteTransaction": "Xác nhận xóa giao dịch",
         "deleteTransactionWarning": "Bạn có chắc chắn muốn xóa giao dịch này? Hành động này không thể hoàn tác.",
         "priceHistory": "Lịch sử giá",
-        "purchasePriceHistory": "Lịch sử giá mua"
+        "purchasePriceHistory": "Lịch sử giá mua",
+        "goldInvestmentGuide": {
+            "title": "Hướng dẫn đầu tư vàng",
+            "bullet1": "Vàng được coi là tài sản trú ẩn an toàn trong thời kỳ bất ổn kinh tế",
+            "bullet2": "Theo dõi giá vàng thường xuyên để đưa ra quyết định đầu tư sáng suốt",
+            "bullet3": "Cân nhắc đa dạng hóa đầu tư vàng qua nhiều hình thức khác nhau (vàng vật chất, ETF, cổ phiếu khai thác)",
+            "bullet4": "Lưu ý chi phí lưu trữ và vấn đề bảo mật với vàng vật chất"
+        },
+        "redirectingToInvestments": "Đang chuyển hướng đến trang đầu tư..."
     }
 }

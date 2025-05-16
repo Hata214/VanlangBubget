@@ -41,16 +41,33 @@ const allowedOrigins = process.env.NODE_ENV === 'development'
 
 console.log('CORS Allowed Origins:', allowedOrigins);
 
-// app.use(cors({
-//     // Sử dụng cách cấu hình đơn giản hơn cho development
-//     origin: process.env.NODE_ENV === 'development' ? true : allowedOrigins,
-//     credentials: true,
-//     exposedHeaders: ['Content-Disposition'],
-//     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'Pragma', 'Expires']
-// }));
+// Cấu hình CORS
+const corsOptions = {
+    origin: function (origin, callback) {
+        // Cho phép tất cả origin trong môi trường development
+        if (process.env.NODE_ENV === 'development' || !origin) {
+            callback(null, true);
+            return;
+        }
+
+        // Kiểm tra origin có trong danh sách cho phép không
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log(`Origin ${origin} không được phép truy cập`);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'Pragma', 'Expires', 'headers']
+};
 
 // Add OPTIONS preflight response for all routes
-// app.options('*', cors());
+app.options('*', cors(corsOptions));
+
+// Áp dụng CORS cho tất cả các routes
+app.use(cors(corsOptions));
 
 // Security middleware
 // app.use(helmet({

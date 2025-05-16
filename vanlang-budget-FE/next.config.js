@@ -46,6 +46,16 @@ const nextConfig = {
                 source: '/api/auth/:path*',
                 destination: '/api/auth/:path*', // Không rewrite đến backend
             },
+            // Quy tắc rewrite cho investments API
+            {
+                source: '/api/investments/:path*',
+                destination: `${API_URL}/api/investments/:path*`,
+            },
+            // Quy tắc rewrite cho investments API (không có path)
+            {
+                source: '/api/investments',
+                destination: `${API_URL}/api/investments`,
+            },
             // Quy tắc rewrite các API khác đến backend
             {
                 source: '/api/:path*', // Sẽ không khớp với /api/auth/* do quy tắc trên

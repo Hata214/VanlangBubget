@@ -9,10 +9,10 @@ import {
     TabsTrigger
 } from '@/components/ui/Tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
-import { Bitcoin, Coins, TrendingUp, ExternalLink } from 'lucide-react';
+import { Home, Coins, TrendingUp, ExternalLink } from 'lucide-react';
 import { StockInvestForm } from './stocks/StockInvestForm';
 import AddGoldInvestment from './gold/AddGoldInvestment';
-import AddCryptoInvestment from './crypto/AddCryptoInvestment';
+import AddRealEstateInvestment from './realestate/AddRealEstateInvestment';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -38,16 +38,8 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                 );
             case 'gold':
                 return null;
-            case 'crypto':
-                return (
-                    <Link href="/investments/crypto" passHref>
-                        <Button variant="outline" size="sm" className="flex items-center text-purple-600 border-purple-200 hover:bg-purple-50">
-                            <Bitcoin className="h-4 w-4 mr-2" />
-                            Xem giá tiền điện tử
-                            <ExternalLink className="h-3 w-3 ml-1" />
-                        </Button>
-                    </Link>
-                );
+            case 'realestate':
+                return null;
             default:
                 return null;
         }
@@ -77,9 +69,9 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                             <Coins className="h-4 w-4 mr-2 text-yellow-500" />
                             Vàng
                         </TabsTrigger>
-                        <TabsTrigger value="crypto" className="flex items-center">
-                            <Bitcoin className="h-4 w-4 mr-2 text-purple-500" />
-                            Tiền điện tử
+                        <TabsTrigger value="realestate" className="flex items-center">
+                            <Home className="h-4 w-4 mr-2 text-green-500" />
+                            Đất đai
                         </TabsTrigger>
                     </TabsList>
 
@@ -91,11 +83,11 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                         <AddGoldInvestment onSuccess={onSuccess} />
                     </TabsContent>
 
-                    <TabsContent value="crypto">
-                        <AddCryptoInvestment onSuccess={onSuccess} />
+                    <TabsContent value="realestate">
+                        <AddRealEstateInvestment onSuccess={onSuccess} />
                     </TabsContent>
                 </Tabs>
             </CardContent>
         </Card>
     );
-} 
+}

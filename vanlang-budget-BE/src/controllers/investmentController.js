@@ -10,7 +10,7 @@ const formatInvestmentResponse = (investment) => {
     const profitLoss = investment.currentValue - investment.initialInvestment;
     const roi = investment.initialInvestment !== 0 ? (profitLoss / investment.initialInvestment) * 100 : 0;
 
-    return {
+    const response = {
         id: investment._id.toString(),
         userId: investment.userId.toString(),
         name: investment.name,
@@ -40,6 +40,24 @@ const formatInvestmentResponse = (investment) => {
             updatedAt: t.updatedAt
         }))
     };
+
+    // Thêm các trường cho đầu tư đất đai nếu loại là realestate
+    if (investment.type === 'realestate') {
+        Object.assign(response, {
+            propertyType: investment.propertyType,
+            address: investment.address,
+            legalStatus: investment.legalStatus,
+            area: investment.area,
+            frontWidth: investment.frontWidth,
+            depth: investment.depth,
+            additionalFees: investment.additionalFees,
+            ownershipType: investment.ownershipType,
+            investmentPurpose: investment.investmentPurpose,
+            currentStatus: investment.currentStatus
+        });
+    }
+
+    return response;
 };
 
 /**
@@ -61,7 +79,18 @@ const createInvestment = async (req, res) => {
             startDate,
             notes,
             initialInvestment, // Vốn ban đầu (tùy chọn)
-            currentPrice // Giá hiện tại ban đầu (tùy chọn)
+            currentPrice, // Giá hiện tại ban đầu (tùy chọn)
+            // Các trường cho đầu tư đất đai
+            propertyType,
+            address,
+            legalStatus,
+            area,
+            frontWidth,
+            depth,
+            additionalFees,
+            ownershipType,
+            investmentPurpose,
+            currentStatus
         } = req.body;
 
         const newInvestmentData = {
@@ -75,6 +104,22 @@ const createInvestment = async (req, res) => {
             currentPrice: currentPrice || 0,
             transactions: [] // Khởi tạo mảng giao dịch rỗng
         };
+
+        // Thêm các trường cho đầu tư đất đai nếu loại là realestate
+        if (type === 'realestate') {
+            Object.assign(newInvestmentData, {
+                propertyType: propertyType || 'residential',
+                address: address || '',
+                legalStatus: legalStatus || 'redbook',
+                area: area || 0,
+                frontWidth: frontWidth || 0,
+                depth: depth || 0,
+                additionalFees: additionalFees || 0,
+                ownershipType: ownershipType || 'personal',
+                investmentPurpose: investmentPurpose || 'holding',
+                currentStatus: currentStatus || 'holding'
+            });
+        }
 
         console.log('[InvestmentController] Prepared investment data:', newInvestmentData);
 
@@ -717,4 +762,4 @@ export {
     addStockTransactionBySymbol,
     getInvestmentBySymbol
     // Thêm các hàm khác nếu cần (getByType, etc.)
-}; 
+};

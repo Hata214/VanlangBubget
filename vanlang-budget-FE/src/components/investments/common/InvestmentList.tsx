@@ -26,7 +26,8 @@ import {
     Plus,
     ExternalLink,
     Coins,
-    RefreshCw
+    RefreshCw,
+    Home
 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { deleteInvestment } from '@/services/investmentService';
@@ -96,7 +97,7 @@ interface DetailTransactionType {
 
 interface DetailInvestment {
     _id: string;
-    type: 'stock' | 'gold' | 'crypto';
+    type: 'stock' | 'gold' | 'realestate';
     assetName: string;
     symbol: string;
     currentPrice: number;
@@ -114,7 +115,7 @@ interface Investment {
     id: string;
     userId: string;
     name: string;
-    type: 'stock' | 'gold' | 'crypto' | 'savings' | 'fund' | 'realestate' | 'other';
+    type: 'stock' | 'gold' | 'realestate' | 'savings' | 'fund' | 'other';
     symbol?: string;
     category?: string;
     initialInvestment: number;
@@ -214,8 +215,8 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                 return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{t('stock')}</Badge>;
             case 'gold':
                 return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{t('gold.title')}</Badge>;
-            case 'crypto':
-                return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">{t('crypto')}</Badge>;
+            case 'realestate':
+                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{t('realestate.title')}</Badge>;
             default:
                 return <Badge variant="outline">{type}</Badge>;
         }
@@ -244,7 +245,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
     const mapToDetailInvestment = (investment: Investment): DetailInvestment => {
         return {
             _id: investment._id,
-            type: investment.type === 'stock' || investment.type === 'gold' || investment.type === 'crypto'
+            type: investment.type === 'stock' || investment.type === 'gold' || investment.type === 'realestate'
                 ? investment.type
                 : 'stock',
             assetName: investment.name || investment.assetName || '',

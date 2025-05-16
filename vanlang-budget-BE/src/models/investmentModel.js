@@ -91,6 +91,53 @@ const investmentSchema = new Schema({
         type: String,
         trim: true
     },
+    // Các trường cho đầu tư đất đai (realestate)
+    propertyType: {
+        type: String,
+        enum: ['residential', 'agricultural', 'commercial', 'project', 'other'],
+        default: 'residential'
+    },
+    address: {
+        type: String,
+        trim: true
+    },
+    legalStatus: {
+        type: String,
+        enum: ['redbook', 'pinkbook', 'handwritten', 'pending', 'other'],
+        default: 'redbook'
+    },
+    area: {
+        type: Number,
+        min: 0
+    },
+    frontWidth: {
+        type: Number,
+        min: 0
+    },
+    depth: {
+        type: Number,
+        min: 0
+    },
+    additionalFees: {
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    ownershipType: {
+        type: String,
+        enum: ['personal', 'shared', 'business', 'other'],
+        default: 'personal'
+    },
+    investmentPurpose: {
+        type: String,
+        enum: ['holding', 'appreciation', 'development', 'other'],
+        default: 'holding'
+    },
+    currentStatus: {
+        type: String,
+        enum: ['holding', 'sold', 'renting', 'other'],
+        default: 'holding'
+    },
     transactions: [transactionSchema] // Mảng chứa các giao dịch
     // Thêm các trường khác nếu cần: interestRate, endDate (cho savings), bankName, etc.
 }, {
@@ -159,4 +206,4 @@ investmentSchema.index({ userId: 1, type: 1 });
 
 const Investment = mongoose.model('Investment', investmentSchema);
 
-export default Investment; 
+export default Investment;
