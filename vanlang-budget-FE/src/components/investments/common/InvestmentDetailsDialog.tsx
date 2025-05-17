@@ -253,7 +253,9 @@ export default function InvestmentDetailsDialog({
                             <Card>
                                 <CardContent className="p-4">
                                     <div className="flex flex-col gap-1">
-                                        <span className="text-sm text-muted-foreground">{t('profitLoss')}</span>
+                                        <span className="text-sm text-muted-foreground">
+                                            {investment.type === 'savings' ? t('interestEarned') : t('profitLoss')}
+                                        </span>
                                         <div className="flex items-center gap-2">
                                             <span className={`text-xl font-medium ${investment.profitLoss >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                                                 {formatCurrency(investment.profitLoss)}

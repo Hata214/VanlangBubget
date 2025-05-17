@@ -166,8 +166,8 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                 name: `Tiết kiệm ${actualBankName}`,
                 symbol: `SAVE-${actualBankName}`,
                 category: 'Tiết kiệm ngân hàng',
-                initialInvestment: principal,
-                currentValue: totalAmount,
+                initialInvestment: principal,    // Vốn ban đầu
+                currentValue: principal,        // Giá trị hiện tại ban đầu bằng vốn gốc
                 startDate: startDate.toISOString(),
                 endDate: endDate.toISOString(),
                 notes: values.notes || "",
@@ -179,10 +179,10 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                 interestCalculationType: values.interestCalculationType,
                 autoRenewal: values.autoRenewal,
                 depositMethod: values.depositMethod,
-                estimatedInterest: estimatedInterest,
-                totalAmount: totalAmount,
-                profitLoss: estimatedInterest,
-                roi: (estimatedInterest / principal) * 100
+                estimatedInterest: estimatedInterest, // Lãi dự kiến (để tham khảo)
+                totalAmount: totalAmount,             // Tổng tiền dự kiến khi đáo hạn (để tham khảo)
+                profitLoss: 0,                    // Lợi nhuận/lỗ ban đầu là 0
+                roi: 0                            // ROI ban đầu là 0
             };
 
             // Gửi yêu cầu đến API

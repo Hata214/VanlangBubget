@@ -1129,7 +1129,8 @@
         "enterPrice": "Enter new price",
         "confirmUpdatePrice": "Confirm Price Update",
         "currentValue": "Current Value",
-        "close": "Close"
+        "close": "Close",
+        "interestEarned": "Interest Earned"
     },
     "admin": {
         "dashboard": "Dashboard",

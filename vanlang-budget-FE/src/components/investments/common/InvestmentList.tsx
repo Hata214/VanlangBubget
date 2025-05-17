@@ -251,24 +251,52 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
 
     // Chuyển đổi Investment từ danh sách sang định dạng phù hợp với InvestmentDetailsDialog
     const mapToDetailInvestment = (investment: Investment): DetailInvestment => {
-        // Đảm bảo rằng type truyền vào DetailInvestment là một trong các giá trị được DetailInvestment hỗ trợ
         const validTypesForDetail: Array<DetailInvestment['type']> = ['stock', 'gold', 'crypto', 'savings', 'realestate', 'fund', 'other'];
-        let detailType: DetailInvestment['type'] = 'other'; // Mặc định là 'other' nếu không khớp
+        let detailType: DetailInvestment['type'] = 'other';
         if (validTypesForDetail.includes(investment.type as DetailInvestment['type'])) {
             detailType = investment.type as DetailInvestment['type'];
         }
 
+        let displayedCurrentValue = investment.currentValue;
+        let displayedProfitLoss = investment.profitLoss !== undefined ? investment.profitLoss : 0;
+        let displayedRoi = investment.roi !== undefined ? investment.roi : 0;
+
+        // Logic điều chỉnh riêng cho "savings" để đảm bảo không hiển thị lỗ vô lý ban đầu
+        if (detailType === 'savings') {
+            // Nếu giá trị hiện tại không được định nghĩa hoặc là 0, và có vốn đầu tư
+            // thì coi giá trị hiện tại bằng vốn đầu tư, P/L và ROI là 0.
+            if ((displayedCurrentValue === undefined || displayedCurrentValue === 0) && investment.initialInvestment > 0) {
+                displayedCurrentValue = investment.initialInvestment;
+                displayedProfitLoss = 0;
+                displayedRoi = 0;
+            } else if (displayedCurrentValue !== undefined) {
+                // Nếu có currentValue, tính lại P/L và ROI dựa trên nó cho nhất quán
+                // Điều này quan trọng nếu profitLoss và roi từ API không khớp với currentValue và initialInvestment
+                displayedProfitLoss = displayedCurrentValue - investment.initialInvestment;
+                if (investment.initialInvestment !== 0 && investment.initialInvestment !== undefined) {
+                    displayedRoi = (displayedProfitLoss / investment.initialInvestment) * 100;
+                } else {
+                    displayedRoi = 0; // Tránh chia cho 0
+                }
+            } else {
+                // Fallback nếu cả currentValue cũng không có, mà initialInvestment lại có
+                displayedCurrentValue = investment.initialInvestment; // Coi như chưa có thay đổi giá trị
+                displayedProfitLoss = 0;
+                displayedRoi = 0;
+            }
+        }
+
         return {
             _id: investment._id,
-            type: detailType, // Sử dụng detailType đã được kiểm tra
+            type: detailType,
             assetName: investment.name || investment.assetName || '',
             symbol: investment.symbol || '',
             currentPrice: investment.currentPrice || 0,
             totalQuantity: investment.totalQuantity || 0,
             initialInvestment: investment.initialInvestment,
-            currentValue: investment.currentValue,
-            profitLoss: investment.profitLoss || 0,
-            roi: investment.roi || 0,
+            currentValue: displayedCurrentValue === undefined ? 0 : displayedCurrentValue, // Đảm bảo không phải undefined
+            profitLoss: displayedProfitLoss,
+            roi: displayedRoi,
             transactions: (investment.transactions || []).map(t => ({
                 _id: t.id,
                 type: t.type === 'buy' || t.type === 'sell' ? t.type : 'buy',
