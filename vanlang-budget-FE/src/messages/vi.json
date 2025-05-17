@@ -1073,6 +1073,10 @@
         "addError": "Lỗi khi thêm đầu tư",
         "addErrorDescription": "Đã xảy ra lỗi khi thêm khoản đầu tư",
         "stock": "Cổ phiếu",
+        "savings": "Tiết kiệm",
+        "fund": "Quỹ",
+        "crypto": "Tiền điện tử",
+        "other": "Khác",
         "gold": {
             "title": "Vàng"
         },
@@ -1273,6 +1277,7 @@
             "bullet3": "Cân nhắc đa dạng hóa đầu tư vàng qua nhiều hình thức khác nhau (vàng vật chất, ETF, cổ phiếu khai thác)",
             "bullet4": "Lưu ý chi phí lưu trữ và vấn đề bảo mật với vàng vật chất"
         },
-        "redirectingToInvestments": "Đang chuyển hướng đến trang đầu tư..."
+        "redirectingToInvestments": "Đang chuyển hướng đến trang đầu tư...",
+        "close": "Đóng"
     }
 }

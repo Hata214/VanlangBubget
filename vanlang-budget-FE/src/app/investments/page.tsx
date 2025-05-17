@@ -243,7 +243,6 @@ export default function InvestmentsPage() {
                 <ul className="space-y-2 list-disc pl-5 text-amber-700">
                     <li>{t('goldInvestmentGuide.bullet1')}</li>
                     <li>{t('goldInvestmentGuide.bullet2')}</li>
-                    <li>{t('goldInvestmentGuide.bullet3')}</li>
                     <li>{t('goldInvestmentGuide.bullet4')}</li>
                 </ul>
             </div>

@@ -916,6 +916,10 @@
         "errorLoadingDescription": "Could not load investment data. Please try again later.",
         "noDataAvailable": "No data available",
         "stock": "Stock",
+        "savings": "Savings",
+        "fund": "Fund",
+        "crypto": "Crypto",
+        "other": "Other",
         "gold": {
             "title": "Gold"
         },
@@ -1115,7 +1119,17 @@
             "bullet3": "Consider diversifying your gold investments across different forms (physical gold, ETFs, mining stocks)",
             "bullet4": "Be aware of storage costs and security concerns with physical gold"
         },
-        "redirectingToInvestments": "Redirecting to investments page..."
+        "redirectingToInvestments": "Redirecting to investments page...",
+        "portfolioSummary": "Portfolio Summary",
+        "totalInvestments": "Total {count} investments",
+        "totalInvested": "Total Invested",
+        "totalValue": "Total Current Value",
+        "totalProfitLoss": "Total Profit/Loss",
+        "updatePrice": "Update Price",
+        "enterPrice": "Enter new price",
+        "confirmUpdatePrice": "Confirm Price Update",
+        "currentValue": "Current Value",
+        "close": "Close"
     },
     "admin": {
         "dashboard": "Dashboard",

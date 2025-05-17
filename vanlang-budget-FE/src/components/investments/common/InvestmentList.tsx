@@ -97,7 +97,7 @@ interface DetailTransactionType {
 
 interface DetailInvestment {
     _id: string;
-    type: 'stock' | 'gold' | 'realestate';
+    type: 'stock' | 'gold' | 'realestate' | 'savings' | 'fund' | 'other' | 'crypto';
     assetName: string;
     symbol: string;
     currentPrice: number;
@@ -210,15 +210,23 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
     };
 
     const getTypeIcon = (type: string) => {
-        switch (type) {
+        switch (type?.toLowerCase()) {
             case 'stock':
-                return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{t('stock')}</Badge>;
+                return <Badge variant="outline" className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-700">{t('stock')}</Badge>;
             case 'gold':
-                return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{t('gold.title')}</Badge>;
+                return <Badge variant="outline" className="bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300 border-yellow-300 dark:border-yellow-700">{t('gold.title')}</Badge>;
             case 'realestate':
-                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{t('realestate.title')}</Badge>;
+                return <Badge variant="outline" className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700">{t('realestate.title')}</Badge>;
+            case 'savings':
+                return <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">{t('savings')}</Badge>;
+            case 'crypto':
+                return <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">{t('crypto')}</Badge>;
+            case 'fund':
+                return <Badge variant="outline" className="bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-700">{t('fund')}</Badge>;
+            case 'other':
+                return <Badge variant="outline" className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">{t('other')}</Badge>;
             default:
-                return <Badge variant="outline">{type}</Badge>;
+                return <Badge variant="outline" className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600">{type}</Badge>;
         }
     };
 
@@ -243,11 +251,16 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
 
     // Chuyển đổi Investment từ danh sách sang định dạng phù hợp với InvestmentDetailsDialog
     const mapToDetailInvestment = (investment: Investment): DetailInvestment => {
+        // Đảm bảo rằng type truyền vào DetailInvestment là một trong các giá trị được DetailInvestment hỗ trợ
+        const validTypesForDetail: Array<DetailInvestment['type']> = ['stock', 'gold', 'crypto', 'savings', 'realestate', 'fund', 'other'];
+        let detailType: DetailInvestment['type'] = 'other'; // Mặc định là 'other' nếu không khớp
+        if (validTypesForDetail.includes(investment.type as DetailInvestment['type'])) {
+            detailType = investment.type as DetailInvestment['type'];
+        }
+
         return {
             _id: investment._id,
-            type: investment.type === 'stock' || investment.type === 'gold' || investment.type === 'realestate'
-                ? investment.type
-                : 'stock',
+            type: detailType, // Sử dụng detailType đã được kiểm tra
             assetName: investment.name || investment.assetName || '',
             symbol: investment.symbol || '',
             currentPrice: investment.currentPrice || 0,

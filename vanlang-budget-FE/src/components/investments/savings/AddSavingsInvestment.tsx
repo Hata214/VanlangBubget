@@ -48,6 +48,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
     // Định nghĩa schema xác thực cho tiết kiệm
     const formSchema = z.object({
         bankName: z.string().min(1, 'Vui lòng chọn ngân hàng'),
+        otherBankName: z.string().optional(),
         accountNumber: z.string().optional(),
         amount: z.coerce.number().min(1, 'Số tiền gửi phải lớn hơn 0'),
         startDate: z.string().min(1, 'Ngày gửi tiền là bắt buộc'),
@@ -58,6 +59,14 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
         autoRenewal: z.boolean().default(false),
         depositMethod: z.string().min(1, 'Vui lòng chọn hình thức gửi'),
         notes: z.string().max(500, 'Ghi chú không được vượt quá 500 ký tự').optional(),
+    }).refine(data => {
+        if (data.bankName === 'Khác' && (!data.otherBankName || data.otherBankName.trim() === '')) {
+            return false;
+        }
+        return true;
+    }, {
+        message: 'Vui lòng nhập tên ngân hàng khác',
+        path: ['otherBankName'],
     });
 
     // Khởi tạo form
@@ -65,6 +74,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
         resolver: zodResolver(formSchema),
         defaultValues: {
             bankName: '',
+            otherBankName: '',
             accountNumber: '',
             amount: 0,
             startDate: new Date().toISOString().slice(0, 10),
@@ -83,6 +93,15 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
         setIsLoading(true);
 
         try {
+            // Xác định tên ngân hàng thực tế
+            const actualBankName = values.bankName === 'Khác' ? values.otherBankName?.trim() : values.bankName;
+
+            if (values.bankName === 'Khác' && !actualBankName) {
+                form.setError('otherBankName', { type: 'manual', message: 'Vui lòng nhập tên ngân hàng khác.' });
+                setIsLoading(false);
+                return;
+            }
+
             // Tính ngày đáo hạn dựa trên kỳ hạn
             const startDate = new Date(values.startDate);
             let endDate = new Date(startDate);
@@ -144,15 +163,15 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
             // Chuẩn bị dữ liệu
             const investmentData = {
                 type: 'savings',
-                name: `Tiết kiệm ${values.bankName}`,
-                symbol: `SAVE-${values.bankName}`,
+                name: `Tiết kiệm ${actualBankName}`,
+                symbol: `SAVE-${actualBankName}`,
                 category: 'Tiết kiệm ngân hàng',
                 initialInvestment: principal,
                 currentValue: totalAmount,
                 startDate: startDate.toISOString(),
                 endDate: endDate.toISOString(),
                 notes: values.notes || "",
-                bankName: values.bankName,
+                bankName: actualBankName,
                 accountNumber: values.accountNumber || "",
                 interestRate: values.interestRate,
                 term: termMonths,
@@ -279,16 +298,16 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Card className="border-blue-100 bg-blue-50/30">
+                <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-xl text-blue-800">Thông tin tiết kiệm ngân hàng</CardTitle>
+                            <CardTitle className="text-xl text-green-700 dark:text-green-400">Thông tin tiết kiệm ngân hàng</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Alert variant="info" className="mb-4">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Lưu ý</AlertTitle>
+                        <Alert variant="info" className="mb-4 bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200">
+                            <AlertCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                            <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
                             <AlertDescription>
                                 Vui lòng nhập thông tin chính xác về khoản tiết kiệm của bạn để theo dõi hiệu quả hơn.
                             </AlertDescription>
@@ -300,7 +319,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="bankName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ngân hàng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngân hàng</FormLabel>
                                         <FormControl>
                                             <BankCombobox
                                                 banks={banks}
@@ -310,7 +329,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                                 disabled={isLoading}
                                             />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Ngân hàng nơi bạn gửi tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -318,16 +337,32 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 )}
                             />
 
+                            {form.watch('bankName') === 'Khác' && (
+                                <FormField
+                                    control={form.control}
+                                    name="otherBankName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tên ngân hàng khác</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Nhập tên ngân hàng" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
+
                             <FormField
                                 control={form.control}
                                 name="accountNumber"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số tài khoản tiết kiệm</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số tài khoản tiết kiệm</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Nhập số tài khoản tiết kiệm (nếu có)" {...field} />
+                                            <Input placeholder="Nhập số tài khoản tiết kiệm (nếu có)" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Số sổ tiết kiệm hoặc mã định danh (không bắt buộc)
                                         </FormDescription>
                                         <FormMessage />
@@ -342,11 +377,11 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="amount"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số tiền gửi (VNĐ)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số tiền gửi (VNĐ)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập số tiền gửi" {...field} />
+                                            <Input type="number" step="1000" placeholder="Nhập số tiền gửi" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Số tiền bạn gửi vào ngân hàng
                                         </FormDescription>
                                         <FormMessage />
@@ -359,11 +394,11 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="startDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ngày gửi tiền</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngày gửi tiền</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <Input type="date" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Ngày bắt đầu gửi tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -378,25 +413,25 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="term"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Kỳ hạn gửi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Kỳ hạn gửi</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn kỳ hạn" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {terms.map((term) => (
-                                                    <SelectItem key={term.value} value={term.value}>
+                                                    <SelectItem key={term.value} value={term.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {term.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Thời gian gửi tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -409,11 +444,11 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestRate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Lãi suất áp dụng (%/năm)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Lãi suất áp dụng (%/năm)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="0.01" placeholder="Nhập lãi suất" {...field} />
+                                            <Input type="number" step="0.01" placeholder="Nhập lãi suất" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Lãi suất cố định theo kỳ hạn đã chọn
                                         </FormDescription>
                                         <FormMessage />
@@ -428,25 +463,25 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestPaymentType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Hình thức nhận lãi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Hình thức nhận lãi</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn hình thức nhận lãi" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {interestPaymentTypes.map((type) => (
-                                                    <SelectItem key={type.value} value={type.value}>
+                                                    <SelectItem key={type.value} value={type.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {type.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Cách thức nhận lãi từ khoản tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -459,22 +494,22 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestCalculationType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Phương thức tính lãi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Phương thức tính lãi</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn phương thức tính lãi" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="simple">Lãi đơn</SelectItem>
-                                                <SelectItem value="compound">Lãi kép</SelectItem>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
+                                                <SelectItem value="simple" className="hover:bg-accent dark:hover:bg-accent-dark">Lãi đơn</SelectItem>
+                                                <SelectItem value="compound" className="hover:bg-accent dark:hover:bg-accent-dark">Lãi kép</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Phương thức tính lãi áp dụng cho khoản tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -489,25 +524,25 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="depositMethod"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Hình thức gửi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Hình thức gửi</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn hình thức gửi" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {depositMethods.map((method) => (
-                                                    <SelectItem key={method.value} value={method.value}>
+                                                    <SelectItem key={method.value} value={method.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {method.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Phương thức bạn đã sử dụng để gửi tiết kiệm
                                         </FormDescription>
                                         <FormMessage />
@@ -521,10 +556,10 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 control={form.control}
                                 name="autoRenewal"
                                 render={({ field }) => (
-                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background dark:bg-background-dark border-border dark:border-border-dark">
                                         <div className="space-y-0.5">
-                                            <FormLabel className="text-base">Tự động tái tục</FormLabel>
-                                            <FormDescription>
+                                            <FormLabel className="text-base text-foreground dark:text-foreground-dark">Tự động tái tục</FormLabel>
+                                            <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                                 Khi đến hạn, khoản tiết kiệm sẽ tự động gia hạn theo kỳ hạn đã chọn
                                             </FormDescription>
                                         </div>
@@ -532,6 +567,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             <Switch
                                                 checked={field.value}
                                                 onCheckedChange={field.onChange}
+                                                className="data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary-dark data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input-dark"
                                             />
                                         </FormControl>
                                     </FormItem>
@@ -545,15 +581,15 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="notes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ghi chú</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ghi chú</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Thêm ghi chú về khoản tiết kiệm này"
-                                                className="resize-none"
+                                                className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Thông tin bổ sung về khoản tiết kiệm của bạn
                                         </FormDescription>
                                         <FormMessage />
@@ -563,8 +599,8 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                         </div>
 
                         <div className="grid grid-cols-1 gap-4 mb-4 mt-6">
-                            <div className="p-4 border rounded-lg bg-blue-50">
-                                <h3 className="text-lg font-semibold text-blue-800 mb-4">Thông tin dự kiến</h3>
+                            <div className="p-4 border rounded-lg bg-green-50 dark:bg-gray-800 border-green-200 dark:border-gray-700">
+                                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-4">Thông tin dự kiến</h3>
 
                                 {(() => {
                                     const principalInput = form.watch('amount');
@@ -642,28 +678,28 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
 
                                     return (
                                         <div className="space-y-4">
-                                            <div className="flex justify-between items-center p-3 bg-white rounded-md shadow-sm">
-                                                <div className="font-medium">Tiền gốc:</div>
-                                                <div className="text-lg font-semibold">
+                                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tiền gốc:</div>
+                                                <div className="text-lg font-semibold text-gray-900 dark:text-white">
                                                     {formatCurrency(principal)}
                                                 </div>
                                             </div>
 
-                                            <div className="flex justify-between items-center p-3 bg-white rounded-md shadow-sm">
-                                                <div className="font-medium">Tiền lãi dự kiến:</div>
-                                                <div className="text-lg font-semibold text-green-600">
+                                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tiền lãi dự kiến:</div>
+                                                <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                                                     {formatCurrency(interest)}
                                                 </div>
                                             </div>
 
-                                            <div className="flex justify-between items-center p-3 bg-white rounded-md shadow-sm border-2 border-blue-200">
-                                                <div className="font-medium">Tổng tiền nhận:</div>
-                                                <div className="text-lg font-semibold text-blue-600">
+                                            <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm border-2 border-green-200 dark:border-green-500">
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng tiền nhận:</div>
+                                                <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                                                     {formatCurrency(total)}
                                                 </div>
                                             </div>
 
-                                            <div className="text-xs text-gray-500 mt-2">
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                                                 * Số tiền dự kiến có thể thay đổi tùy theo chính sách của ngân hàng
                                             </div>
                                         </div>
@@ -673,7 +709,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                         </div>
 
                         <div className="flex justify-end items-center mt-6">
-                            <Button type="submit" disabled={isLoading} className="bg-blue-500 hover:bg-blue-600">
+                            <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
                                 {isLoading ? 'Đang xử lý...' : 'Thêm khoản tiết kiệm'}
                             </Button>
                         </div>

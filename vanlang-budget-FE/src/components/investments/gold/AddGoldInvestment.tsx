@@ -52,6 +52,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         assetName: z.string()
             .min(1, t('assetNameRequired'))
             .max(100, t('assetNameTooLong')),
+        otherAssetName: z.string().optional(),
         symbol: z.string()
             .min(1, t('symbolRequired'))
             .max(20, t('symbolTooLong')),
@@ -66,23 +67,52 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         notes: z.string().max(500, t('notesTooLong')).optional(),
         purchaseDate: z.string().min(1, t('purchaseDateRequired')),
         purity: z.string().optional(),
+        otherPurity: z.string().optional(),
         brand: z.string().optional(),
+        otherBrand: z.string().optional(),
         weightUnit: z.string().default('gram'),
+    }).refine(data => {
+        if (data.brand === 'Khác' && (!data.otherBrand || data.otherBrand.trim() === '')) {
+            return false;
+        }
+        return true;
+    }, {
+        message: 'Vui lòng nhập tên thương hiệu khác',
+        path: ['otherBrand'],
+    }).refine(data => {
+        if (data.assetName === 'Khác' && (!data.otherAssetName || data.otherAssetName.trim() === '')) {
+            return false;
+        }
+        return true;
+    }, {
+        message: 'Vui lòng nhập loại vàng khác',
+        path: ['otherAssetName'],
+    }).refine(data => {
+        if (data.purity === 'Khác' && (!data.otherPurity || data.otherPurity.trim() === '')) {
+            return false;
+        }
+        return true;
+    }, {
+        message: 'Vui lòng nhập độ tinh khiết khác',
+        path: ['otherPurity'],
     });
 
     // Khởi tạo form
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            assetName: 'Vàng',
+            assetName: 'Vàng miếng',
+            otherAssetName: '',
             symbol: '',
             currentPrice: 0,
             quantity: 0,
             fee: 0,
             notes: '',
             purchaseDate: new Date().toISOString().slice(0, 10),
-            purity: '',
-            brand: '',
+            purity: '9999',
+            otherPurity: '',
+            brand: 'SJC',
+            otherBrand: '',
             weightUnit: 'gram',
         },
     });
@@ -92,18 +122,38 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         setIsLoading(true);
 
         try {
+            const actualBrand = values.brand === 'Khác' ? values.otherBrand?.trim() : values.brand;
+            const actualAssetName = values.assetName === 'Khác' ? values.otherAssetName?.trim() : values.assetName;
+            const actualPurity = values.purity === 'Khác' ? values.otherPurity?.trim() : values.purity;
+
+            if (values.brand === 'Khác' && !actualBrand) {
+                form.setError('otherBrand', { type: 'manual', message: 'Vui lòng nhập tên thương hiệu khác.' });
+                setIsLoading(false);
+                return;
+            }
+            if (values.assetName === 'Khác' && !actualAssetName) {
+                form.setError('otherAssetName', { type: 'manual', message: 'Vui lòng nhập loại vàng khác.' });
+                setIsLoading(false);
+                return;
+            }
+            if (values.purity === 'Khác' && !actualPurity) {
+                form.setError('otherPurity', { type: 'manual', message: 'Vui lòng nhập độ tinh khiết khác.' });
+                setIsLoading(false);
+                return;
+            }
+
             // Chuẩn bị dữ liệu
             const investmentData = {
                 type: 'gold',
-                name: values.assetName,
+                name: actualAssetName || 'Vàng',
                 symbol: values.symbol || 'GOLD',
                 category: 'Vàng',
                 currentPrice: Number(values.currentPrice),
                 initialInvestment: Number(values.currentPrice) * Number(values.quantity),
                 startDate: new Date(values.purchaseDate).toISOString(),
                 notes: values.notes || "",
-                purity: values.purity || "9999",
-                brand: values.brand || "SJC",
+                purity: actualPurity || "9999",
+                brand: actualBrand || "SJC",
                 weightUnit: values.weightUnit || "gram",
                 transaction: {
                     type: 'buy',
@@ -111,7 +161,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                     quantity: Number(values.quantity),
                     fee: Number(values.fee || 0),
                     date: new Date(values.purchaseDate).toISOString(),
-                    notes: `Mua vàng ${values.brand || 'SJC'} ${values.purity || '9999'}`
+                    notes: `Mua vàng ${actualBrand || 'SJC'} ${actualPurity || '9999'}`
                 }
             };
 
@@ -262,16 +312,16 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <Card className="border-yellow-100 bg-yellow-50/30">
+                <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-xl text-yellow-800">Thông tin vàng</CardTitle>
+                            <CardTitle className="text-xl text-yellow-800 dark:text-yellow-300">Thông tin vàng</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <Alert variant="info" className="mb-4">
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>Lưu ý</AlertTitle>
+                        <Alert variant="info" className="mb-4 bg-yellow-100 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200">
+                            <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+                            <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
                             <AlertDescription>
                                 Vui lòng nhập thông tin chính xác về khoản đầu tư vàng của bạn để theo dõi hiệu quả hơn.
                             </AlertDescription>
@@ -283,104 +333,152 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="brand"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Thương hiệu</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Thương hiệu</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
+                                            disabled={isLoading}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn thương hiệu vàng" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {goldBrands.map((brand) => (
-                                                    <SelectItem key={brand.value} value={brand.value}>
+                                                    <SelectItem key={brand.value} value={brand.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {brand.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Thương hiệu vàng bạn đã mua
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+                            {form.watch('brand') === 'Khác' && (
+                                <FormField
+                                    control={form.control}
+                                    name="otherBrand"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tên thương hiệu khác</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Nhập tên thương hiệu" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
                             <FormField
                                 control={form.control}
                                 name="assetName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Loại vàng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Loại vàng</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
+                                            disabled={isLoading}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn loại vàng" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {goldTypes.map((type) => (
-                                                    <SelectItem key={type.value} value={type.value}>
+                                                    <SelectItem key={type.value} value={type.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {type.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Loại vàng bạn đã mua
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+                            {form.watch('assetName') === 'Khác' && (
+                                <FormField
+                                    control={form.control}
+                                    name="otherAssetName"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">Loại vàng khác</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Nhập loại vàng" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
                             <FormField
                                 control={form.control}
                                 name="purity"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Độ tinh khiết</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Độ tinh khiết</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
+                                            disabled={isLoading}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn độ tinh khiết" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
                                                 {goldPurities.map((purity) => (
-                                                    <SelectItem key={purity.value} value={purity.value}>
+                                                    <SelectItem key={purity.value} value={purity.value} className="hover:bg-accent dark:hover:bg-accent-dark">
                                                         {purity.label}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Độ tinh khiết của vàng
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
+                            {form.watch('purity') === 'Khác' && (
+                                <FormField
+                                    control={form.control}
+                                    name="otherPurity"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">Độ tinh khiết khác</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Nhập độ tinh khiết" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            )}
 
                             <FormField
                                 control={form.control}
                                 name="symbol"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Mã định danh</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Mã định danh</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ví dụ: SJC1L" {...field} />
+                                            <Input placeholder="Ví dụ: SJC1L" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Mã hoặc ký hiệu của sản phẩm vàng (không bắt buộc)
                                         </FormDescription>
                                         <FormMessage />
@@ -395,11 +493,11 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="quantity"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Số lượng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số lượng</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="0.01" placeholder="Nhập số lượng" {...field} />
+                                            <Input type="number" step="0.01" placeholder="Nhập số lượng" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Số lượng vàng bạn đã mua (gam, chỉ, lượng,...)
                                         </FormDescription>
                                         <FormMessage />
@@ -412,25 +510,26 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="weightUnit"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Đơn vị</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Đơn vị</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
+                                            disabled={isLoading}
                                         >
                                             <FormControl>
-                                                <SelectTrigger>
+                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
                                                     <SelectValue placeholder="Chọn đơn vị" />
                                                 </SelectTrigger>
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="gram">Gram</SelectItem>
-                                                <SelectItem value="chỉ">Chỉ (3.75g)</SelectItem>
-                                                <SelectItem value="lượng">Lượng (37.5g)</SelectItem>
-                                                <SelectItem value="cây">Cây (37.5g)</SelectItem>
-                                                <SelectItem value="phân">Phân (0.375g)</SelectItem>
+                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
+                                                <SelectItem value="gram" className="hover:bg-accent dark:hover:bg-accent-dark">Gram</SelectItem>
+                                                <SelectItem value="chỉ" className="hover:bg-accent dark:hover:bg-accent-dark">Chỉ (3.75g)</SelectItem>
+                                                <SelectItem value="lượng" className="hover:bg-accent dark:hover:bg-accent-dark">Lượng (37.5g)</SelectItem>
+                                                <SelectItem value="cây" className="hover:bg-accent dark:hover:bg-accent-dark">Cây (37.5g)</SelectItem>
+                                                <SelectItem value="phân" className="hover:bg-accent dark:hover:bg-accent-dark">Phân (0.375g)</SelectItem>
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Đơn vị khối lượng vàng
                                         </FormDescription>
                                         <FormMessage />
@@ -443,11 +542,11 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="currentPrice"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Giá mua (đồng/đơn vị)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Giá mua (đồng/đơn vị)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập giá mua" {...field} />
+                                            <Input type="number" step="1000" placeholder="Nhập giá mua" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Giá vàng khi bạn mua (VND)
                                         </FormDescription>
                                         <FormMessage />
@@ -460,11 +559,11 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="fee"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Phí giao dịch</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Phí giao dịch</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập phí giao dịch" {...field} />
+                                            <Input type="number" step="1000" placeholder="Nhập phí giao dịch" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Phí mua vàng (nếu có)
                                         </FormDescription>
                                         <FormMessage />
@@ -479,11 +578,11 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="purchaseDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ngày mua</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngày mua</FormLabel>
                                         <FormControl>
-                                            <Input type="date" {...field} />
+                                            <Input type="date" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Ngày bạn mua vàng
                                         </FormDescription>
                                         <FormMessage />
@@ -496,15 +595,15 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="notes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Ghi chú</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ghi chú</FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 placeholder="Thêm ghi chú về khoản đầu tư vàng này"
-                                                className="resize-none"
+                                                className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Thông tin bổ sung về khoản đầu tư vàng của bạn
                                         </FormDescription>
                                         <FormMessage />
@@ -514,7 +613,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                         </div>
 
                         <div className="flex justify-end items-center mt-6">
-                            <Button type="submit" disabled={isLoading} className="bg-amber-500 hover:bg-amber-600">
+                            <Button type="submit" disabled={isLoading} className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white dark:text-gray-900">
                                 {isLoading ? 'Đang xử lý...' : 'Thêm khoản đầu tư vàng'}
                             </Button>
                         </div>

@@ -72,7 +72,7 @@ interface Transaction {
 
 interface Investment {
     _id: string;
-    type: 'stock' | 'gold' | 'crypto';
+    type: 'stock' | 'gold' | 'crypto' | 'savings' | 'realestate' | 'fund' | 'other';
     assetName: string;
     symbol: string;
     currentPrice: number;
@@ -161,15 +161,23 @@ export default function InvestmentDetailsDialog({
     };
 
     const getTypeIcon = (type: string) => {
-        switch (type) {
+        switch (type?.toLowerCase()) {
             case 'stock':
-                return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">{t('stock')}</Badge>;
+                return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900 dark:text-blue-300 dark:border-blue-700">{t('stock')}</Badge>;
             case 'gold':
-                return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">{t('gold.title')}</Badge>;
+                return <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900 dark:text-yellow-300 dark:border-yellow-700">{t('gold.title')}</Badge>;
             case 'crypto':
-                return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">{t('crypto')}</Badge>;
+                return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-700">{t('crypto')}</Badge>;
+            case 'savings':
+                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">{t('savings')}</Badge>;
+            case 'realestate':
+                return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-700">{t('realestate.title')}</Badge>;
+            case 'fund':
+                return <Badge variant="outline" className="bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-900 dark:text-indigo-300 dark:border-indigo-700">{t('fund')}</Badge>;
+            case 'other':
+                return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">{t('other')}</Badge>;
             default:
-                return null;
+                return <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600">{type}</Badge>;
         }
     };
 
@@ -338,7 +346,7 @@ export default function InvestmentDetailsDialog({
                             onClick={onClose}
                             className="px-6"
                         >
-                            {t('common.close', { ns: 'common' })}
+                            {t('close')}
                         </Button>
                     </div>
                 </DialogContent>
