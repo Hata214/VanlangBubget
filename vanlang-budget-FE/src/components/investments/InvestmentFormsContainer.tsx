@@ -9,10 +9,11 @@ import {
     TabsTrigger
 } from '@/components/ui/Tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
-import { Home, Coins, TrendingUp, ExternalLink } from 'lucide-react';
+import { Home, Coins, TrendingUp, ExternalLink, PiggyBank } from 'lucide-react';
 import { StockInvestForm } from './stocks/StockInvestForm';
 import AddGoldInvestment from './gold/AddGoldInvestment';
 import AddRealEstateInvestment from './realestate/AddRealEstateInvestment';
+import AddSavingsInvestment from './savings/AddSavingsInvestment';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
 
@@ -40,6 +41,8 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                 return null;
             case 'realestate':
                 return null;
+            case 'savings':
+                return null;
             default:
                 return null;
         }
@@ -60,7 +63,7 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsList className="grid w-full grid-cols-4 mb-6">
                         <TabsTrigger value="stock" className="flex items-center">
                             <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
                             Cổ phiếu
@@ -72,6 +75,10 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                         <TabsTrigger value="realestate" className="flex items-center">
                             <Home className="h-4 w-4 mr-2 text-green-500" />
                             Đất đai
+                        </TabsTrigger>
+                        <TabsTrigger value="savings" className="flex items-center">
+                            <PiggyBank className="h-4 w-4 mr-2 text-blue-400" />
+                            Tiết kiệm
                         </TabsTrigger>
                     </TabsList>
 
@@ -85,6 +92,10 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
 
                     <TabsContent value="realestate">
                         <AddRealEstateInvestment onSuccess={onSuccess} />
+                    </TabsContent>
+
+                    <TabsContent value="savings">
+                        <AddSavingsInvestment onSuccess={onSuccess} />
                     </TabsContent>
                 </Tabs>
             </CardContent>

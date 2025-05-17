@@ -138,8 +138,52 @@ const investmentSchema = new Schema({
         enum: ['holding', 'sold', 'renting', 'other'],
         default: 'holding'
     },
+    // Các trường cho tiết kiệm ngân hàng (savings)
+    bankName: {
+        type: String,
+        trim: true
+    },
+    accountNumber: {
+        type: String,
+        trim: true
+    },
+    interestRate: {
+        type: Number,
+        min: 0
+    },
+    term: {
+        type: Number, // Số tháng
+        min: 0
+    },
+    interestPaymentType: {
+        type: String,
+        enum: ['end', 'monthly', 'prepaid'] // Hình thức nhận lãi: cuối kỳ, hàng tháng, trả trước
+    },
+    interestCalculationType: {
+        type: String,
+        enum: ['simple', 'compound'],
+        default: 'simple'
+    },
+    autoRenewal: {
+        type: Boolean,
+        default: false
+    },
+    depositMethod: {
+        type: String,
+        enum: ['online', 'counter'] // Hình thức gửi: online, tại quầy
+    },
+    estimatedInterest: {
+        type: Number,
+        default: 0
+    },
+    totalAmount: {
+        type: Number,
+        default: 0
+    },
+    endDate: {
+        type: Date
+    },
     transactions: [transactionSchema] // Mảng chứa các giao dịch
-    // Thêm các trường khác nếu cần: interestRate, endDate (cho savings), bankName, etc.
 }, {
     timestamps: true, // Tự động thêm createdAt và updatedAt
     methods: {

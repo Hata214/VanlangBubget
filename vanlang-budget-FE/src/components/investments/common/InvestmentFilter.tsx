@@ -16,6 +16,7 @@ export default function InvestmentFilter({ activeFilter, onFilterChange }: Inves
         { key: 'stock', label: t('stock') },
         { key: 'gold', label: t('gold.title') },
         { key: 'realestate', label: t('realestate.title') },
+        { key: 'savings', label: 'Tiết kiệm' },
     ];
 
     return (

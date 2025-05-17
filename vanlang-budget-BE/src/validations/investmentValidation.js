@@ -60,6 +60,39 @@ const createInvestmentSchema = Joi.object({
     }),
     investmentPurpose: Joi.string().valid('holding', 'appreciation', 'development', 'other').optional(),
     currentStatus: Joi.string().valid('holding', 'sold', 'renting', 'other').optional(),
+    // Các trường cho tiết kiệm ngân hàng
+    bankName: Joi.string().trim().when('type', {
+        is: 'savings',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    accountNumber: Joi.string().trim().optional(),
+    interestRate: Joi.number().min(0).when('type', {
+        is: 'savings',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    term: Joi.number().min(0).when('type', {
+        is: 'savings',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    interestPaymentType: Joi.string().valid('end', 'monthly', 'prepaid').when('type', {
+        is: 'savings',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    interestCalculationType: Joi.string().valid('simple', 'compound').default('simple').optional(),
+    autoRenewal: Joi.boolean().default(false).optional(),
+    depositMethod: Joi.string().valid('online', 'counter').when('type', {
+        is: 'savings',
+        then: Joi.required(),
+        otherwise: Joi.optional()
+    }),
+    estimatedInterest: Joi.number().min(0).optional(),
+    totalAmount: Joi.number().min(0).optional(),
+    endDate: Joi.date().iso().optional(),
+
     // Thêm trường transaction để hỗ trợ giao dịch ban đầu
     transaction: Joi.object({
         type: Joi.string().valid(...allowedTransactionTypes).optional(),
@@ -90,9 +123,19 @@ const updateInvestmentSchema = Joi.object({
     additionalFees: Joi.number().min(0).optional(),
     ownershipType: Joi.string().valid('personal', 'shared', 'business', 'other').optional(),
     investmentPurpose: Joi.string().valid('holding', 'appreciation', 'development', 'other').optional(),
-    currentStatus: Joi.string().valid('holding', 'sold', 'renting', 'other').optional()
+    currentStatus: Joi.string().valid('holding', 'sold', 'renting', 'other').optional(),
+    // Các trường cho tiết kiệm ngân hàng
+    bankName: Joi.string().trim().optional(),
+    accountNumber: Joi.string().trim().optional(),
+    interestRate: Joi.number().min(0).optional(),
+    term: Joi.number().min(0).optional(),
+    interestPaymentType: Joi.string().valid('end', 'monthly', 'prepaid').optional(),
+    interestCalculationType: Joi.string().valid('simple', 'compound').optional(),
+    autoRenewal: Joi.boolean().optional(),
+    depositMethod: Joi.string().valid('online', 'counter').optional(),
+    estimatedInterest: Joi.number().min(0).optional(),
+    endDate: Joi.date().iso().optional(),
     // Không cho phép thay đổi type hoặc symbol ở đây
-    // Các trường khác như interestRate, endDate... sẽ cần schema riêng nếu cần cập nhật
 }).min(1); // Yêu cầu ít nhất một trường để cập nhật
 
 // Schema cho việc thêm một giao dịch mới
