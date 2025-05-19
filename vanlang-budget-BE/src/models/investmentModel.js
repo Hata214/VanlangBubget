@@ -183,6 +183,10 @@ const investmentSchema = new Schema({
     endDate: {
         type: Date
     },
+    // Thêm trường mới cho ngày tính lãi cuối cùng của tiết kiệm
+    lastInterestCalculationDate: {
+        type: Date
+    },
     transactions: [transactionSchema] // Mảng chứa các giao dịch
 }, {
     timestamps: true, // Tự động thêm createdAt và updatedAt
@@ -190,36 +194,69 @@ const investmentSchema = new Schema({
         // Hàm tính toán lại các chỉ số chính dựa trên giao dịch và giá hiện tại
         calculateMetrics() {
             let totalQuantity = 0;
-            let initialInvestment = 0; // Tổng tiền mua/nạp vào trừ đi tiền bán/rút ra
+            let calculatedInitialInvestment = 0;
+            let totalInterestEarned = 0; // Cho savings
 
             this.transactions.forEach(t => {
-                const transactionAmount = (t.price || 0) * (t.quantity || 0) + (t.fee || 0);
+                const transactionFee = t.fee || 0;
                 switch (t.type) {
                     case 'buy':
                         totalQuantity += t.quantity;
-                        initialInvestment += transactionAmount;
+                        calculatedInitialInvestment += (t.price * t.quantity) + transactionFee;
                         break;
                     case 'sell':
                         totalQuantity -= t.quantity;
-                        initialInvestment -= ((t.price * t.quantity) - (t.fee || 0)); // Trừ đi giá trị thu về
+                        // Giá trị thu về làm giảm vốn đầu tư hiệu quả
+                        calculatedInitialInvestment -= (t.price * t.quantity) - transactionFee;
                         break;
                     case 'deposit':
-                        initialInvestment += t.amount + (t.fee || 0);
+                        if (this.type === 'savings') {
+                            calculatedInitialInvestment += t.amount + transactionFee;
+                        } else {
+                            // Đối với các loại khác, deposit có thể làm tăng vốn đầu tư
+                            calculatedInitialInvestment += t.amount + transactionFee;
+                        }
                         break;
                     case 'withdraw':
-                        initialInvestment -= (t.amount - (t.fee || 0));
+                        if (this.type === 'savings') {
+                            calculatedInitialInvestment -= (t.amount - transactionFee);
+                        } else {
+                            // Đối với các loại khác, withdraw làm giảm vốn
+                            calculatedInitialInvestment -= (t.amount - transactionFee);
+                        }
                         break;
-                    // Các loại khác như dividend, interest có thể không ảnh hưởng trực tiếp đến vốn gốc hoặc số lượng
+                    case 'interest':
+                        if (this.type === 'savings') {
+                            totalInterestEarned += t.amount; // Lãi không ảnh hưởng vốn gốc, chỉ cộng vào giá trị hiện tại
+                        }
+                        // For other types, 'interest' or 'dividend' might be handled differently
+                        // or might directly contribute to currentValue if not reinvested as new shares.
+                        // Current logic: interest/dividend transactions don't change totalQuantity or initialInvestment directly here.
+                        // They will be reflected in profit/loss when currentValue is compared against initialInvestment.
+                        break;
+                    case 'dividend':
+                        // Tương tự 'interest', dividend thường không thay đổi vốn gốc hoặc số lượng cổ phiếu trừ khi tái đầu tư.
+                        // Lợi nhuận từ dividend sẽ thể hiện khi so sánh currentValue và initialInvestment.
+                        // Hoặc có thể tạo giao dịch 'buy' nếu dividend được tái đầu tư.
+                        break;
                 }
             });
 
             this.totalQuantity = totalQuantity;
-            // Cẩn thận: initialInvestment này là dòng tiền ròng, không phải giá trị vốn gốc ban đầu nếu có sell/withdraw
-            // Có thể cần một trường khác để lưu tổng vốn gốc ban đầu thực sự
-            this.initialInvestment = initialInvestment;
-            this.currentValue = this.totalQuantity * (this.currentPrice || 0);
+            this.initialInvestment = calculatedInitialInvestment;
 
-            // Reset profitLoss và roi, chúng sẽ được tính toán khi cần dựa trên currentValue và initialInvestment
+            if (this.type === 'savings') {
+                // Đối với tiết kiệm, currentValue = vốn gốc + tổng lãi
+                this.currentValue = this.initialInvestment + totalInterestEarned;
+                // profitLoss cho tiết kiệm là tổng lãi
+                // this.profitLoss = totalInterestEarned; // Sẽ được tính bên ngoài hoặc qua getter
+            } else {
+                // Đối với các loại khác (stock, crypto, gold, etc.)
+                this.currentValue = this.totalQuantity * (this.currentPrice || 0);
+            }
+
+            // profitLoss và roi sẽ được tính động dựa trên initialInvestment và currentValue
+            // khi gọi formatInvestmentResponse hoặc tương tự.
         },
 
         // Hàm thêm giao dịch và tính toán lại

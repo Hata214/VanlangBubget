@@ -20,6 +20,9 @@ import { notifyDueBudgets } from './services/budgetService.js';
 import { findByID } from './services/notificationService.js';
 import { getUserDetailsByID } from './services/userService.js';
 
+// IMPORT SCHEDULER SERVICE MỚI
+import { startSchedulers } from './services/schedulerService.js';
+
 /**
  * Khởi tạo tất cả các cron jobs trong hệ thống
  */
@@ -31,6 +34,9 @@ export const initCronJobs = () => {
 
     try {
         console.log('🚀 Đang khởi tạo cron jobs...');
+
+        // Gọi hàm để khởi động các schedulers từ schedulerService.js
+        startSchedulers();
 
         // Kiểm tra khoản vay quá hạn hàng ngày lúc 8:00 sáng
         cron.schedule('0 8 * * *', checkOverdueLoans, {
