@@ -111,14 +111,14 @@ export function SearchFilter({ categories, onSearch, onFilter, onReset, category
                         type="number"
                         value={filters.minAmount}
                         onChange={(e) => handleFilterChange('minAmount', Number(e.target.value))}
-                        placeholder={t('expense.minAmount')}
+                        placeholder={t('common.filterMinAmountPlaceholder')}
                     />
 
                     <Input
                         type="number"
                         value={filters.maxAmount}
                         onChange={(e) => handleFilterChange('maxAmount', Number(e.target.value))}
-                        placeholder={t('expense.maxAmount')}
+                        placeholder={t('common.filterMaxAmountPlaceholder')}
                     />
                 </div>
             )}

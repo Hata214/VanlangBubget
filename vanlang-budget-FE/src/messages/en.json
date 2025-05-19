@@ -258,7 +258,9 @@
         "actionCannotBeUndone": "This action cannot be undone.",
         "max": "maximum",
         "saving": "Saving...",
-        "add": "Add"
+        "add": "Add",
+        "filterMinAmountPlaceholder": "Min Amount",
+        "filterMaxAmountPlaceholder": "Max Amount"
     },
     "dashboard": {
         "financialOverview": "Financial Overview",

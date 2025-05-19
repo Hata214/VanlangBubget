@@ -388,7 +388,9 @@
         "actionCannotBeUndone": "Hành động này không thể hoàn tác.",
         "max": "tối đa",
         "saving": "Đang lưu...",
-        "add": "Thêm"
+        "add": "Thêm",
+        "filterMinAmountPlaceholder": "Số tiền tối thiểu",
+        "filterMaxAmountPlaceholder": "Số tiền tối đa"
     },
     "notifications": {
         "title": "Thông báo",
@@ -658,6 +660,13 @@
         "errorCalculatingInterest": "Lỗi khi tính lãi suất",
         "acceptedFileTypes": "Chấp nhận file ảnh và PDF",
         "preview": "Xem trước",
+        "interestRateTypes": {
+            "day": "Ngày",
+            "week": "Tuần",
+            "month": "Tháng",
+            "quarter": "Quý",
+            "year": "Năm"
+        },
         "lenderTypes": {
             "individual": "Cá nhân",
             "bank": "Ngân hàng",
