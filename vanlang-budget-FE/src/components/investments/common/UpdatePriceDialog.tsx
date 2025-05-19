@@ -14,7 +14,7 @@ import {
     FormLabel,
     FormMessage,
 } from '@/components/ui/Form';
-import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/components/ToastProvider';
 import { updateCurrentPrice } from '@/services/investmentService';
@@ -48,6 +48,7 @@ export default function UpdatePriceDialog({
     const formSchema = z.object({
         currentPrice: z.coerce.number()
             .min(0, t('pricePositive'))
+            .max(100000000000, 'Giá tối đa là 100 tỷ')
             .default(investment.currentPrice),
     });
 
@@ -99,14 +100,15 @@ export default function UpdatePriceDialog({
                     <FormField
                         control={form.control}
                         name="currentPrice"
-                        render={({ field }) => (
+                        render={({ field, fieldState: { error } }) => (
                             <FormItem>
                                 <FormLabel>{t('enterPrice')}</FormLabel>
                                 <FormControl>
-                                    <Input
-                                        type="number"
-                                        placeholder="0.00"
-                                        {...field}
+                                    <CurrencyInput
+                                        placeholder="0"
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        onBlur={field.onBlur}
                                         disabled={isLoading}
                                     />
                                 </FormControl>

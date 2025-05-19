@@ -34,6 +34,7 @@ import { getToken } from '@/services/api';
 import { Switch } from '@/components/ui/Switch';
 import axios from '@/lib/axios';
 import { BankCombobox } from './BankCombobox';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface AddSavingsInvestmentProps {
     onSuccess: () => void;
@@ -50,7 +51,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
         bankName: z.string().min(1, 'Vui lòng chọn ngân hàng'),
         otherBankName: z.string().optional(),
         accountNumber: z.string().optional(),
-        amount: z.coerce.number().min(1, 'Số tiền gửi phải lớn hơn 0'),
+        amount: z.coerce.number().min(1, 'Số tiền gửi phải lớn hơn 0').max(100000000000, 'Số tiền tối đa là 100 tỷ'),
         startDate: z.string().min(1, 'Ngày gửi tiền là bắt buộc'),
         term: z.string().min(1, 'Vui lòng chọn kỳ hạn gửi'),
         interestRate: z.coerce.number().min(0, 'Lãi suất không được âm'),
@@ -375,11 +376,17 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                             <FormField
                                 control={form.control}
                                 name="amount"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">Số tiền gửi (VNĐ)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập số tiền gửi" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <CurrencyInput
+                                                placeholder="Nhập số tiền gửi"
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Số tiền bạn gửi vào ngân hàng
@@ -446,7 +453,21 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">Lãi suất áp dụng (%/năm)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="0.01" placeholder="Nhập lãi suất" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <Input
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="Nhập lãi suất"
+                                                {...field}
+                                                min="0"
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    if (value === '' || parseFloat(value) >= 0) {
+                                                        field.onChange(value === '' ? undefined : parseFloat(value));
+                                                    } else if (parseFloat(value) < 0) {
+                                                    }
+                                                }}
+                                                className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Lãi suất cố định theo kỳ hạn đã chọn

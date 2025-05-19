@@ -606,7 +606,7 @@ export default function NotificationsPage() {
                         <Button
                             variant="link"
                             className="p-0 mt-1 h-auto text-green-700 hover:text-green-900"
-                            onClick={() => handleOpenLink(notification.link as string)}
+                            onClick={() => navigateToTarget(router, notification.link as string, notification.relatedId)}
                         >
                             <LinkIcon className="h-3 w-3 mr-1" />
                             <span className="text-xs">Xem chi tiết</span>

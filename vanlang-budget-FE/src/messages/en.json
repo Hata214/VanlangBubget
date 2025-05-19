@@ -535,6 +535,10 @@
     },
     "notifications": {
         "title": "Notifications",
+        "subtitle": "Manage all your notifications here",
+        "yourNotifications": "Your Notifications",
+        "markAllRead": "Mark all as read",
+        "deleteRead": "Delete read notifications",
         "all": "All Notifications",
         "description": "Manage all your notifications",
         "markAllReadBtn": "Mark all as read",
@@ -1259,5 +1263,13 @@
             "createNew": "Create New",
             "actions": "Actions"
         }
+    },
+    "StockMarketPage": {
+        "title": "Stock Market",
+        "description": "Track stock market information and your portfolio",
+        "featuredStocks": "Featured Stocks",
+        "backToPortfolio": "Back to Portfolio",
+        "marketChart": "Market Chart",
+        "stockList": "Stock List"
     }
 }

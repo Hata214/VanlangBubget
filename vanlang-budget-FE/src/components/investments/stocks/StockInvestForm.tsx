@@ -7,6 +7,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/Form';
 import { Calendar } from '@/components/ui/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
@@ -51,21 +52,22 @@ const formSchema = z.object({
     symbol: z.string().min(1, 'Vui lòng chọn mã cổ phiếu'),
     price: z.coerce.number()
         .min(1, 'Giá mua phải lớn hơn 0')
-        .max(1000000000, 'Giá quá lớn'),
+        .max(100000000000, 'Giá tối đa là 100 tỷ'),
     quantity: z.coerce.number()
         .min(100, 'Số lượng phải từ 100 cổ phiếu trở lên')
-        .max(1000000, 'Số lượng quá lớn')
+        .max(100000000, 'Số lượng tối đa là 100 triệu')
         .refine(val => val % 100 === 0, { message: 'Số lượng phải là bội số của 100' }),
     purchaseDate: z.date({
         required_error: 'Vui lòng chọn ngày mua',
     }),
     fee: z.coerce.number()
         .min(0, 'Phí không được âm')
+        .max(100000000000, 'Phí tối đa là 100 tỷ')
         .default(0),
     broker: z.string().default(BROKERS[0].id),
     otherBrokerName: z.string().optional(),
     otherBrokerFeePercent: z.coerce.number().min(0).max(100).optional(),
-    otherBrokerMinFee: z.coerce.number().min(0).optional(),
+    otherBrokerMinFee: z.coerce.number().min(0).max(100000000000, 'Phí tối đa là 100 tỷ').optional(),
     autoFee: z.boolean().default(true),
     notes: z.string().max(500, 'Ghi chú không quá 500 ký tự').optional(),
 }).refine(data => {
@@ -443,19 +445,26 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             <FormField
                                 control={form.control}
                                 name="price"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem className="col-span-1 md:col-span-2">
                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Giá mua (VND)</FormLabel>
                                         <div className="relative">
                                             <FormControl>
-                                                <Input
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    value={formattedPrice}
-                                                    onChange={handlePriceChange}
+                                                <CurrencyInput
                                                     placeholder="0"
+                                                    value={field.value}
+                                                    onValueChange={(value) => {
+                                                        field.onChange(value);
+                                                        if (value !== undefined && form.getValues('autoFee')) {
+                                                            const quantity = form.getValues('quantity');
+                                                            const brokerId = form.getValues('broker');
+                                                            const fee = calculateFee(value, quantity, brokerId, form.getValues());
+                                                            form.setValue('fee', fee);
+                                                        }
+                                                    }}
+                                                    onBlur={field.onBlur}
                                                     disabled={isLoading}
-                                                    className="pr-40 text-lg h-14 font-medium bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                    className="pr-40 text-lg h-14 font-medium text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 />
                                             </FormControl>
                                             <div className="absolute right-1 top-1 flex space-x-1">
@@ -497,19 +506,34 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             <FormField
                                 control={form.control}
                                 name="quantity"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Số lượng</FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="number"
-                                                min="100"
-                                                step="100"
+                                            <CurrencyInput
                                                 placeholder="100"
-                                                onChange={handleQuantityChange}
-                                                value={field.value || ''}
+                                                value={field.value}
+                                                onValueChange={(value) => {
+                                                    let finalValue = value;
+                                                    if (value !== undefined) {
+                                                        const roundedValue = Math.floor(value / 100) * 100;
+                                                        if (roundedValue === 0 && value > 0) {
+                                                            finalValue = 100;
+                                                        } else {
+                                                            finalValue = roundedValue;
+                                                        }
+                                                    }
+                                                    field.onChange(finalValue);
+                                                    if (finalValue !== undefined && form.getValues('autoFee')) {
+                                                        const price = form.getValues('price');
+                                                        const brokerId = form.getValues('broker');
+                                                        const fee = calculateFee(price, finalValue, brokerId, form.getValues());
+                                                        form.setValue('fee', fee);
+                                                    }
+                                                }}
+                                                onBlur={field.onBlur}
                                                 disabled={isLoading}
-                                                className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
@@ -580,7 +604,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     <FormItem>
                                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">% Phí giao dịch (Khác)</FormLabel>
                                                         <FormControl>
-                                                            <Input type="number" step="0.01" placeholder="0.15" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                            <Input type="number" step="0.01" placeholder="0.15" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -589,11 +613,18 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             <FormField
                                                 control={form.control}
                                                 name="otherBrokerMinFee"
-                                                render={({ field }) => (
+                                                render={({ field, fieldState: { error } }) => (
                                                     <FormItem>
                                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Phí tối thiểu (VND - Khác)</FormLabel>
                                                         <FormControl>
-                                                            <Input type="number" step="1000" placeholder="5000" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                            <CurrencyInput
+                                                                placeholder="5000"
+                                                                value={field.value}
+                                                                onValueChange={field.onChange}
+                                                                onBlur={field.onBlur}
+                                                                disabled={isLoading}
+                                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                            />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -692,16 +723,16 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 <FormField
                                     control={form.control}
                                     name="fee"
-                                    render={({ field }) => (
+                                    render={({ field, fieldState: { error } }) => (
                                         <FormItem>
                                             <FormControl>
-                                                <Input
-                                                    type="number"
-                                                    min="0"
+                                                <CurrencyInput
                                                     placeholder="0"
-                                                    {...field}
+                                                    value={field.value}
+                                                    onValueChange={field.onChange}
+                                                    onBlur={field.onBlur}
                                                     disabled={isLoading || form.getValues('autoFee')}
-                                                    className={cn(form.getValues('autoFee') ? "bg-gray-100 dark:bg-gray-700" : "bg-input dark:bg-input-dark", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
+                                                    className={cn(form.getValues('autoFee') ? "bg-gray-100 dark:bg-gray-700 text-right" : "bg-input dark:bg-input-dark text-right", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
                                                 />
                                             </FormControl>
                                             <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">

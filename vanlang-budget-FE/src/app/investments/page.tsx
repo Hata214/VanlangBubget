@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
@@ -205,7 +205,64 @@ export default function InvestmentsPage() {
         );
     };
 
-    const filteredInvestments = getFilteredInvestments();
+    // Xử lý dữ liệu investments trước khi sử dụng
+    const processedInvestments = useMemo(() => {
+        return investments.map(inv => {
+            if (inv.type === 'savings') {
+                let effectiveCurrentValue = inv.currentValue;
+                let effectiveProfitLoss = inv.profitLoss;
+                let effectiveRoi = inv.roi;
+
+                if ((effectiveCurrentValue === undefined || effectiveCurrentValue === 0) && inv.initialInvestment > 0) {
+                    effectiveCurrentValue = inv.initialInvestment;
+                }
+
+                if (effectiveCurrentValue !== undefined && inv.initialInvestment !== undefined) {
+                    effectiveProfitLoss = effectiveCurrentValue - inv.initialInvestment;
+                    if (inv.initialInvestment > 0) {
+                        effectiveRoi = (effectiveProfitLoss / inv.initialInvestment) * 100;
+                    } else {
+                        effectiveRoi = 0;
+                    }
+                } else {
+                    effectiveProfitLoss = 0;
+                    effectiveRoi = 0;
+                }
+                return {
+                    ...inv,
+                    currentValue: effectiveCurrentValue === undefined ? (inv.initialInvestment || 0) : effectiveCurrentValue,
+                    profitLoss: Number(effectiveProfitLoss) || 0,
+                    roi: Number(effectiveRoi) || 0
+                };
+            }
+            // Đối với các loại khác, nếu profitLoss hoặc roi không có, thì tính toán cơ bản
+            // Điều này giúp đảm bảo các giá trị này luôn có để hiển thị, thay vì dựa hoàn toàn vào API
+            let currentVal = inv.currentValue === undefined ? inv.initialInvestment : inv.currentValue;
+            let profitLossVal = inv.profitLoss;
+            let roiVal = inv.roi;
+
+            if (profitLossVal === undefined && currentVal !== undefined && inv.initialInvestment !== undefined) {
+                profitLossVal = currentVal - inv.initialInvestment;
+            }
+            if (roiVal === undefined && profitLossVal !== undefined && inv.initialInvestment > 0) {
+                roiVal = (profitLossVal / inv.initialInvestment) * 100;
+            }
+
+            return {
+                ...inv,
+                currentValue: currentVal === undefined ? 0 : currentVal,
+                profitLoss: Number(profitLossVal) || 0,
+                roi: Number(roiVal) || 0
+            };
+        });
+    }, [investments]);
+
+    const filteredInvestments = useMemo(() => {
+        if (!activeFilter) return processedInvestments;
+        return processedInvestments.filter(investment =>
+            (investment.type || '').toLowerCase() === activeFilter.toLowerCase()
+        );
+    }, [activeFilter, processedInvestments]);
 
     const content = (
         <div className="container mx-auto px-4 py-6">
@@ -234,8 +291,8 @@ export default function InvestmentsPage() {
             )}
 
             {/* Thêm component tổng quan danh mục đầu tư */}
-            {!loading && investments.length > 0 && (
-                <InvestmentSummaryCard investments={investments} />
+            {!loading && processedInvestments.length > 0 && (
+                <InvestmentSummaryCard investments={processedInvestments} />
             )}
 
             <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-6 mb-6">
@@ -254,7 +311,7 @@ export default function InvestmentsPage() {
                 </div>
             )}
 
-            {!loading && !investments.length && authChecked && (
+            {!loading && !processedInvestments.length && authChecked && (
                 <Card className="text-center py-8">
                     <CardHeader>
                         <CardTitle>{t('noInvestments')}</CardTitle>
@@ -270,7 +327,7 @@ export default function InvestmentsPage() {
             )}
 
             {/* Investment List and Filters Section */}
-            {authChecked && !loading && investments.length > 0 && (
+            {authChecked && !loading && processedInvestments.length > 0 && (
                 <Card>
                     <CardHeader>
                         <div className="flex justify-between items-center">
@@ -292,7 +349,7 @@ export default function InvestmentsPage() {
                 </Card>
             )}
 
-            <DebugInvestments data={investments} />
+            <DebugInvestments data={processedInvestments} />
 
         </div>
     );

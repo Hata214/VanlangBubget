@@ -8,6 +8,7 @@ import * as z from 'zod'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { NumberInput } from '@/components/ui/NumberInput'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Textarea } from '@/components/ui/Textarea'
 import {
     Select,
@@ -28,8 +29,8 @@ import { formatCurrency } from '@/lib/utils'
 import type { Loan } from '@/types'
 
 const loanSchema = z.object({
-    amount: z.number().min(1000, 'Số tiền phải lớn hơn 1,000đ').max(10000000000, 'Số tiền tối đa là 10 tỷ'),
-    prepaymentAmount: z.number().min(0, 'Số tiền trả trước không được âm').max(10000000000, 'Số tiền tối đa là 10 tỷ').default(0),
+    amount: z.number().min(1000, 'Số tiền phải lớn hơn 1,000đ').max(100000000000, 'Số tiền tối đa là 100 tỷ'),
+    prepaymentAmount: z.number().min(0, 'Số tiền trả trước không được âm').max(100000000000, 'Số tiền tối đa là 100 tỷ').default(0),
     description: z.string().min(1, 'Mô tả là bắt buộc'),
     lender: z.string().min(1, 'Người cho vay là bắt buộc'),
     interestRate: z.number().min(0, 'Lãi suất không được âm').max(100, 'Lãi suất không được vượt quá 100%'),
@@ -454,16 +455,16 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                 <FormField
                     control={form.control}
                     name="amount"
-                    render={({ field }) => (
+                    render={({ field, fieldState: { error } }) => (
                         <FormItem>
                             <FormLabel>{t('loan.amount')}</FormLabel>
                             <FormControl>
-                                <NumberInput
+                                <CurrencyInput
                                     placeholder={t('loan.enterAmount')}
-                                    currency="đ"
-                                    initialValue={field.value}
-                                    onChange={field.onChange}
-                                    allowClear={true}
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    onBlur={field.onBlur}
+                                    className="text-right"
                                 />
                             </FormControl>
                             <FormMessage />
@@ -476,16 +477,16 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                     <FormField
                         control={form.control}
                         name="prepaymentAmount"
-                        render={({ field }) => (
+                        render={({ field, fieldState: { error } }) => (
                             <FormItem>
                                 <FormLabel>{t('loan.prepaymentAmount')}</FormLabel>
                                 <FormControl>
-                                    <NumberInput
+                                    <CurrencyInput
                                         placeholder={t('loan.enterPrepaymentAmount')}
-                                        currency="đ"
-                                        initialValue={field.value}
-                                        onChange={field.onChange}
-                                        allowClear={true}
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        onBlur={field.onBlur}
+                                        className="text-right"
                                     />
                                 </FormControl>
                                 <FormMessage />

@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import {
     Select,
     SelectTrigger,
@@ -27,7 +27,7 @@ import { Budget } from '@/types'
 
 const budgetSchema = (t: any) => z.object({
     category: z.string().min(1, t('budget.categoryError')),
-    amount: z.number().min(1, t('budget.amountError')),
+    amount: z.number().min(1, t('budget.amountError')).max(100000000000, 'Số tiền tối đa là 100 tỷ'),
     month: z.number().min(1, t('budget.monthError')),
     year: z.number().min(2024, t('budget.yearError')),
 })
@@ -86,15 +86,15 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                 <FormField
                     control={form.control}
                     name="amount"
-                    render={({ field }) => (
+                    render={({ field, fieldState: { error } }) => (
                         <FormItem>
                             <FormLabel>{t('budget.amount')}</FormLabel>
                             <FormControl>
-                                <Input
-                                    type="number"
+                                <CurrencyInput
                                     placeholder={t('budget.enterAmount')}
-                                    {...field}
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    value={field.value}
+                                    onValueChange={field.onChange}
+                                    onBlur={field.onBlur}
                                 />
                             </FormControl>
                             <FormMessage />

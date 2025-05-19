@@ -1,13 +1,13 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { useTranslations } from 'next-intl'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { NumberInput } from '@/components/ui/NumberInput'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import {
@@ -24,8 +24,8 @@ import { LocationAutocomplete } from '@/components/ui/LocationAutocomplete'
 const expenseSchema = z.object({
     amount: z.number().min(1000, {
         message: 'Số tiền phải lớn hơn 1,000đ'
-    }).max(10000000000, {
-        message: 'Số tiền tối đa là 10 tỷ'
+    }).max(100000000000, {
+        message: 'Số tiền tối đa là 100 tỷ'
     }),
     description: z.string().min(1, {
         message: 'Mô tả là bắt buộc'
@@ -360,16 +360,15 @@ export function ExpenseForm({ initialData, onSubmit, isSubmitting }: ExpenseForm
                     <FormField
                         control={form.control}
                         name="amount"
-                        render={({ field }) => (
+                        render={({ field, fieldState: { error } }) => (
                             <FormItem>
                                 <FormLabel>{t('expense.amount')}</FormLabel>
                                 <FormControl>
-                                    <NumberInput
+                                    <CurrencyInput
                                         placeholder={t('expense.enterAmount')}
-                                        currency="đ"
-                                        initialValue={field.value}
-                                        onChange={field.onChange}
-                                        allowClear={true}
+                                        value={field.value}
+                                        onValueChange={field.onChange}
+                                        onBlur={field.onBlur}
                                     />
                                 </FormControl>
                                 <FormMessage />

@@ -392,8 +392,11 @@
     },
     "notifications": {
         "title": "Thông báo",
+        "subtitle": "Quản lý tất cả thông báo của bạn tại đây",
+        "yourNotifications": "Thông báo của bạn",
+        "markAllRead": "Đánh dấu tất cả đã đọc",
+        "deleteRead": "Xóa các thông báo đã đọc",
         "all": "Tất cả thông báo",
-        "description": "Quản lý tất cả thông báo của bạn",
         "markAllReadBtn": "Đánh dấu tất cả đã đọc",
         "markRead": "Đánh dấu đã đọc",
         "delete": "Xóa thông báo",
@@ -630,6 +633,14 @@
         "calculateInterest": "Tính lãi suất",
         "totalInterest": "Tổng lãi",
         "totalRepayment": "Tổng số tiền phải trả",
+        "prepaymentAmount": "Số tiền trả trước",
+        "interestRateType": {
+            "day": "Ngày",
+            "week": "Tuần",
+            "month": "Tháng",
+            "quarter": "Quý",
+            "year": "Năm"
+        },
         "autoUpdateStatus": "Tự động cập nhật trạng thái dựa trên ngày đáo hạn",
         "attachments": "Tệp đính kèm",
         "files": "tệp",
@@ -647,13 +658,6 @@
         "errorCalculatingInterest": "Lỗi khi tính lãi suất",
         "acceptedFileTypes": "Chấp nhận file ảnh và PDF",
         "preview": "Xem trước",
-        "interestRateTypes": {
-            "day": "Ngày",
-            "week": "Tuần",
-            "month": "Tháng",
-            "quarter": "Quý",
-            "year": "Năm"
-        },
         "lenderTypes": {
             "individual": "Cá nhân",
             "bank": "Ngân hàng",
@@ -1280,5 +1284,13 @@
         "redirectingToInvestments": "Đang chuyển hướng đến trang đầu tư...",
         "close": "Đóng",
         "interestEarned": "Tiền lãi"
+    },
+    "StockMarketPage": {
+        "title": "Thị trường cổ phiếu",
+        "description": "Theo dõi thông tin thị trường và danh mục cổ phiếu của bạn",
+        "featuredStocks": "Cổ phiếu nổi bật",
+        "backToPortfolio": "Quay lại Danh mục đầu tư",
+        "marketChart": "Biểu đồ thị trường",
+        "stockList": "Danh sách cổ phiếu"
     }
 }

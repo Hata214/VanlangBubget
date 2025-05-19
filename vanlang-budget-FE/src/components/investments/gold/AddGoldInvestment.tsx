@@ -31,6 +31,7 @@ import { HelpTooltip } from '@/components/ui/HelpTooltip';
 import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import { getToken, getAuthHeader } from '@/services/api';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface AddGoldInvestmentProps {
     onSuccess: () => void;
@@ -57,11 +58,14 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
             .min(1, t('symbolRequired'))
             .max(20, t('symbolTooLong')),
         currentPrice: z.coerce.number()
-            .min(0, t('pricePositive')),
+            .min(0, t('pricePositive'))
+            .max(100000000000, 'Giá tối đa là 100 tỷ'),
         quantity: z.coerce.number()
-            .min(0, t('quantityPositive')),
+            .min(0, t('quantityPositive'))
+            .max(1000000000, 'Số lượng tối đa là 1 tỷ'),
         fee: z.coerce.number()
             .min(0, t('feePositive'))
+            .max(100000000000, 'Phí tối đa là 100 tỷ')
             .optional()
             .default(0),
         notes: z.string().max(500, t('notesTooLong')).optional(),
@@ -491,11 +495,17 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                             <FormField
                                 control={form.control}
                                 name="quantity"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">Số lượng</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="0.01" placeholder="Nhập số lượng" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <CurrencyInput
+                                                placeholder="Nhập số lượng"
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Số lượng vàng bạn đã mua (gam, chỉ, lượng,...)
@@ -540,11 +550,17 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                             <FormField
                                 control={form.control}
                                 name="currentPrice"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">Giá mua (đồng/đơn vị)</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập giá mua" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <CurrencyInput
+                                                placeholder="Nhập giá mua"
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Giá vàng khi bạn mua (VND)
@@ -557,11 +573,17 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                             <FormField
                                 control={form.control}
                                 name="fee"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">Phí giao dịch</FormLabel>
                                         <FormControl>
-                                            <Input type="number" step="1000" placeholder="Nhập phí giao dịch" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <CurrencyInput
+                                                placeholder="Nhập phí giao dịch"
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             Phí mua vàng (nếu có)

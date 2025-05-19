@@ -35,6 +35,7 @@ import { useToast } from '@/components/ToastProvider';
 import AddTransactionDialog from './AddTransactionDialog';
 import InvestmentDetailsDialog from './InvestmentDetailsDialog';
 import UpdatePriceDialog from './UpdatePriceDialog';
+import SavingsDetailsDialog, { type SavingsInvestment, type SavingsTransaction } from '../savings/SavingsDetailsDialog';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/Alert';
 
 const Dialog = ({ children, open, onOpenChange }: { children: React.ReactNode, open?: boolean, onOpenChange?: (open: boolean) => void }) => {
@@ -82,6 +83,7 @@ interface AddTransactionInvestment {
     assetName: string;
     symbol: string;
     currentPrice: number;
+    type: 'stock' | 'gold' | 'realestate' | 'savings' | 'fund' | 'other' | 'crypto';
 }
 
 // Định nghĩa riêng cho InvestmentDetailsDialog
@@ -146,6 +148,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
     const [selectedInvestment, setSelectedInvestment] = useState<Investment | null>(null);
     const [isAddTransactionOpen, setIsAddTransactionOpen] = useState(false);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+    const [isSavingsDetailsOpen, setIsSavingsDetailsOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isUpdatePriceOpen, setIsUpdatePriceOpen] = useState(false);
 
@@ -245,11 +248,74 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
             _id: investment._id,
             assetName: investment.name || investment.assetName || '',
             symbol: investment.symbol || '',
-            currentPrice: investment.currentPrice || 0
+            currentPrice: investment.currentPrice || 0,
+            type: investment.type as AddTransactionInvestment['type']
         };
     };
 
-    // Chuyển đổi Investment từ danh sách sang định dạng phù hợp với InvestmentDetailsDialog
+    // Chuyển đổi Investment từ danh sách sang định dạng phù hợp cho SavingsDetailsDialog
+    const mapToSavingsDetailProps = (investment: Investment): SavingsInvestment => {
+        const mappedTransactions = (investment.transactions || []).map(t => ({
+            ...t,
+            _id: t.id,
+            type: t.type as SavingsTransaction['type']
+        }));
+
+        let effectiveCurrentValue = investment.currentValue;
+        let effectiveProfitLoss = investment.profitLoss;
+        let effectiveRoi = investment.roi;
+
+        if (investment.type === 'savings') {
+            // Nếu currentValue từ API là không xác định hoặc 0, và có initialInvestment,
+            // thì coi currentValue bằng initialInvestment cho mục đích hiển thị ban đầu.
+            if ((effectiveCurrentValue === undefined || effectiveCurrentValue === 0) && investment.initialInvestment > 0) {
+                effectiveCurrentValue = investment.initialInvestment;
+            }
+
+            // Luôn tính lại profitLoss và ROI cho savings dựa trên effectiveCurrentValue và initialInvestment
+            // để đảm bảo sự nhất quán, bất kể giá trị profitLoss/roi từ API là gì.
+            if (effectiveCurrentValue !== undefined && investment.initialInvestment !== undefined) {
+                effectiveProfitLoss = effectiveCurrentValue - investment.initialInvestment;
+                if (investment.initialInvestment > 0) {
+                    effectiveRoi = (effectiveProfitLoss / investment.initialInvestment) * 100;
+                } else {
+                    effectiveRoi = 0; // Tránh chia cho 0 nếu initialInvestment là 0
+                }
+            } else {
+                // Fallback nếu không đủ thông tin để tính
+                effectiveProfitLoss = 0;
+                effectiveRoi = 0;
+            }
+        }
+        // Đối với các loại không phải savings, vẫn có thể sử dụng profitLoss/roi từ API nếu có,
+        // hoặc tính toán nếu không có (logic này có thể đã tồn tại trong mapToDetailInvestment)
+
+        return {
+            _id: investment._id,
+            name: investment.name || investment.assetName || 'Khoản tiết kiệm',
+            symbol: investment.symbol,
+            bankName: (investment as any).bankName || 'N/A',
+            accountNumber: (investment as any).accountNumber || 'N/A',
+            initialInvestment: investment.initialInvestment || 0,
+            currentValue: effectiveCurrentValue === undefined ? (investment.initialInvestment || 0) : effectiveCurrentValue,
+            interestRate: (investment as any).interestRate,
+            term: (investment as any).term,
+            startDate: investment.startDate,
+            endDate: (investment as any).endDate,
+            interestPaymentType: (investment as any).interestPaymentType,
+            interestCalculationType: (investment as any).interestCalculationType,
+            estimatedInterest: (investment as any).estimatedInterest,
+            totalAmountAtMaturity: (investment as any).totalAmount,
+            autoRenewal: (investment as any).autoRenewal,
+            notes: investment.notes,
+            transactions: mappedTransactions as SavingsTransaction[],
+            profitLoss: Number(effectiveProfitLoss) || 0,
+            roi: Number(effectiveRoi) || 0,
+            lastUpdated: investment.lastUpdated || investment.updatedAt,
+        } as SavingsInvestment;
+    };
+
+    // Chuyển đổi Investment từ danh sách sang định dạng phù hợp với InvestmentDetailsDialog (cho các loại khác)
     const mapToDetailInvestment = (investment: Investment): DetailInvestment => {
         const validTypesForDetail: Array<DetailInvestment['type']> = ['stock', 'gold', 'crypto', 'savings', 'realestate', 'fund', 'other'];
         let detailType: DetailInvestment['type'] = 'other';
@@ -261,29 +327,19 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
         let displayedProfitLoss = investment.profitLoss !== undefined ? investment.profitLoss : 0;
         let displayedRoi = investment.roi !== undefined ? investment.roi : 0;
 
-        // Logic điều chỉnh riêng cho "savings" để đảm bảo không hiển thị lỗ vô lý ban đầu
         if (detailType === 'savings') {
-            // Nếu giá trị hiện tại không được định nghĩa hoặc là 0, và có vốn đầu tư
-            // thì coi giá trị hiện tại bằng vốn đầu tư, P/L và ROI là 0.
-            if ((displayedCurrentValue === undefined || displayedCurrentValue === 0) && investment.initialInvestment > 0) {
-                displayedCurrentValue = investment.initialInvestment;
-                displayedProfitLoss = 0;
-                displayedRoi = 0;
-            } else if (displayedCurrentValue !== undefined) {
-                // Nếu có currentValue, tính lại P/L và ROI dựa trên nó cho nhất quán
-                // Điều này quan trọng nếu profitLoss và roi từ API không khớp với currentValue và initialInvestment
-                displayedProfitLoss = displayedCurrentValue - investment.initialInvestment;
-                if (investment.initialInvestment !== 0 && investment.initialInvestment !== undefined) {
-                    displayedRoi = (displayedProfitLoss / investment.initialInvestment) * 100;
-                } else {
-                    displayedRoi = 0; // Tránh chia cho 0
-                }
-            } else {
-                // Fallback nếu cả currentValue cũng không có, mà initialInvestment lại có
-                displayedCurrentValue = investment.initialInvestment; // Coi như chưa có thay đổi giá trị
-                displayedProfitLoss = 0;
-                displayedRoi = 0;
+            displayedCurrentValue = investment.initialInvestment;
+            displayedProfitLoss = 0;
+            displayedRoi = 0;
+        } else if (displayedCurrentValue !== undefined) {
+            displayedProfitLoss = displayedCurrentValue - investment.initialInvestment;
+            if (investment.initialInvestment !== 0 && investment.initialInvestment !== undefined) {
+                displayedRoi = (displayedProfitLoss / investment.initialInvestment) * 100;
             }
+        } else if (displayedCurrentValue === undefined) {
+            displayedCurrentValue = investment.initialInvestment;
+            displayedProfitLoss = 0;
+            displayedRoi = 0;
         }
 
         return {
@@ -294,12 +350,12 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
             currentPrice: investment.currentPrice || 0,
             totalQuantity: investment.totalQuantity || 0,
             initialInvestment: investment.initialInvestment,
-            currentValue: displayedCurrentValue === undefined ? 0 : displayedCurrentValue, // Đảm bảo không phải undefined
+            currentValue: displayedCurrentValue === undefined ? 0 : displayedCurrentValue,
             profitLoss: displayedProfitLoss,
             roi: displayedRoi,
             transactions: (investment.transactions || []).map(t => ({
                 _id: t.id,
-                type: t.type === 'buy' || t.type === 'sell' ? t.type : 'buy',
+                type: t.type as DetailTransactionType['type'],
                 price: t.price || 0,
                 quantity: t.quantity || 0,
                 fee: t.fee || 0,
@@ -338,7 +394,6 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                 </TableHeader>
                 <TableBody>
                     {allInvestments.map((investment) => {
-                        // Xác định ID an toàn
                         const investmentId = investment.id || investment._id;
                         const assetName = investment.name || investment.assetName || '';
                         const symbol = investment.symbol || '';
@@ -347,10 +402,38 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                         const totalQuantity = investment.totalQuantity || 0;
                         const currentPrice = investment.currentPrice || 0;
                         const initialInvestment = investment.initialInvestment || 0;
-                        const currentValue = investment.currentValue || 0;
-                        const profitLoss = (investment.profitLoss !== undefined)
-                            ? Number(investment.profitLoss)
-                            : (currentValue - initialInvestment);
+
+                        let currentValue = investment.currentValue === undefined ? initialInvestment : investment.currentValue;
+                        let profitLoss = investment.profitLoss;
+                        let roi = investment.roi !== undefined ? investment.roi : 0;
+
+                        if (investmentType === 'savings') {
+                            if ((currentValue === 0 || currentValue === undefined) && initialInvestment > 0) {
+                                currentValue = initialInvestment;
+                                profitLoss = 0;
+                                roi = 0;
+                            } else if (currentValue !== undefined) {
+                                profitLoss = currentValue - initialInvestment;
+                                if (initialInvestment > 0) {
+                                    roi = (profitLoss / initialInvestment) * 100;
+                                } else {
+                                    roi = 0;
+                                }
+                            }
+                        } else {
+                            if (profitLoss === undefined) {
+                                profitLoss = currentValue - initialInvestment;
+                            }
+                            if (investment.roi === undefined && initialInvestment > 0) {
+                                roi = (profitLoss / initialInvestment) * 100;
+                            } else if (investment.roi !== undefined) {
+                                roi = Number(investment.roi);
+                            } else {
+                                roi = 0;
+                            }
+                        }
+                        profitLoss = Number(profitLoss) || 0;
+                        roi = Number(roi) || 0;
 
                         return (
                             <TableRow key={investmentId}>
@@ -378,7 +461,11 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                                             <DropdownMenuItem onClick={() => {
                                                 console.log('Mở chi tiết cho investment:', investment);
                                                 setSelectedInvestment(investment);
-                                                setIsDetailsOpen(true);
+                                                if (investment.type === 'savings') {
+                                                    setIsSavingsDetailsOpen(true);
+                                                } else {
+                                                    setIsDetailsOpen(true);
+                                                }
                                             }}>
                                                 <TrendingUp className="mr-2 h-4 w-4" />
                                                 {t('viewDetails')}
@@ -391,10 +478,13 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                                                 <Plus className="mr-2 h-4 w-4" />
                                                 {t('addTransaction')}
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onClick={() => {
-                                                setSelectedInvestment(investment);
-                                                setIsUpdatePriceOpen(true);
-                                            }}>
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    setSelectedInvestment(investment);
+                                                    setIsUpdatePriceOpen(true);
+                                                }}
+                                                disabled={investmentType === 'savings'}
+                                            >
                                                 <RefreshCw className="mr-2 h-4 w-4" />
                                                 {t('updatePrice')}
                                             </DropdownMenuItem>
@@ -426,12 +516,21 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                         onSuccess={onRefresh}
                     />
 
-                    <InvestmentDetailsDialog
-                        investment={mapToDetailInvestment(selectedInvestment)}
-                        isOpen={isDetailsOpen}
-                        onClose={() => setIsDetailsOpen(false)}
-                        onRefresh={onRefresh}
-                    />
+                    {selectedInvestment.type === 'savings' ? (
+                        <SavingsDetailsDialog
+                            investment={mapToSavingsDetailProps(selectedInvestment)}
+                            isOpen={isSavingsDetailsOpen}
+                            onClose={() => setIsSavingsDetailsOpen(false)}
+                            onRefresh={onRefresh}
+                        />
+                    ) : (
+                        <InvestmentDetailsDialog
+                            investment={mapToDetailInvestment(selectedInvestment)}
+                            isOpen={isDetailsOpen}
+                            onClose={() => setIsDetailsOpen(false)}
+                            onRefresh={onRefresh}
+                        />
+                    )}
 
                     <UpdatePriceDialog
                         investment={mapToUpdatePriceInvestment(selectedInvestment)}

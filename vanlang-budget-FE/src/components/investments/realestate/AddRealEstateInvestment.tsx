@@ -32,6 +32,7 @@ import { AlertCircle, Home } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/Alert';
 import { getToken, getAuthHeader } from '@/services/api';
 import axios from '@/lib/axios';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface AddRealEstateInvestmentProps {
     onSuccess: () => void;
@@ -56,8 +57,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
         area: z.coerce.number().min(0, "Diện tích phải là số dương"),
         frontWidth: z.coerce.number().min(0, "Mặt tiền phải là số dương").optional(),
         depth: z.coerce.number().min(0, "Chiều sâu phải là số dương").optional(),
-        purchasePrice: z.coerce.number().min(0, "Giá mua phải là số dương"),
-        additionalFees: z.coerce.number().min(0, "Phí phát sinh phải là số dương").optional().default(0),
+        purchasePrice: z.coerce.number().min(0, "Giá mua phải là số dương").max(100000000000, 'Giá mua tối đa là 100 tỷ'),
+        additionalFees: z.coerce.number().min(0, "Phí phát sinh phải là số dương").max(100000000000, 'Phí tối đa là 100 tỷ').optional().default(0),
         purchaseDate: z.string().min(1, "Ngày mua là bắt buộc"),
         ownershipType: z.string().min(1, "Hình thức sở hữu là bắt buộc"),
         otherOwnershipType: z.string().optional(),
@@ -492,19 +493,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                             <FormField
                                 control={form.control}
                                 name="purchasePrice"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
                                             Giá mua (VNĐ)
                                             <HelpTooltip text="Giá mua bất động sản" />
                                         </FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="number"
+                                            <CurrencyInput
                                                 placeholder="0"
-                                                {...field}
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
                                                 disabled={isLoading}
-                                                className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Giá mua bất động sản</FormDescription>
@@ -516,19 +518,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                             <FormField
                                 control={form.control}
                                 name="additionalFees"
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
                                             Phí phát sinh
                                             <HelpTooltip text="Các khoản phí phát sinh như công chứng, môi giới..." />
                                         </FormLabel>
                                         <FormControl>
-                                            <Input
-                                                type="number"
+                                            <CurrencyInput
                                                 placeholder="0"
-                                                {...field}
+                                                value={field.value}
+                                                onValueChange={field.onChange}
+                                                onBlur={field.onBlur}
                                                 disabled={isLoading}
-                                                className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Phí công chứng, môi giới, thuế...</FormDescription>

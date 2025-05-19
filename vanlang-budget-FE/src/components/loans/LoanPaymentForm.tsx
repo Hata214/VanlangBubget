@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
-import { NumberInput } from '@/components/ui/NumberInput'
+import { CurrencyInput } from '@/components/ui/currency-input'
 import { Textarea } from '@/components/ui/Textarea'
 import { formatCurrency } from '@/lib/utils'
 import { X, FileText, Image as ImageIcon } from 'lucide-react'
@@ -87,12 +87,18 @@ export function LoanPaymentForm({
                 <label htmlFor="amount" className="text-sm font-medium">
                     {t('loan.paymentAmount')} ({t('common.max')} {formatCurrency(remainingAmount)})
                 </label>
-                <NumberInput
-                    currency="đ"
-                    initialValue={amount}
-                    onChange={(value) => setAmount(value)}
-                    allowClear={true}
-                    max={remainingAmount}
+                <CurrencyInput
+                    id="amount"
+                    placeholder={t('loan.enterPaymentAmount')}
+                    value={amount}
+                    onValueChange={(value) => {
+                        if (value !== undefined && value > remainingAmount) {
+                            setAmount(remainingAmount);
+                        } else {
+                            setAmount(value === undefined ? 0 : value);
+                        }
+                    }}
+                    className="text-right"
                 />
             </div>
 
