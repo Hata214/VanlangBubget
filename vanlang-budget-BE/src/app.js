@@ -10,6 +10,10 @@ import { errorHandler } from './middlewares/errorMiddleware.js';
 import { socketMiddleware } from './middlewares/socketMiddleware.js';
 import logger from './utils/logger.js';
 import 'dotenv/config';
+import xss from 'xss-clean';
+import hpp from 'hpp';
+import AppError from './utils/appError.js';
+import globalErrorHandler from './controllers/errorController.js';
 
 // Importing routes
 import authRoutes from './routes/authRoutes.js';
@@ -27,6 +31,7 @@ import oauthRoutes from './routes/oauthRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import chatbotRoutes from './routes/chatbot.js';
 
 // Initialize Express app
 const app = express();
@@ -91,6 +96,16 @@ app.use(cookieParser());
 // Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
 
+// Prevent XSS attacks
+app.use(xss());
+
+// Prevent parameter pollution
+app.use(hpp({
+    whitelist: [
+        // Add fields that you want to allow duplicates for
+    ]
+}));
+
 // Compression middleware
 app.use(compression());
 
@@ -106,9 +121,9 @@ app.use(socketMiddleware);
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // default: 15 minutes
-    max: parseInt(process.env.RATE_LIMIT_MAX) || 100, // default: 100 requests per window
-    message: 'Quá nhiều yêu cầu từ IP này, vui lòng thử lại sau.'
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 1000, // limit each IP to 1000 requests per windowMs
+    message: 'Too many requests from this IP, please try again in an hour!'
 });
 
 // Middleware debug trước siteContentRoutes
@@ -170,6 +185,8 @@ console.log('Route admin đã đăng ký với bảo mật tăng cường ✅');
 // console.log('Route stats đã đăng ký ✅');
 
 app.use('/api/oauth', oauthRoutes);
+app.use('/api/chatbot', chatbotRoutes);
+console.log('Route chatbot đã đăng ký tại /api/chatbot ✅');
 
 // Home route
 app.get('/', (req, res) => {
@@ -201,5 +218,14 @@ app.use((req, res, next) => {
 
 // Error handler middleware
 app.use(errorHandler);
+
+// Handling unhandled routes (Đây nên là một trong những middleware cuối cùng)
+app.all('*', (req, res, next) => {
+    console.log(`Route không được xử lý: ${req.method} ${req.originalUrl} -> sẽ được chuyển cho AppError 404`);
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global error handling middleware (Đây nên là middleware CUỐI CÙNG)
+app.use(globalErrorHandler);
 
 export default app;
