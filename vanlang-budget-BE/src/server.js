@@ -22,6 +22,8 @@ import userRoutes from './routes/userRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+// import chatbotRoutes from './routes/chatbot.js'; // Đã gộp vào enhancedChatbot.js
+import enhancedChatbotRoutes from './routes/enhancedChatbot.js';
 
 // Import middlewares
 import { errorHandler } from './middlewares/errorMiddleware.js';
@@ -141,6 +143,13 @@ logger.info('Site content routes registered successfully');
 
 app.use('/api/admin', adminRoutes);
 logger.info('Admin routes registered successfully');
+
+// Chatbot routes (unified - bao gồm cả legacy và enhanced)
+// app.use('/api/chatbot', chatbotRoutes); // Đã gộp vào enhancedChatbot.js
+// logger.info('Chatbot routes registered successfully');
+
+app.use('/api/chatbot', enhancedChatbotRoutes);
+logger.info('Enhanced chatbot routes (bao gồm legacy chatbot) registered successfully');
 
 // Error handler middleware
 app.use(errorHandler);

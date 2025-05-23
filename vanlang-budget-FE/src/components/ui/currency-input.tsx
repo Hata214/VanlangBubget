@@ -28,8 +28,10 @@ const CurrencyInput = React.forwardRef<
 
     React.useEffect(() => {
         if (value !== undefined && value !== null) {
-            const numValue = BigInt(value);
-            const stringValue = String(value);
+            // Chuyển đổi value thành số nguyên trước khi dùng BigInt
+            const integerValue = Math.floor(Number(value));
+            const numValue = BigInt(integerValue);
+            const stringValue = String(integerValue);
             if (numValue > MAX_VALUE) {
                 setDisplayValue(formatInputNumberWithDots(MAX_VALUE_STRING));
             } else {
@@ -113,7 +115,13 @@ const CurrencyInput = React.forwardRef<
         let currentNumericStringForDisplay = digitsOnly;
         let tempIsOverLimit = false;
 
-        if (BigInt(currentNumericStringForDisplay) > MAX_VALUE) {
+        try {
+            if (BigInt(currentNumericStringForDisplay) > MAX_VALUE) {
+                tempIsOverLimit = true;
+                currentNumericStringForDisplay = MAX_VALUE_STRING;
+            }
+        } catch (error) {
+            // Nếu không thể chuyển đổi thành BigInt, coi như vượt quá giới hạn
             tempIsOverLimit = true;
             currentNumericStringForDisplay = MAX_VALUE_STRING;
         }
@@ -198,4 +206,4 @@ const CurrencyInput = React.forwardRef<
 
 CurrencyInput.displayName = 'CurrencyInput'
 
-export { CurrencyInput } 
+export { CurrencyInput }

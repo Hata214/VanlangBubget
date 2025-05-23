@@ -257,9 +257,13 @@ const updateSavingsInterestJob = cron.schedule('0 1 * * *', async () => {
 
 export const startSchedulers = () => {
     if (process.env.NODE_ENV !== 'test') { // Không chạy cron jobs khi test
+        // Bật lại stock price update vì stock-api đã chạy
         updateStockPricesJob.start();
+        logger.info('[Scheduler] Stock price update job ENABLED (stock-api running on port 8000)');
+
         updateSavingsInterestJob.start();
-        logger.info('[Scheduler] Cron jobs started.');
+        logger.info('[Scheduler] Savings interest job started.');
+        logger.info('[Scheduler] Cron jobs started (all schedulers enabled).');
     } else {
         logger.info('[Scheduler] Cron jobs NOT started in test environment.');
     }
@@ -269,4 +273,4 @@ export const startSchedulers = () => {
 // và cập nhật logic của calculateMetrics() trong investmentModel.js
 // để xử lý giao dịch 'interest' một cách phù hợp cho việc tính profit/loss của tiết kiệm.
 // Profit/Loss của tiết kiệm = currentValue (bao gồm lãi) - initialInvestment (vốn gốc).
-// `initialInvestment` cho savings nên giữ nguyên là vốn gốc ban đầu. 
+// `initialInvestment` cho savings nên giữ nguyên là vốn gốc ban đầu.

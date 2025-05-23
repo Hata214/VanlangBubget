@@ -31,7 +31,8 @@ import oauthRoutes from './routes/oauthRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import chatbotRoutes from './routes/chatbot.js';
+// import chatbotRoutes from './routes/chatbot.js'; // Đã gộp vào enhancedChatbot.js
+import enhancedChatbotRoutes from './routes/enhancedChatbot.js';
 
 // Initialize Express app
 const app = express();
@@ -185,8 +186,10 @@ console.log('Route admin đã đăng ký với bảo mật tăng cường ✅');
 // console.log('Route stats đã đăng ký ✅');
 
 app.use('/api/oauth', oauthRoutes);
-app.use('/api/chatbot', chatbotRoutes);
+// app.use('/api/chatbot', chatbotRoutes); // Đã gộp vào enhancedChatbot.js
+app.use('/api/chatbot', enhancedChatbotRoutes);
 console.log('Route chatbot đã đăng ký tại /api/chatbot ✅');
+console.log('Enhanced chatbot routes (bao gồm legacy chatbot) đã đăng ký ✅');
 
 // Home route
 app.get('/', (req, res) => {

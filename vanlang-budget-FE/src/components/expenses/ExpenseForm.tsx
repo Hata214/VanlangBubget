@@ -277,6 +277,7 @@ export function ExpenseForm({ initialData, onSubmit, isSubmitting }: ExpenseForm
                 // Xử lý khi người dùng từ chối cấp quyền hoặc có lỗi vị trí
                 console.error('Geolocation error:', error);
                 let errorMessage = t('expense.locationPermissionDenied');
+                console.log('Translation result:', errorMessage); // Debug log
 
                 if (error.code === 2) {
                     errorMessage = t('expense.locationUnavailable');
@@ -544,4 +545,4 @@ export function ExpenseForm({ initialData, onSubmit, isSubmitting }: ExpenseForm
             </form>
         </Form>
     )
-} 
+}

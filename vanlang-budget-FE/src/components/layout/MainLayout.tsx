@@ -37,7 +37,7 @@ import { NotificationDropdown } from '@/components/common/NotificationDropdown'
 import NotificationBell from '../notification/NotificationBell'
 import notificationService from '@/services/notificationService'
 import { socketService, SocketEvent } from '@/services/socketService'
-import ChatPopupVanLangBot from '@/components/chatbot/ChatPopupVanLangBot'
+import EnhancedChatPopup from '@/components/chatbot/EnhancedChatPopup'
 
 interface MainLayoutProps {
     children: React.ReactNode
@@ -372,7 +372,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </div>
             </div>
 
-            <ChatPopupVanLangBot />
+            <EnhancedChatPopup mode="legacy" />
         </>
     )
-} 
+}
