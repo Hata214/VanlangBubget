@@ -13,7 +13,7 @@ import Income from '../models/incomeModel.js';
 import Expense from '../models/expenseModel.js';
 import Investment from '../models/investmentModel.js';
 import Budget from '../models/budgetModel.js';
-import LoanPayment from '../models/loanPaymentModel.js';
+import Loan from '../models/loanModel.js';
 
 const router = express.Router();
 
@@ -84,30 +84,7 @@ function formatVanLangBotResponse(text) {
     return formattedText;
 }
 
-// Mock data function cho legacy chatbot
-async function getLegacyUserFinancialData(userId) {
-    console.log(`Legacy Chatbot: Attempting to fetch financial data for userId: ${userId}`);
-    const mockFinancialData = {
-        incomeThisMonth: Math.floor(Math.random() * 10000000) + 20000000,
-        expensesThisMonth: {
-            food: Math.floor(Math.random() * 2000000) + 3000000,
-            transportation: Math.floor(Math.random() * 1000000) + 500000,
-            shopping: Math.floor(Math.random() * 1500000) + 1000000,
-            utilities: Math.floor(Math.random() * 500000) + 500000,
-        },
-        totalSavings: Math.floor(Math.random() * 50000000) + 50000000,
-        investments: [
-            { type: 'cổ phiếu', name: 'VinGroup (VIC)', value: Math.floor(Math.random() * 10000000) + 15000000 },
-            { type: 'vàng', quantity: `${Math.floor(Math.random() * 5) + 1} chỉ SJC`, value: Math.floor(Math.random() * 10000000) + 25000000 },
-            { type: 'tiền điện tử', name: 'Bitcoin (BTC)', value: Math.floor(Math.random() * 5000000) + 5000000 },
-        ],
-        activeBudgets: [
-            { category: 'Ăn uống', limit: 6000000, spent: 4500000 },
-            { category: 'Giải trí', limit: 2000000, spent: 1000000 },
-        ]
-    };
-    return mockFinancialData;
-}
+// XÓA MOCK DATA - CHỈ SỬ DỤNG DỮ LIỆU THẬT TỪ DATABASE
 
 const legacySystemInstructionText = `Bạn là VanLangBot, một trợ lý tài chính thông minh và thân thiện của ứng dụng VanLang Budget.
 Nhiệm vụ của bạn là HỖ TRỢ người dùng quản lý tài chính cá nhân của họ một cách hiệu quả ngay trong ứng dụng.
@@ -293,45 +270,75 @@ QUESTION TYPES YOU CAN ANSWER:
  */
 async function getUserFinancialDataCached(userId) {
     try {
+        console.log('🔍 getUserFinancialDataCached - Starting for userId:', userId);
+
         // Thử lấy từ cache trước
         let financialData = await cacheService.getUserFinancialData(userId);
 
         if (!financialData) {
-            console.log(`Fetching real financial data for user: ${userId}`);
+            console.log(`📊 Fetching real financial data for user: ${userId}`);
 
             // Lấy thời gian hiện tại để tính toán tháng này
             const now = new Date();
             const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
             const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
 
+            console.log('📅 Date range for current month:');
+            console.log('- Start of month:', startOfMonth.toISOString());
+            console.log('- End of month:', endOfMonth.toISOString());
+
             // 1. Lấy thu nhập tháng này
+            console.log('💰 Querying incomes with filter:', {
+                userId: userId,
+                date: { $gte: startOfMonth, $lte: endOfMonth }
+            });
             const incomes = await Income.find({
                 userId: userId,
                 date: {
                     $gte: startOfMonth,
                     $lte: endOfMonth
-                },
-                active: true
+                }
             });
+            console.log('💰 Found incomes:', incomes.length, 'records');
+            if (incomes.length > 0) {
+                console.log('💰 Income data sample:', incomes.slice(0, 2).map(inc => ({
+                    amount: inc.amount,
+                    date: inc.date,
+                    description: inc.description
+                })));
+            }
 
             const incomeThisMonth = incomes.reduce((total, income) => total + (income.amount || 0), 0);
+            console.log('💰 Total income this month:', incomeThisMonth);
 
             // 2. Lấy chi tiêu tháng này theo category
+            console.log('💸 Querying expenses with filter:', {
+                userId: userId,
+                date: { $gte: startOfMonth, $lte: endOfMonth }
+            });
             const expenses = await Expense.find({
                 userId: userId,
                 date: {
                     $gte: startOfMonth,
                     $lte: endOfMonth
-                },
-                active: true
-            }).populate('categoryId', 'name');
+                }
+            });
+            console.log('💸 Found expenses:', expenses.length, 'records');
+            if (expenses.length > 0) {
+                console.log('💸 Expense data sample:', expenses.slice(0, 2).map(exp => ({
+                    amount: exp.amount,
+                    date: exp.date,
+                    description: exp.description,
+                    category: exp.category
+                })));
+            }
 
             // Group expenses by category
             const expensesThisMonth = {};
             let totalExpenses = 0;
 
             expenses.forEach(expense => {
-                const categoryName = expense.categoryId?.name || 'Khác';
+                const categoryName = expense.category || 'Khác';
                 const amount = expense.amount || 0;
 
                 if (!expensesThisMonth[categoryName]) {
@@ -340,12 +347,25 @@ async function getUserFinancialDataCached(userId) {
                 expensesThisMonth[categoryName] += amount;
                 totalExpenses += amount;
             });
+            console.log('💸 Total expenses this month:', totalExpenses);
+            console.log('💸 Expenses by category:', expensesThisMonth);
 
             // 3. Lấy thông tin đầu tư
+            console.log('📈 Querying investments with filter:', { userId: userId });
             const investments = await Investment.find({
-                userId: userId,
-                active: true
+                userId: userId
             });
+            console.log('📈 Found investments:', investments.length, 'records');
+            if (investments.length > 0) {
+                console.log('📈 Investment data sample:', investments.slice(0, 2).map(inv => ({
+                    type: inv.type,
+                    name: inv.symbol || inv.name,
+                    quantity: inv.quantity,
+                    currentPrice: inv.currentPrice,
+                    totalValue: inv.totalValue,
+                    totalInvested: inv.totalInvested
+                })));
+            }
 
             const investmentData = investments.map(inv => ({
                 type: inv.type || 'Khác',
@@ -357,13 +377,12 @@ async function getUserFinancialDataCached(userId) {
             }));
 
             const totalInvestmentValue = investmentData.reduce((total, inv) => total + (inv.value || 0), 0);
+            console.log('📈 Total investment value:', totalInvestmentValue);
 
             // 4. Lấy ngân sách đang hoạt động
             const budgets = await Budget.find({
-                userId: userId,
-                active: true,
-                period: 'monthly'
-            }).populate('categoryId', 'name');
+                userId: userId
+            });
 
             const activeBudgets = budgets.map(budget => {
                 const categoryName = budget.categoryId?.name || budget.category || 'Khác';
@@ -379,12 +398,28 @@ async function getUserFinancialDataCached(userId) {
             });
 
             // 5. Tính tổng tiết kiệm (thu nhập - chi tiêu tích lũy)
-            const allIncomes = await Income.find({ userId: userId, active: true });
-            const allExpenses = await Expense.find({ userId: userId, active: true });
+            const allIncomes = await Income.find({ userId: userId });
+            const allExpenses = await Expense.find({ userId: userId });
+
+            console.log(`🔍 RAW DATABASE DATA for userId ${userId}:`);
+            console.log(`📊 Income records: ${allIncomes.length}`);
+            allIncomes.forEach((income, index) => {
+                console.log(`  ${index + 1}. ${income.category}: ${income.amount.toLocaleString('vi-VN')} VND (${income.date})`);
+            });
+
+            console.log(`📊 Expense records: ${allExpenses.length}`);
+            allExpenses.forEach((expense, index) => {
+                console.log(`  ${index + 1}. ${expense.category}: ${expense.amount.toLocaleString('vi-VN')} VND (${expense.date})`);
+            });
 
             const totalIncomeAllTime = allIncomes.reduce((total, income) => total + (income.amount || 0), 0);
             const totalExpenseAllTime = allExpenses.reduce((total, expense) => total + (expense.amount || 0), 0);
             const totalSavings = Math.max(0, totalIncomeAllTime - totalExpenseAllTime);
+
+            console.log(`🧮 CALCULATION RESULTS:`);
+            console.log(`💰 Total Income All Time: ${totalIncomeAllTime.toLocaleString('vi-VN')} VND`);
+            console.log(`💸 Total Expense All Time: ${totalExpenseAllTime.toLocaleString('vi-VN')} VND`);
+            console.log(`💎 Total Savings: ${totalSavings.toLocaleString('vi-VN')} VND`);
 
             // 6. Thống kê tháng trước để so sánh
             const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -392,34 +427,46 @@ async function getUserFinancialDataCached(userId) {
 
             const lastMonthIncomes = await Income.find({
                 userId: userId,
-                date: { $gte: lastMonthStart, $lte: lastMonthEnd },
-                active: true
+                date: { $gte: lastMonthStart, $lte: lastMonthEnd }
             });
 
             const lastMonthExpenses = await Expense.find({
                 userId: userId,
-                date: { $gte: lastMonthStart, $lte: lastMonthEnd },
-                active: true
+                date: { $gte: lastMonthStart, $lte: lastMonthEnd }
             });
 
             const incomeLastMonth = lastMonthIncomes.reduce((total, income) => total + (income.amount || 0), 0);
             const expenseLastMonth = lastMonthExpenses.reduce((total, expense) => total + (expense.amount || 0), 0);
 
-            // Tạo financial data object
+            // 7. Lấy TỔNG khoản vay (như dashboard)
+            const allLoans = await Loan.find({ userId: userId });
+            const totalLoanAmount = allLoans.reduce((total, loan) => {
+                // Tính tổng nợ bao gồm lãi suất
+                const principal = loan.amount || 0;
+                const interestRate = loan.interestRate || 0;
+                const termMonths = loan.termMonths || 1;
+                const totalWithInterest = principal * (1 + (interestRate / 100) * (termMonths / 12));
+                return total + totalWithInterest;
+            }, 0);
+            console.log(`🏦 Total loan amount with interest: ${totalLoanAmount} (from ${allLoans.length} loans)`);
+
+            // Tạo financial data object với dữ liệu TỔNG QUAN như dashboard
             financialData = {
-                // Thu nhập
+                // Dữ liệu tổng quan (như dashboard)
+                totalBalance: totalSavings, // Số dư = Thu nhập - Chi tiêu tích lũy
+                totalIncomeAllTime, // Tổng thu nhập tích lũy
+                totalExpenseAllTime, // Tổng chi tiêu tích lũy
+                totalLoanAmount, // Tổng khoản vay
+                totalSavings, // Tổng tiết kiệm
+
+                // Dữ liệu tháng hiện tại (để so sánh)
                 incomeThisMonth,
                 incomeLastMonth,
                 incomeChange: incomeThisMonth - incomeLastMonth,
-
-                // Chi tiêu
                 expensesThisMonth,
                 totalExpensesThisMonth: totalExpenses,
                 expenseLastMonth,
                 expenseChange: totalExpenses - expenseLastMonth,
-
-                // Tiết kiệm
-                totalSavings,
                 savingsThisMonth: incomeThisMonth - totalExpenses,
 
                 // Đầu tư
@@ -441,13 +488,23 @@ async function getUserFinancialDataCached(userId) {
                 dataSource: 'database'
             };
 
-            console.log(`Financial data summary for user ${userId}:`, {
+            console.log('📊 FINAL FINANCIAL DATA SUMMARY (DASHBOARD OVERVIEW):');
+            console.log(`👤 User ID: ${userId}`);
+            console.log(`💎 Total Balance: ${totalSavings}`);
+            console.log(`💰 Total Income All Time: ${totalIncomeAllTime}`);
+            console.log(`💸 Total Expenses All Time: ${totalExpenseAllTime}`);
+            console.log(`🏦 Total Loan Amount: ${totalLoanAmount}`);
+            console.log(`📈 Investment count: ${investments.length}`);
+            console.log(`📋 Budget count: ${budgets.length}`);
+            console.log('📊 Complete dashboard overview data:', JSON.stringify({
+                totalBalance: totalSavings,
+                totalIncomeAllTime,
+                totalExpenseAllTime,
+                totalLoanAmount,
+                totalInvestmentValue,
                 incomeThisMonth,
-                totalExpensesThisMonth: totalExpenses,
-                totalSavings,
-                investmentCount: investments.length,
-                budgetCount: budgets.length
-            });
+                totalExpensesThisMonth: totalExpenses
+            }, null, 2));
 
             // Cache data for 30 minutes
             await cacheService.cacheUserFinancialData(userId, financialData);
@@ -483,52 +540,66 @@ function formatFinancialContext(financialData, language = 'vi') {
 
     const templates = {
         vi: {
-            income: `💰 Thu nhập tháng này: ${financialData.incomeThisMonth?.toLocaleString('vi-VN')} VND`,
-            incomeChange: financialData.incomeChange > 0 ?
-                `📈 Tăng ${financialData.incomeChange.toLocaleString('vi-VN')} VND so với tháng trước` :
-                `📉 Giảm ${Math.abs(financialData.incomeChange).toLocaleString('vi-VN')} VND so với tháng trước`,
-            expenses: `💸 Chi tiêu tháng này: ${financialData.totalExpensesThisMonth?.toLocaleString('vi-VN')} VND`,
-            expenseChange: financialData.expenseChange > 0 ?
-                `📈 Tăng ${financialData.expenseChange.toLocaleString('vi-VN')} VND so với tháng trước` :
-                `📉 Giảm ${Math.abs(financialData.expenseChange).toLocaleString('vi-VN')} VND so với tháng trước`,
-            savings: `🏦 Tổng tiết kiệm tích lũy: ${financialData.totalSavings?.toLocaleString('vi-VN')} VND`,
+            // Dữ liệu tổng quan (như dashboard)
+            totalBalance: `💎 Số dư hiện tại: ${financialData.totalBalance?.toLocaleString('vi-VN')} VND`,
+            totalIncome: `💰 Tổng thu nhập tích lũy: ${financialData.totalIncomeAllTime?.toLocaleString('vi-VN')} VND`,
+            totalExpense: `💸 Tổng chi tiêu tích lũy: ${financialData.totalExpenseAllTime?.toLocaleString('vi-VN')} VND`,
+            totalLoan: `🏦 Tổng khoản vay: ${financialData.totalLoanAmount?.toLocaleString('vi-VN')} VND`,
+
+            // Dữ liệu tháng hiện tại
+            incomeThisMonth: `💰 Thu nhập tháng này: ${financialData.incomeThisMonth?.toLocaleString('vi-VN')} VND`,
+            expensesThisMonth: `💸 Chi tiêu tháng này: ${financialData.totalExpensesThisMonth?.toLocaleString('vi-VN')} VND`,
             savingsThisMonth: `💎 Tiết kiệm tháng này: ${financialData.savingsThisMonth?.toLocaleString('vi-VN')} VND`,
+
             investments: `📊 Đầu tư hiện có:`,
             budgets: `📋 Tình hình ngân sách:`
         },
         en: {
-            income: `💰 Monthly income: ${financialData.incomeThisMonth?.toLocaleString('en-US')} VND`,
-            incomeChange: financialData.incomeChange > 0 ?
-                `📈 Increased ${financialData.incomeChange.toLocaleString('en-US')} VND from last month` :
-                `📉 Decreased ${Math.abs(financialData.incomeChange).toLocaleString('en-US')} VND from last month`,
-            expenses: `💸 Monthly expenses: ${financialData.totalExpensesThisMonth?.toLocaleString('en-US')} VND`,
-            expenseChange: financialData.expenseChange > 0 ?
-                `📈 Increased ${financialData.expenseChange.toLocaleString('en-US')} VND from last month` :
-                `📉 Decreased ${Math.abs(financialData.expenseChange).toLocaleString('en-US')} VND from last month`,
-            savings: `🏦 Total accumulated savings: ${financialData.totalSavings?.toLocaleString('en-US')} VND`,
+            // Dashboard overview data
+            totalBalance: `💎 Current balance: ${financialData.totalBalance?.toLocaleString('en-US')} VND`,
+            totalIncome: `💰 Total accumulated income: ${financialData.totalIncomeAllTime?.toLocaleString('en-US')} VND`,
+            totalExpense: `💸 Total accumulated expenses: ${financialData.totalExpenseAllTime?.toLocaleString('en-US')} VND`,
+            totalLoan: `🏦 Total loans: ${financialData.totalLoanAmount?.toLocaleString('en-US')} VND`,
+
+            // Current month data
+            incomeThisMonth: `💰 This month's income: ${financialData.incomeThisMonth?.toLocaleString('en-US')} VND`,
+            expensesThisMonth: `💸 This month's expenses: ${financialData.totalExpensesThisMonth?.toLocaleString('en-US')} VND`,
             savingsThisMonth: `💎 This month's savings: ${financialData.savingsThisMonth?.toLocaleString('en-US')} VND`,
+
             investments: `📊 Current investments:`,
             budgets: `📋 Budget status:`
         }
     };
 
     const t = templates[language] || templates.vi;
-    let context = `\n\n📊 DỮ LIỆU TÀI CHÍNH THÁNG ${financialData.period?.month}/${financialData.period?.year}:\n`;
+    let context = `\n\n📊 TỔNG QUAN TÀI CHÍNH CỦA BẠN:\n`;
 
-    // Thu nhập
-    if (financialData.incomeThisMonth !== undefined) {
-        context += `${t.income}\n`;
-        if (financialData.incomeChange !== undefined && financialData.incomeLastMonth !== undefined) {
-            context += `${t.incomeChange}\n`;
-        }
+    // Dữ liệu tổng quan (như dashboard)
+    if (financialData.totalBalance !== undefined) {
+        context += `${t.totalBalance}\n`;
     }
 
-    // Chi tiêu
+    if (financialData.totalIncomeAllTime !== undefined) {
+        context += `${t.totalIncome}\n`;
+    }
+
+    if (financialData.totalExpenseAllTime !== undefined) {
+        context += `${t.totalExpense}\n`;
+    }
+
+    if (financialData.totalLoanAmount !== undefined && financialData.totalLoanAmount > 0) {
+        context += `${t.totalLoan}\n`;
+    }
+
+    // Thêm dữ liệu tháng hiện tại
+    context += `\n📅 DỮ LIỆU THÁNG ${financialData.period?.month}/${financialData.period?.year}:\n`;
+
+    if (financialData.incomeThisMonth !== undefined) {
+        context += `${t.incomeThisMonth}\n`;
+    }
+
     if (financialData.totalExpensesThisMonth !== undefined) {
-        context += `${t.expenses}\n`;
-        if (financialData.expenseChange !== undefined) {
-            context += `${t.expenseChange}\n`;
-        }
+        context += `${t.expensesThisMonth}\n`;
 
         // Chi tiết chi tiêu theo danh mục
         if (financialData.expensesThisMonth && Object.keys(financialData.expensesThisMonth).length > 0) {
@@ -540,11 +611,6 @@ function formatFinancialContext(financialData, language = 'vi') {
                 .join(', ');
             context += expenseDetails + '\n';
         }
-    }
-
-    // Tiết kiệm
-    if (financialData.totalSavings !== undefined) {
-        context += `${t.savings}\n`;
     }
 
     if (financialData.savingsThisMonth !== undefined) {
@@ -1096,6 +1162,12 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
         const { message, language = 'vi' } = req.body;
         const userId = req.user?.id || req.user?._id;
 
+        // Debug: Log authentication info
+        console.log('🔍 Chatbot Debug - Authentication Info:');
+        console.log('- req.user:', JSON.stringify(req.user, null, 2));
+        console.log('- userId extracted:', userId);
+        console.log('- userId type:', typeof userId);
+
         // Validation
         if (!message || typeof message !== 'string' || message.trim().length === 0) {
             analytics.track('error', { error: 'invalid_message' });
@@ -1108,6 +1180,7 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
         }
 
         if (!userId) {
+            console.error('❌ Chatbot Error: No userId found in request');
             analytics.track('error', { error: 'auth_failed' });
             return res.status(401).json({
                 success: false,
@@ -1148,9 +1221,15 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
         // 4. Prepare context và check for calculations
         let financialContext = '';
         let calculationResult = '';
-        const needsFinancialData = /của tôi|my|hiện tại|current|tháng này|this month|tài khoản|account|tính|calculate|phân tích|analyze/.test(message.toLowerCase());
+        const needsFinancialData = /của tôi|cua toi|my|hiện tại|hien tai|current|tháng này|thang nay|this month|tài khoản|tai khoan|account|tính|tinh|calculate|phân tích|phan tich|analyze|tài chính|tai chinh|financial|thu nhập|thu nhap|income|chi tiêu|chi tieu|expense|đầu tư|dau tu|investment|ngân sách|ngan sach|budget/.test(message.toLowerCase());
+
+        console.log('🔍 Checking if financial data is needed:');
+        console.log('- Message:', message);
+        console.log('- Message lowercase:', message.toLowerCase());
+        console.log('- needsFinancialData:', needsFinancialData);
 
         if (needsFinancialData) {
+            console.log('✅ Financial data is needed, fetching from database...');
             try {
                 const financialData = await getUserFinancialDataCached(userId);
                 financialContext = formatFinancialContext(financialData, language);
@@ -1191,10 +1270,20 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
             } catch (error) {
                 console.error('Error fetching financial data:', error);
             }
+        } else {
+            console.log('❌ Financial data not needed based on message content');
         }
 
         // 5. Check cache for similar Gemini responses
         const prompt = `${message}${financialContext}`;
+
+        // DEBUG: Log the complete prompt being sent to Gemini
+        console.log('🔍 DEBUG - Complete prompt being sent to Gemini:');
+        console.log('📝 Original message:', message);
+        console.log('💰 Financial context length:', financialContext.length);
+        console.log('📊 Financial context preview:', financialContext.substring(0, 200) + '...');
+        console.log('🎯 Full prompt length:', prompt.length);
+
         let cachedResponse = await cacheService.getGeminiResponse(prompt);
 
         if (cachedResponse) {
@@ -1368,28 +1457,41 @@ router.post('/chatbot', authenticateToken, async (req, res) => {
 
         let financialContext = "";
         try {
-            const financialData = await getLegacyUserFinancialData(userId);
+            // SỬ DỤNG DỮ LIỆU THẬT TỪ DATABASE (GIỐNG ENHANCED CHATBOT)
+            const financialData = await getUserFinancialDataCached(userId);
             if (financialData && Object.keys(financialData).length > 0) {
                 let summaryParts = [];
-                if (financialData.incomeThisMonth) summaryParts.push(`- Thu nhập tháng này của người dùng là: ${financialData.incomeThisMonth.toLocaleString('vi-VN')} VND.`);
+
+                // Dữ liệu tổng quan (như dashboard)
+                if (financialData.totalBalance !== undefined) {
+                    summaryParts.push(`- Số dư hiện tại: ${financialData.totalBalance.toLocaleString('vi-VN')} VND.`);
+                }
+                if (financialData.totalIncomeAllTime) {
+                    summaryParts.push(`- Tổng thu nhập tích lũy: ${financialData.totalIncomeAllTime.toLocaleString('vi-VN')} VND.`);
+                }
+                if (financialData.totalExpenseAllTime) {
+                    summaryParts.push(`- Tổng chi tiêu tích lũy: ${financialData.totalExpenseAllTime.toLocaleString('vi-VN')} VND.`);
+                }
+                if (financialData.totalLoanAmount && financialData.totalLoanAmount > 0) {
+                    summaryParts.push(`- Tổng khoản vay: ${financialData.totalLoanAmount.toLocaleString('vi-VN')} VND.`);
+                }
+
+                // Dữ liệu tháng hiện tại
+                if (financialData.incomeThisMonth) {
+                    summaryParts.push(`- Thu nhập tháng này: ${financialData.incomeThisMonth.toLocaleString('vi-VN')} VND.`);
+                }
                 if (financialData.expensesThisMonth && Object.keys(financialData.expensesThisMonth).length > 0) {
                     let expenseDetails = Object.entries(financialData.expensesThisMonth)
                         .map(([key, value]) => `${key.charAt(0).toUpperCase() + key.slice(1)}: ${value.toLocaleString('vi-VN')} VND`)
                         .join(', ');
-                    if (expenseDetails) summaryParts.push(`- Chi tiêu tháng này (một số hạng mục): ${expenseDetails}.`);
+                    if (expenseDetails) summaryParts.push(`- Chi tiêu tháng này: ${expenseDetails}.`);
                 }
-                if (financialData.totalSavings) summaryParts.push(`- Tổng tiết kiệm hiện có: ${financialData.totalSavings.toLocaleString('vi-VN')} VND.`);
+
                 if (financialData.investments && financialData.investments.length > 0) {
                     let investmentDetails = financialData.investments
-                        .map(inv => `${inv.type} (${inv.name || inv.quantity}): khoảng ${inv.value.toLocaleString('vi-VN')} VND`)
+                        .map(inv => `${inv.type} (${inv.name}): ${inv.value.toLocaleString('vi-VN')} VND`)
                         .join('; ');
-                    if (investmentDetails) summaryParts.push(`- Các khoản đầu tư chính: ${investmentDetails}.`);
-                }
-                if (financialData.activeBudgets && financialData.activeBudgets.length > 0) {
-                    let budgetDetails = financialData.activeBudgets
-                        .map(b => `Ngân sách ${b.category}: đã chi ${b.spent.toLocaleString('vi-VN')}/${b.limit.toLocaleString('vi-VN')} VND`)
-                        .join('; ');
-                    if (budgetDetails) summaryParts.push(`- Tình hình một số ngân sách: ${budgetDetails}.`);
+                    if (investmentDetails) summaryParts.push(`- Các khoản đầu tư: ${investmentDetails}.`);
                 }
 
                 if (summaryParts.length > 0) {

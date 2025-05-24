@@ -372,7 +372,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </div>
             </div>
 
-            <EnhancedChatPopup mode="legacy" />
+            <EnhancedChatPopup mode="enhanced" useEnhanced={true} />
         </>
     )
 }
