@@ -246,6 +246,27 @@ class FinancialCalculationService {
     }
 
     /**
+     * Tính toán lãi suất khoản vay
+     */
+    calculateLoanInterest(principal, annualRate, termInYears, compoundType = 'monthly') {
+        if (!principal || !annualRate || !termInYears) {
+            return 0;
+        }
+
+        const monthlyRate = annualRate / 100 / 12;
+        const numberOfPayments = termInYears * 12;
+
+        if (compoundType === 'simple') {
+            // Lãi suất đơn giản
+            return principal * (annualRate / 100) * termInYears;
+        } else {
+            // Lãi suất kép (compound)
+            const totalAmount = principal * Math.pow(1 + monthlyRate, numberOfPayments);
+            return totalAmount - principal;
+        }
+    }
+
+    /**
      * Format currency for display
      */
     formatCurrency(amount, locale = 'vi-VN') {
@@ -253,4 +274,4 @@ class FinancialCalculationService {
     }
 }
 
-export default FinancialCalculationService; 
+export default FinancialCalculationService;

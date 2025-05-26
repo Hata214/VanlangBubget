@@ -2,8 +2,10 @@
 // === UNIFIED NEXT.JS CONFIG FOR VANLANG BUDGET PROJECT ===
 // Gộp từ root và frontend next.config.js
 
-const withNextIntl = require('next-intl/plugin')(
-    // Thêm cấu hình next-intl
+import withNextIntl from 'next-intl/plugin';
+
+const withNextIntlConfig = withNextIntl(
+    // Thêm cấu hình next-intl - đường dẫn từ thư mục vanlang-budget-FE
     './src/i18n.ts'
 );
 
@@ -76,4 +78,4 @@ const nextConfig = {
     // }
 }
 
-module.exports = withNextIntl(nextConfig)
+export default withNextIntlConfig(nextConfig);

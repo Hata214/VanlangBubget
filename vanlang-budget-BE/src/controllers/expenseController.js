@@ -128,9 +128,13 @@ export const getExpenses = async (req, res, next) => {
         // Log dữ liệu đã được format
         console.log(`getExpenses - Formatted ${formattedExpenses.length} expenses for frontend`);
 
-        // Tính tổng chi tiêu
-        const totalAmount = formattedExpenses.reduce((total, expense) => total + expense.amount, 0);
-        console.log(`getExpenses - Total expense amount: ${totalAmount}`);
+        // Tính tổng chi tiêu từ TẤT CẢ records (không chỉ từ page hiện tại)
+        const totalAmountResult = await Expense.aggregate([
+            { $match: filter },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalAmount = totalAmountResult.length > 0 ? totalAmountResult[0].total : 0;
+        console.log(`getExpenses - Total expense amount (ALL records): ${totalAmount}`);
 
         res.status(200).json({
             status: 'success',
@@ -552,4 +556,4 @@ export const getTotalByCategory = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};

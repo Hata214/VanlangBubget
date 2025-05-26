@@ -185,11 +185,11 @@ export default function EnhancedChatPopup({
 
     // Sound effects
     const playSound = (type: 'send' | 'receive' | 'error') => {
-        if (!chatState.soundEnabled) return;
+        if (!chatState.soundEnabled || !audioRef.current) return;
 
         // Tạm thời tắt sound effects để tránh lỗi 404
         // TODO: Thêm file âm thanh thực tế vào public/sounds/
-        return;
+        // return; // BỎ COMMENT DÒNG NÀY NẾU MUỐN TẮT ÂM THANH
 
         const sounds = {
             send: '/sounds/send.mp3',
@@ -197,10 +197,10 @@ export default function EnhancedChatPopup({
             error: '/sounds/error.mp3'
         };
 
-        if (audioRef.current) {
-            audioRef.current.src = sounds[type];
-            audioRef.current.play().catch(() => { });
-        }
+        audioRef.current.src = sounds[type];
+        audioRef.current.play().catch((err) => {
+            console.warn('Error playing sound:', err);
+        });
     };
 
     // Toggle functions
@@ -265,23 +265,34 @@ export default function EnhancedChatPopup({
         setChatState(prev => ({ ...prev, isLoading: true, isTyping: true }));
         playSound('send');
 
-        // Determine which endpoint to use based on mode
-        const isLegacyMode = mode === 'legacy' || !useEnhanced;
-        const requestBody = isLegacyMode ?
-            { message: userMessage.content } : // Legacy format
-            { message: userMessage.content, language: chatState.language, useEnhanced: true }; // Enhanced format
+        // Xác định isLegacyMode dựa trên props của component
+        const currentModeIsLegacy = mode === 'legacy' || !useEnhanced; // mode và useEnhanced là props của EnhancedChatPopup
+
+        const requestBodyToNextJsApi = {
+            message: userMessage.content,
+            language: chatState.language, // Lấy từ state của component
+            useEnhanced: !currentModeIsLegacy // Gửi cờ này, nếu mode là enhanced thì useEnhanced là true
+        };
 
         try {
-            const response = await fetch('/api/chatbot', {
+            // Đảm bảo gọi đúng endpoint của Next.js API Route
+            const headers: HeadersInit = {
+                'Content-Type': 'application/json'
+            };
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
+            const response = await fetch('/api/chatbot', { // URL này trỏ đến Next.js API route
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                },
-                body: JSON.stringify(requestBody)
+                headers: headers, // SỬ DỤNG HEADERS ĐÃ CÓ AUTH TOKEN
+                body: JSON.stringify(requestBodyToNextJsApi)
             });
 
+            // Log thêm ở đây để debug phía client nếu cần
+            // console.log('EnhancedChatPopup: Response status from /api/chatbot:', response.status);
             const data = await response.json();
+            // console.log('EnhancedChatPopup: Data from /api/chatbot:', data);
 
             // Simulate typing delay
             setTimeout(() => {

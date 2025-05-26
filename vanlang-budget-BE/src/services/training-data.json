@@ -1,0 +1,433 @@
+[
+    {
+        "intent": "greeting.hello",
+        "language": "vi",
+        "utterances": [
+            "Xin chào",
+            "Chào bạn",
+            "Hello",
+            "Hi",
+            "Bạn có ở đó không?",
+            "Chào VanLangBot",
+            "chao",
+            "alo",
+            "a lô",
+            "ê bot"
+        ],
+        "answers": [
+            "Chào bạn! Tôi là VanLangBot – trợ lý tài chính của bạn.",
+            "Xin chào! Tôi có thể giúp gì cho bạn trong việc quản lý tài chính?"
+        ]
+    },
+    {
+        "intent": "greeting.farewell",
+        "language": "vi",
+        "utterances": [
+            "Tạm biệt",
+            "Bye",
+            "Goodbye",
+            "Chào tạm biệt",
+            "Hẹn gặp lại",
+            "Cảm ơn bot",
+            "cám ơn",
+            "thank you",
+            "thanks"
+        ],
+        "answers": [
+            "Tạm biệt bạn! Chúc bạn một ngày tốt lành!",
+            "Rất vui được hỗ trợ bạn. Hẹn gặp lại!"
+        ]
+    },
+    {
+        "intent": "bot.introduction",
+        "language": "vi",
+        "utterances": [
+            "Bạn là ai",
+            "Giới thiệu về bạn",
+            "Bạn tên gì",
+            "Bạn là gì",
+            "Thông tin về bạn",
+            "VanLangBot là ai"
+        ],
+        "answers": [
+            "Tôi là VanLangBot, trợ lý tài chính AI được thiết kế để giúp bạn quản lý tài chính cá nhân hiệu quả."
+        ]
+    },
+    {
+        "intent": "bot.capabilities",
+        "language": "vi",
+        "utterances": [
+            "Bạn làm được gì",
+            "Bạn giúp gì được tôi",
+            "Chức năng của bạn",
+            "Khả năng của bạn là gì",
+            "Kể cho tôi nghe bạn biết làm gì"
+        ],
+        "answers": [
+            "Tôi có thể giúp bạn theo dõi thu nhập, chi tiêu, khoản vay, đầu tư, phân tích tài chính và đưa ra các gợi ý hữu ích."
+        ]
+    },
+    {
+        "intent": "common.time_date",
+        "language": "vi",
+        "utterances": [
+            "Mấy giờ rồi",
+            "Hôm nay ngày mấy",
+            "Bây giờ là mấy giờ",
+            "Thời gian hiện tại",
+            "Ngày tháng năm nay"
+        ],
+        "answers": [
+            "Để tôi xem thời gian hiện tại cho bạn."
+        ]
+    },
+    {
+        "intent": "expense.query_summary",
+        "language": "vi",
+        "utterances": [
+            "Chi tiêu của tôi",
+            "Tổng chi tiêu của tôi là bao nhiêu",
+            "Xem tổng chi tiêu",
+            "Tình hình chi tiêu",
+            "Tôi đã tiêu bao nhiêu",
+            "Tháng này tiêu bao nhiêu rồi",
+            "Báo cáo chi tiêu",
+            "Thống kê chi tiêu"
+        ],
+        "answers": [
+            "Để tôi kiểm tra tổng quan chi tiêu của bạn."
+        ]
+    },
+    {
+        "intent": "expense.query_detail",
+        "language": "vi",
+        "utterances": [
+            "Xem chi tiết chi tiêu",
+            "Liệt kê các khoản chi",
+            "Tôi đã tiêu vào những gì",
+            "Chi tiêu cụ thể",
+            "Cho tôi xem chi tiết các giao dịch chi tiêu",
+            "Các khoản chi gần đây"
+        ],
+        "answers": [
+            "Để tôi liệt kê chi tiết các khoản chi tiêu của bạn."
+        ]
+    },
+    {
+        "intent": "income.query_summary",
+        "language": "vi",
+        "utterances": [
+            "Thu nhập của tôi",
+            "Tổng thu nhập là bao nhiêu",
+            "Xem tổng thu nhập",
+            "Tình hình thu nhập",
+            "Tôi kiếm được bao nhiêu",
+            "Tháng này thu nhập bao nhiêu",
+            "Báo cáo thu nhập",
+            "Tổng thu nhập thì sao"
+        ],
+        "answers": [
+            "Để tôi kiểm tra tổng quan thu nhập của bạn."
+        ]
+    },
+    {
+        "intent": "income.query_detail",
+        "language": "vi",
+        "utterances": [
+            "Xem chi tiết thu nhập",
+            "Liệt kê các khoản thu",
+            "Các nguồn thu của tôi",
+            "Thu nhập cụ thể",
+            "Cho tôi xem chi tiết các giao dịch thu nhập",
+            "Các khoản thu gần đây"
+        ],
+        "answers": [
+            "Để tôi liệt kê chi tiết các khoản thu nhập của bạn."
+        ]
+    },
+    {
+        "intent": "loan.query_summary",
+        "language": "vi",
+        "utterances": [
+            "Khoản vay của tôi",
+            "Tổng nợ là bao nhiêu",
+            "Xem các khoản vay",
+            "Tình hình nợ",
+            "Tôi đang nợ bao nhiêu",
+            "Tổng các khoản vay hiện tại",
+            "Báo cáo khoản vay"
+        ],
+        "answers": [
+            "Để tôi kiểm tra các khoản vay của bạn."
+        ]
+    },
+    {
+        "intent": "loan.query_detail",
+        "language": "vi",
+        "utterances": [
+            "Chi tiết khoản vay",
+            "Liệt kê các khoản nợ",
+            "Khoản vay abc chi tiết",
+            "Thông tin cụ thể về khoản vay"
+        ],
+        "answers": [
+            "Để tôi cung cấp chi tiết về khoản vay của bạn."
+        ]
+    },
+    {
+        "intent": "balance.query",
+        "language": "vi",
+        "utterances": [
+            "Số dư hiện tại là bao nhiêu",
+            "Số dư của tôi",
+            "Tài khoản còn bao nhiêu tiền",
+            "Kiểm tra số dư",
+            "Tôi còn lại bao nhiêu",
+            "Balance"
+        ],
+        "answers": [
+            "Để tôi kiểm tra số dư tài khoản của bạn."
+        ]
+    },
+    {
+        "intent": "budget.check",
+        "language": "vi",
+        "utterances": [
+            "Ngân sách của tôi còn bao nhiêu?",
+            "Kiểm tra ngân sách tháng này",
+            "Tình hình ngân sách",
+            "Tôi đã dùng bao nhiêu ngân sách",
+            "Hạn mức chi tiêu còn lại"
+        ],
+        "answers": [
+            "Để tôi kiểm tra tình hình ngân sách của bạn."
+        ]
+    },
+    {
+        "intent": "investment.query",
+        "language": "vi",
+        "utterances": [
+            "Các khoản đầu tư của tôi",
+            "Tình hình đầu tư",
+            "Xem danh mục đầu tư",
+            "Tôi đang đầu tư gì"
+        ],
+        "answers": [
+            "Để tôi xem thông tin đầu tư của bạn."
+        ]
+    },
+    {
+        "intent": "saving.advice",
+        "language": "vi",
+        "utterances": [
+            "Làm sao để tiết kiệm tiền?",
+            "Mẹo tiết kiệm tiền",
+            "Tôi muốn tiết kiệm nhiều hơn",
+            "Gợi ý cách tiết kiệm",
+            "Lời khuyên tiết kiệm"
+        ],
+        "answers": [
+            "Tiết kiệm là một thói quen tốt! Bạn có thể bắt đầu bằng việc đặt mục tiêu và theo dõi chi tiêu."
+        ]
+    },
+    {
+        "intent": "nlu.fallback",
+        "language": "vi",
+        "utterances": [
+            "Thời tiết hôm nay thế nào",
+            "Kể chuyện cười đi",
+            "Bạn thích ăn gì",
+            "1 cộng 1 bằng mấy",
+            "abc xyz"
+        ],
+        "answers": [
+            "Xin lỗi, tôi chưa hiểu rõ câu hỏi của bạn. Tôi chỉ có thể hỗ trợ các vấn đề liên quan đến tài chính.",
+            "Tôi không được huấn luyện để trả lời câu hỏi này. Bạn có câu hỏi nào khác về tài chính không?"
+        ]
+    },
+    {
+        "intent": "income.add",
+        "language": "vi",
+        "utterances": [
+            "Tôi vừa nhận lương",
+            "Thêm thu nhập mới",
+            "Ghi nhận tiền thưởng vào ứng dụng",
+            "Tôi có một khoản thu mới"
+        ],
+        "answers": [
+            "Bạn có thể thêm thu nhập bằng cách nhấn vào 'Thêm thu' và nhập số tiền, mô tả, ngày nhận.",
+            "Vào mục 'Thu nhập', chọn 'Thêm' và điền đầy đủ thông tin để ghi lại khoản thu mới nhé!"
+        ]
+    },
+    {
+        "intent": "loan.check",
+        "language": "vi",
+        "utterances": [
+            "Tôi đang nợ bao nhiêu?",
+            "Có khoản vay nào chưa trả không?",
+            "Tôi còn bao nhiêu nợ?",
+            "Kiểm tra nợ của tôi với"
+        ],
+        "answers": [
+            "Bạn đang còn {loanAmount} chưa thanh toán. Hãy lên kế hoạch trả nợ sớm nhé!",
+            "Hiện tại, bạn có {loanCount} khoản vay, tổng nợ là {loanAmount}."
+        ]
+    },
+    {
+        "intent": "report.view",
+        "language": "vi",
+        "utterances": [
+            "Cho tôi xem báo cáo chi tiêu",
+            "Tôi muốn xem thống kê tài chính",
+            "Có thể cho tôi biểu đồ thu chi tháng này không?",
+            "Xem báo cáo theo tuần được không?"
+        ],
+        "answers": [
+            "Bạn có thể vào mục 'Báo cáo' để xem biểu đồ thu chi theo tuần, tháng hoặc năm.",
+            "Dữ liệu thống kê được tổng hợp theo danh mục và thời gian – bạn hãy chọn khoảng thời gian cần xem nhé!"
+        ]
+    },
+    {
+        "intent": "category.list",
+        "language": "vi",
+        "utterances": [
+            "Danh mục chi tiêu hiện có là gì?",
+            "Tôi có thể tạo danh mục mới không?",
+            "Liệt kê các danh mục thu chi",
+            "Tôi muốn phân loại chi tiêu"
+        ],
+        "answers": [
+            "Bạn có thể tạo và chỉnh sửa danh mục ở phần 'Cài đặt danh mục'.",
+            "Hiện có các danh mục như Ăn uống, Di chuyển, Giải trí, Học tập, v.v."
+        ]
+    },
+    {
+        "intent": "notification.settings",
+        "language": "vi",
+        "utterances": [
+            "Làm sao bật thông báo chi tiêu?",
+            "Tôi muốn được nhắc khi sắp hết ngân sách",
+            "Bật cảnh báo tài chính",
+            "Thông báo quá giới hạn ngân sách có hoạt động không?"
+        ],
+        "answers": [
+            "Bạn có thể bật/tắt thông báo trong mục 'Cài đặt > Thông báo'.",
+            "Ứng dụng sẽ gửi cảnh báo khi bạn vượt quá 80% ngân sách hoặc có khoản chi lớn bất thường."
+        ]
+    },
+    {
+        "intent": "budget.set",
+        "language": "vi",
+        "utterances": [
+            "Đặt ngân sách tháng này như thế nào?",
+            "Tôi muốn giới hạn chi tiêu",
+            "Thiết lập ngân sách mới",
+            "Tôi cần lập kế hoạch chi tiêu tháng tới"
+        ],
+        "answers": [
+            "Bạn vào phần 'Ngân sách', chọn 'Tạo mới' và nhập số tiền giới hạn cho từng danh mục.",
+            "Để thiết lập ngân sách, hãy chọn khoảng thời gian và danh mục, sau đó nhập số tiền dự kiến chi."
+        ]
+    },
+    {
+        "intent": "auth.require",
+        "language": "vi",
+        "utterances": [
+            "Tôi chưa đăng nhập thì chatbot có hoạt động không?",
+            "Có cần đăng nhập để sử dụng bot không?",
+            "Bot yêu cầu tài khoản đúng không?",
+            "Tôi không đăng nhập mà vẫn hỏi được à?"
+        ],
+        "answers": [
+            "Bạn cần đăng nhập để sử dụng đầy đủ tính năng của VanLangBot và bảo vệ dữ liệu cá nhân.",
+            "Để tương tác tốt nhất và truy xuất dữ liệu chính xác, vui lòng đăng nhập tài khoản trước nhé!"
+        ]
+    },
+    {
+        "intent": "chatbot.scope",
+        "language": "vi",
+        "utterances": [
+            "Bot này làm được gì?",
+            "Chức năng của VanLangBot là gì?",
+            "Bot có thể giúp gì cho tôi?",
+            "Tôi có thể hỏi bot về tài chính như thế nào?"
+        ],
+        "answers": [
+            "VanLangBot có thể giúp bạn quản lý chi tiêu, thu nhập, ngân sách, khoản vay và cả đầu tư đơn giản.",
+            "Tôi hỗ trợ bạn ghi lại giao dịch, xem báo cáo tài chính, tư vấn tiết kiệm và trả lời các câu hỏi liên quan đến ứng dụng VanLang Budget."
+        ]
+    },
+    {
+        "intent": "investment.support",
+        "language": "vi",
+        "utterances": [
+            "Tôi có thể đầu tư gì trong app?",
+            "Ứng dụng hỗ trợ quản lý đầu tư không?",
+            "Ghi nhận lợi nhuận đầu tư ở đâu?",
+            "Theo dõi đầu tư crypto như thế nào?"
+        ],
+        "answers": [
+            "Bạn có thể thêm khoản đầu tư ở mục 'Đầu tư', nhập số tiền và loại tài sản như crypto, cổ phiếu, hoặc khác.",
+            "VanLangBot hỗ trợ ghi nhận lãi/lỗ và theo dõi biến động tài sản đơn giản để bạn quản lý đầu tư hiệu quả hơn."
+        ]
+    },
+    {
+        "intent": "saving.goal",
+        "language": "vi",
+        "utterances": [
+            "Tôi muốn tiết kiệm tiền mua xe",
+            "Đặt mục tiêu tiết kiệm ở đâu?",
+            "Làm sao để tạo kế hoạch tiết kiệm?",
+            "Có thể theo dõi quá trình tiết kiệm không?"
+        ],
+        "answers": [
+            "Bạn có thể tạo mục tiêu tiết kiệm tại phần 'Kế hoạch tài chính', nhập tên mục tiêu, số tiền và thời hạn hoàn thành.",
+            "Ứng dụng sẽ nhắc nhở bạn tiến độ và đưa gợi ý điều chỉnh nếu bạn chi vượt mức kế hoạch."
+        ]
+    },
+    {
+        "intent": "reminder.setup",
+        "language": "vi",
+        "utterances": [
+            "Tôi muốn nhắc ghi thu nhập mỗi tháng",
+            "Làm sao tạo nhắc định kỳ?",
+            "Nhắc tôi đóng tiền trọ hàng tháng nhé",
+            "Ứng dụng có hỗ trợ nhắc định kỳ không?"
+        ],
+        "answers": [
+            "Bạn có thể tạo giao dịch định kỳ trong mục 'Lập lịch', chọn ngày lặp lại và nội dung cần nhắc.",
+            "Mỗi tháng ứng dụng sẽ tự động ghi nhận giao dịch nếu bạn bật chế độ định kỳ nhé!"
+        ]
+    },
+    {
+        "intent": "security.privacy",
+        "language": "vi",
+        "utterances": [
+            "Dữ liệu của tôi có an toàn không?",
+            "Ứng dụng có mã hóa thông tin không?",
+            "Tôi có thể xoá tài khoản không?",
+            "VanLangBot có chia sẻ dữ liệu với bên thứ ba không?"
+        ],
+        "answers": [
+            "Chúng tôi sử dụng các phương pháp mã hóa hiện đại để bảo vệ dữ liệu người dùng.",
+            "Bạn hoàn toàn có quyền xoá tài khoản và dữ liệu bất kỳ lúc nào tại phần 'Cài đặt'.",
+            "VanLangBot cam kết không chia sẻ dữ liệu cá nhân với bất kỳ bên thứ ba nào."
+        ]
+    },
+    {
+        "intent": "funny.chat",
+        "language": "vi",
+        "utterances": [
+            "Bạn có yêu tôi không?",
+            "Bot có buồn không khi tôi tiêu nhiều tiền?",
+            "Tôi phá sản rồi, bạn giúp gì được?",
+            "Bạn có thể kể chuyện cười không?"
+        ],
+        "answers": [
+            "Tôi luôn yêu bạn và túi tiền của bạn 😄",
+            "Tiêu nhiều thì phải tiết kiệm lại, tôi luôn bên bạn!",
+            "Phá sản chỉ là bước đệm để làm lại từ đầu – tôi sẽ giúp bạn lên kế hoạch!",
+            "Một đồng tiết kiệm là một đồng... không tiêu, haha!"
+        ]
+    }
+]

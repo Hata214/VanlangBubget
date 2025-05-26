@@ -3,10 +3,12 @@ import rateLimit from 'express-rate-limit';
 
 // Import services
 import authenticateToken from '../middlewares/authenticateToken.js';
-import NLPService from '../services/nlpService.js';
-import getCacheService from '../services/cacheService.js';
-import FinancialCalculationService from '../services/financialCalculationService.js';
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+
+// Temporarily comment out problematic imports for debugging
+// import NLPService from '../services/nlpService.js';
+// import getCacheService from '../services/cacheService.js';
+// import FinancialCalculationService from '../services/financialCalculationService.js';
+// import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 // Import models for real data
 import Income from '../models/incomeModel.js';
@@ -107,19 +109,19 @@ QUY TẮC QUAN TRỌNG:
 
 // === END LEGACY CHATBOT FUNCTIONS ===
 
-// Initialize services
-const nlpService = new NLPService();
-const cacheService = getCacheService();
-const calculationService = new FinancialCalculationService();
+// Temporarily disable service initialization for debugging
+// const nlpService = new NLPService();
+// const cacheService = getCacheService();
+// const calculationService = new FinancialCalculationService();
 
-// Validate Gemini API key
-if (!process.env.GEMINI_API_KEY) {
-    console.error('❌ GEMINI_API_KEY không được cấu hình trong .env file');
-    throw new Error('Gemini API key is required for enhanced chatbot functionality');
-}
+// Temporarily disable Gemini for debugging
+// if (!process.env.GEMINI_API_KEY) {
+//     console.error('❌ GEMINI_API_KEY không được cấu hình trong .env file');
+//     throw new Error('Gemini API key is required for enhanced chatbot functionality');
+// }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-console.log('✅ Gemini AI initialized successfully');
+// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+console.log('✅ Enhanced chatbot routes loaded (debugging mode)');
 
 // Rate limiting: 30 requests per minute per user
 const chatbotRateLimit = rateLimit({
@@ -184,42 +186,57 @@ const getSystemInstruction = (language = 'vi') => {
         vi: `Bạn là VanLangBot, trợ lý tài chính thông minh của ứng dụng VanLang Budget.
 
 CHỈ trả lời các câu hỏi về:
+- Chào hỏi và giới thiệu bản thân
+- Thông tin thời gian và ngày tháng hiện tại
+- Hướng dẫn sử dụng và khả năng của VanLangBot
 - Quản lý tài chính cá nhân (thu nhập, chi tiêu, ngân sách)
 - Đầu tư (cổ phiếu, vàng, crypto, tiết kiệm)
+- Khoản vay và nợ (tổng khoản vay, lãi suất, phân tích nợ)
 - Phân tích và tính toán dữ liệu tài chính được cung cấp
 - Dự đoán xu hướng và so sánh theo thời gian
 - Gợi ý tiết kiệm và lập ngân sách thông minh
 - Kế hoạch tài chính và mục tiêu tiết kiệm
 - Tính toán lãi suất, ROI, và hiệu quả đầu tư
-- Chức năng của VanLangBot và hướng dẫn sử dụng
+- Lời cảm ơn và tạm biệt
 
 KHẢ NĂNG TÍNH TOÁN:
 - Phân tích thu nhập và xu hướng
 - Tính toán chi tiêu theo danh mục
 - Đánh giá hiệu quả đầu tư và ROI
 - Phân tích ngân sách và mức độ sử dụng
+- Tính toán khoản vay và lãi suất
 - Dự đoán chi tiêu tương lai
 - Tính toán mục tiêu tiết kiệm
 - So sánh dữ liệu theo thời gian
 
-QUY TẮC:
+QUY TẮC QUAN TRỌNG:
 1. TỪ CHỐI lịch sự mọi chủ đề khác (thời tiết, tin tức, giải trí...)
-2. KHÔNG tự bịa số liệu, chỉ dùng dữ liệu được cung cấp
-3. Cung cấp tính toán chính xác và giải thích rõ ràng
-4. Đưa ra gợi ý thực tế và khả thi
-5. Sử dụng emoji phù hợp (💰, 📊, 💡, ⚠️, 🧮, 📈)
-6. Trả lời ngắn gọn nhưng đầy đủ thông tin
-7. Luôn thân thiện và hữu ích
+2. KHÔNG tự bịa số liệu, CHỈ dùng dữ liệu được cung cấp trong context
+3. KHI người dùng hỏi về số liệu cụ thể (tổng khoản vay, thu nhập, chi tiêu), LUÔN trả lời TRỰC TIẾP với số tiền chính xác từ dữ liệu
+4. HIỂU ĐÚNG Ý ĐỊNH:
+   - "Chi tiết" = Liệt kê từng khoản cụ thể với số liệu
+   - "Tổng" = Hiển thị số tiền tổng hợp
+   - "Phân tích" = Đưa ra nhận xét và gợi ý
+5. KHÔNG BAO GIỜ nói "câu hỏi không rõ ràng" - hãy đoán ý định và trả lời
+6. Cung cấp tính toán chính xác và giải thích rõ ràng
+7. Đưa ra gợi ý thực tế và khả thi
+8. Sử dụng emoji phù hợp (💰, 📊, 💡, ⚠️, 🧮, 📈, 🏦)
+9. Trả lời ngắn gọn nhưng đầy đủ thông tin
+10. Luôn thân thiện và hữu ích
 
 CÁC LOẠI CÂU HỎI CÓ THỂ TRẢ LỜI:
 - "Thu nhập của tôi tháng này bao nhiêu?"
+- "Tổng khoản vay của tôi là bao nhiêu?" → Trả lời TRỰC TIẾP số tiền từ dữ liệu
+- "Tổng chi tiết của tôi là bao nhiêu?" → Hiểu là hỏi về CHI TIẾT KHOẢN VAY, trả lời với danh sách từng khoản
+- "Chi tiết khoản vay của tôi" → Liệt kê từng khoản vay với số tiền cụ thể
 - "Phân tích chi tiêu tháng này"
 - "Tính toán lợi nhuận đầu tư"
 - "So sánh thu chi tháng này với tháng trước"
 - "Dự đoán xu hướng chi tiêu"
 - "Tôi có thể tiết kiệm 100 triệu trong bao lâu?"
 - "Phân tích ngân sách hiện tại"
-- "Gợi ý phân bổ thu nhập"`,
+- "Gợi ý phân bổ thu nhập"
+- "Phân tích khoản vay của tôi"`,
 
         en: `You are VanLangBot, the intelligent financial assistant for VanLang Budget app.
 
@@ -414,7 +431,7 @@ async function getUserFinancialDataCached(userId) {
 
             const totalIncomeAllTime = allIncomes.reduce((total, income) => total + (income.amount || 0), 0);
             const totalExpenseAllTime = allExpenses.reduce((total, expense) => total + (expense.amount || 0), 0);
-            const totalSavings = Math.max(0, totalIncomeAllTime - totalExpenseAllTime);
+            const totalSavings = totalIncomeAllTime - totalExpenseAllTime; // Cho phép số âm
 
             console.log(`🧮 CALCULATION RESULTS:`);
             console.log(`💰 Total Income All Time: ${totalIncomeAllTime.toLocaleString('vi-VN')} VND`);
@@ -438,16 +455,93 @@ async function getUserFinancialDataCached(userId) {
             const incomeLastMonth = lastMonthIncomes.reduce((total, income) => total + (income.amount || 0), 0);
             const expenseLastMonth = lastMonthExpenses.reduce((total, expense) => total + (expense.amount || 0), 0);
 
-            // 7. Lấy TỔNG khoản vay (như dashboard)
-            const allLoans = await Loan.find({ userId: userId });
-            const totalLoanAmount = allLoans.reduce((total, loan) => {
-                // Tính tổng nợ bao gồm lãi suất
+            // 7. Lấy TỔNG khoản vay (như dashboard) với chi tiết - CHỈ ACTIVE
+            console.log(`🔍 FETCHING LOANS for userId: ${userId}`);
+            const allLoans = await Loan.find({
+                userId: userId,
+                status: 'ACTIVE' // CHỈ lấy khoản vay đang hoạt động như frontend
+            }).populate('payments'); // Populate payments để tính remainingAmount
+            console.log(`🏦 Found ${allLoans.length} ACTIVE loans for user ${userId}`);
+
+            // DEBUG: Log raw loan data
+            if (allLoans.length > 0) {
+                console.log('🔍 RAW LOAN DATA:');
+                allLoans.forEach((loan, index) => {
+                    console.log(`  Loan ${index + 1}:`);
+                    console.log(`    - ID: ${loan._id}`);
+                    console.log(`    - Description: ${loan.description}`);
+                    console.log(`    - Amount: ${loan.amount}`);
+                    console.log(`    - Interest Rate: ${loan.interestRate}%`);
+                    console.log(`    - Interest Rate Type: ${loan.interestRateType}`);
+                    console.log(`    - Start Date: ${loan.startDate}`);
+                    console.log(`    - Due Date: ${loan.dueDate}`);
+                    console.log(`    - Status: ${loan.status}`);
+                });
+            } else {
+                console.log('❌ NO LOANS FOUND - This might be why chatbot cannot access loan data');
+            }
+
+            let totalLoanAmount = 0;
+            const loanDetails = allLoans.map(loan => {
+                // Tính tổng nợ bao gồm lãi suất GIỐNG DASHBOARD CHÍNH XÁC
                 const principal = loan.amount || 0;
                 const interestRate = loan.interestRate || 0;
-                const termMonths = loan.termMonths || 1;
-                const totalWithInterest = principal * (1 + (interestRate / 100) * (termMonths / 12));
-                return total + totalWithInterest;
-            }, 0);
+
+                // Tính số tiền còn lại sau khi trừ tiền trả trước (giống frontend)
+                const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                const remainingAmount = Math.max(0, principal - totalPaid);
+
+                // Tính số ngày giữa ngày vay và ngày đáo hạn (giống dashboard)
+                const startDate = new Date(loan.startDate);
+                const dueDate = new Date(loan.dueDate);
+                const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                // Tính interestMultiplier dựa trên interestRateType (giống dashboard)
+                let interestMultiplier = 0;
+                switch (loan.interestRateType) {
+                    case 'DAY':
+                        interestMultiplier = diffDays;
+                        break;
+                    case 'WEEK':
+                        interestMultiplier = diffDays / 7;
+                        break;
+                    case 'MONTH':
+                        interestMultiplier = diffDays / 30;
+                        break;
+                    case 'QUARTER':
+                        interestMultiplier = diffDays / 90;
+                        break;
+                    case 'YEAR':
+                        interestMultiplier = diffDays / 365;
+                        break;
+                    default:
+                        interestMultiplier = 0;
+                }
+
+                // Tính lãi trên số tiền còn lại (giống frontend)
+                const interestAmount = Math.round(remainingAmount * (interestRate / 100) * interestMultiplier);
+                const totalWithInterest = remainingAmount + interestAmount;
+
+                totalLoanAmount += totalWithInterest;
+
+                console.log(`  - Loan: ${loan.description || loan.purpose || 'Unknown'}, Principal: ${principal}, Paid: ${totalPaid}, Remaining: ${remainingAmount}, Interest: ${interestRate}% (${loan.interestRateType}), Days: ${diffDays}, Multiplier: ${interestMultiplier}, InterestAmount: ${interestAmount}, Total: ${totalWithInterest}`);
+
+                return {
+                    id: loan._id,
+                    purpose: loan.description || loan.purpose || 'Khoản vay', // Sử dụng description từ model
+                    principal: principal,
+                    totalPaid: totalPaid,
+                    remainingAmount: remainingAmount,
+                    interestRate: interestRate,
+                    interestRateType: loan.interestRateType,
+                    diffDays: diffDays,
+                    interestAmount: interestAmount,
+                    totalAmount: totalWithInterest,
+                    monthlyPayment: totalWithInterest / Math.max(1, diffDays / 30) // Ước tính trả hàng tháng
+                };
+            });
+
             console.log(`🏦 Total loan amount with interest: ${totalLoanAmount} (from ${allLoans.length} loans)`);
 
             // Tạo financial data object với dữ liệu TỔNG QUAN như dashboard
@@ -457,6 +551,7 @@ async function getUserFinancialDataCached(userId) {
                 totalIncomeAllTime, // Tổng thu nhập tích lũy
                 totalExpenseAllTime, // Tổng chi tiêu tích lũy
                 totalLoanAmount, // Tổng khoản vay
+                loanDetails, // Chi tiết khoản vay
                 totalSavings, // Tổng tiết kiệm
 
                 // Dữ liệu tháng hiện tại (để so sánh)
@@ -540,8 +635,8 @@ function formatFinancialContext(financialData, language = 'vi') {
 
     const templates = {
         vi: {
-            // Dữ liệu tổng quan (như dashboard)
-            totalBalance: `💎 Số dư hiện tại: ${financialData.totalBalance?.toLocaleString('vi-VN')} VND`,
+            // Dữ liệu tổng quan (như dashboard) - hỗ trợ số âm
+            totalBalance: `💎 Số dư hiện tại: ${financialData.totalBalance >= 0 ? '' : '-'}${Math.abs(financialData.totalBalance || 0).toLocaleString('vi-VN')} VND${financialData.totalBalance < 0 ? ' (Âm)' : ''}`,
             totalIncome: `💰 Tổng thu nhập tích lũy: ${financialData.totalIncomeAllTime?.toLocaleString('vi-VN')} VND`,
             totalExpense: `💸 Tổng chi tiêu tích lũy: ${financialData.totalExpenseAllTime?.toLocaleString('vi-VN')} VND`,
             totalLoan: `🏦 Tổng khoản vay: ${financialData.totalLoanAmount?.toLocaleString('vi-VN')} VND`,
@@ -549,14 +644,14 @@ function formatFinancialContext(financialData, language = 'vi') {
             // Dữ liệu tháng hiện tại
             incomeThisMonth: `💰 Thu nhập tháng này: ${financialData.incomeThisMonth?.toLocaleString('vi-VN')} VND`,
             expensesThisMonth: `💸 Chi tiêu tháng này: ${financialData.totalExpensesThisMonth?.toLocaleString('vi-VN')} VND`,
-            savingsThisMonth: `💎 Tiết kiệm tháng này: ${financialData.savingsThisMonth?.toLocaleString('vi-VN')} VND`,
+            savingsThisMonth: `💎 Tiết kiệm tháng này: ${financialData.savingsThisMonth >= 0 ? '' : '-'}${Math.abs(financialData.savingsThisMonth || 0).toLocaleString('vi-VN')} VND${financialData.savingsThisMonth < 0 ? ' (Âm)' : ''}`,
 
             investments: `📊 Đầu tư hiện có:`,
             budgets: `📋 Tình hình ngân sách:`
         },
         en: {
-            // Dashboard overview data
-            totalBalance: `💎 Current balance: ${financialData.totalBalance?.toLocaleString('en-US')} VND`,
+            // Dashboard overview data - support negative numbers
+            totalBalance: `💎 Current balance: ${financialData.totalBalance >= 0 ? '' : '-'}${Math.abs(financialData.totalBalance || 0).toLocaleString('en-US')} VND${financialData.totalBalance < 0 ? ' (Negative)' : ''}`,
             totalIncome: `💰 Total accumulated income: ${financialData.totalIncomeAllTime?.toLocaleString('en-US')} VND`,
             totalExpense: `💸 Total accumulated expenses: ${financialData.totalExpenseAllTime?.toLocaleString('en-US')} VND`,
             totalLoan: `🏦 Total loans: ${financialData.totalLoanAmount?.toLocaleString('en-US')} VND`,
@@ -564,7 +659,7 @@ function formatFinancialContext(financialData, language = 'vi') {
             // Current month data
             incomeThisMonth: `💰 This month's income: ${financialData.incomeThisMonth?.toLocaleString('en-US')} VND`,
             expensesThisMonth: `💸 This month's expenses: ${financialData.totalExpensesThisMonth?.toLocaleString('en-US')} VND`,
-            savingsThisMonth: `💎 This month's savings: ${financialData.savingsThisMonth?.toLocaleString('en-US')} VND`,
+            savingsThisMonth: `💎 This month's savings: ${financialData.savingsThisMonth >= 0 ? '' : '-'}${Math.abs(financialData.savingsThisMonth || 0).toLocaleString('en-US')} VND${financialData.savingsThisMonth < 0 ? ' (Negative)' : ''}`,
 
             investments: `📊 Current investments:`,
             budgets: `📋 Budget status:`
@@ -587,8 +682,21 @@ function formatFinancialContext(financialData, language = 'vi') {
         context += `${t.totalExpense}\n`;
     }
 
-    if (financialData.totalLoanAmount !== undefined && financialData.totalLoanAmount > 0) {
+    // Luôn hiển thị thông tin khoản vay (kể cả khi = 0) - QUAN TRỌNG
+    if (financialData.totalLoanAmount !== undefined) {
         context += `${t.totalLoan}\n`;
+
+        // Thêm chi tiết khoản vay nếu có - HIỂN THỊ RÕ RÀNG
+        if (financialData.loanDetails && financialData.loanDetails.length > 0) {
+            context += `   📝 Chi tiết khoản vay:\n`;
+            financialData.loanDetails
+                .slice(0, 5) // Top 5 loans
+                .forEach((loan, index) => {
+                    context += `   ${index + 1}. ${loan.purpose || 'Khoản vay'}: ${loan.totalAmount.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')} VND (Còn lại: ${loan.remainingAmount.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')} VND, Lãi: ${loan.interestAmount.toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')} VND)\n`;
+                });
+        } else if (financialData.totalLoanAmount === 0) {
+            context += `   ✅ Bạn hiện tại không có khoản vay nào.\n`;
+        }
     }
 
     // Thêm dữ liệu tháng hiện tại
@@ -704,6 +812,10 @@ async function performCalculation(intent, financialData, message, language = 'vi
 
             case 'calculate_budget':
                 result = calculateBudgetAnalysis(financialData, language);
+                break;
+
+            case 'calculate_loan':
+                result = calculateLoanAnalysis(financialData, language);
                 break;
 
             case 'trend_analysis':
@@ -969,6 +1081,87 @@ ${healthy.slice(0, 3).map(b => `• ${b.category}: ${b.percentUsed}%`).join('\n'
 }
 
 /**
+ * Tính toán phân tích khoản vay
+ */
+function calculateLoanAnalysis(financialData, language = 'vi') {
+    if (!financialData.loanDetails || financialData.loanDetails.length === 0) {
+        return language === 'vi' ?
+            'Bạn hiện tại không có khoản vay nào.' :
+            'You currently have no loans.';
+    }
+
+    const loans = financialData.loanDetails;
+    const totalPrincipal = loans.reduce((total, loan) => total + loan.principal, 0);
+    const totalInterest = loans.reduce((total, loan) => total + (loan.totalAmount - loan.principal), 0);
+    const totalMonthlyPayment = loans.reduce((total, loan) => total + loan.monthlyPayment, 0);
+
+    // Phân loại khoản vay theo lãi suất
+    const highInterestLoans = loans.filter(loan => loan.interestRate > 15);
+    const mediumInterestLoans = loans.filter(loan => loan.interestRate > 8 && loan.interestRate <= 15);
+    const lowInterestLoans = loans.filter(loan => loan.interestRate <= 8);
+
+    return language === 'vi' ? `
+🏦 **Phân tích Khoản vay:**
+
+💰 **Tổng quan:**
+• Tổng số khoản vay: ${loans.length}
+• Tổng gốc: ${totalPrincipal.toLocaleString('vi-VN')} VND
+• Tổng lãi: ${totalInterest.toLocaleString('vi-VN')} VND
+• Tổng phải trả: ${financialData.totalLoanAmount.toLocaleString('vi-VN')} VND
+• Trả hàng tháng: ${totalMonthlyPayment.toLocaleString('vi-VN')} VND
+
+📊 **Phân loại theo lãi suất:**
+${highInterestLoans.length > 0 ? `🔴 Lãi suất cao (>15%): ${highInterestLoans.length} khoản` : ''}
+${mediumInterestLoans.length > 0 ? `🟡 Lãi suất trung bình (8-15%): ${mediumInterestLoans.length} khoản` : ''}
+${lowInterestLoans.length > 0 ? `🟢 Lãi suất thấp (≤8%): ${lowInterestLoans.length} khoản` : ''}
+
+📋 **Chi tiết khoản vay:**
+${loans.slice(0, 3).map(loan =>
+        `• ${loan.purpose}: ${loan.totalAmount.toLocaleString('vi-VN')} VND (${loan.interestRate}%/năm)`
+    ).join('\n')}
+
+⚠️ **Đánh giá:** ${totalInterest > totalPrincipal * 0.3 ?
+            'Tổng lãi cao, cần ưu tiên trả nợ' :
+            totalInterest > totalPrincipal * 0.1 ?
+                'Mức lãi ở mức trung bình' :
+                'Mức lãi hợp lý'}
+
+🎯 **Gợi ý:** ${highInterestLoans.length > 0 ?
+            'Ưu tiên trả các khoản vay lãi suất cao trước.' :
+            'Duy trì kế hoạch trả nợ đều đặn.'}
+    ` : `
+🏦 **Loan Analysis:**
+
+💰 **Overview:**
+• Total loans: ${loans.length}
+• Total principal: ${totalPrincipal.toLocaleString('en-US')} VND
+• Total interest: ${totalInterest.toLocaleString('en-US')} VND
+• Total payable: ${financialData.totalLoanAmount.toLocaleString('en-US')} VND
+• Monthly payment: ${totalMonthlyPayment.toLocaleString('en-US')} VND
+
+📊 **Classification by interest rate:**
+${highInterestLoans.length > 0 ? `🔴 High interest (>15%): ${highInterestLoans.length} loans` : ''}
+${mediumInterestLoans.length > 0 ? `🟡 Medium interest (8-15%): ${mediumInterestLoans.length} loans` : ''}
+${lowInterestLoans.length > 0 ? `🟢 Low interest (≤8%): ${lowInterestLoans.length} loans` : ''}
+
+📋 **Loan details:**
+${loans.slice(0, 3).map(loan =>
+                `• ${loan.purpose}: ${loan.totalAmount.toLocaleString('en-US')} VND (${loan.interestRate}%/year)`
+            ).join('\n')}
+
+⚠️ **Assessment:** ${totalInterest > totalPrincipal * 0.3 ?
+        'High total interest, prioritize debt repayment' :
+        totalInterest > totalPrincipal * 0.1 ?
+            'Interest level is moderate' :
+            'Interest level is reasonable'}
+
+🎯 **Suggestion:** ${highInterestLoans.length > 0 ?
+        'Prioritize paying off high-interest loans first.' :
+        'Maintain regular debt repayment schedule.'}
+    `;
+}
+
+/**
  * Tính toán xu hướng tài chính
  */
 function calculateTrendAnalysis(financialData, language = 'vi') {
@@ -1101,6 +1294,242 @@ ${emergencyFund.recommendation}
 }
 
 /**
+ * Tạo response cho lời chào
+ */
+function generateGreetingResponse(language = 'vi') {
+    const currentHour = new Date().getHours();
+    let timeGreeting = '';
+
+    if (language === 'vi') {
+        if (currentHour < 12) {
+            timeGreeting = 'Chào buổi sáng! ☀️';
+        } else if (currentHour < 18) {
+            timeGreeting = 'Chào buổi chiều! 🌤️';
+        } else {
+            timeGreeting = 'Chào buổi tối! 🌙';
+        }
+
+        return `${timeGreeting}\n\nTôi là **VanLangBot** 🤖, trợ lý tài chính thông minh của bạn!\n\n💡 Tôi có thể giúp bạn:\n• Kiểm tra số dư và tài chính\n• Phân tích thu chi\n• Quản lý khoản vay\n• Theo dõi đầu tư\n• Lập kế hoạch ngân sách\n\nHãy hỏi tôi bất cứ điều gì về tài chính nhé! 💰`;
+    } else {
+        if (currentHour < 12) {
+            timeGreeting = 'Good morning! ☀️';
+        } else if (currentHour < 18) {
+            timeGreeting = 'Good afternoon! 🌤️';
+        } else {
+            timeGreeting = 'Good evening! 🌙';
+        }
+
+        return `${timeGreeting}\n\nI'm **VanLangBot** 🤖, your smart financial assistant!\n\n💡 I can help you with:\n• Check balance and finances\n• Analyze income and expenses\n• Manage loans\n• Track investments\n• Budget planning\n\nFeel free to ask me anything about finance! 💰`;
+    }
+}
+
+/**
+ * Tạo response cho giới thiệu bot
+ */
+function generateBotIntroductionResponse(language = 'vi') {
+    if (language === 'vi') {
+        return `🤖 **Xin chào! Tôi là VanLangBot**\n\n✨ **Về tôi:**\n• Trợ lý tài chính thông minh được phát triển bởi VanLang Budget\n• Sử dụng công nghệ AI tiên tiến để hỗ trợ quản lý tài chính\n• Hiểu được tiếng Việt và tiếng Anh\n\n🎯 **Chuyên môn của tôi:**\n• 📊 Phân tích dữ liệu tài chính cá nhân\n• 💰 Tư vấn quản lý thu chi\n• 🏦 Hỗ trợ quản lý khoản vay\n• 📈 Theo dõi đầu tư và tiết kiệm\n• 🧮 Tính toán và dự báo tài chính\n\n💡 **Tôi luôn sẵn sàng giúp bạn đạt được mục tiêu tài chính!**\n\nHãy hỏi tôi về tình hình tài chính của bạn nhé! 🚀`;
+    } else {
+        return `🤖 **Hello! I'm VanLangBot**\n\n✨ **About me:**\n• Smart financial assistant developed by VanLang Budget\n• Using advanced AI technology to support financial management\n• Understanding both Vietnamese and English\n\n🎯 **My expertise:**\n• 📊 Personal financial data analysis\n• 💰 Income and expense management consulting\n• 🏦 Loan management support\n• 📈 Investment and savings tracking\n• 🧮 Financial calculations and forecasting\n\n💡 **I'm always ready to help you achieve your financial goals!**\n\nFeel free to ask me about your finances! 🚀`;
+    }
+}
+
+/**
+ * Tạo response cho thời gian hiện tại
+ */
+function generateTimeResponse(language = 'vi') {
+    const now = new Date();
+    const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }));
+
+    const timeString = vietnamTime.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+
+    const dateString = vietnamTime.toLocaleDateString('vi-VN', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+
+    if (language === 'vi') {
+        return `🕐 **Thời gian hiện tại:**\n\n⏰ **Giờ:** ${timeString}\n📅 **Ngày:** ${dateString}\n🌏 **Múi giờ:** Việt Nam (UTC+7)\n\nCó gì tôi có thể giúp bạn về tài chính không? 💰`;
+    } else {
+        return `🕐 **Current time:**\n\n⏰ **Time:** ${timeString}\n📅 **Date:** ${dateString}\n🌏 **Timezone:** Vietnam (UTC+7)\n\nIs there anything I can help you with regarding your finances? 💰`;
+    }
+}
+
+/**
+ * Tạo response cho khả năng của bot
+ */
+function generateCapabilityResponse(language = 'vi') {
+    if (language === 'vi') {
+        return `🚀 **Tôi có thể giúp bạn những gì:**\n\n💰 **Quản lý tài chính:**\n• Kiểm tra số dư tài khoản\n• Xem tổng thu nhập và chi tiêu\n• Phân tích xu hướng tài chính\n\n🏦 **Quản lý khoản vay:**\n• Xem chi tiết từng khoản vay\n• Tính toán lãi suất và tổng nợ\n• Lập kế hoạch trả nợ\n\n📈 **Đầu tư & Tiết kiệm:**\n• Theo dõi danh mục đầu tư\n• Tính toán lợi nhuận\n• Đề xuất chiến lược tiết kiệm\n\n📊 **Phân tích & Báo cáo:**\n• So sánh thu chi theo thời gian\n• Dự báo xu hướng chi tiêu\n• Tạo báo cáo tài chính\n\n🧮 **Tính toán thông minh:**\n• Tính lãi suất kép\n• Ước tính thời gian đạt mục tiêu\n• Phân tích hiệu quả đầu tư\n\n💡 **Hãy thử hỏi tôi:**\n• "Tổng khoản vay của tôi là bao nhiêu?"\n• "Phân tích chi tiêu tháng này"\n• "Thu nhập của tôi thế nào?"\n• "Chi tiết đầu tư của tôi"`;
+    } else {
+        return `🚀 **What I can help you with:**\n\n💰 **Financial Management:**\n• Check account balance\n• View total income and expenses\n• Analyze financial trends\n\n🏦 **Loan Management:**\n• View detailed loan information\n• Calculate interest and total debt\n• Create debt repayment plans\n\n📈 **Investment & Savings:**\n• Track investment portfolio\n• Calculate returns\n• Suggest savings strategies\n\n📊 **Analysis & Reports:**\n• Compare income/expenses over time\n• Forecast spending trends\n• Generate financial reports\n\n🧮 **Smart Calculations:**\n• Calculate compound interest\n• Estimate time to reach goals\n• Analyze investment efficiency\n\n💡 **Try asking me:**\n• "What's my total loan amount?"\n• "Analyze this month's expenses"\n• "How's my income?"\n• "Show my investment details"`;
+    }
+}
+
+/**
+ * Tạo response cho lời tạm biệt
+ */
+function generateFarewellResponse(language = 'vi') {
+    if (language === 'vi') {
+        return `👋 **Cảm ơn bạn đã sử dụng VanLangBot!**\n\n✨ Hy vọng tôi đã giúp ích được cho việc quản lý tài chính của bạn.\n\n💡 **Nhớ rằng:**\n• Quản lý tài chính tốt là chìa khóa thành công\n• Hãy tiết kiệm và đầu tư thông minh\n• Tôi luôn sẵn sàng hỗ trợ bạn 24/7\n\n🚀 **Hẹn gặp lại bạn sớm!**\n\nChúc bạn có một ngày tuyệt vời! 🌟`;
+    } else {
+        return `👋 **Thank you for using VanLangBot!**\n\n✨ I hope I've been helpful with your financial management.\n\n💡 **Remember:**\n• Good financial management is the key to success\n• Save and invest wisely\n• I'm always here to help you 24/7\n\n🚀 **See you soon!**\n\nHave a wonderful day! 🌟`;
+    }
+}
+
+/**
+ * Tạo response chi tiết cho khoản vay
+ */
+function generateLoanDetailResponse(financialData, language = 'vi') {
+    const t = language === 'vi' ? {
+        title: '🏦 Chi tiết khoản vay của bạn:',
+        noLoans: '✅ Bạn hiện tại không có khoản vay nào.',
+        total: 'Tổng cộng:',
+        principal: 'Gốc:',
+        remaining: 'Còn lại:',
+        interest: 'Lãi:',
+        rate: 'Lãi suất:',
+        per: 'mỗi',
+        day: 'ngày',
+        week: 'tuần',
+        month: 'tháng',
+        quarter: 'quý',
+        year: 'năm'
+    } : {
+        title: '🏦 Your loan details:',
+        noLoans: '✅ You currently have no loans.',
+        total: 'Total:',
+        principal: 'Principal:',
+        remaining: 'Remaining:',
+        interest: 'Interest:',
+        rate: 'Interest rate:',
+        per: 'per',
+        day: 'day',
+        week: 'week',
+        month: 'month',
+        quarter: 'quarter',
+        year: 'year'
+    };
+
+    if (!financialData.loanDetails || financialData.loanDetails.length === 0) {
+        return t.noLoans;
+    }
+
+    let response = t.title + '\n\n';
+
+    financialData.loanDetails.forEach((loan, index) => {
+        const rateTypeText = {
+            'DAY': t.day,
+            'WEEK': t.week,
+            'MONTH': t.month,
+            'QUARTER': t.quarter,
+            'YEAR': t.year
+        }[loan.interestRateType] || t.year;
+
+        response += `${index + 1}. **${loan.purpose}**\n`;
+        response += `   • ${t.principal} ${loan.principal.toLocaleString('vi-VN')} VND\n`;
+        response += `   • ${t.remaining} ${loan.remainingAmount.toLocaleString('vi-VN')} VND\n`;
+        response += `   • ${t.interest} ${loan.interestAmount.toLocaleString('vi-VN')} VND\n`;
+        response += `   • ${t.rate} ${loan.interestRate}% ${t.per} ${rateTypeText}\n`;
+        response += `   • ${t.total} ${loan.totalAmount.toLocaleString('vi-VN')} VND\n\n`;
+    });
+
+    response += `💰 **${t.total} ${financialData.totalLoanAmount.toLocaleString('vi-VN')} VND**`;
+
+    return response;
+}
+
+/**
+ * Tạo response tổng hợp cho khoản vay
+ */
+function generateLoanSummaryResponse(financialData, language = 'vi') {
+    const t = language === 'vi' ? {
+        title: '🏦 Tổng hợp khoản vay:',
+        noLoans: '✅ Bạn hiện tại không có khoản vay nào.',
+        totalAmount: 'Tổng số tiền vay:',
+        totalLoans: 'Số khoản vay:',
+        avgInterest: 'Lãi suất trung bình:',
+        loans: 'khoản'
+    } : {
+        title: '🏦 Loan summary:',
+        noLoans: '✅ You currently have no loans.',
+        totalAmount: 'Total loan amount:',
+        totalLoans: 'Number of loans:',
+        avgInterest: 'Average interest rate:',
+        loans: 'loans'
+    };
+
+    if (!financialData.loanDetails || financialData.loanDetails.length === 0) {
+        return t.noLoans;
+    }
+
+    const avgInterest = financialData.loanDetails.reduce((sum, loan) => sum + loan.interestRate, 0) / financialData.loanDetails.length;
+
+    let response = t.title + '\n\n';
+    response += `💰 ${t.totalAmount} **${financialData.totalLoanAmount.toLocaleString('vi-VN')} VND**\n`;
+    response += `📊 ${t.totalLoans} **${financialData.loanDetails.length} ${t.loans}**\n`;
+    response += `📈 ${t.avgInterest} **${avgInterest.toFixed(1)}%**\n`;
+
+    return response;
+}
+
+/**
+ * Tạo response chi tiết tài chính tổng quát
+ */
+function generateFinancialDetailResponse(financialData, language = 'vi') {
+    const t = language === 'vi' ? {
+        title: '📊 Chi tiết tài chính của bạn:',
+        balance: 'Số dư hiện tại:',
+        income: 'Thu nhập tích lũy:',
+        expense: 'Chi tiêu tích lũy:',
+        loans: 'Tổng khoản vay:',
+        investments: 'Tổng đầu tư:',
+        thisMonth: 'Tháng này:',
+        incomeMonth: 'Thu nhập:',
+        expenseMonth: 'Chi tiêu:'
+    } : {
+        title: '📊 Your financial details:',
+        balance: 'Current balance:',
+        income: 'Total income:',
+        expense: 'Total expenses:',
+        loans: 'Total loans:',
+        investments: 'Total investments:',
+        thisMonth: 'This month:',
+        incomeMonth: 'Income:',
+        expenseMonth: 'Expenses:'
+    };
+
+    let response = t.title + '\n\n';
+
+    // Tổng quan
+    response += `💎 ${t.balance} **${financialData.totalBalance.toLocaleString('vi-VN')} VND**\n`;
+    response += `💰 ${t.income} **${financialData.totalIncomeAllTime.toLocaleString('vi-VN')} VND**\n`;
+    response += `💸 ${t.expense} **${financialData.totalExpenseAllTime.toLocaleString('vi-VN')} VND**\n`;
+
+    if (financialData.totalLoanAmount > 0) {
+        response += `🏦 ${t.loans} **${financialData.totalLoanAmount.toLocaleString('vi-VN')} VND**\n`;
+    }
+
+    if (financialData.totalInvestmentValue > 0) {
+        response += `📈 ${t.investments} **${financialData.totalInvestmentValue.toLocaleString('vi-VN')} VND**\n`;
+    }
+
+    // Tháng này
+    response += `\n📅 ${t.thisMonth}\n`;
+    response += `   • ${t.incomeMonth} ${financialData.incomeThisMonth.toLocaleString('vi-VN')} VND\n`;
+    response += `   • ${t.expenseMonth} ${financialData.totalExpensesThisMonth.toLocaleString('vi-VN')} VND\n`;
+
+    return response;
+}
+
+/**
  * Tính toán chung
  */
 function performGeneralCalculation(financialData, message, language = 'vi') {
@@ -1221,7 +1650,7 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
         // 4. Prepare context và check for calculations
         let financialContext = '';
         let calculationResult = '';
-        const needsFinancialData = /của tôi|cua toi|my|hiện tại|hien tai|current|tháng này|thang nay|this month|tài khoản|tai khoan|account|tính|tinh|calculate|phân tích|phan tich|analyze|tài chính|tai chinh|financial|thu nhập|thu nhap|income|chi tiêu|chi tieu|expense|đầu tư|dau tu|investment|ngân sách|ngan sach|budget/.test(message.toLowerCase());
+        const needsFinancialData = /của tôi|cua toi|my|hiện tại|hien tai|current|tháng này|thang nay|this month|tài khoản|tai khoan|account|tính|tinh|calculate|phân tích|phan tich|analyze|tài chính|tai chinh|financial|thu nhập|thu nhap|income|chi tiêu|chi tieu|expense|đầu tư|dau tu|investment|ngân sách|ngan sach|budget|chi tiết|chi tiet|detail|cụ thể|cu the|specific|tổng|tong|total|số dư|so du|balance|khoản vay|khoan vay|loan|vay|nợ|no|debt/.test(message.toLowerCase());
 
         console.log('🔍 Checking if financial data is needed:');
         console.log('- Message:', message);
@@ -1234,13 +1663,48 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
                 const financialData = await getUserFinancialDataCached(userId);
                 financialContext = formatFinancialContext(financialData, language);
 
-                // Thực hiện calculations nếu được yêu cầu
+                // Thực hiện calculations hoặc xử lý yêu cầu đặc biệt
                 if (intentAnalysis.details.needsCalculation ||
                     ['calculate_income', 'calculate_expense', 'calculate_investment', 'calculate_budget',
-                        'trend_analysis', 'financial_planning', 'general_calculation'].includes(intentAnalysis.intent)) {
+                        'trend_analysis', 'financial_planning', 'general_calculation',
+                        'loan_detail_query', 'loan_summary_query', 'financial_detail_query', 'financial_summary_query',
+                        'income_detail_query', 'expense_detail_query', 'investment_detail_query',
+                        'greeting', 'bot_introduction', 'time_date_query', 'capability_inquiry', 'farewell'].includes(intentAnalysis.intent)) {
 
-                    console.log(`Performing calculation for intent: ${intentAnalysis.intent}`);
-                    calculationResult = await performCalculation(intentAnalysis.intent, financialData, message, language);
+                    console.log(`🎯 Processing special intent: ${intentAnalysis.intent} with queryType: ${intentAnalysis.queryType}`);
+
+                    // Xử lý các intent cơ bản trước
+                    if (intentAnalysis.intent === 'greeting') {
+                        calculationResult = generateGreetingResponse(language);
+                    }
+                    else if (intentAnalysis.intent === 'bot_introduction') {
+                        calculationResult = generateBotIntroductionResponse(language);
+                    }
+                    else if (intentAnalysis.intent === 'time_date_query') {
+                        calculationResult = generateTimeResponse(language);
+                    }
+                    else if (intentAnalysis.intent === 'capability_inquiry') {
+                        calculationResult = generateCapabilityResponse(language);
+                    }
+                    else if (intentAnalysis.intent === 'farewell') {
+                        calculationResult = generateFarewellResponse(language);
+                    }
+                    // Xử lý yêu cầu chi tiết khoản vay
+                    else if (intentAnalysis.intent === 'loan_detail_query' || intentAnalysis.queryType === 'loan_detail') {
+                        calculationResult = generateLoanDetailResponse(financialData, language);
+                    }
+                    // Xử lý yêu cầu tổng hợp khoản vay
+                    else if (intentAnalysis.intent === 'loan_summary_query' || intentAnalysis.queryType === 'loan_summary') {
+                        calculationResult = generateLoanSummaryResponse(financialData, language);
+                    }
+                    // Xử lý yêu cầu chi tiết tài chính tổng quát
+                    else if (intentAnalysis.intent === 'financial_detail_query' || intentAnalysis.queryType === 'general_detail') {
+                        calculationResult = generateFinancialDetailResponse(financialData, language);
+                    }
+                    // Xử lý calculations thông thường
+                    else {
+                        calculationResult = await performCalculation(intentAnalysis.intent, financialData, message, language);
+                    }
 
                     // Nếu có calculation result, return trực tiếp
                     if (calculationResult && calculationResult.length > 50) {
@@ -1412,6 +1876,29 @@ router.get('/analytics', authenticateToken, (req, res) => {
         uptime: process.uptime(),
         memory: process.memoryUsage()
     });
+});
+
+/**
+ * Clear cache endpoint
+ */
+router.delete('/cache', authenticateToken, async (req, res) => {
+    try {
+        // Clear all cache
+        await cacheService.clear();
+
+        console.log('🧹 CACHE CLEARED - All financial data cache has been cleared');
+
+        res.json({
+            success: true,
+            message: 'Cache cleared successfully - Financial data will be refreshed on next request'
+        });
+    } catch (error) {
+        console.error('Error clearing cache:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to clear cache'
+        });
+    }
 });
 
 /**
@@ -1593,6 +2080,23 @@ router.post('/chatbot', authenticateToken, async (req, res) => {
             error: errorMessage,
             detail: process.env.NODE_ENV === 'development' ? error.message : undefined,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        });
+    }
+});
+
+// Simple test route for debugging
+router.post('/test', authenticateToken, async (req, res) => {
+    try {
+        res.json({
+            success: true,
+            message: 'Enhanced chatbot route is working!',
+            timestamp: new Date().toISOString(),
+            user: req.user?.id
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Test route error: ' + error.message
         });
     }
 });

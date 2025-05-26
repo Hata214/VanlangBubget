@@ -4,7 +4,7 @@ import cors from 'cors';
 import { createServer } from 'http';
 import 'dotenv/config';
 import { initSocket } from './socket.js';
-import { initCronJobs } from './cronjobs.js';
+// import { initCronJobs } from './cronjobs.js'; // Temporarily disabled
 import logger from './utils/logger.js';
 import { setupSwagger } from './swagger.js';
 
@@ -22,12 +22,21 @@ import userRoutes from './routes/userRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-// import chatbotRoutes from './routes/chatbot.js'; // Đã gộp vào enhancedChatbot.js
-import enhancedChatbotRoutes from './routes/enhancedChatbot.js';
+// import chatbotRoutes from './routes/chatbot.js'; // Temporarily disabled
+import initializeChatbotRoutes from './routes/chatbot.js'; // SỬ DỤNG IMPORT NÀY
+// import enhancedChatbotRoutes from './routes/enhancedChatbot.js'; // KHÔNG CẦN NỮA
 
 // Import middlewares
 import { errorHandler } from './middlewares/errorMiddleware.js';
 import { socketMiddleware } from './middlewares/socketMiddleware.js';
+
+// Import Services and Controller for Chatbot
+import ChatbotController from './controllers/chatbotController.js';
+import ChatbotService from './services/chatbotService.js';
+import NLPService from './services/nlpService.js';
+import GeminiService from './services/geminiService.js';
+import FinancialCalculationService from './services/financialCalculationService.js';
+import getCacheService from './services/cacheService.js'; // Singleton
 
 // App config
 const PORT = process.env.PORT || 4000;
@@ -101,6 +110,27 @@ app.get('/api/health', (req, res) => {
     res.status(200).json({ status: 'OK' });
 });
 
+// Initialize services for Chatbot
+const cacheService = getCacheService();
+const nlpService = new NLPService();
+let geminiService;
+try {
+    geminiService = new GeminiService(); // Sẽ báo lỗi nếu GEMINI_API_KEY thiếu
+} catch (error) {
+    logger.error('Failed to initialize GeminiService:', error.message);
+    logger.warn('Chatbot functionality requiring Gemini will be limited.');
+    // Không để server crash, nhưng GeminiService có thể là undefined hoặc có trạng thái lỗi
+    // GeminiService cần được thiết kế để xử lý trường hợp này một cách an toàn nếu có thể
+}
+const financialCalculationService = new FinancialCalculationService();
+const chatbotService = new ChatbotService(cacheService, financialCalculationService);
+
+// Initialize ChatbotController with injected services
+const chatbotController = new ChatbotController(chatbotService, nlpService, geminiService, cacheService);
+
+// Initialize Chatbot Router
+const chatbotRouter = initializeChatbotRoutes(chatbotController);
+
 // API routes - Đăng ký từng route đơn lẻ
 logger.info('Registering routes...');
 
@@ -144,12 +174,13 @@ logger.info('Site content routes registered successfully');
 app.use('/api/admin', adminRoutes);
 logger.info('Admin routes registered successfully');
 
-// Chatbot routes (unified - bao gồm cả legacy và enhanced)
-// app.use('/api/chatbot', chatbotRoutes); // Đã gộp vào enhancedChatbot.js
-// logger.info('Chatbot routes registered successfully');
-
-app.use('/api/chatbot', enhancedChatbotRoutes);
-logger.info('Enhanced chatbot routes (bao gồm legacy chatbot) registered successfully');
+// Chatbot routes - KÍCH HOẠT LẠI
+if (geminiService) { // Chỉ đăng ký nếu GeminiService khởi tạo thành công (có API key)
+    app.use('/api/chatbot', chatbotRouter);
+    logger.info('Chatbot routes registered successfully using initializeChatbotRoutes.');
+} else {
+    logger.warn('Chatbot routes registration SKIPPED due to GeminiService initialization failure.');
+}
 
 // Error handler middleware
 app.use(errorHandler);
@@ -181,7 +212,7 @@ const connectDB = async () => {
             initSocket(httpServer);
 
             // Khởi tạo cron jobs
-            initCronJobs();
+            // initCronJobs(); // Temporarily disabled
         } catch (dbError) {
             logger.error(`Warning - Error connecting to MongoDB: ${dbError.message}`);
             logger.info('Server will continue to run without database connection');

@@ -7,12 +7,102 @@ import axios from 'axios'; // Import axios
 // TODO: Lấy URL của stock-api từ biến môi trường hoặc config
 const STOCK_API_URL = process.env.STOCK_API_URL || 'http://localhost:8000/api/price'; // URL của stock-api
 
+// Circuit breaker state
+let circuitBreakerState = {
+    isOpen: false,
+    failureCount: 0,
+    lastFailureTime: null,
+    maxFailures: 5,
+    resetTimeout: 60000 // 1 minute
+};
+
+/**
+ * Circuit breaker logic
+ */
+function checkCircuitBreaker() {
+    const now = Date.now();
+
+    // Nếu circuit breaker đang mở và đã qua thời gian reset
+    if (circuitBreakerState.isOpen &&
+        (now - circuitBreakerState.lastFailureTime) > circuitBreakerState.resetTimeout) {
+        logger.info('[Scheduler] Circuit breaker reset - attempting to reconnect to Stock API');
+        circuitBreakerState.isOpen = false;
+        circuitBreakerState.failureCount = 0;
+    }
+
+    return !circuitBreakerState.isOpen;
+}
+
+function recordFailure() {
+    circuitBreakerState.failureCount++;
+    circuitBreakerState.lastFailureTime = Date.now();
+
+    if (circuitBreakerState.failureCount >= circuitBreakerState.maxFailures) {
+        circuitBreakerState.isOpen = true;
+        logger.error(`[Scheduler] Circuit breaker OPENED after ${circuitBreakerState.failureCount} failures. Stock API calls suspended for ${circuitBreakerState.resetTimeout / 1000} seconds.`);
+    }
+}
+
+function recordSuccess() {
+    if (circuitBreakerState.failureCount > 0) {
+        logger.info('[Scheduler] Stock API call successful - resetting failure count');
+        circuitBreakerState.failureCount = 0;
+    }
+}
+
+/**
+ * Kiểm tra health của Stock API bằng cách test với symbol đơn giản
+ */
+async function checkStockApiHealth() {
+    try {
+        // Thử gọi API với symbol test để kiểm tra health
+        const response = await axios.get(`${STOCK_API_URL}`, {
+            params: { symbol: 'VIC' }, // Symbol test đơn giản
+            timeout: 5000,
+            headers: {
+                'User-Agent': 'VanLang-Budget-Scheduler/1.0'
+            }
+        });
+
+        // Kiểm tra response có hợp lệ không
+        const isHealthy = response.status === 200 &&
+            response.data &&
+            (response.data.price !== null && response.data.price !== undefined);
+
+        if (isHealthy) {
+            logger.debug(`[Scheduler] Stock API health check passed. Test price for VIC: ${response.data.price}`);
+        } else {
+            logger.warn(`[Scheduler] Stock API health check failed - invalid response format`);
+        }
+
+        return isHealthy;
+    } catch (error) {
+        logger.warn(`[Scheduler] Stock API health check failed: ${error.message}`);
+        return false;
+    }
+}
+
 /**
  * Cập nhật giá cổ phiếu định kỳ.
  * Chạy mỗi 2 phút.
  */
 const updateStockPricesJob = cron.schedule('*/2 * * * *', async () => {
     logger.info('[Scheduler] Starting stock price update job...');
+
+    // Kiểm tra circuit breaker trước
+    if (!checkCircuitBreaker()) {
+        logger.warn('[Scheduler] Circuit breaker is OPEN. Skipping stock price update job.');
+        return;
+    }
+
+    // Kiểm tra health của Stock API trước khi bắt đầu
+    const isApiHealthy = await checkStockApiHealth();
+    if (!isApiHealthy) {
+        logger.warn('[Scheduler] Stock API is not healthy. Skipping price update job.');
+        recordFailure(); // Record failure for circuit breaker
+        return;
+    }
+
     try {
         const stockInvestments = await Investment.find({ type: 'stock', currentStatus: { $ne: 'sold' } }).populate('userId', 'id'); // Chỉ lấy ID người dùng
 
@@ -38,17 +128,47 @@ const updateStockPricesJob = cron.schedule('*/2 * * * *', async () => {
                 // logger.info(`[Scheduler] MOCK price for ${symbol}: ${newPrice}`);
                 // ----- KẾT THÚC LOGIC MOCK -----
 
-                // ----- LOGIC GỌI stock-api THỰC TẾ -----
+                // ----- LOGIC GỌI stock-api VỚI RETRY VÀ ERROR HANDLING -----
                 logger.info(`[Scheduler] Fetching price for symbol: ${symbol} from ${STOCK_API_URL}?symbol=${symbol}`);
-                const response = await axios.get(`${STOCK_API_URL}`, { params: { symbol: symbol } });
+
+                let response;
+                let retryCount = 0;
+                const maxRetries = 3;
+                const retryDelay = 2000; // 2 seconds
+
+                while (retryCount < maxRetries) {
+                    try {
+                        response = await axios.get(`${STOCK_API_URL}`, {
+                            params: { symbol: symbol },
+                            timeout: 10000, // 10 second timeout
+                            headers: {
+                                'User-Agent': 'VanLang-Budget-Scheduler/1.0'
+                            }
+                        });
+                        recordSuccess(); // Record successful API call
+                        break; // Success, exit retry loop
+                    } catch (error) {
+                        retryCount++;
+                        logger.warn(`[Scheduler] Attempt ${retryCount}/${maxRetries} failed for ${symbol}: ${error.message}`);
+
+                        if (retryCount >= maxRetries) {
+                            logger.error(`[Scheduler] All ${maxRetries} attempts failed for ${symbol}. Skipping this symbol.`);
+                            recordFailure(); // Record failure for circuit breaker
+                            throw error; // Re-throw to be caught by outer try-catch
+                        }
+
+                        // Wait before retry
+                        await new Promise(resolve => setTimeout(resolve, retryDelay * retryCount));
+                    }
+                }
 
                 if (!response.data || response.data.price === null || response.data.price === undefined) {
                     logger.warn(`[Scheduler] No price data received from API for ${symbol}. API Response:`, response.data);
                     continue;
                 }
                 const newPrice = parseFloat(response.data.price);
-                logger.info(`[Scheduler] Fetched price for ${symbol}: ${newPrice}`);
-                // ----- KẾT THÚC LOGIC GỌI stock-api THỰC TẾ -----
+                logger.info(`[Scheduler] Successfully fetched price for ${symbol}: ${newPrice}`);
+                // ----- KẾT THÚC LOGIC GỌI stock-api VỚI RETRY -----
 
                 if (typeof newPrice !== 'number' || isNaN(newPrice) || newPrice < 0) {
                     logger.warn(`[Scheduler] Invalid price received for ${symbol}: ${newPrice}. Skipping update.`);
@@ -103,7 +223,26 @@ const updateStockPricesJob = cron.schedule('*/2 * * * *', async () => {
                     }
                 }
             } catch (error) {
-                logger.error(`[Scheduler] Error updating price for symbol ${symbol}: ${error.message}`, error.stack);
+                // Phân loại lỗi để xử lý phù hợp
+                if (error.code === 'ECONNREFUSED') {
+                    logger.error(`[Scheduler] Connection refused for ${symbol}. Stock API may be down.`);
+                } else if (error.code === 'ENOTFOUND') {
+                    logger.error(`[Scheduler] DNS resolution failed for ${symbol}. Check stock API URL.`);
+                } else if (error.code === 'ETIMEDOUT') {
+                    logger.error(`[Scheduler] Request timeout for ${symbol}. Stock API is slow to respond.`);
+                } else if (error.response) {
+                    logger.error(`[Scheduler] HTTP ${error.response.status} error for ${symbol}: ${error.response.statusText}`);
+                } else {
+                    logger.error(`[Scheduler] Unexpected error updating price for symbol ${symbol}: ${error.message}`);
+                }
+
+                // Log chi tiết cho debugging (chỉ khi cần)
+                if (process.env.NODE_ENV === 'development') {
+                    logger.debug(`[Scheduler] Full error stack for ${symbol}:`, error.stack);
+                }
+
+                // Tiếp tục với symbol tiếp theo thay vì dừng toàn bộ job
+                continue;
             }
         }
         logger.info('[Scheduler] Stock price update job finished.');

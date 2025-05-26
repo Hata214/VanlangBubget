@@ -128,9 +128,13 @@ export const getIncomes = async (req, res, next) => {
         // Log dữ liệu đã được format
         console.log(`getIncomes - Formatted ${formattedIncomes.length} incomes for frontend`);
 
-        // Tính tổng thu nhập
-        const totalAmount = formattedIncomes.reduce((total, income) => total + income.amount, 0);
-        console.log(`getIncomes - Total income amount: ${totalAmount}`);
+        // Tính tổng thu nhập từ TẤT CẢ records (không chỉ từ page hiện tại)
+        const totalAmountResult = await Income.aggregate([
+            { $match: filter },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalAmount = totalAmountResult.length > 0 ? totalAmountResult[0].total : 0;
+        console.log(`getIncomes - Total income amount (ALL records): ${totalAmount}`);
 
         res.status(200).json({
             status: 'success',
@@ -460,4 +464,4 @@ export const getTotalByCategory = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
