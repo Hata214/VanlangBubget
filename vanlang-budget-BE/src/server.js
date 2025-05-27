@@ -25,6 +25,7 @@ import adminRoutes from './routes/adminRoutes.js';
 // import chatbotRoutes from './routes/chatbot.js'; // Temporarily disabled
 import initializeChatbotRoutes from './routes/chatbot.js'; // SỬ DỤNG IMPORT NÀY
 // import enhancedChatbotRoutes from './routes/enhancedChatbot.js'; // KHÔNG CẦN NỮA
+import initializeAgentRoutes from './routes/agent.js'; // VanLang Agent v2
 
 // Import middlewares
 import { errorHandler } from './middlewares/errorMiddleware.js';
@@ -37,6 +38,10 @@ import NLPService from './services/nlpService.js';
 import GeminiService from './services/geminiService.js';
 import FinancialCalculationService from './services/financialCalculationService.js';
 import getCacheService from './services/cacheService.js'; // Singleton
+
+// Import Services and Controller for Agent
+import AgentController from './controllers/agentController.js';
+import AgentService from './services/agentService.js';
 
 // App config
 const PORT = process.env.PORT || 4000;
@@ -131,6 +136,20 @@ const chatbotController = new ChatbotController(chatbotService, nlpService, gemi
 // Initialize Chatbot Router
 const chatbotRouter = initializeChatbotRoutes(chatbotController);
 
+// Initialize Agent Service and Controller
+let agentService;
+let agentController;
+let agentRouter;
+
+if (geminiService) {
+    agentService = new AgentService(process.env.GEMINI_API_KEY, cacheService);
+    agentController = new AgentController(agentService);
+    agentRouter = initializeAgentRoutes(agentController);
+    logger.info('Agent service initialized successfully');
+} else {
+    logger.warn('Agent service initialization SKIPPED due to missing Gemini API key');
+}
+
 // API routes - Đăng ký từng route đơn lẻ
 logger.info('Registering routes...');
 
@@ -180,6 +199,14 @@ if (geminiService) { // Chỉ đăng ký nếu GeminiService khởi tạo thành
     logger.info('Chatbot routes registered successfully using initializeChatbotRoutes.');
 } else {
     logger.warn('Chatbot routes registration SKIPPED due to GeminiService initialization failure.');
+}
+
+// Agent routes - VanLang Agent v2
+if (agentRouter) {
+    app.use('/api/agent', agentRouter);
+    logger.info('Agent routes registered successfully');
+} else {
+    logger.warn('Agent routes registration SKIPPED due to missing dependencies');
 }
 
 // Error handler middleware

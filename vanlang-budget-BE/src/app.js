@@ -33,6 +33,7 @@ import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 // import chatbotRoutes from './routes/chatbot.js'; // New refactored chatbot routes - có lỗi
 import enhancedChatbotRoutes from './routes/enhancedChatbot.js'; // Legacy - working version
+import initializeAgentRoutes from './routes/agent.js'; // Agent v2 routes
 
 // Initialize Express app
 const app = express();
@@ -189,6 +190,25 @@ app.use('/api/oauth', oauthRoutes);
 app.use('/api/chatbot', enhancedChatbotRoutes); // Legacy - working version
 console.log('Route chatbot đã đăng ký tại /api/chatbot ✅');
 console.log('Enhanced chatbot routes (bao gồm legacy chatbot) đã đăng ký ✅');
+
+// Initialize Agent v2 routes
+try {
+    // Import agent dependencies
+    const AgentService = (await import('./services/agentService.js')).default;
+    const AgentController = (await import('./controllers/agentController.js')).default;
+
+    // Create instances with Gemini API key
+    const geminiApiKey = process.env.GEMINI_API_KEY || 'AIzaSyCgyvcGoItpgZMF9HDlScSwmY1PqO4aGlg';
+    const agentService = new AgentService(geminiApiKey);
+    const agentController = new AgentController(agentService);
+
+    // Initialize and register agent routes
+    const agentRoutes = initializeAgentRoutes(agentController);
+    app.use('/api/agent', agentRoutes);
+    console.log('Route agent v2 đã đăng ký tại /api/agent ✅');
+} catch (error) {
+    console.error('Lỗi khi đăng ký agent routes:', error);
+}
 
 // Home route
 app.get('/', (req, res) => {

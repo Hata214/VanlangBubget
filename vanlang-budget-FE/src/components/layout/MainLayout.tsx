@@ -38,6 +38,7 @@ import NotificationBell from '../notification/NotificationBell'
 import notificationService from '@/services/notificationService'
 import { socketService, SocketEvent } from '@/services/socketService'
 import EnhancedChatPopup from '@/components/chatbot/EnhancedChatPopup'
+import AgentChatPopup from '@/components/agent/AgentChatPopup'
 
 interface MainLayoutProps {
     children: React.ReactNode
@@ -372,7 +373,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 </div>
             </div>
 
-            <EnhancedChatPopup mode="enhanced" useEnhanced={true} />
+            {/* <EnhancedChatPopup mode="enhanced" useEnhanced={true} /> */}
+            <AgentChatPopup />
         </>
     )
 }

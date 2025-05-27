@@ -73,11 +73,84 @@ export default function EnhancedChatPopup({
     const authContextData = useAuth();
     const { data: session, status: sessionStatus } = useSession();
 
-    // Welcome message với multilingual support
+    // Welcome message với multilingual support và random POST examples
     const getWelcomeMessage = useCallback((lang: 'vi' | 'en') => {
+        // Random POST examples for Vietnamese
+        const viPostExamples = [
+            'Tôi nhận lương 15 triệu',
+            'Mua cà phê 50k',
+            'Được thưởng 2 triệu',
+            'Chi tiêu ăn uống 200k',
+            'Kiếm được 500k freelance',
+            'Trả tiền điện 300k',
+            'Vay ngân hàng 5 triệu',
+            'Tôi mua quần áo 800k',
+            'Tiết kiệm được 1 triệu',
+            'Tốn 150k đi taxi'
+        ];
+
+        // Random POST examples for English
+        const enPostExamples = [
+            'I received salary 15 million',
+            'Bought coffee 50k',
+            'Got bonus 2 million',
+            'Food expenses 200k',
+            'Earned 500k freelance',
+            'Paid electricity 300k',
+            'Bank loan 5 million',
+            'I bought clothes 800k',
+            'Saved 1 million',
+            'Spent 150k taxi'
+        ];
+
+        // Get 3 random examples
+        const getRandomExamples = (examples: string[], count: number) => {
+            const shuffled = [...examples].sort(() => 0.5 - Math.random());
+            return shuffled.slice(0, count);
+        };
+
+        const randomViExamples = getRandomExamples(viPostExamples, 3);
+        const randomEnExamples = getRandomExamples(enPostExamples, 3);
+
         const messages = {
-            vi: "👋 Xin chào! Tôi là VanLangBot, trợ lý tài chính thông minh của bạn.\n\n💡 Tôi có thể giúp bạn:\n• Phân tích tình hình tài chính hiện tại\n• Đưa ra gợi ý về ngân sách và tiết kiệm\n• Tư vấn về các khoản đầu tư\n• Trả lời câu hỏi về thu chi\n\nHãy hỏi tôi bất cứ điều gì về tài chính nhé! 🚀",
-            en: "👋 Hello! I'm VanLangBot, your intelligent financial assistant.\n\n💡 I can help you with:\n• Analyzing your current financial situation\n• Providing budget and saving suggestions\n• Investment advice\n• Answering income/expense questions\n\nFeel free to ask me anything about finance! 🚀"
+            vi: `👋 Xin chào! Tôi là VanLangBot v2 - trợ lý tài chính AI thế hệ mới!
+
+🌟 Tính năng nâng cao:
+💰 Thêm giao dịch bằng ngôn ngữ tự nhiên
+📊 Phân tích tài chính thông minh
+🔍 Truy vấn dữ liệu chi tiết
+🤖 Tư vấn tài chính cá nhân hóa
+
+💡 Thử ngay - Ví dụ thêm dữ liệu:
+• "${randomViExamples[0]}"
+• "${randomViExamples[1]}"
+• "${randomViExamples[2]}"
+
+📊 Hoặc hỏi:
+• "Thu nhập tháng này"
+• "Phân tích chi tiêu"
+• "Số dư của tôi"
+
+Hãy thử ngay! 🚀`,
+            en: `👋 Hello! I'm VanLangBot v2 - your next-generation AI financial assistant!
+
+🌟 Advanced features:
+💰 Add transactions with natural language
+📊 Smart financial analysis
+🔍 Detailed data queries
+🤖 Personalized financial advice
+
+💡 Try now - Add data examples:
+• "${randomEnExamples[0]}"
+• "${randomEnExamples[1]}"
+• "${randomEnExamples[2]}"
+
+📊 Or ask:
+• "This month's income"
+• "Analyze expenses"
+• "My balance"
+
+Give it a try! 🚀`
         };
         return messages[lang];
     }, []);
@@ -612,20 +685,112 @@ export default function EnhancedChatPopup({
                                 </div>
 
                                 {/* Quick actions */}
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                    {[
-                                        chatState.language === 'vi' ? 'Thu nhập tháng này' : 'This month\'s income',
-                                        chatState.language === 'vi' ? 'Chi tiêu của tôi' : 'My expenses',
-                                        chatState.language === 'vi' ? 'Gợi ý tiết kiệm' : 'Saving tips'
-                                    ].map((suggestion, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setInput(suggestion)}
-                                            className="text-xs px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                                        >
-                                            {suggestion}
-                                        </button>
-                                    ))}
+                                <div className="mt-3 space-y-3">
+                                    {/* Thêm dữ liệu - POST commands */}
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                            {chatState.language === 'vi' ? '💰 Thêm dữ liệu:' : '💰 Add data:'}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(chatState.language === 'vi' ? [
+                                                // Thu nhập
+                                                'Tôi nhận lương 15 triệu',
+                                                'Được thưởng 2 triệu',
+                                                'Kiếm được 500k freelance',
+                                                'Thu về 3 triệu bán hàng',
+                                                'Tiết kiệm được 1 triệu',
+                                                // Chi tiêu
+                                                'Mua cà phê 50k',
+                                                'Chi tiêu ăn uống 200k',
+                                                'Trả tiền điện 300k',
+                                                'Tôi mua quần áo 800k',
+                                                'Tốn 150k đi taxi',
+                                                'Thanh toán học phí 5 triệu',
+                                                // Khoản vay
+                                                'Vay ngân hàng 5 triệu',
+                                                'Mượn bạn 500k'
+                                            ] : [
+                                                // Income
+                                                'I received salary 15 million',
+                                                'Got bonus 2 million',
+                                                'Earned 500k freelance',
+                                                'Revenue 3 million sales',
+                                                'Saved 1 million',
+                                                // Expenses
+                                                'Bought coffee 50k',
+                                                'Food expenses 200k',
+                                                'Paid electricity 300k',
+                                                'I bought clothes 800k',
+                                                'Spent 150k taxi',
+                                                'Paid tuition 5 million',
+                                                // Loans
+                                                'Bank loan 5 million',
+                                                'Borrowed from friend 500k'
+                                            ]).map((suggestion, index) => (
+                                                <button
+                                                    key={`post-${index}`}
+                                                    onClick={() => setInput(suggestion)}
+                                                    className="text-xs px-3 py-1.5 bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-200 rounded-full hover:bg-green-200 dark:hover:bg-green-700 transition-colors"
+                                                >
+                                                    {suggestion}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Truy vấn dữ liệu - GET commands */}
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                            {chatState.language === 'vi' ? '📊 Xem dữ liệu:' : '📊 View data:'}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(chatState.language === 'vi' ? [
+                                                'Thu nhập tháng này',
+                                                'Chi tiêu của tôi',
+                                                'Số dư hiện tại',
+                                                'Phân tích tài chính'
+                                            ] : [
+                                                'This month\'s income',
+                                                'My expenses',
+                                                'Current balance',
+                                                'Financial analysis'
+                                            ]).map((suggestion, index) => (
+                                                <button
+                                                    key={`get-${index}`}
+                                                    onClick={() => setInput(suggestion)}
+                                                    className="text-xs px-3 py-1.5 bg-blue-100 dark:bg-blue-800 text-blue-700 dark:text-blue-200 rounded-full hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
+                                                >
+                                                    {suggestion}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Tư vấn - Advisory commands */}
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                                            {chatState.language === 'vi' ? '💡 Tư vấn:' : '💡 Advisory:'}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(chatState.language === 'vi' ? [
+                                                'Gợi ý tiết kiệm',
+                                                'Lời khuyên đầu tư',
+                                                'Phân tích chi tiêu'
+                                            ] : [
+                                                'Saving tips',
+                                                'Investment advice',
+                                                'Expense analysis'
+                                            ]).map((suggestion, index) => (
+                                                <button
+                                                    key={`advice-${index}`}
+                                                    onClick={() => setInput(suggestion)}
+                                                    className="text-xs px-3 py-1.5 bg-purple-100 dark:bg-purple-800 text-purple-700 dark:text-purple-200 rounded-full hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors"
+                                                >
+                                                    {suggestion}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
