@@ -1,0 +1,42 @@
+graph TD
+    A[User Input/Yêu cầu người dùng] --> B[AI API - Intent Detection]
+    
+    B --> C{Phân loại Intent}
+    
+    C -->|Calculation/Tính toán| D[Computation Engine]
+    C -->|View Info/Xem thông tin| E[GET Request Handler]
+    C -->|Add Info/Thêm thông tin| F[POST Request Handler]
+    
+    E --> G{Chọn API chức năng}
+    G -->|Income Data| H[Income API - GET]
+    G -->|Expense Data| I[Expense API - GET]
+    G -->|Loan Data| J[Loan API - GET]
+    G -->|Investment Data| K[Investment API - GET]
+    
+    F --> L{Chọn chức năng thêm}
+    L -->|Add Income| M[Income API - POST]
+    L -->|Add Expense| N[Expense API - POST]
+    
+    D --> O[Response Generator]
+    H --> O
+    I --> O
+    J --> O
+    K --> O
+    M --> P[Data Validation & Storage]
+    N --> P
+    
+    P --> Q[Success/Error Response]
+    Q --> O
+    O --> R[Formatted Response to User]
+    
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
+    style D fill:#e8f5e8
+    style E fill:#e8f5e8
+    style F fill:#e8f5e8
+    style O fill:#fff9c4
+    style R fill:#e1f5fe
+    
+    classDef apiBox fill:#ffebee,stroke:#d32f2f,stroke-width:2px
+    class H,I,J,K,M,N apiBox

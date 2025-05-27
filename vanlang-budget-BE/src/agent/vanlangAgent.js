@@ -56,81 +56,166 @@ class VanLangAgent {
         // Kiểm tra các intent cơ bản trước (dựa trên training data)
         const normalizedMessage = message.toLowerCase().trim();
 
-        // Kiểm tra các câu lệnh POST trước (ưu tiên cao)
+        // Kiểm tra calculation query trước (ưu tiên cao nhất) - Sử dụng Gemini AI
+        const calculationKeywords = [
+            'còn bao nhiều', 'con bao nhieu', 'còn lại bao nhiều', 'con lai bao nhieu',
+            'sẽ còn', 'se con', 'tôi sẽ có', 'toi se co', 'tính toán', 'tinh toan',
+            'calculate', 'how much left', 'bao nhiêu tiền', 'bao nhieu tien'
+        ];
+
+        const hasCalculationKeywords = calculationKeywords.some(keyword =>
+            normalizedMessage.includes(keyword)
+        );
+
+        const hasConditionalStructure = (normalizedMessage.includes('nếu') && normalizedMessage.includes('thì')) ||
+            (normalizedMessage.includes('neu') && normalizedMessage.includes('thi'));
+
+        if (hasCalculationKeywords || hasConditionalStructure) {
+            logger.info('Potential calculation query detected, using Gemini AI for confirmation', {
+                message: normalizedMessage,
+                hasCalculationKeywords,
+                hasConditionalStructure
+            });
+
+            // Sử dụng Gemini AI để xác nhận calculation intent
+            const calculationPrompt = `
+Phân tích câu sau và xác định xem đây có phải là câu hỏi tính toán tài chính không:
+"${message}"
+
+Câu hỏi tính toán tài chính là những câu:
+- Hỏi về số tiền còn lại sau khi chi tiêu
+- Hỏi về khả năng chi tiêu
+- Tính toán số dư
+- Có cấu trúc "nếu... thì..."
+- Có từ khóa: còn bao nhiều, sẽ còn, tính toán
+
+VÍ DỤ:
+- "nếu tôi lấy tiền tiết kiệm để mua xe đạp giá 4tr thì tôi sẽ còn bao nhiều tiền?" → CALCULATION
+- "tôi mua xe đạp 4tr" → NOT_CALCULATION
+- "tôi chi 500k thì còn bao nhiều?" → CALCULATION
+- "mua cà phê 50k" → NOT_CALCULATION
+
+Chỉ trả về: "CALCULATION" hoặc "NOT_CALCULATION"`;
+
+            try {
+                const geminiResult = await this.callGeminiAI(calculationPrompt);
+                const isCalculation = geminiResult.trim().toUpperCase() === 'CALCULATION';
+
+                logger.info('Gemini calculation analysis result', {
+                    message: normalizedMessage,
+                    geminiResult: geminiResult.trim(),
+                    isCalculation
+                });
+
+                if (isCalculation) {
+                    return 'calculation_query';
+                }
+            } catch (error) {
+                logger.error('Error in Gemini calculation analysis:', error);
+                // Fallback to keyword detection
+                if (hasCalculationKeywords || hasConditionalStructure) {
+                    return 'calculation_query';
+                }
+            }
+        }
+
+        // Kiểm tra các câu lệnh POST sau (ưu tiên thấp hơn)
         const hasAmount = /\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)/i.test(message);
 
         if (hasAmount) {
             logger.info('POST intent analysis - has amount detected', {
                 message: normalizedMessage,
-                hasAmount: true
+                hasAmount: true,
+                hasCalculationKeywords,
+                hasConditionalStructure
             });
 
-            // Kiểm tra tiết kiệm (ưu tiên cao nhất trong POST)
-            if ((normalizedMessage.includes('tiết kiệm') || normalizedMessage.includes('tiet kiem')) &&
-                !normalizedMessage.includes('ngân hàng') && !normalizedMessage.includes('ngan hang')) {
-
-                logger.info('POST intent analysis - savings keywords detected', {
+            // Nếu có calculation keywords, skip POST logic và để Gemini AI xử lý
+            if (hasCalculationKeywords || hasConditionalStructure) {
+                logger.info('POST intent analysis - skipping due to calculation keywords', {
                     message: normalizedMessage,
-                    hasTietKiem: normalizedMessage.includes('tiết kiệm'),
-                    hasTietKiemNoDiacritics: normalizedMessage.includes('tiet kiem'),
-                    hasNganHang: normalizedMessage.includes('ngân hàng'),
-                    hasNganHangNoDiacritics: normalizedMessage.includes('ngan hang')
+                    hasCalculationKeywords,
+                    hasConditionalStructure
                 });
+                // Không return gì, để logic tiếp tục xuống Gemini AI intent analysis
+            } else {
+                // Kiểm tra tiết kiệm (ưu tiên cao nhất trong POST)
+                if ((normalizedMessage.includes('tiết kiệm') || normalizedMessage.includes('tiet kiem')) &&
+                    !normalizedMessage.includes('ngân hàng') && !normalizedMessage.includes('ngan hang')) {
 
-                if (normalizedMessage.includes('tôi tiết kiệm') || normalizedMessage.includes('tôi tiet kiem') ||
-                    normalizedMessage.includes('tiết kiệm được') || normalizedMessage.includes('tiet kiem duoc') ||
-                    normalizedMessage.includes('mới tiết kiệm') || normalizedMessage.includes('moi tiet kiem') ||
-                    normalizedMessage.includes('vừa tiết kiệm') || normalizedMessage.includes('vua tiet kiem') ||
-                    normalizedMessage.includes('để dành') || normalizedMessage.includes('de danh') ||
-                    normalizedMessage.includes('gom góp') || normalizedMessage.includes('gom gop') ||
-                    normalizedMessage.includes('dành dụm') || normalizedMessage.includes('danh dum') ||
-                    normalizedMessage.includes('save') || normalizedMessage.includes('saving')) {
-
-                    logger.info('POST intent analysis - insert_savings detected!', {
+                    logger.info('POST intent analysis - savings keywords detected', {
                         message: normalizedMessage,
-                        matchedKeywords: {
-                            toiTietKiem: normalizedMessage.includes('tôi tiết kiệm'),
-                            toiTietKiemNoDiacritics: normalizedMessage.includes('tôi tiet kiem'),
-                            tietKiemDuoc: normalizedMessage.includes('tiết kiệm được'),
-                            tietKiemDuocNoDiacritics: normalizedMessage.includes('tiet kiem duoc'),
-                            moiTietKiem: normalizedMessage.includes('mới tiết kiệm'),
-                            moiTietKiemNoDiacritics: normalizedMessage.includes('moi tiet kiem'),
-                            vuaTietKiem: normalizedMessage.includes('vừa tiết kiệm'),
-                            vuaTietKiemNoDiacritics: normalizedMessage.includes('vua tiet kiem')
-                        }
+                        hasTietKiem: normalizedMessage.includes('tiết kiệm'),
+                        hasTietKiemNoDiacritics: normalizedMessage.includes('tiet kiem'),
+                        hasNganHang: normalizedMessage.includes('ngân hàng'),
+                        hasNganHangNoDiacritics: normalizedMessage.includes('ngan hang'),
+                        hasCalculationKeywords,
+                        hasConditionalStructure
                     });
 
-                    return 'insert_savings';
+                    if (normalizedMessage.includes('tôi tiết kiệm') || normalizedMessage.includes('tôi tiet kiem') ||
+                        normalizedMessage.includes('tiết kiệm được') || normalizedMessage.includes('tiet kiem duoc') ||
+                        normalizedMessage.includes('mới tiết kiệm') || normalizedMessage.includes('moi tiet kiem') ||
+                        normalizedMessage.includes('vừa tiết kiệm') || normalizedMessage.includes('vua tiet kiem') ||
+                        normalizedMessage.includes('để dành') || normalizedMessage.includes('de danh') ||
+                        normalizedMessage.includes('gom góp') || normalizedMessage.includes('gom gop') ||
+                        normalizedMessage.includes('dành dụm') || normalizedMessage.includes('danh dum') ||
+                        normalizedMessage.includes('save') || normalizedMessage.includes('saving')) {
+
+                        logger.info('POST intent analysis - insert_savings detected!', {
+                            message: normalizedMessage,
+                            matchedKeywords: {
+                                toiTietKiem: normalizedMessage.includes('tôi tiết kiệm'),
+                                toiTietKiemNoDiacritics: normalizedMessage.includes('tôi tiet kiem'),
+                                tietKiemDuoc: normalizedMessage.includes('tiết kiệm được'),
+                                tietKiemDuocNoDiacritics: normalizedMessage.includes('tiet kiem duoc'),
+                                moiTietKiem: normalizedMessage.includes('mới tiết kiệm'),
+                                moiTietKiemNoDiacritics: normalizedMessage.includes('moi tiet kiem'),
+                                vuaTietKiem: normalizedMessage.includes('vừa tiết kiệm'),
+                                vuaTietKiemNoDiacritics: normalizedMessage.includes('vua tiet kiem')
+                            }
+                        });
+
+                        return 'insert_savings';
+                    }
                 }
-            }
 
-            // Kiểm tra thu nhập
-            if (normalizedMessage.includes('tôi nhận') || normalizedMessage.includes('tôi được') ||
-                normalizedMessage.includes('tôi kiếm') || normalizedMessage.includes('tôi thu') ||
-                normalizedMessage.includes('nhận lương') || normalizedMessage.includes('được trả') ||
-                normalizedMessage.includes('thu về') || normalizedMessage.includes('kiếm được') ||
-                normalizedMessage.includes('lương tôi') || normalizedMessage.includes('tiền lương') ||
-                normalizedMessage.includes('thưởng') || normalizedMessage.includes('bonus') ||
-                normalizedMessage.includes('được thưởng') || normalizedMessage.includes('nhận thưởng')) {
-                return 'insert_income';
-            }
+                // Kiểm tra thu nhập
+                if (normalizedMessage.includes('tôi nhận') || normalizedMessage.includes('tôi được') ||
+                    normalizedMessage.includes('tôi kiếm') || normalizedMessage.includes('tôi thu') ||
+                    normalizedMessage.includes('nhận lương') || normalizedMessage.includes('được trả') ||
+                    normalizedMessage.includes('thu về') || normalizedMessage.includes('kiếm được') ||
+                    normalizedMessage.includes('lương tôi') || normalizedMessage.includes('tiền lương') ||
+                    normalizedMessage.includes('thưởng') || normalizedMessage.includes('bonus') ||
+                    normalizedMessage.includes('được thưởng') || normalizedMessage.includes('nhận thưởng')) {
+                    return 'insert_income';
+                }
 
-            // Kiểm tra chi tiêu
-            if (normalizedMessage.includes('tôi mua') || normalizedMessage.includes('tôi chi') ||
-                normalizedMessage.includes('tôi trả') || normalizedMessage.includes('tôi tiêu') ||
-                normalizedMessage.includes('mua') || normalizedMessage.includes('chi') ||
-                normalizedMessage.includes('trả') || normalizedMessage.includes('tiêu') ||
-                normalizedMessage.includes('thanh toán') || normalizedMessage.includes('tốn') ||
-                normalizedMessage.includes('hết') || normalizedMessage.includes('chi tiêu') ||
-                normalizedMessage.includes('chi phí')) {
-                return 'insert_expense';
-            }
+                // Kiểm tra chi tiêu - NHƯNG KHÔNG KHI CÓ CALCULATION KEYWORDS
+                if (!hasCalculationKeywords && !hasConditionalStructure &&
+                    (normalizedMessage.includes('tôi mua') || normalizedMessage.includes('tôi chi') ||
+                        normalizedMessage.includes('tôi trả') || normalizedMessage.includes('tôi tiêu') ||
+                        normalizedMessage.includes('mua') || normalizedMessage.includes('chi') ||
+                        normalizedMessage.includes('trả') || normalizedMessage.includes('tiêu') ||
+                        normalizedMessage.includes('thanh toán') || normalizedMessage.includes('tốn') ||
+                        normalizedMessage.includes('hết') || normalizedMessage.includes('chi tiêu') ||
+                        normalizedMessage.includes('chi phí'))) {
 
-            // Kiểm tra khoản vay
-            if (normalizedMessage.includes('tôi vay') || normalizedMessage.includes('tôi mượn') ||
-                normalizedMessage.includes('vay') || normalizedMessage.includes('mượn') ||
-                normalizedMessage.includes('nợ') || normalizedMessage.includes('cho vay')) {
-                return 'insert_loan';
+                    logger.info('POST intent analysis - expense keywords detected (no calculation)', {
+                        message: normalizedMessage,
+                        hasCalculationKeywords,
+                        hasConditionalStructure
+                    });
+
+                    return 'insert_expense';
+                }
+
+                // Kiểm tra khoản vay
+                if (normalizedMessage.includes('tôi vay') || normalizedMessage.includes('tôi mượn') ||
+                    normalizedMessage.includes('vay') || normalizedMessage.includes('mượn') ||
+                    normalizedMessage.includes('nợ') || normalizedMessage.includes('cho vay')) {
+                    return 'insert_loan';
+                }
             }
         }
 
@@ -408,7 +493,9 @@ Format JSON cần trả về:
     "amount": số tiền (chỉ số, không có đơn vị),
     "category": "danh mục phù hợp",
     "note": "ghi chú hoặc mô tả",
-    "date": "YYYY-MM-DD" (nếu không có thì để ngày hôm nay)
+    "date": "YYYY-MM-DD" (nếu không có thì để ngày hôm nay),
+    "needsCategoryConfirmation": true/false,
+    "suggestedCategories": ["danh_mục_1", "danh_mục_2", "danh_mục_3"]
 }
 
 **Hướng dẫn xử lý số tiền:**
@@ -431,6 +518,8 @@ Ví dụ:
 - "Tôi vừa mua cà phê 50k" -> {"type": "expense", "amount": 50000, "category": "Ăn uống", "note": "Mua cà phê", "date": "2024-01-15"}
 - "Nhận lương 15 triệu hôm nay" -> {"type": "income", "amount": 15000000, "category": "Lương", "note": "Nhận lương", "date": "2024-01-15"}
 - "Tôi tiêu 200k mua quần áo" -> {"type": "expense", "amount": 200000, "category": "Mua sắm", "note": "Mua quần áo", "date": "2024-01-15"}
+- "Mua xe đạp 4 triệu" -> {"type": "expense", "amount": 4000000, "category": "Mua sắm", "note": "Mua xe đạp", "date": "2024-01-15"}
+- "Đổ xăng 200k" -> {"type": "expense", "amount": 200000, "category": "Di chuyển", "note": "Đổ xăng", "date": "2024-01-15"}
 - "Được thưởng 2 triệu" -> {"type": "income", "amount": 2000000, "category": "Thưởng", "note": "Được thưởng", "date": "2024-01-15"}
 - "Vay bạn 500k" -> {"type": "loan", "amount": 500000, "category": "Bạn bè", "note": "Vay bạn", "date": "2024-01-15"}
 
@@ -655,6 +744,12 @@ Chỉ trả về JSON, không có text khác.`;
                 isDetailIntent: intent && intent.includes('detail')
             });
 
+            // Kiểm tra context trước để xử lý category confirmation
+            const context = this.conversationContext.get(userId);
+            if (context && context.type === 'category_confirmation' && (Date.now() - context.timestamp < 300000)) { // 5 phút
+                return await this.handleCategoryConfirmation(userId, message, context);
+            }
+
             // Chỉ sử dụng keyword analysis cho GET operations nếu analyzeIntent không trả về POST intent
             if (!intent || (!intent.startsWith('insert_') && !intent.includes('calculation') && !intent.includes('detail'))) {
                 const { category } = this.analyzeKeywordsAndTime(message);
@@ -809,6 +904,38 @@ Chỉ trả về JSON, không có text khác.`;
             // Ưu tiên forceType nếu có
             if (forceType) {
                 transactionData.type = forceType;
+            }
+
+            // Kiểm tra nếu cần xác nhận category
+            if (transactionData.needsCategoryConfirmation && transactionData.suggestedCategories && transactionData.suggestedCategories.length > 0) {
+                // Lưu context để xử lý response sau
+                this.conversationContext.set(userId, {
+                    type: 'category_confirmation',
+                    transactionData,
+                    forceType,
+                    sessionId,
+                    timestamp: Date.now()
+                });
+
+                const typeNames = {
+                    'savings': 'tiền tiết kiệm',
+                    'income': 'thu nhập',
+                    'expense': 'chi tiêu',
+                    'loan': 'khoản vay'
+                };
+
+                let confirmationMessage = `🤔 **Tôi cần xác nhận danh mục cho ${typeNames[transactionData.type]} này:**\n\n`;
+                confirmationMessage += `💰 **Số tiền:** ${transactionData.amount.toLocaleString('vi-VN')} VND\n`;
+                confirmationMessage += `📝 **Mô tả:** ${transactionData.note}\n\n`;
+                confirmationMessage += `📂 **Bạn muốn lưu vào danh mục nào?**\n`;
+
+                transactionData.suggestedCategories.forEach((category, index) => {
+                    confirmationMessage += `${index + 1}. ${category}\n`;
+                });
+
+                confirmationMessage += `\n💡 **Hướng dẫn:** Trả lời số thứ tự (VD: "1") hoặc nói tên danh mục (VD: "${transactionData.suggestedCategories[0]}")`;
+
+                return confirmationMessage;
             }
 
             // Xử lý đặc biệt cho savings - lưu vào Income collection
@@ -1779,6 +1906,169 @@ Hãy đưa ra lời khuyên thực tế, có thể thực hiện được.`;
         } catch (error) {
             logger.error('Error providing financial advice:', error);
             return 'Không thể đưa ra lời khuyên lúc này. Vui lòng thử lại sau.';
+        }
+    }
+
+    /**
+     * Xử lý calculation query với Gemini AI
+     */
+    async handleCalculationQuery(userId, message) {
+        try {
+            // Lấy dữ liệu tài chính hiện tại
+            const financialData = await this.getUserFinancialData(userId);
+
+            // Tính số dư hiện tại
+            const currentBalance = financialData.summary.totalIncomes - financialData.summary.totalExpenses;
+            const totalSavings = financialData.incomes
+                .filter(income => {
+                    const categoryLower = income.category?.toLowerCase() || '';
+                    return categoryLower.includes('tiết kiệm') || categoryLower === 'tiền tiết kiệm';
+                })
+                .reduce((sum, income) => sum + income.amount, 0);
+
+            logger.info('Calculation query with financial data', {
+                userId,
+                message,
+                currentBalance,
+                totalSavings,
+                totalIncomes: financialData.summary.totalIncomes,
+                totalExpenses: financialData.summary.totalExpenses
+            });
+
+            // Sử dụng Gemini AI để phân tích và tính toán
+            const calculationPrompt = `
+Bạn là một chuyên gia tài chính. Hãy phân tích câu hỏi sau và thực hiện tính toán:
+
+**Câu hỏi:** "${message}"
+
+**Dữ liệu tài chính hiện tại:**
+- Tổng thu nhập: ${financialData.summary.totalIncomes.toLocaleString('vi-VN')} VND
+- Tổng chi tiêu: ${financialData.summary.totalExpenses.toLocaleString('vi-VN')} VND
+- Số dư hiện tại: ${currentBalance.toLocaleString('vi-VN')} VND
+- Tiền tiết kiệm: ${totalSavings.toLocaleString('vi-VN')} VND
+
+**Nhiệm vụ:**
+1. Trích xuất số tiền từ câu hỏi (VD: "4tr" = 4,000,000 VND)
+2. Xác định loại tính toán (chi tiêu từ số dư, từ tiết kiệm, etc.)
+3. Thực hiện tính toán chính xác
+4. Đưa ra lời khuyên tài chính
+
+**Quy tắc chuyển đổi:**
+- "k", "nghìn" = x1,000
+- "tr", "triệu", "m" = x1,000,000
+- "4tr" = 4,000,000 VND
+
+**Format trả về:**
+🧮 **Tính toán tài chính:**
+
+💰 **Số dư hiện tại:** [số dư] VND
+💸 **Số tiền dự định chi:** [số tiền] VND
+📊 **Số dư còn lại:** [kết quả] VND
+
+[✅ Kết quả tích cực hoặc ❌ Cảnh báo]
+💡 **Lời khuyên:** [lời khuyên cụ thể]
+
+Hãy trả lời bằng tiếng Việt và sử dụng format trên.`;
+
+            const geminiResponse = await this.callGeminiAI(calculationPrompt);
+
+            logger.info('Gemini calculation response', {
+                userId,
+                message,
+                responseLength: geminiResponse.length
+            });
+
+            return geminiResponse;
+
+        } catch (error) {
+            logger.error('Error handling calculation query:', error);
+
+            // Fallback to simple calculation
+            try {
+                const financialData = await this.getUserFinancialData(userId);
+                const currentBalance = financialData.summary.totalIncomes - financialData.summary.totalExpenses;
+
+                // Simple amount extraction
+                const amountMatch = message.match(/(\d+(?:\.\d+)?)\s*(k|nghìn|triệu|tr|m)/i);
+                if (amountMatch) {
+                    const number = parseFloat(amountMatch[1]);
+                    const unit = amountMatch[2].toLowerCase();
+                    let amount = 0;
+
+                    switch (unit) {
+                        case 'k':
+                        case 'nghìn':
+                            amount = number * 1000;
+                            break;
+                        case 'triệu':
+                        case 'tr':
+                        case 'm':
+                            amount = number * 1000000;
+                            break;
+                    }
+
+                    const remainingBalance = currentBalance - amount;
+
+                    return `🧮 **Tính toán tài chính:**
+
+💰 **Số dư hiện tại:** ${currentBalance.toLocaleString('vi-VN')} VND
+💸 **Số tiền dự định chi:** ${amount.toLocaleString('vi-VN')} VND
+📊 **Số dư còn lại:** ${remainingBalance.toLocaleString('vi-VN')} VND
+
+${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số tiền này!' : '❌ **Cảnh báo:** Bạn không đủ tiền!'}
+💡 **Lời khuyên:** ${remainingBalance >= 0 ? `Sau khi chi tiêu, bạn sẽ còn ${remainingBalance.toLocaleString('vi-VN')} VND.` : `Bạn thiếu ${Math.abs(remainingBalance).toLocaleString('vi-VN')} VND.`}`;
+                }
+            } catch (fallbackError) {
+                logger.error('Fallback calculation also failed:', fallbackError);
+            }
+
+            return 'Không thể thực hiện tính toán. Vui lòng nói rõ hơn như: "Nếu tôi chi 500k thì còn bao nhiều tiền?"';
+        }
+    }
+
+    /**
+     * Xử lý xác nhận category
+     */
+    async handleCategoryConfirmation(userId, message, context) {
+        try {
+            const { transactionData, forceType, sessionId } = context;
+            const normalizedMessage = message.toLowerCase().trim();
+
+            // Xóa context
+            this.conversationContext.delete(userId);
+
+            // Kiểm tra nếu user chọn số thứ tự
+            const numberMatch = normalizedMessage.match(/^(\d+)$/);
+            if (numberMatch) {
+                const index = parseInt(numberMatch[1]) - 1;
+                if (index >= 0 && index < transactionData.suggestedCategories.length) {
+                    transactionData.category = transactionData.suggestedCategories[index];
+                } else {
+                    return 'Số thứ tự không hợp lệ. Vui lòng chọn lại hoặc nói tên danh mục.';
+                }
+            } else {
+                // Kiểm tra nếu user nói tên category
+                const selectedCategory = transactionData.suggestedCategories.find(cat =>
+                    normalizedMessage.includes(cat.toLowerCase()) ||
+                    cat.toLowerCase().includes(normalizedMessage)
+                );
+
+                if (selectedCategory) {
+                    transactionData.category = selectedCategory;
+                } else {
+                    return `Không tìm thấy danh mục "${message}". Vui lòng chọn một trong các danh mục đã gợi ý hoặc nói rõ hơn.`;
+                }
+            }
+
+            // Xóa needsCategoryConfirmation để tránh loop
+            transactionData.needsCategoryConfirmation = false;
+
+            // Tiếp tục xử lý transaction với category đã được xác nhận
+            return await this.handleInsertTransaction(userId, `${transactionData.note} ${transactionData.amount}`, sessionId, forceType);
+
+        } catch (error) {
+            logger.error('Error handling category confirmation:', error);
+            return 'Có lỗi xảy ra khi xác nhận danh mục. Vui lòng thử lại.';
         }
     }
 
