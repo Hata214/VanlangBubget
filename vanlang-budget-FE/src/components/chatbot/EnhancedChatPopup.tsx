@@ -693,39 +693,81 @@ Give it a try! 🚀`
                                         </div>
                                         <div className="flex flex-wrap gap-2">
                                             {(chatState.language === 'vi' ? [
-                                                // Thu nhập
+                                                // Thu nhập - Đa dạng hơn
                                                 'Tôi nhận lương 15 triệu',
                                                 'Được thưởng 2 triệu',
                                                 'Kiếm được 500k freelance',
                                                 'Thu về 3 triệu bán hàng',
                                                 'Tiết kiệm được 1 triệu',
-                                                // Chi tiêu
+                                                'Nhận tiền thưởng 800k',
+                                                'Tôi được trả 12 triệu',
+                                                'Thu nhập từ đầu tư 2.5 triệu',
+                                                'Lương tháng này 18 triệu',
+                                                'Kiếm thêm 600k part-time',
+                                                'Bán đồ cũ được 300k',
+                                                'Nhận hoa hồng 1.2 triệu',
+
+                                                // Chi tiêu - Đa dạng hơn
                                                 'Mua cà phê 50k',
                                                 'Chi tiêu ăn uống 200k',
                                                 'Trả tiền điện 300k',
                                                 'Tôi mua quần áo 800k',
                                                 'Tốn 150k đi taxi',
                                                 'Thanh toán học phí 5 triệu',
+                                                'Mua xăng 200k',
+                                                'Chi phí ăn trưa 120k',
+                                                'Trả tiền internet 400k',
+                                                'Mua sách 250k',
+                                                'Chi tiêu y tế 500k',
+                                                'Đi xem phim 180k',
+                                                'Mua đồ gia dụng 1.5 triệu',
+                                                'Trả tiền thuê nhà 8 triệu',
+                                                'Chi phí sửa xe 350k',
+                                                'Mua thực phẩm 600k',
+
                                                 // Khoản vay
                                                 'Vay ngân hàng 5 triệu',
-                                                'Mượn bạn 500k'
+                                                'Mượn bạn 500k',
+                                                'Vay gia đình 2 triệu',
+                                                'Cho vay 1 triệu'
                                             ] : [
-                                                // Income
+                                                // Income - More diverse
                                                 'I received salary 15 million',
                                                 'Got bonus 2 million',
                                                 'Earned 500k freelance',
-                                                'Revenue 3 million sales',
+                                                'Made 3 million from sales',
                                                 'Saved 1 million',
-                                                // Expenses
+                                                'Received bonus 800k',
+                                                'I got paid 12 million',
+                                                'Investment income 2.5 million',
+                                                'Monthly salary 18 million',
+                                                'Earned extra 600k part-time',
+                                                'Sold old stuff for 300k',
+                                                'Received commission 1.2 million',
+
+                                                // Expenses - More diverse
                                                 'Bought coffee 50k',
                                                 'Food expenses 200k',
                                                 'Paid electricity 300k',
                                                 'I bought clothes 800k',
-                                                'Spent 150k taxi',
+                                                'Spent 150k on taxi',
                                                 'Paid tuition 5 million',
+                                                'Bought gas 200k',
+                                                'Lunch cost 120k',
+                                                'Paid internet 400k',
+                                                'Bought books 250k',
+                                                'Medical expenses 500k',
+                                                'Went to movies 180k',
+                                                'Bought household items 1.5 million',
+                                                'Paid rent 8 million',
+                                                'Car repair 350k',
+                                                'Bought groceries 600k',
+
                                                 // Loans
-                                                'Bank loan 5 million',
-                                                'Borrowed from friend 500k'
+                                                'Borrowed from bank 5 million',
+                                                'Borrowed from friend 500k',
+                                                'Borrowed from family 2 million',
+                                                'Lent money 1 million'
                                             ]).map((suggestion, index) => (
                                                 <button
                                                     key={`post-${index}`}

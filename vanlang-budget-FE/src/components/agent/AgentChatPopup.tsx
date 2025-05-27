@@ -72,7 +72,7 @@ const AgentChatPopup: React.FC = () => {
     if (isOpen && messages.length === 0) {
       const welcomeMessage: Message = {
         id: 'welcome',
-        text: '🚀 Chào bạn! Tôi là VanLang Agent v2 - trợ lý tài chính AI thế hệ mới!\n\n✨ Tính năng nâng cao:\n💰 Thêm giao dịch bằng ngôn ngữ tự nhiên\n📊 Phân tích tài chính thông minh\n🔍 Truy vấn dữ liệu chi tiết\n💡 Tư vấn tài chính cá nhân hóa\n🎯 Lập kế hoạch đầu tư\n\n📝 Ví dụ:\n• "Tôi vừa mua cà phê 50000"\n• "Phân tích chi tiêu tháng này"\n• "Tôi có nên đầu tư vào cổ phiếu không?"\n• "Số dư hiện tại của tôi là bao nhiêu?"',
+        text: '🚀 Chào bạn! Tôi là VanLang Agent v2 - trợ lý tài chính AI thế hệ mới!\n\n✨ Tính năng nâng cao:\n💰 Thêm giao dịch bằng ngôn ngữ tự nhiên\n📊 Phân tích tài chính thông minh\n🔍 Truy vấn dữ liệu chi tiết\n💡 Tư vấn tài chính cá nhân hóa\n🎯 Lập kế hoạch đầu tư\n\n💰 **Thêm Thu nhập:**\n• "Tôi nhận lương 15 triệu"\n• "Được thưởng 2 triệu"\n• "Kiếm được 500k freelance"\n• "Thu về 3 triệu bán hàng"\n\n💸 **Thêm Chi tiêu:**\n• "Mua cà phê 50k"\n• "Chi tiêu ăn uống 200k"\n• "Trả tiền điện 300k"\n• "Mua quần áo 800k"\n\n📊 **Xem dữ liệu:**\n• "Thu nhập tháng này"\n• "Chi tiêu của tôi"\n• "Số dư hiện tại"\n• "Phân tích tài chính"',
         sender: 'agent',
         timestamp: new Date()
       };

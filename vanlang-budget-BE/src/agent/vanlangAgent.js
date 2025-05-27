@@ -60,6 +60,50 @@ class VanLangAgent {
         const hasAmount = /\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)/i.test(message);
 
         if (hasAmount) {
+            logger.info('POST intent analysis - has amount detected', {
+                message: normalizedMessage,
+                hasAmount: true
+            });
+
+            // Kiểm tra tiết kiệm (ưu tiên cao nhất trong POST)
+            if ((normalizedMessage.includes('tiết kiệm') || normalizedMessage.includes('tiet kiem')) &&
+                !normalizedMessage.includes('ngân hàng') && !normalizedMessage.includes('ngan hang')) {
+
+                logger.info('POST intent analysis - savings keywords detected', {
+                    message: normalizedMessage,
+                    hasTietKiem: normalizedMessage.includes('tiết kiệm'),
+                    hasTietKiemNoDiacritics: normalizedMessage.includes('tiet kiem'),
+                    hasNganHang: normalizedMessage.includes('ngân hàng'),
+                    hasNganHangNoDiacritics: normalizedMessage.includes('ngan hang')
+                });
+
+                if (normalizedMessage.includes('tôi tiết kiệm') || normalizedMessage.includes('tôi tiet kiem') ||
+                    normalizedMessage.includes('tiết kiệm được') || normalizedMessage.includes('tiet kiem duoc') ||
+                    normalizedMessage.includes('mới tiết kiệm') || normalizedMessage.includes('moi tiet kiem') ||
+                    normalizedMessage.includes('vừa tiết kiệm') || normalizedMessage.includes('vua tiet kiem') ||
+                    normalizedMessage.includes('để dành') || normalizedMessage.includes('de danh') ||
+                    normalizedMessage.includes('gom góp') || normalizedMessage.includes('gom gop') ||
+                    normalizedMessage.includes('dành dụm') || normalizedMessage.includes('danh dum') ||
+                    normalizedMessage.includes('save') || normalizedMessage.includes('saving')) {
+
+                    logger.info('POST intent analysis - insert_savings detected!', {
+                        message: normalizedMessage,
+                        matchedKeywords: {
+                            toiTietKiem: normalizedMessage.includes('tôi tiết kiệm'),
+                            toiTietKiemNoDiacritics: normalizedMessage.includes('tôi tiet kiem'),
+                            tietKiemDuoc: normalizedMessage.includes('tiết kiệm được'),
+                            tietKiemDuocNoDiacritics: normalizedMessage.includes('tiet kiem duoc'),
+                            moiTietKiem: normalizedMessage.includes('mới tiết kiệm'),
+                            moiTietKiemNoDiacritics: normalizedMessage.includes('moi tiet kiem'),
+                            vuaTietKiem: normalizedMessage.includes('vừa tiết kiệm'),
+                            vuaTietKiemNoDiacritics: normalizedMessage.includes('vua tiet kiem')
+                        }
+                    });
+
+                    return 'insert_savings';
+                }
+            }
+
             // Kiểm tra thu nhập
             if (normalizedMessage.includes('tôi nhận') || normalizedMessage.includes('tôi được') ||
                 normalizedMessage.includes('tôi kiếm') || normalizedMessage.includes('tôi thu') ||
@@ -137,16 +181,18 @@ class VanLangAgent {
 Phân tích mục đích của câu sau và trả lời bằng một từ duy nhất: "${message}"
 
 Các mục đích có thể:
-- income_query: Hỏi về thu nhập (từ khóa: thu nhập, lương, tiền lương, income, salary, kiếm được, nhận được, tiết kiệm, tiền tiết kiệm, savings)
+- income_query: Hỏi về thu nhập (từ khóa: thu nhập, lương, tiền lương, income, salary, kiếm được, nhận được)
+- savings_income_query: Hỏi về tiền tiết kiệm trong thu nhập (từ khóa: tiền tiết kiệm, tiết kiệm - KHÔNG có "ngân hàng")
 - expense_query: Hỏi về chi tiêu (từ khóa: chi tiêu, chi phí, tiêu dùng, expense, spending, mua, trả, thanh toán)
 - loan_query: Hỏi về khoản vay (từ khóa: khoản vay, vay, nợ, loan, debt, mượn, cho vay)
 - investment_query: Hỏi về đầu tư (từ khóa: đầu tư, investment, cổ phiếu, stock, vàng, gold, bất động sản, real estate)
-- savings_query: Hỏi về tiết kiệm ngân hàng (từ khóa: tiết kiệm ngân hàng, tiền gửi ngân hàng, gửi tiết kiệm, bank savings)
+- savings_query: Hỏi về tiết kiệm ngân hàng (từ khóa: tiết kiệm ngân hàng, tiền gửi ngân hàng, gửi tiết kiệm, tiết kiệm từ ngân hàng, tiền tiết kiệm ngân hàng, bank savings)
 - balance_query: Hỏi về số dư, tổng quan tài chính (từ khóa: số dư, balance, tổng quan, overview, tình hình tài chính)
 - calculation_query: Câu hỏi suy luận, tính toán (từ khóa: tính, lãi suất, kế hoạch, dự đoán, phân tích, so sánh)
 - detail_query: Xem chi tiết các khoản còn lại (từ khóa: "còn lại", "khác", "chi tiết", "xem thêm", "tất cả", "danh sách đầy đủ")
 
 **THÊM DỮ LIỆU - Ưu tiên cao:**
+- insert_savings: Thêm tiền tiết kiệm (cấu trúc: "tôi tiết kiệm", "tiết kiệm được", "mới tiết kiệm", "vừa tiết kiệm", "để dành", "gom góp", "dành dụm", "save" + số tiền - KHÔNG có "ngân hàng")
 - insert_income: Thêm thu nhập (cấu trúc: "tôi nhận", "tôi được", "tôi kiếm", "tôi thu", "nhận lương", "được trả", "thu về", "kiếm được", "lương tôi", "tiền lương", "thưởng", "bonus" + số tiền)
 - insert_expense: Thêm chi tiêu (cấu trúc: "tôi mua", "tôi chi", "tôi trả", "tôi tiêu", "mua", "chi", "trả", "tiêu", "thanh toán", "tốn", "hết" + số tiền)
 - insert_loan: Thêm khoản vay (cấu trúc: "tôi vay", "tôi mượn", "vay", "mượn", "nợ", "cho vay" + số tiền)
@@ -202,13 +248,32 @@ Chỉ trả lời một từ duy nhất.`;
         } else if (normalizedMessage.includes('tiết kiệm trong thu nhập') || normalizedNoDiacritics.includes('tiet kiem trong thu nhap')) {
             category = 'income';
             logger.info('Keyword analysis: detected income (savings in income)', { message: normalizedMessage });
-        } else if (normalizedMessage === 'tiền tiết kiệm' || normalizedNoDiacritics === 'tien tiet kiem' ||
+        } else if (
+            // Kiểm tra tiết kiệm ngân hàng TRƯỚC (ưu tiên cao hơn)
+            (normalizedMessage.includes('tiết kiệm') && normalizedMessage.includes('ngân hàng')) ||
+            (normalizedNoDiacritics.includes('tiet kiem') && normalizedNoDiacritics.includes('ngan hang')) ||
+            normalizedMessage.includes('tiết kiệm gửi ngân hàng') ||
+            normalizedMessage.includes('tiền gửi ngân hàng') ||
+            normalizedMessage.includes('gửi tiết kiệm') ||
+            normalizedMessage.includes('tiết kiệm từ ngân hàng') ||
+            normalizedMessage.includes('tiền tiết kiệm ngân hàng') ||
+            normalizedMessage.includes('bank savings') ||
+            normalizedMessage.includes('savings bank') ||
+            normalizedNoDiacritics.includes('tiet kiem ngan hang') ||
+            normalizedNoDiacritics.includes('tien gui ngan hang')
+        ) {
+            category = 'savings'; // Tiết kiệm ngân hàng → investment
+            logger.info('Keyword analysis: detected bank savings in investment category', { message: normalizedMessage });
+        } else if (
+            // Tiết kiệm thông thường (không có từ "ngân hàng")
+            normalizedMessage === 'tiền tiết kiệm' || normalizedNoDiacritics === 'tien tiet kiem' ||
             normalizedMessage.includes('tiết kiệm') || normalizedNoDiacritics.includes('tiet kiem') ||
             normalizedMessage.includes('saving') || normalizedMessage.includes('savings') ||
             normalizedMessage.includes('tiền tiết kiệm') || normalizedNoDiacritics.includes('tien tiet kiem') ||
-            normalizedMessage.includes('tổng tiết kiệm') || normalizedNoDiacritics.includes('tong tiet kiem')) {
-            category = 'income';
-            logger.info('Keyword analysis: detected income (general savings)', { message: normalizedMessage });
+            normalizedMessage.includes('tổng tiết kiệm') || normalizedNoDiacritics.includes('tong tiet kiem')
+        ) {
+            category = 'savings_income'; // Tiết kiệm thông thường → income
+            logger.info('Keyword analysis: detected general savings in income category', { message: normalizedMessage });
         } else if (normalizedMessage.includes('thu nhập') || normalizedNoDiacritics.includes('thu nhap') ||
             normalizedMessage.includes('lương') || normalizedNoDiacritics.includes('luong') ||
             normalizedMessage.includes('tiền lương') || normalizedNoDiacritics.includes('tien luong') ||
@@ -330,7 +395,7 @@ Chỉ trả lời một từ duy nhất.`;
     async extractTransactionData(message, forceType = null) {
         const typeInstruction = forceType ?
             `Loại giao dịch đã được xác định là "${forceType}". Chỉ cần trích xuất số tiền, danh mục và ghi chú.` :
-            `Xác định loại giao dịch: "income", "expense", hoặc "loan".`;
+            `Xác định loại giao dịch: "savings", "income", "expense", hoặc "loan".`;
 
         const dataPrompt = `
 Phân tích câu sau và trích xuất dữ liệu giao dịch dạng JSON: "${message}"
@@ -339,7 +404,7 @@ ${typeInstruction}
 
 Format JSON cần trả về:
 {
-    "type": "${forceType || 'income/expense/loan'}",
+    "type": "${forceType || 'savings/income/expense/loan'}",
     "amount": số tiền (chỉ số, không có đơn vị),
     "category": "danh mục phù hợp",
     "note": "ghi chú hoặc mô tả",
@@ -353,11 +418,16 @@ Format JSON cần trả về:
 - "15 triệu" = 15000000
 
 **Danh mục phổ biến:**
-Thu nhập: "Lương", "Thưởng", "Tiền tiết kiệm", "Thu nhập khác", "Freelance", "Bán hàng"
+Tiền tiết kiệm: "Tiền tiết kiệm", "Để dành", "Gom góp", "Dành dụm"
+Thu nhập: "Lương", "Thưởng", "Thu nhập khác", "Freelance", "Bán hàng", "Kinh doanh"
 Chi tiêu: "Ăn uống", "Di chuyển", "Giải trí", "Mua sắm", "Học tập", "Y tế", "Hóa đơn", "Khác"
 Khoản vay: "Ngân hàng", "Bạn bè", "Gia đình", "Công ty", "Khác"
 
 Ví dụ:
+- "Tôi tiết kiệm được 2 triệu" -> {"type": "savings", "amount": 2000000, "category": "Tiền tiết kiệm", "note": "Tiết kiệm được", "date": "2024-01-15"}
+- "Tôi mới tiết kiệm được 500k" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Mới tiết kiệm được", "date": "2024-01-15"}
+- "Vừa tiết kiệm 1 triệu" -> {"type": "savings", "amount": 1000000, "category": "Tiền tiết kiệm", "note": "Vừa tiết kiệm", "date": "2024-01-15"}
+- "Để dành 500k hôm nay" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Để dành", "date": "2024-01-15"}
 - "Tôi vừa mua cà phê 50k" -> {"type": "expense", "amount": 50000, "category": "Ăn uống", "note": "Mua cà phê", "date": "2024-01-15"}
 - "Nhận lương 15 triệu hôm nay" -> {"type": "income", "amount": 15000000, "category": "Lương", "note": "Nhận lương", "date": "2024-01-15"}
 - "Tôi tiêu 200k mua quần áo" -> {"type": "expense", "amount": 200000, "category": "Mua sắm", "note": "Mua quần áo", "date": "2024-01-15"}
@@ -574,36 +644,46 @@ Chỉ trả về JSON, không có text khác.`;
         try {
             logger.info('Processing user message', { userId, message, sessionId });
 
-            // Sử dụng logic phân tích từ khóa trực tiếp cho tiết kiệm
-            const { category } = this.analyzeKeywordsAndTime(message);
-            let intent = null;
+            // Ưu tiên sử dụng analyzeIntent cho POST operations
+            let intent = await this.analyzeIntent(message);
 
-            if (category === 'savings') {
-                intent = 'savings_query';
-            } else if (category === 'income') {
-                intent = 'income_query';
-            } else if (category === 'expense') {
-                intent = 'expense_query';
-            } else if (category === 'loan') {
-                intent = 'loan_query';
-            } else if (category === 'stock') {
-                intent = 'stock_query';
-            } else if (category === 'gold') {
-                intent = 'gold_query';
-            } else if (category === 'realestate') {
-                intent = 'realestate_query';
-            } else if (category === 'investment') {
-                intent = 'investment_query';
-            } else if (category === 'balance') {
-                intent = 'balance_query';
-            } else {
-                // Chỉ sử dụng Gemini AI cho các trường hợp khác
-                intent = await this.analyzeIntent(message);
+            logger.info('analyzeIntent result', {
+                intent,
+                message,
+                isInsertIntent: intent && intent.startsWith('insert_'),
+                isCalculationIntent: intent && intent.includes('calculation'),
+                isDetailIntent: intent && intent.includes('detail')
+            });
+
+            // Chỉ sử dụng keyword analysis cho GET operations nếu analyzeIntent không trả về POST intent
+            if (!intent || (!intent.startsWith('insert_') && !intent.includes('calculation') && !intent.includes('detail'))) {
+                const { category } = this.analyzeKeywordsAndTime(message);
+
+                if (category === 'savings') {
+                    intent = 'savings_query';
+                } else if (category === 'savings_income') {
+                    intent = 'savings_income_query'; // Intent mới cho tiền tiết kiệm trong thu nhập
+                } else if (category === 'income') {
+                    intent = 'income_query';
+                } else if (category === 'expense') {
+                    intent = 'expense_query';
+                } else if (category === 'loan') {
+                    intent = 'loan_query';
+                } else if (category === 'stock') {
+                    intent = 'stock_query';
+                } else if (category === 'gold') {
+                    intent = 'gold_query';
+                } else if (category === 'realestate') {
+                    intent = 'realestate_query';
+                } else if (category === 'investment') {
+                    intent = 'investment_query';
+                } else if (category === 'balance') {
+                    intent = 'balance_query';
+                }
             }
 
             logger.info('Intent analyzed', {
                 intent,
-                category,
                 message,
                 normalizedMessage: message.toLowerCase().trim(),
                 keywordAnalysis: {
@@ -622,6 +702,9 @@ Chỉ trả về JSON, không có text khác.`;
 
             switch (intent) {
                 // Nhóm POST - Thêm dữ liệu
+                case 'insert_savings':
+                    return await this.handleInsertTransaction(userId, message, sessionId, 'savings');
+
                 case 'insert_income':
                     return await this.handleInsertTransaction(userId, message, sessionId, 'income');
 
@@ -655,6 +738,9 @@ Chỉ trả về JSON, không có text khác.`;
 
                 case 'savings_query':
                     return await this.handleSpecificQuery(userId, message, 'savings');
+
+                case 'savings_income_query':
+                    return await this.handleSpecificQuery(userId, message, 'savings_income');
 
                 case 'balance_query':
                     return await this.handleBalanceQuery(userId, message);
@@ -725,7 +811,40 @@ Chỉ trả về JSON, không có text khác.`;
                 transactionData.type = forceType;
             }
 
-            // Tạo transaction mới
+            // Xử lý đặc biệt cho savings - lưu vào Income collection
+            if (forceType === 'savings' || transactionData.type === 'savings') {
+                const Income = (await import('../models/incomeModel.js')).default;
+
+                const income = new Income({
+                    userId,
+                    amount: transactionData.amount,
+                    description: transactionData.note || 'Tiền tiết kiệm',
+                    category: 'Tiền tiết kiệm',
+                    date: new Date(transactionData.date)
+                });
+
+                await income.save();
+                logger.info('Savings saved to Income collection', { incomeId: income._id, amount: transactionData.amount });
+
+                // Tạo response cho savings
+                const successMessage = `✅ **Đã lưu tiền tiết kiệm thành công!**
+
+💰 **Thông tin giao dịch:**
+• Loại: Tiền tiết kiệm
+• Số tiền: ${transactionData.amount.toLocaleString('vi-VN')} VND
+• Danh mục: Tiền tiết kiệm
+• Ngày: ${new Date(transactionData.date).toLocaleDateString('vi-VN')}
+${transactionData.note ? `• Ghi chú: ${transactionData.note}` : ''}
+
+💡 **Gợi ý:** Bạn có thể:
+• Hỏi "tiền tiết kiệm của tôi" để xem tổng quan
+• Nói "thêm tiền tiết kiệm khác" để tiếp tục
+• Hỏi "số dư của tôi" để xem tình hình tài chính`;
+
+                return successMessage;
+            }
+
+            // Xử lý các loại giao dịch khác (income, expense, loan)
             const transaction = new Transaction({
                 userId,
                 ...transactionData,
@@ -741,12 +860,14 @@ Chỉ trả về JSON, không có text khác.`;
             logger.info('Transaction created by agent', { userId, transactionId: transaction._id, type: transactionData.type });
 
             const typeNames = {
+                'savings': 'tiền tiết kiệm',
                 'income': 'thu nhập',
                 'expense': 'chi tiêu',
                 'loan': 'khoản vay'
             };
 
             const emoji = {
+                'savings': '💰',
                 'income': '💰',
                 'expense': '💸',
                 'loan': '🏦'
@@ -772,6 +893,7 @@ ${transactionData.note ? `• Ghi chú: ${transactionData.note}` : ''}
             logger.error('Error inserting transaction:', error);
 
             const errorMessages = {
+                'savings': 'Không thể lưu tiền tiết kiệm. Bạn có thể nói rõ hơn như: "Tôi tiết kiệm được 2 triệu" hoặc "Để dành 500k hôm nay"?',
                 'income': 'Không thể lưu thu nhập. Bạn có thể nói rõ hơn như: "Tôi nhận lương 15 triệu" hoặc "Được thưởng 2 triệu"?',
                 'expense': 'Không thể lưu chi tiêu. Bạn có thể nói rõ hơn như: "Tôi mua cà phê 50k" hoặc "Chi tiêu ăn uống 200 nghìn"?',
                 'loan': 'Không thể lưu khoản vay. Bạn có thể nói rõ hơn như: "Tôi vay ngân hàng 5 triệu" hoặc "Mượn bạn 500k"?'
@@ -1017,6 +1139,63 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                     }
                     break;
 
+                case 'savings_income':
+                    // Lọc chỉ các khoản thu nhập có category liên quan đến tiết kiệm
+                    const savingsIncomes = financialData.incomes.filter(income => {
+                        const categoryLower = income.category?.toLowerCase() || '';
+                        const descriptionLower = income.description?.toLowerCase() || '';
+
+                        return categoryLower.includes('tiết kiệm') ||
+                            categoryLower.includes('saving') ||
+                            categoryLower.includes('tiet kiem') ||
+                            categoryLower === 'tiền tiết kiệm' ||
+                            categoryLower === 'tien tiet kiem' ||
+                            descriptionLower.includes('tiết kiệm') ||
+                            descriptionLower.includes('saving') ||
+                            descriptionLower.includes('tiet kiem');
+                    });
+                    const totalSavingsIncome = savingsIncomes.reduce((sum, income) => sum + income.amount, 0);
+
+                    logger.info('Savings income query debug', {
+                        userId,
+                        savingsIncomesCount: savingsIncomes.length,
+                        totalSavingsIncome,
+                        timeDescription,
+                        timeFilter,
+                        allIncomeCategories: financialData.incomes.map(i => i.category),
+                        filteredCategories: savingsIncomes.map(i => i.category)
+                    });
+
+                    response = `💰 **Tổng tiền tiết kiệm ${timeDescription}:** ${totalSavingsIncome.toLocaleString('vi-VN')} VND\n\n`;
+
+                    if (savingsIncomes.length > 0) {
+                        response += `📊 **Chi tiết tiền tiết kiệm:**\n`;
+                        savingsIncomes.slice(0, 5).forEach((savings, index) => {
+                            const date = new Date(savings.date).toLocaleDateString('vi-VN');
+                            const category = savings.category || 'Tiết kiệm';
+                            response += `${index + 1}. ${savings.description || 'Tiết kiệm'}: ${savings.amount.toLocaleString('vi-VN')} VND - ${category} (${date})\n`;
+                        });
+
+                        if (savingsIncomes.length > 5) {
+                            response += `\n... và ${savingsIncomes.length - 5} khoản tiết kiệm khác.`;
+                            // Lưu context để xử lý yêu cầu xem chi tiết
+                            this.conversationContext.set(userId, {
+                                type: 'savings_income',
+                                data: savingsIncomes,
+                                timeFilter,
+                                timeDescription,
+                                timestamp: Date.now()
+                            });
+                            response += `\n\n💡 *Bạn có thể hỏi "xem chi tiết các khoản còn lại" để xem tất cả.*`;
+                        }
+                    } else {
+                        response += `Không có dữ liệu tiền tiết kiệm ${timeDescription}.\n\n`;
+                        response += `💡 **Gợi ý:** Bạn có thể thêm tiết kiệm bằng cách:\n`;
+                        response += `• Vào mục Thu nhập và chọn danh mục "Tiền tiết kiệm"\n`;
+                        response += `• Hoặc nói với tôi: "Tôi tiết kiệm được 1 triệu hôm nay"`;
+                    }
+                    break;
+
                 case 'savings':
                     // Lọc chỉ các khoản đầu tư loại savings
                     const savingsInvestments = financialData.investments.filter(inv => inv.type === 'savings');
@@ -1255,7 +1434,8 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                 'expense': 'chi tiêu',
                 'loan': 'khoản vay',
                 'investment': 'đầu tư',
-                'savings': 'tiết kiệm',
+                'savings': 'tiết kiệm ngân hàng',
+                'savings_income': 'tiền tiết kiệm',
                 'stock': 'cổ phiếu',
                 'gold': 'vàng',
                 'realestate': 'đất đai'
@@ -1360,7 +1540,8 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                 'expense': 'chi tiêu',
                 'loan': 'khoản vay',
                 'investment': 'đầu tư',
-                'savings': 'tiết kiệm',
+                'savings': 'tiết kiệm ngân hàng',
+                'savings_income': 'tiền tiết kiệm',
                 'stock': 'cổ phiếu',
                 'gold': 'vàng',
                 'realestate': 'đất đai'

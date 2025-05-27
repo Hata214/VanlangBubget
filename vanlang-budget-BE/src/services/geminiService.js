@@ -8,10 +8,10 @@ class GeminiService {
         if (!process.env.GEMINI_API_KEY) {
             throw new Error('GEMINI_API_KEY is required');
         }
-        
+
         this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         this.defaultModel = process.env.GEMINI_MODEL_NAME || "gemini-2.0-flash";
-        
+
         console.log('✅ GeminiService initialized successfully');
     }
 
@@ -145,8 +145,8 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
 
             const model = this.genAI.getGenerativeModel({
                 model: this.defaultModel,
-                systemInstruction: { 
-                    parts: [{ text: this.getSystemInstruction(language, mode) }] 
+                systemInstruction: {
+                    parts: [{ text: this.getSystemInstruction(language, mode) }]
                 },
                 safetySettings: [
                     { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -167,16 +167,16 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
-            
+
             if (response.promptFeedback && response.promptFeedback.blockReason) {
                 console.warn('🚫 GeminiService: Prompt was blocked', {
                     reason: response.promptFeedback.blockReason,
                     ratings: response.promptFeedback.safetyRatings,
                 });
-                
+
                 return {
                     success: false,
-                    error: language === 'vi' ? 
+                    error: language === 'vi' ?
                         'Yêu cầu của bạn không thể được xử lý vì lý do an toàn nội dung. Vui lòng thử lại với câu hỏi khác.' :
                         'Your request cannot be processed for content safety reasons. Please try again with a different question.',
                     blocked: true
@@ -184,19 +184,19 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
             }
 
             const text = response.text();
-            
+
             if (!text || text.trim().length === 0) {
                 console.warn('🚫 GeminiService: Empty response from Gemini');
                 return {
                     success: false,
-                    error: language === 'vi' ? 
+                    error: language === 'vi' ?
                         'Xin lỗi, tôi chưa thể đưa ra câu trả lời cho câu hỏi này. Bạn có thể thử hỏi cách khác được không?' :
                         'Sorry, I cannot provide an answer to this question. Could you try asking in a different way?'
                 };
             }
 
             console.log(`✅ GeminiService: Generated response (${text.length} characters)`);
-            
+
             return {
                 success: true,
                 response: text.trim(),
@@ -210,21 +210,21 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
 
         } catch (error) {
             console.error('❌ GeminiService: Error generating response:', error);
-            
-            let errorMessage = language === 'vi' ? 
+
+            let errorMessage = language === 'vi' ?
                 'Đã có lỗi xảy ra khi xử lý yêu cầu của bạn.' :
                 'An error occurred while processing your request.';
 
             if (error.message?.includes('API key')) {
-                errorMessage = language === 'vi' ? 
+                errorMessage = language === 'vi' ?
                     'Lỗi cấu hình hệ thống: API key không hợp lệ.' :
                     'System configuration error: Invalid API key.';
             } else if (error.message?.includes('quota')) {
-                errorMessage = language === 'vi' ? 
+                errorMessage = language === 'vi' ?
                     'Hệ thống đang quá tải. Vui lòng thử lại sau.' :
                     'System is overloaded. Please try again later.';
             } else if (error.message?.includes('timeout')) {
-                errorMessage = language === 'vi' ? 
+                errorMessage = language === 'vi' ?
                     'Yêu cầu xử lý mất quá nhiều thời gian. Vui lòng thử lại.' :
                     'Request processing took too long. Please try again.';
             }
@@ -251,8 +251,8 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
 
             const model = this.genAI.getGenerativeModel({
                 model: this.defaultModel,
-                systemInstruction: { 
-                    parts: [{ text: this.getSystemInstruction(language, mode) }] 
+                systemInstruction: {
+                    parts: [{ text: this.getSystemInstruction(language, mode) }]
                 },
                 safetySettings: [
                     { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -290,11 +290,11 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
     async healthCheck() {
         try {
             const testPrompt = "Hello, this is a health check.";
-            const result = await this.generateResponse(testPrompt, { 
-                language: 'en', 
-                maxTokens: 50 
+            const result = await this.generateResponse(testPrompt, {
+                language: 'en',
+                maxTokens: 50
             });
-            
+
             return {
                 status: result.success ? 'healthy' : 'unhealthy',
                 model: this.defaultModel,
