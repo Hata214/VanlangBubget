@@ -165,12 +165,12 @@ loanSchema.post('save', async function (doc) {
 });
 
 /**
- * Phương thức tĩnh để lấy tổng số tiền vay đang còn
+ * Phương thức tĩnh để lấy tổng số tiền vay đang còn (chỉ tính ACTIVE và OVERDUE)
  */
 loanSchema.statics.getTotalActive = async function (userId) {
     const loans = await this.find({
         userId,
-        isPaid: false
+        status: { $in: ['ACTIVE', 'OVERDUE'] }
     }).populate('payments');
 
     return loans.reduce((sum, loan) => sum + loan.remainingAmount, 0);
@@ -178,4 +178,4 @@ loanSchema.statics.getTotalActive = async function (userId) {
 
 const Loan = mongoose.model('Loan', loanSchema);
 
-export default Loan; 
+export default Loan;

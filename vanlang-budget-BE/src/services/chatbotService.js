@@ -40,8 +40,14 @@ class ChatbotService {
                 const totalExpenseAllTime = expenses.reduce((total, expense) => total + (expense.amount || 0), 0);
                 const totalSavings = Math.max(0, totalIncomeAllTime - totalExpenseAllTime);
 
-                // Tính tổng khoản vay
+                // Tính tổng khoản vay - chỉ tính khoản vay chưa trả và quá hạn
                 const totalLoanAmount = loans.reduce((total, loan) => {
+                    // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE
+                    const loanStatus = loan.status?.toUpperCase() || '';
+                    if (loanStatus !== 'ACTIVE' && loanStatus !== 'OVERDUE') {
+                        return total;
+                    }
+
                     const principal = loan.amount || 0;
                     const interestAmount = this.calculationService.calculateLoanInterest(
                         principal,

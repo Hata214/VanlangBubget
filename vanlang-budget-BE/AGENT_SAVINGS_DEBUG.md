@@ -1,3 +1,5 @@
+
+
 # 🔧 Agent - Debug "tôi mới tiết kiệm được 500k"
 
 ## 🐛 Vấn đề
@@ -511,3 +513,147 @@ Agent giờ đây sẽ:
 **Bây giờ test lại câu: "nếu tôi lấy tiền tiết kiệm để mua xe đạp 4tr thì tôi sẽ còn bao nhiều tiền?"**
 
 **Sẽ hoạt động hoàn hảo!** 🎉🚀
+
+---
+
+## 🎯 **KIẾN TRÚC MỚI - Query Processing Engine & MongoDB Query Constructor**
+
+### **📊 Áp dụng Mermaid Diagram Architecture:**
+
+#### **🔍 1. Query Processing Engine:**
+```javascript
+// Funnel Search Model (Level 1 → Level 2 → Level 3)
+const queryAnalysis = await this.queryProcessingEngine.analyzeQuery(message, intent);
+
+// Time Analysis
+timeAnalysis: {
+    type: 'today' | 'this_week' | 'this_month' | 'custom_range',
+    mongoFilter: { date: { $gte: startDate, $lte: endDate } }
+}
+
+// Amount Analysis
+amountAnalysis: {
+    type: 'above_amount' | 'below_amount' | 'amount_range',
+    value: 1000000,
+    mongoFilter: { amount: { $gt: 1000000 } }
+}
+
+// Category Analysis (Funnel Model)
+categoryAnalysis: {
+    level1: 'food_dining',           // Main category
+    level2: 'restaurant',            // Subcategory
+    level3: 'asian_food',            // Specific item
+    funnelPath: ['Level1: food_dining', 'Level2: restaurant', 'Level3: asian_food']
+}
+
+// Aggregation Analysis
+aggregationAnalysis: {
+    type: 'sum' | 'average' | 'count' | 'group_by_month',
+    mongoAggregation: [{ $group: { _id: null, total: { $sum: "$amount" } } }]
+}
+```
+
+#### **⚙️ 2. MongoDB Query Constructor:**
+```javascript
+// Step 1: Construct Query
+const mongoQuery = await this.mongoQueryConstructor.constructQuery(queryAnalysis, userId);
+
+// Step 2: Execute Query
+const results = await this.mongoQueryConstructor.executeQuery(mongoQuery, this.models);
+
+// Step 3: Process Results
+const processedResults = await this.mongoQueryConstructor.processResults(results, queryAnalysis);
+```
+
+#### **🎯 3. Advanced Query Handler Integration:**
+```javascript
+// OLD (Legacy)
+case 'income_query':
+    return await this.handleSpecificQuery(userId, message, 'income');
+
+// NEW (Advanced Architecture)
+case 'income_query':
+    return await this.handleAdvancedQuery(userId, message, 'query_income');
+```
+
+### **🚀 Lợi ích của kiến trúc mới:**
+
+#### **✅ Query Processing Engine:**
+- **Funnel Search Model:** Level 1 (Category) → Level 2 (Subcategory) → Level 3 (Specific)
+- **Time-based Analysis:** Hỗ trợ today, this_week, this_month, custom_range
+- **Amount-based Analysis:** above_amount, below_amount, amount_range
+- **Aggregation Analysis:** sum, average, count, group_by_month
+- **Sort Analysis:** recent, oldest, amount_desc, amount_asc
+
+#### **✅ MongoDB Query Constructor:**
+- **Filter Construction:** Tự động build MongoDB filters
+- **Aggregation Pipeline:** Xây dựng aggregation pipeline phức tạp
+- **Result Processing:** Format kết quả theo từng loại query
+- **Model Integration:** Tích hợp với Income, Expense, Loan, Investment models
+
+#### **✅ Advanced Query Handler:**
+- **Step-by-step Processing:** Query Analysis → MongoDB Construction → Execution → Result Processing
+- **Fallback Mechanism:** Tự động fallback về legacy handlers nếu có lỗi
+- **Comprehensive Logging:** Log chi tiết từng bước xử lý
+- **Error Handling:** Xử lý lỗi gracefully
+
+### **🧪 Test Cases mới với kiến trúc:**
+
+#### **1. Time-based Query:**
+```
+"chi tiêu tuần này"
+→ Query Analysis: timeAnalysis.type = 'this_week'
+→ MongoDB Filter: { date: { $gte: startOfWeek, $lte: now } }
+→ Result: Danh sách chi tiêu tuần này
+```
+
+#### **2. Amount-based Query:**
+```
+"chi tiêu trên 1 triệu"
+→ Query Analysis: amountAnalysis.type = 'above_amount', value = 1000000
+→ MongoDB Filter: { amount: { $gt: 1000000 } }
+→ Result: Danh sách chi tiêu > 1M
+```
+
+#### **3. Category Funnel Query:**
+```
+"chi tiêu ăn uống nhà hàng đồ á"
+→ Query Analysis:
+   - level1: 'food_dining'
+   - level2: 'restaurant'
+   - level3: 'asian_food'
+→ MongoDB Filter: { category: 'food_dining', subcategory: 'restaurant', specific: 'asian_food' }
+→ Result: Chi tiêu ăn đồ Á tại nhà hàng
+```
+
+#### **4. Aggregation Query:**
+```
+"tổng chi tiêu tháng này"
+→ Query Analysis: aggregationAnalysis.type = 'sum'
+→ MongoDB Aggregation: [{ $group: { _id: null, total: { $sum: "$amount" } } }]
+→ Result: "💰 Tổng cộng: 5,000,000 VND"
+```
+
+#### **5. Combined Query:**
+```
+"5 khoản chi tiêu ăn uống lớn nhất tuần này"
+→ Query Analysis:
+   - timeAnalysis: 'this_week'
+   - categoryAnalysis: level1 = 'food_dining'
+   - sortAnalysis: 'amount_desc'
+   - limit: 5
+→ MongoDB Query: { date: {...}, category: 'food_dining' }.sort({amount: -1}).limit(5)
+→ Result: Top 5 chi tiêu ăn uống tuần này
+```
+
+### **🎉 Kết quả cuối cùng:**
+
+**Agent giờ đây có kiến trúc hoàn chỉnh theo Mermaid Diagram:**
+- ✅ **Query Processing Engine** - Phân tích query theo Funnel Model
+- ✅ **MongoDB Query Constructor** - Xây dựng và thực thi MongoDB queries
+- ✅ **Advanced Query Handler** - Xử lý query với kiến trúc mới
+- ✅ **Fallback Mechanism** - Tự động fallback về legacy handlers
+- ✅ **Gemini AI Integration** - Sử dụng AI cho intent detection và calculation
+- ✅ **Comprehensive Logging** - Log chi tiết mọi bước xử lý
+
+**Agent bây giờ có thể xử lý các query phức tạp theo đúng kiến trúc enterprise!** 🚀🎯

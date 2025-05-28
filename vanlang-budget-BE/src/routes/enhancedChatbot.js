@@ -482,67 +482,73 @@ async function getUserFinancialDataCached(userId) {
             }
 
             let totalLoanAmount = 0;
-            const loanDetails = allLoans.map(loan => {
-                // Tính tổng nợ bao gồm lãi suất GIỐNG DASHBOARD CHÍNH XÁC
-                const principal = loan.amount || 0;
-                const interestRate = loan.interestRate || 0;
+            const loanDetails = allLoans
+                .filter(loan => {
+                    // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE
+                    const loanStatus = loan.status?.toUpperCase() || '';
+                    return loanStatus === 'ACTIVE' || loanStatus === 'OVERDUE';
+                })
+                .map(loan => {
+                    // Tính tổng nợ bao gồm lãi suất GIỐNG DASHBOARD CHÍNH XÁC
+                    const principal = loan.amount || 0;
+                    const interestRate = loan.interestRate || 0;
 
-                // Tính số tiền còn lại sau khi trừ tiền trả trước (giống frontend)
-                const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
-                const remainingAmount = Math.max(0, principal - totalPaid);
+                    // Tính số tiền còn lại sau khi trừ tiền trả trước (giống frontend)
+                    const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                    const remainingAmount = Math.max(0, principal - totalPaid);
 
-                // Tính số ngày giữa ngày vay và ngày đáo hạn (giống dashboard)
-                const startDate = new Date(loan.startDate);
-                const dueDate = new Date(loan.dueDate);
-                const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    // Tính số ngày giữa ngày vay và ngày đáo hạn (giống dashboard)
+                    const startDate = new Date(loan.startDate);
+                    const dueDate = new Date(loan.dueDate);
+                    const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                // Tính interestMultiplier dựa trên interestRateType (giống dashboard)
-                let interestMultiplier = 0;
-                switch (loan.interestRateType) {
-                    case 'DAY':
-                        interestMultiplier = diffDays;
-                        break;
-                    case 'WEEK':
-                        interestMultiplier = diffDays / 7;
-                        break;
-                    case 'MONTH':
-                        interestMultiplier = diffDays / 30;
-                        break;
-                    case 'QUARTER':
-                        interestMultiplier = diffDays / 90;
-                        break;
-                    case 'YEAR':
-                        interestMultiplier = diffDays / 365;
-                        break;
-                    default:
-                        interestMultiplier = 0;
-                }
+                    // Tính interestMultiplier dựa trên interestRateType (giống dashboard)
+                    let interestMultiplier = 0;
+                    switch (loan.interestRateType) {
+                        case 'DAY':
+                            interestMultiplier = diffDays;
+                            break;
+                        case 'WEEK':
+                            interestMultiplier = diffDays / 7;
+                            break;
+                        case 'MONTH':
+                            interestMultiplier = diffDays / 30;
+                            break;
+                        case 'QUARTER':
+                            interestMultiplier = diffDays / 90;
+                            break;
+                        case 'YEAR':
+                            interestMultiplier = diffDays / 365;
+                            break;
+                        default:
+                            interestMultiplier = 0;
+                    }
 
-                // Tính lãi trên số tiền còn lại (giống frontend)
-                const interestAmount = Math.round(remainingAmount * (interestRate / 100) * interestMultiplier);
-                const totalWithInterest = remainingAmount + interestAmount;
+                    // Tính lãi trên số tiền còn lại (giống frontend)
+                    const interestAmount = Math.round(remainingAmount * (interestRate / 100) * interestMultiplier);
+                    const totalWithInterest = remainingAmount + interestAmount;
 
-                totalLoanAmount += totalWithInterest;
+                    totalLoanAmount += totalWithInterest;
 
-                console.log(`  - Loan: ${loan.description || loan.purpose || 'Unknown'}, Principal: ${principal}, Paid: ${totalPaid}, Remaining: ${remainingAmount}, Interest: ${interestRate}% (${loan.interestRateType}), Days: ${diffDays}, Multiplier: ${interestMultiplier}, InterestAmount: ${interestAmount}, Total: ${totalWithInterest}`);
+                    console.log(`  - Loan: ${loan.description || loan.purpose || 'Unknown'}, Principal: ${principal}, Paid: ${totalPaid}, Remaining: ${remainingAmount}, Interest: ${interestRate}% (${loan.interestRateType}), Days: ${diffDays}, Multiplier: ${interestMultiplier}, InterestAmount: ${interestAmount}, Total: ${totalWithInterest}`);
 
-                return {
-                    id: loan._id,
-                    purpose: loan.description || loan.purpose || 'Khoản vay', // Sử dụng description từ model
-                    principal: principal,
-                    totalPaid: totalPaid,
-                    remainingAmount: remainingAmount,
-                    interestRate: interestRate,
-                    interestRateType: loan.interestRateType,
-                    diffDays: diffDays,
-                    interestAmount: interestAmount,
-                    totalAmount: totalWithInterest,
-                    monthlyPayment: totalWithInterest / Math.max(1, diffDays / 30) // Ước tính trả hàng tháng
-                };
-            });
+                    return {
+                        id: loan._id,
+                        purpose: loan.description || loan.purpose || 'Khoản vay', // Sử dụng description từ model
+                        principal: principal,
+                        totalPaid: totalPaid,
+                        remainingAmount: remainingAmount,
+                        interestRate: interestRate,
+                        interestRateType: loan.interestRateType,
+                        diffDays: diffDays,
+                        interestAmount: interestAmount,
+                        totalAmount: totalWithInterest,
+                        monthlyPayment: totalWithInterest / Math.max(1, diffDays / 30) // Ước tính trả hàng tháng
+                    };
+                });
 
-            console.log(`🏦 Total loan amount with interest: ${totalLoanAmount} (from ${allLoans.length} loans)`);
+            console.log(`🏦 Total loan amount with interest: ${totalLoanAmount} (from ${loanDetails.length} active/overdue loans out of ${allLoans.length} total loans)`);
 
             // Tạo financial data object với dữ liệu TỔNG QUAN như dashboard
             financialData = {

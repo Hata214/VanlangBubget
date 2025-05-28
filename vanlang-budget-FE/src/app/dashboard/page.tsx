@@ -67,7 +67,7 @@ export default function DashboardPage() {
     // Tạo thông báo khi số dư bị âm
     useEffect(() => {
         // Chỉ gửi thông báo khi:
-        // 1. Đã tải dữ liệu xong 
+        // 1. Đã tải dữ liệu xong
         // 2. Số dư thực sự âm
         // 3. Người dùng đã đăng nhập và có _id
         // 4. Chưa gửi thông báo trong phiên làm việc hiện tại
@@ -128,13 +128,19 @@ export default function DashboardPage() {
         }
     };
 
-    // Tính tổng tiền phải trả (gốc + lãi)
+    // Tính tổng tiền phải trả (gốc + lãi) - chỉ tính khoản vay chưa trả và quá hạn
     const totalLoanWithInterest = useMemo(() => {
         if (!Array.isArray(loans) || loans.length === 0) {
             return 0;
         }
 
         return loans.reduce((total, loan) => {
+            // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE (chưa trả và quá hạn)
+            const loanStatus = loan.status?.toUpperCase() || '';
+            if (loanStatus !== 'ACTIVE' && loanStatus !== 'OVERDUE') {
+                return total;
+            }
+
             // Tính số tiền lãi dựa trên thông tin khoản vay
             const startDate = new Date(loan.startDate);
             const dueDate = new Date(loan.dueDate);
@@ -228,9 +234,15 @@ export default function DashboardPage() {
             });
         }
 
-        // Thêm dữ liệu khoản vay
+        // Thêm dữ liệu khoản vay - chỉ tính khoản vay chưa trả và quá hạn
         if (Array.isArray(loans) && loans.length > 0) {
             loans.forEach(loan => {
+                // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE
+                const loanStatus = loan.status?.toUpperCase() || '';
+                if (loanStatus !== 'ACTIVE' && loanStatus !== 'OVERDUE') {
+                    return;
+                }
+
                 let translatedLender = loan.lender;
                 if (['bank', 'credit', 'individual', 'company', 'other'].includes(loan.lender)) {
                     translatedLender = t(`loan.lenderTypes.${loan.lender}`);
@@ -521,4 +533,4 @@ export default function DashboardPage() {
             </div>
         </MainLayout>
     )
-} 
+}

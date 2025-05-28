@@ -125,9 +125,9 @@ const loanSlice = createSlice({
                         } else {
                             state.totalLoan = response.data.reduce(
                                 (total: number, loan: Loan) => {
-                                    // Kiểm tra trạng thái và chuyển thành chữ thường để so sánh
+                                    // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE
                                     const status = loan.status?.toUpperCase() || '';
-                                    return status === 'ACTIVE' ? total + loan.amount : total;
+                                    return (status === 'ACTIVE' || status === 'OVERDUE') ? total + loan.amount : total;
                                 },
                                 0
                             );
@@ -140,9 +140,9 @@ const loanSlice = createSlice({
                         if (action.payload.length > 0) {
                             state.totalLoan = action.payload.reduce(
                                 (total: number, loan: Loan) => {
-                                    // Kiểm tra trạng thái và chuyển thành chữ hoa để so sánh
+                                    // Chỉ tính những khoản vay có trạng thái ACTIVE hoặc OVERDUE
                                     const status = loan.status?.toUpperCase() || '';
-                                    return status === 'ACTIVE' ? total + loan.amount : total;
+                                    return (status === 'ACTIVE' || status === 'OVERDUE') ? total + loan.amount : total;
                                 },
                                 0
                             );
@@ -194,7 +194,8 @@ const loanSlice = createSlice({
 
                 if (newLoan && newLoan.id) {
                     state.loans.push(newLoan);
-                    if (newLoan.status?.toUpperCase() === 'ACTIVE') {
+                    const status = newLoan.status?.toUpperCase() || '';
+                    if (status === 'ACTIVE' || status === 'OVERDUE') {
                         state.totalLoan += newLoan.amount;
                     }
                     console.log('Added new loan:', newLoan);
@@ -249,16 +250,19 @@ const loanSlice = createSlice({
                 }
 
                 // Cập nhật totalLoan dựa trên sự thay đổi số tiền và trạng thái
-                if (oldStatus === 'ACTIVE' && newStatus !== 'ACTIVE') {
-                    // Trường hợp chuyển từ ACTIVE sang trạng thái khác: trừ đi khoản tiền cũ
+                const oldIsCountable = oldStatus === 'ACTIVE' || oldStatus === 'OVERDUE';
+                const newIsCountable = newStatus === 'ACTIVE' || newStatus === 'OVERDUE';
+
+                if (oldIsCountable && !newIsCountable) {
+                    // Trường hợp chuyển từ ACTIVE/OVERDUE sang trạng thái khác: trừ đi khoản tiền cũ
                     state.totalLoan -= oldLoan.amount;
-                    console.log(`Giảm tổng tiền vay (${oldLoan.amount}) do chuyển từ ACTIVE sang ${newStatus}`);
-                } else if (oldStatus !== 'ACTIVE' && newStatus === 'ACTIVE') {
-                    // Trường hợp chuyển từ trạng thái khác sang ACTIVE: cộng thêm khoản tiền mới
+                    console.log(`Giảm tổng tiền vay (${oldLoan.amount}) do chuyển từ ${oldStatus} sang ${newStatus}`);
+                } else if (!oldIsCountable && newIsCountable) {
+                    // Trường hợp chuyển từ trạng thái khác sang ACTIVE/OVERDUE: cộng thêm khoản tiền mới
                     state.totalLoan += updatedLoan.amount;
-                    console.log(`Tăng tổng tiền vay (${updatedLoan.amount}) do chuyển từ ${oldStatus} sang ACTIVE`);
-                } else if (oldStatus === 'ACTIVE' && newStatus === 'ACTIVE' && oldLoan.amount !== updatedLoan.amount) {
-                    // Trường hợp vẫn ACTIVE nhưng có thay đổi số tiền
+                    console.log(`Tăng tổng tiền vay (${updatedLoan.amount}) do chuyển từ ${oldStatus} sang ${newStatus}`);
+                } else if (oldIsCountable && newIsCountable && oldLoan.amount !== updatedLoan.amount) {
+                    // Trường hợp vẫn ACTIVE/OVERDUE nhưng có thay đổi số tiền
                     state.totalLoan = state.totalLoan - oldLoan.amount + updatedLoan.amount;
                     console.log(`Cập nhật tổng tiền vay do thay đổi số tiền (${oldLoan.amount} -> ${updatedLoan.amount})`);
                 }
@@ -285,7 +289,8 @@ const loanSlice = createSlice({
                 const index = state.loans.findIndex((loan) => loan.id === action.payload)
                 if (index !== -1) {
                     const loan = state.loans[index]
-                    if (loan.status?.toUpperCase() === 'ACTIVE') {
+                    const status = loan.status?.toUpperCase() || '';
+                    if (status === 'ACTIVE' || status === 'OVERDUE') {
                         state.totalLoan -= loan.amount
                     }
                     state.loans.splice(index, 1)
@@ -307,4 +312,4 @@ const loanSlice = createSlice({
 })
 
 export const { setLoans, setTotalLoan } = loanSlice.actions
-export default loanSlice.reducer 
+export default loanSlice.reducer
