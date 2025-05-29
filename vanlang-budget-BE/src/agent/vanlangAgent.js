@@ -6,6 +6,7 @@ import Budget from '../models/budgetModel.js';
 import Loan from '../models/loanModel.js';
 import Investment from '../models/investmentModel.js';
 import logger from '../utils/logger.js';
+import NLPService from '../services/nlpService.js'; // Import NLPService mới
 
 class VanLangAgent {
     constructor(geminiApiKey) {
@@ -14,6 +15,7 @@ class VanLangAgent {
         this.baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.modelName}:generateContent`;
         // Lưu trữ context cuộc hội thoại để xử lý các yêu cầu chi tiết
         this.conversationContext = new Map();
+        this.nlpService = new NLPService(); // Khởi tạo NLPService
     }
 
     /**
@@ -53,6 +55,27 @@ class VanLangAgent {
      * Phân tích ý định của người dùng với hệ thống nhận diện nâng cao
      */
     async analyzeIntent(message) {
+        // AGENT INTERACTION: Bắt đầu quá trình phân tích ý định người dùng từ tin nhắn.
+        // Sử dụng NLPService để phân tích intent cơ bản
+        const nlpAnalysis = this.nlpService.analyzeIntent(message);
+        logger.info('NLPService analysis result', { nlpAnalysis, message });
+
+        if (nlpAnalysis.intent && nlpAnalysis.intent !== 'unknown' && nlpAnalysis.confidence > 0.6) { // Ngưỡng tin cậy
+            // Ưu tiên kết quả từ NLPService nếu đủ tin cậy
+            if (nlpAnalysis.intent === 'financial_high_confidence' || nlpAnalysis.intent === 'financial_medium_confidence') {
+                // Cần phân loại chi tiết hơn cho các intent tài chính
+                // Hiện tại, chúng ta sẽ để logic cũ xử lý việc này sau khi NLPService đưa ra gợi ý chung
+                // Hoặc có thể gọi Gemini để phân loại cụ thể hơn dựa trên nlpAnalysis.matchedCategories
+            } else if (nlpAnalysis.intent === 'blocked_topic') {
+                return 'blocked_topic'; // Trả về intent bị chặn trực tiếp
+            } else if (nlpAnalysis.intent === 'greeting') {
+                return 'greeting.hello'; // Ánh xạ intent chào hỏi
+            } else if (nlpAnalysis.intent === 'about_bot') {
+                return 'bot.introduction'; // Ánh xạ intent giới thiệu bot
+            }
+            // Các intent khác từ NLPService có thể được ánh xạ tương tự ở đây
+        }
+
         // Kiểm tra các intent cơ bản trước (dựa trên training data)
         const normalizedMessage = message.toLowerCase().trim();
 
@@ -122,6 +145,7 @@ Chỉ trả về: "CALCULATION" hoặc "NOT_CALCULATION"`;
         // Kiểm tra các câu lệnh POST sau (ưu tiên thấp hơn)
         const hasAmount = /\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)/i.test(message);
 
+        // AGENT INTERACTION: Kiểm tra xem tin nhắn có chứa thông tin về số tiền hay không.
         if (hasAmount) {
             logger.info('POST intent analysis - has amount detected', {
                 message: normalizedMessage,
@@ -188,6 +212,7 @@ Chỉ trả về: "CALCULATION" hoặc "NOT_CALCULATION"`;
                     normalizedMessage.includes('lương tôi') || normalizedMessage.includes('tiền lương') ||
                     normalizedMessage.includes('thưởng') || normalizedMessage.includes('bonus') ||
                     normalizedMessage.includes('được thưởng') || normalizedMessage.includes('nhận thưởng')) {
+                    // AGENT INTERACTION: Phát hiện ý định "thêm thu nhập" dựa trên từ khóa và số tiền.
                     return 'insert_income';
                 }
 
@@ -294,6 +319,7 @@ Các mục đích có thể:
 
 Chỉ trả lời một từ duy nhất.`;
 
+        // AGENT INTERACTION: Nếu phân tích dựa trên từ khóa không xác định rõ, sử dụng Gemini AI để phân tích intent.
         try {
             const intent = await this.callGeminiAI(intentPrompt, { temperature: 0.3 });
             return intent.trim().toLowerCase();
@@ -733,8 +759,38 @@ Chỉ trả về JSON, không có text khác.`;
         try {
             logger.info('Processing user message', { userId, message, sessionId });
 
-            // Ưu tiên sử dụng analyzeIntent cho POST operations
-            let intent = await this.analyzeIntent(message);
+            // AGENT INTERACTION: Bắt đầu xử lý tin nhắn từ người dùng.
+            // Sử dụng NLPService để có được phân tích ban đầu
+            const nlpAnalysis = this.nlpService.analyzeIntent(message);
+            logger.info('NLPService analysis for handleUserMessage', { nlpAnalysis, message });
+
+            let intent = nlpAnalysis.intent; // Lấy intent từ NLPService
+            let confidence = nlpAnalysis.confidence;
+
+            // Ánh xạ các intent từ NLPService sang các intent cụ thể của VanLangAgent
+            // Ví dụ, nếu NLPService trả về 'financial_high_confidence', chúng ta cần logic tiếp theo để xác định đó là 'insert_income', 'expense_query', v.v.
+            // Phần này cần được xây dựng dựa trên các 'matchedCategories' từ nlpAnalysis hoặc logic bổ sung.
+
+            if (intent === 'blocked_topic') {
+                return this.getFunnyResponse(); // Hoặc một phản hồi phù hợp cho nội dung bị chặn
+            }
+            if (intent === 'greeting') {
+                intent = 'greeting.hello';
+            }
+            if (intent === 'about_bot') {
+                intent = 'bot.introduction';
+            }
+
+            // Nếu NLPService không xác định được intent đủ rõ ràng (ví dụ: financial_low_confidence hoặc unknown)
+            // hoặc là một intent tài chính chung chung, thì sử dụng logic phân tích intent hiện tại của VanLangAgent
+            if (intent === 'unknown' || intent === 'financial_low_confidence' || intent === 'financial_medium_confidence' || intent === 'financial_high_confidence' || !intent) {
+                logger.info('NLPService intent is general or low confidence, falling back to VanLangAgent internal intent analysis', { currentIntentFromNLP: intent, confidence });
+                intent = await this.analyzeIntent(message); // AGENT INTERACTION: Gọi lại hàm analyzeIntent nội bộ nếu NLPService không đủ chắc chắn hoặc là intent tài chính chung.
+                logger.info('VanLangAgent internal analyzeIntent result', {
+                    intentFromInternal: intent,
+                    message
+                });
+            }
 
             logger.info('analyzeIntent result', {
                 intent,
@@ -800,6 +856,7 @@ Chỉ trả về JSON, không có text khác.`;
                 case 'insert_savings':
                     return await this.handleInsertTransaction(userId, message, sessionId, 'savings');
 
+                // AGENT INTERACTION: Nếu intent là 'insert_income', điều hướng đến hàm xử lý thêm giao dịch thu nhập.
                 case 'insert_income':
                     return await this.handleInsertTransaction(userId, message, sessionId, 'income');
 
@@ -898,6 +955,7 @@ Chỉ trả về JSON, không có text khác.`;
      * Xử lý thêm giao dịch
      */
     async handleInsertTransaction(userId, message, sessionId, forceType = null) {
+        // AGENT INTERACTION: Bắt đầu xử lý logic thêm giao dịch (bao gồm cả thu nhập).
         try {
             const transactionData = await this.extractTransactionData(message, forceType);
 
@@ -982,6 +1040,8 @@ ${transactionData.note ? `• Ghi chú: ${transactionData.note}` : ''}
             await transaction.save();
 
             // Đồng bộ với models hiện tại
+            // AGENT INTERACTION: Sau khi lưu transaction, đồng bộ với các model cụ thể (Income, Expense, Loan).
+            // Nếu transactionData.type là 'income', hàm syncWithExistingModels sẽ tạo/cập nhật bản ghi trong Income model.
             await transaction.syncWithExistingModels();
 
             logger.info('Transaction created by agent', { userId, transactionId: transaction._id, type: transactionData.type });

@@ -190,6 +190,7 @@ export const getIncome = async (req, res, next) => {
  * @access  Private
  */
 export const createIncome = async (req, res, next) => {
+    // AGENT INTERACTION: Đây là điểm bắt đầu của hàm xử lý yêu cầu thêm thu nhập mới từ agent.
     try {
         const { amount, description, category, date, attachments } = req.body;
 
@@ -215,6 +216,7 @@ export const createIncome = async (req, res, next) => {
             attachments,
         });
 
+        // AGENT INTERACTION: Sau khi tạo thu nhập, agent có thể xử lý newIncome tại đây.
         // Tạo thông báo bằng phương thức từ notificationModel
         const notification = await Notification.createIncomeNotification(newIncome);
 

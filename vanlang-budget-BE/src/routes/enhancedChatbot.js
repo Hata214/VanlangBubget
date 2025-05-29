@@ -4,11 +4,11 @@ import rateLimit from 'express-rate-limit';
 // Import services
 import authenticateToken from '../middlewares/authenticateToken.js';
 
-// Temporarily comment out problematic imports for debugging
-// import NLPService from '../services/nlpService.js';
-// import getCacheService from '../services/cacheService.js';
-// import FinancialCalculationService from '../services/financialCalculationService.js';
-// import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+// Import services
+import NLPService from '../services/nlpService.js';
+import getCacheService from '../services/cacheService.js';
+import FinancialCalculationService from '../services/financialCalculationService.js';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 // Import models for real data
 import Income from '../models/incomeModel.js';
@@ -109,19 +109,19 @@ QUY TẮC QUAN TRỌNG:
 
 // === END LEGACY CHATBOT FUNCTIONS ===
 
-// Temporarily disable service initialization for debugging
-// const nlpService = new NLPService();
-// const cacheService = getCacheService();
-// const calculationService = new FinancialCalculationService();
+// Initialize services
+const nlpService = new NLPService();
+const cacheService = getCacheService();
+const calculationService = new FinancialCalculationService();
 
-// Temporarily disable Gemini for debugging
-// if (!process.env.GEMINI_API_KEY) {
-//     console.error('❌ GEMINI_API_KEY không được cấu hình trong .env file');
-//     throw new Error('Gemini API key is required for enhanced chatbot functionality');
-// }
+// Initialize Gemini AI
+if (!process.env.GEMINI_API_KEY) {
+    console.error('❌ GEMINI_API_KEY không được cấu hình trong .env file');
+    throw new Error('Gemini API key is required for enhanced chatbot functionality');
+}
 
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-console.log('✅ Enhanced chatbot routes loaded (debugging mode)');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+console.log('✅ Enhanced chatbot routes loaded successfully');
 
 // Rate limiting: 30 requests per minute per user
 const chatbotRateLimit = rateLimit({
@@ -1391,6 +1391,17 @@ function generateFarewellResponse(language = 'vi') {
 }
 
 /**
+ * Tạo response cho lời tạm biệt
+ */
+function generateFarewellResponse(language = 'vi') {
+    if (language === 'vi') {
+        return `👋 **Tạm biệt và cảm ơn bạn!**\n\n🤖 Rất vui được hỗ trợ bạn về tài chính hôm nay!\n\n💡 **Nhớ rằng:**\n• Quản lý tài chính là một hành trình dài hạn\n• Hãy theo dõi thu chi thường xuyên\n• Đầu tư và tiết kiệm một cách thông minh\n• Luôn có kế hoạch tài chính rõ ràng\n\n🚀 **Hẹn gặp lại bạn sớm!** Tôi luôn sẵn sàng hỗ trợ bạn 24/7.\n\nChúc bạn thành công trên con đường tài chính! 💰✨`;
+    } else {
+        return `👋 **Goodbye and thank you!**\n\n🤖 It was great helping you with your finances today!\n\n💡 **Remember:**\n• Financial management is a long-term journey\n• Track your income and expenses regularly\n• Invest and save wisely\n• Always have a clear financial plan\n\n🚀 **See you soon!** I'm always here to help you 24/7.\n\nWishing you success on your financial journey! 💰✨`;
+    }
+}
+
+/**
  * Tạo response chi tiết cho khoản vay
  */
 function generateLoanDetailResponse(financialData, language = 'vi') {
@@ -1801,7 +1812,7 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
         }
 
         const result = await chat.sendMessage(fullPrompt);
-        const response = await result.response;
+        const response = result.response;
         let responseText = response.text();
 
         // 7. Enhanced response formatting

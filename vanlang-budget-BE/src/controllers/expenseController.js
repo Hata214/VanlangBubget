@@ -190,6 +190,7 @@ export const getExpense = async (req, res, next) => {
  * @access  Private
  */
 export const createExpense = async (req, res, next) => {
+    // AGENT INTERACTION: Đây là điểm bắt đầu của hàm xử lý yêu cầu thêm chi tiêu mới từ agent.
     try {
         let { amount, description, category, date, location, attachments } = req.body;
 
@@ -206,7 +207,7 @@ export const createExpense = async (req, res, next) => {
             };
         }
 
-        // Tạo chi tiêu mới
+        // Tạo chi tiêu mới 
         const newExpense = await Expense.create({
             userId: req.user._id,
             amount,
@@ -218,6 +219,7 @@ export const createExpense = async (req, res, next) => {
         });
 
         console.log('createExpense - Created new expense:', newExpense);
+        // AGENT INTERACTION: Sau khi tạo chi tiêu, agent có thể xử lý newExpense tại đây.
 
         // Tạo thông báo bằng phương thức từ notificationModel
         const notification = await Notification.createExpenseNotification(newExpense);
@@ -249,12 +251,14 @@ export const createExpense = async (req, res, next) => {
             });
         }
 
+        // AGENT INTERACTION: Agent có thể tùy chỉnh phản hồi trước khi gửi về client.
         res.status(201).json({
             status: 'success',
             data: newExpense,
         });
     } catch (error) {
         console.error('Error creating expense:', error);
+        // AGENT INTERACTION: Agent có thể xử lý lỗi tại đây trước khi chuyển cho middleware xử lý lỗi.
         next(error);
     }
 };
