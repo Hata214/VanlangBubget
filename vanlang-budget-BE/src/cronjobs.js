@@ -12,7 +12,7 @@ import { emit } from './socket.js';
 
 // Import service cho cập nhật giá crypto
 // import cryptoService from './services/cryptoService.js'; // <<< Commented out
-import { computeLoanStatuses } from './services/loanService.js';
+import { computeLoanStatuses, realTimeStatusCheck } from './services/loanService.js';
 import { createDailyLoginTracking } from './services/userActivityService.js';
 import { notifyDueBudgets } from './services/budgetService.js';
 // import { fetchCryptoPrices, saveCryptoPrices, updateCryptoInvestments } from './services/cryptoService.js'; // <<< Commented out
@@ -37,6 +37,23 @@ export const initCronJobs = () => {
 
         // Gọi hàm để khởi động các schedulers từ schedulerService.js
         startSchedulers();
+
+        // Kiểm tra trạng thái khoản vay real-time mỗi 5 phút
+        cron.schedule('*/5 * * * *', async () => {
+            try {
+                logger.info('Running real-time loan status check...');
+                const result = await realTimeStatusCheck();
+                if (result.updated > 0) {
+                    logger.info(`Real-time check completed: ${result.updated} loans updated`);
+                }
+            } catch (error) {
+                logger.error('Error in real-time loan status check:', error);
+            }
+        }, {
+            scheduled: true,
+            timezone: 'Asia/Ho_Chi_Minh'
+        });
+        logger.info('Scheduled job: Real-time loan status check every 5 minutes');
 
         // Kiểm tra khoản vay quá hạn hàng ngày lúc 8:00 sáng
         cron.schedule('0 8 * * *', checkOverdueLoans, {

@@ -283,4 +283,32 @@ export const loanService = {
             throw error;
         }
     },
-} 
+
+    /**
+     * Kiểm tra và cập nhật trạng thái khoản vay real-time
+     */
+    async checkStatus(): Promise<{
+        total: number;
+        updated: number;
+        statusChanges: Array<{
+            loanId: string;
+            oldStatus: string;
+            newStatus: string;
+            description: string;
+            amount: number;
+            dueDate: string;
+        }>;
+    }> {
+        console.log('loanService: Checking loan status real-time');
+        try {
+            const response = await api.post('/api/loans/check-status');
+
+            console.log('loanService: Status check completed:', response.data);
+            return response.data.data;
+        } catch (error: any) {
+            console.error('loanService: Error checking loan status:', error.message);
+            console.error('loanService: Error details:', error.response?.data);
+            throw error;
+        }
+    },
+}

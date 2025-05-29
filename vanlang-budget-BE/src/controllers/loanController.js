@@ -5,6 +5,7 @@ import User from '../models/userModel.js';
 import Notification from '../models/Notification.js';
 import { AppError } from '../middlewares/errorMiddleware.js';
 import socketManager from '../utils/socketManager.js';
+import { checkAndUpdateUserLoanStatuses } from '../services/loanService.js';
 
 /**
  * @desc    Lấy tất cả khoản vay của người dùng
@@ -619,4 +620,31 @@ export const deleteLoanPayment = async (req, res, next) => {
         console.error('deleteLoanPayment error:', error);
         next(error);
     }
-}; 
+};
+
+/**
+ * @desc    Kiểm tra và cập nhật trạng thái khoản vay real-time cho user hiện tại
+ * @route   POST /api/loans/check-status
+ * @access  Private
+ */
+export const checkLoanStatus = async (req, res, next) => {
+    try {
+        const userId = req.user._id.toString();
+
+        // Kiểm tra và cập nhật trạng thái khoản vay của user
+        const result = await checkAndUpdateUserLoanStatuses(userId);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Đã kiểm tra trạng thái khoản vay',
+            data: {
+                total: result.total,
+                updated: result.updated,
+                statusChanges: result.statusChanges
+            }
+        });
+    } catch (error) {
+        console.error('checkLoanStatus error:', error);
+        next(error);
+    }
+};

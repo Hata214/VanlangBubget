@@ -15,7 +15,16 @@ class AgentController {
         const startTime = Date.now();
 
         try {
-            const { message, language = 'vi' } = req.body;
+            // Debug raw request body
+            logger.info('🔍 Raw request body debug', {
+                body: req.body,
+                headers: req.headers['content-type'],
+                method: req.method,
+                bodyKeys: Object.keys(req.body || {}),
+                bodyStringified: JSON.stringify(req.body)
+            });
+
+            const { message, language = 'vi', aiMode } = req.body;
             const userId = req.user?.id || req.user?._id;
 
             // Validation
@@ -35,14 +44,24 @@ class AgentController {
                 );
             }
 
+            // Validate aiMode flag - handle undefined, null, false, true
+            const isAIMode = Boolean(aiMode);
+
             logger.info('Agent request received', {
                 userId,
+                message: message.substring(0, 100) + (message.length > 100 ? '...' : ''),
                 messageLength: message.length,
-                language
+                language,
+                aiMode: isAIMode,
+                aiModeType: typeof aiMode,
+                aiModeOriginal: aiMode
             });
 
-            // Process message with agent service
-            const result = await this.agentService.processMessage(userId, message, { language });
+            // Process message with agent service including AI mode option
+            const result = await this.agentService.processMessage(userId, message, {
+                language,
+                aiMode: isAIMode
+            });
 
             if (!result.success) {
                 return errorResponse(res, result.error, 400);
@@ -54,6 +73,7 @@ class AgentController {
                 metadata: {
                     ...result.metadata,
                     language,
+                    aiMode: isAIMode,
                     timestamp: new Date().toISOString()
                 }
             }, 'Agent response generated successfully');
@@ -190,6 +210,32 @@ class AgentController {
         } catch (error) {
             logger.error('Get stats error:', error);
             return errorResponse(res, 'Failed to get statistics', 500);
+        }
+    }
+
+    /**
+     * Clear cache for debugging
+     * @route DELETE /api/agent/cache
+     */
+    async clearCache(req, res) {
+        try {
+            const userId = req.user?.id || req.user?._id;
+
+            if (!userId) {
+                return errorResponse(res, 'Authentication required', 401);
+            }
+
+            // Clear cache if available
+            if (this.agentService.cacheService) {
+                // This would need to be implemented in cache service
+                logger.info('Cache clear requested', { userId });
+                return successResponse(res, { message: 'Cache cleared (if implemented)' });
+            } else {
+                return successResponse(res, { message: 'No cache service available' });
+            }
+        } catch (error) {
+            logger.error('Clear cache error:', error);
+            return errorResponse(res, 'Failed to clear cache', 500);
         }
     }
 

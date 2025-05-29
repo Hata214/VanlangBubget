@@ -108,9 +108,10 @@ class AgentService {
     /**
      * Generate cache key for message
      */
-    generateCacheKey(userId, message) {
+    generateCacheKey(userId, message, aiMode = false) {
         const normalizedMessage = message.toLowerCase().trim();
-        return `agent_${userId}_${Buffer.from(normalizedMessage).toString('base64')}`;
+        const modePrefix = aiMode ? 'ai_' : 'normal_';
+        return `agent_${modePrefix}${userId}_${Buffer.from(normalizedMessage).toString('base64')}`;
     }
 
     /**
@@ -133,12 +134,29 @@ class AgentService {
             // Get user session
             const session = this.getUserSession(userId);
 
-            // Check cache first
-            const cacheKey = this.generateCacheKey(userId, message);
-            let cachedResponse = await this.getCachedResponse(cacheKey);
+            // TEMPORARILY DISABLE CACHE FOR AI MODE TESTING
+            // Check cache first (include aiMode in cache key)
+            const cacheKey = this.generateCacheKey(userId, message, options.aiMode);
+            let cachedResponse = null; // Temporarily disable cache
+            // let cachedResponse = await this.getCachedResponse(cacheKey);
+
+            // Debug cache behavior
+            logger.info('Cache check details (CACHE DISABLED FOR TESTING)', {
+                userId,
+                message: message.substring(0, 50) + '...',
+                aiMode: options.aiMode,
+                cacheKey: cacheKey.substring(0, 50) + '...',
+                hasCachedResponse: !!cachedResponse,
+                cacheDisabled: true
+            });
 
             if (cachedResponse) {
-                logger.info('Agent response from cache', { userId, sessionId: session.sessionId });
+                logger.info('Agent response from cache', {
+                    userId,
+                    sessionId: session.sessionId,
+                    aiMode: options.aiMode,
+                    cacheKey: cacheKey.substring(0, 50) + '...'
+                });
                 return {
                     success: true,
                     response: cachedResponse,
@@ -146,25 +164,32 @@ class AgentService {
                         cached: true,
                         sessionId: session.sessionId,
                         messageCount: session.messageCount,
-                        responseTime: Date.now() - startTime
+                        responseTime: Date.now() - startTime,
+                        aiMode: options.aiMode
                     }
                 };
             }
 
-            // Process with agent
+            // Process with agent including AI mode option
             const response = await this.agent.handleUserMessage(
                 userId,
                 message,
-                session.sessionId
+                session.sessionId,
+                {
+                    aiMode: options.aiMode || false
+                }
             );
 
-            // Cache the response
-            await this.setCachedResponse(cacheKey, response);
+            // Cache the response (TEMPORARILY DISABLED FOR TESTING)
+            // await this.setCachedResponse(cacheKey, response);
 
             logger.info('Agent response generated', {
                 userId,
                 sessionId: session.sessionId,
-                responseTime: Date.now() - startTime
+                responseTime: Date.now() - startTime,
+                aiMode: options.aiMode,
+                responseLength: response.length,
+                responsePreview: response.substring(0, 100) + '...'
             });
 
             return {

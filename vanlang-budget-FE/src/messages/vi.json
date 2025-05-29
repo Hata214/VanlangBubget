@@ -708,7 +708,17 @@
         "paymentUpdateSuccess": "Cập nhật khoản trả thành công",
         "paymentUpdateError": "Cập nhật khoản trả thất bại",
         "paymentDeleteSuccess": "Xóa khoản trả thành công",
-        "paymentDeleteError": "Xóa khoản trả thất bại"
+        "paymentDeleteError": "Xóa khoản trả thất bại",
+        "statusCheck": {
+            "title": "Kiểm tra trạng thái",
+            "checking": "Đang kiểm tra...",
+            "checkStatus": "Kiểm tra trạng thái",
+            "lastCheck": "Lần cuối",
+            "statusUpdated": "Đã cập nhật trạng thái {count} khoản vay",
+            "noUpdatesNeeded": "Tất cả khoản vay đều có trạng thái chính xác. Không cần cập nhật.",
+            "checkError": "Lỗi khi kiểm tra trạng thái",
+            "checkSuccess": "Kiểm tra trạng thái thành công"
+        }
     },
     "budget": {
         "manage": "Ngân sách",

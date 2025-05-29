@@ -307,7 +307,7 @@ export function NotificationHandler() {
 
         // Đăng ký nhận các sự kiện
         socketService.on('notification', handleNotification)
-        socketService.on('loan_status_changed', handleLoanStatusChanged)
+        socketService.on(SocketEvent.LOAN_STATUS_CHANGED, handleLoanStatusChanged)
         socketService.on(SocketEvent.NOTIFICATION_CREATE, handleNotification)
         socketService.on(SocketEvent.BUDGET_UPDATE, (data) => {
             console.log('Budget updated:', data)
@@ -341,7 +341,7 @@ export function NotificationHandler() {
             socketService.off(SocketEvent.CONNECT, handleConnectSuccess)
             socketService.off(SocketEvent.CONNECTION_ERROR, handleConnectError)
             socketService.off('notification', handleNotification)
-            socketService.off('loan_status_changed', handleLoanStatusChanged)
+            socketService.off(SocketEvent.LOAN_STATUS_CHANGED, handleLoanStatusChanged)
             socketService.off(SocketEvent.NOTIFICATION_CREATE, handleNotification)
             socketService.off(SocketEvent.BUDGET_UPDATE)
             socketService.off(SocketEvent.EXPENSE_CREATE, handleExpenseCreate)

@@ -6,7 +6,8 @@ import {
     updateLoan,
     deleteLoan,
     getLoanPayments,
-    addLoanPayment
+    addLoanPayment,
+    checkLoanStatus
 } from '../controllers/loanController.js';
 import { protect } from '../middlewares/authMiddleware.js';
 import { validateBody, validateParams, validateQuery } from '../middlewares/validationMiddleware.js';
@@ -280,4 +281,41 @@ router.get('/:id/payments', validateParams(idParamSchema), getLoanPayments);
  */
 router.post('/:id/payments', validateParams(idParamSchema), validateBody(loanPaymentSchema), addLoanPayment);
 
-export default router; 
+/**
+ * @swagger
+ * /api/loans/check-status:
+ *   post:
+ *     summary: Kiểm tra và cập nhật trạng thái khoản vay real-time
+ *     tags: [Loans]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Kết quả kiểm tra trạng thái
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Đã kiểm tra trạng thái khoản vay
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     total:
+ *                       type: number
+ *                       description: Tổng số khoản vay được kiểm tra
+ *                     updated:
+ *                       type: number
+ *                       description: Số khoản vay được cập nhật trạng thái
+ *                     statusChanges:
+ *                       type: array
+ *                       description: Danh sách các thay đổi trạng thái
+ */
+router.post('/check-status', checkLoanStatus);
+
+export default router;

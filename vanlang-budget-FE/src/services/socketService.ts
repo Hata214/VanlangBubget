@@ -24,6 +24,7 @@ export enum SocketEvent {
     LOAN_CREATE = 'loan:create',
     LOAN_UPDATE = 'loan:update',
     LOAN_DELETE = 'loan:delete',
+    LOAN_STATUS_CHANGED = 'loan_status_changed',
 
     // Loan payment events
     LOAN_PAYMENT_CREATE = 'loan:payment:create',

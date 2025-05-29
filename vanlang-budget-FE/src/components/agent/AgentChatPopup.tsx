@@ -44,6 +44,14 @@ const AgentChatPopup: React.FC = () => {
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionInfo, setSessionInfo] = useState<any>(null);
+  const [isAIMode, setIsAIMode] = useState(() => {
+    // 🤖 AI Mode toggle state with session persistence
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('vanlang-agent-ai-mode');
+      return saved ? JSON.parse(saved) : false;
+    }
+    return false;
+  });
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -72,13 +80,58 @@ const AgentChatPopup: React.FC = () => {
     if (isOpen && messages.length === 0) {
       const welcomeMessage: Message = {
         id: 'welcome',
-        text: '🚀 Chào bạn! Tôi là VanLang Agent v2 - trợ lý tài chính AI thế hệ mới!\n\n✨ Tính năng nâng cao:\n💰 Thêm giao dịch bằng ngôn ngữ tự nhiên\n📊 Phân tích tài chính thông minh\n🔍 Truy vấn dữ liệu chi tiết\n💡 Tư vấn tài chính cá nhân hóa\n🎯 Lập kế hoạch đầu tư\n\n💰 **Thêm Thu nhập:**\n• "Tôi nhận lương 15 triệu"\n• "Được thưởng 2 triệu"\n• "Kiếm được 500k freelance"\n• "Thu về 3 triệu bán hàng"\n\n💸 **Thêm Chi tiêu:**\n• "Mua cà phê 50k"\n• "Chi tiêu ăn uống 200k"\n• "Trả tiền điện 300k"\n• "Mua quần áo 800k"\n\n📊 **Xem dữ liệu:**\n• "Thu nhập tháng này"\n• "Chi tiêu của tôi"\n• "Số dư hiện tại"\n• "Phân tích tài chính"',
+        text: '🚀 Chào bạn! Tôi là VanLang Agent v2 - trợ lý tài chính AI thế hệ mới!\n\n✨ **Tính năng nâng cao:**\n💰 Thêm giao dịch bằng ngôn ngữ tự nhiên\n📊 Phân tích tài chính thông minh\n🔍 Truy vấn dữ liệu chi tiết\n💡 Tư vấn tài chính cá nhân hóa\n🎯 Lập kế hoạch đầu tư\n\n🤖 **AI Mode:** Bật toggle "AI Mode" để hỏi bất kỳ câu hỏi nào!\n• Thời tiết, nấu ăn, công nghệ, sức khỏe...\n• AI sẽ tư vấn dựa trên tình hình tài chính của bạn\n\n💰 **Thêm Thu nhập:**\n• "Tôi nhận lương 15 triệu"\n• "Được thưởng 2 triệu"\n• "Kiếm được 500k freelance"\n• "Thu về 3 triệu bán hàng"\n\n💸 **Thêm Chi tiêu:**\n• "Mua cà phê 50k"\n• "Chi tiêu ăn uống 200k"\n• "Trả tiền điện 300k"\n• "Mua quần áo 800k"\n\n📊 **Xem dữ liệu:**\n• "Thu nhập tháng này"\n• "Chi tiêu của tôi"\n• "Số dư hiện tại"\n• "Phân tích tài chính"',
         sender: 'agent',
         timestamp: new Date()
       };
       setMessages([welcomeMessage]);
     }
   }, [isOpen, messages.length]);
+
+  // 🤖 Save AI mode state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('vanlang-agent-ai-mode', JSON.stringify(isAIMode));
+    }
+  }, [isAIMode]);
+
+  // 🤖 Toggle AI Mode with user feedback
+  const toggleAIMode = () => {
+    const newMode = !isAIMode;
+    console.log('🔄 AI Mode Toggle:', {
+      currentMode: isAIMode,
+      newMode: newMode,
+      localStorage: localStorage.getItem('vanlang-agent-ai-mode')
+    });
+
+    setIsAIMode(newMode);
+
+    console.log('✅ AI Mode Updated:', {
+      stateAfterSet: newMode,
+      localStorageAfterSet: localStorage.getItem('vanlang-agent-ai-mode')
+    });
+
+    // Show toast notification
+    toast({
+      title: newMode ? '🤖 AI Mode Bật' : '🔧 Normal Mode Bật',
+      description: newMode
+        ? 'Bây giờ bạn có thể hỏi bất kỳ câu hỏi nào!'
+        : 'Trở về chế độ VanLang Agent thông thường',
+      variant: 'default'
+    });
+
+    // Add system message to chat
+    const systemMessage: Message = {
+      id: `mode-${Date.now()}`,
+      text: newMode
+        ? '🤖 **AI Mode đã được bật!** Bây giờ bạn có thể hỏi tôi bất kỳ câu hỏi nào - từ thời tiết, nấu ăn, công nghệ đến tư vấn tài chính cá nhân hóa!'
+        : '🔧 **Đã chuyển về Normal Mode.** Tôi sẽ tập trung vào các tính năng VanLang Agent thông thường: quản lý tài chính, thêm giao dịch, phân tích dữ liệu.',
+      sender: 'agent',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, systemMessage]);
+  };
 
   const sendMessage = async () => {
     console.log('🚀 sendMessage called');
@@ -118,6 +171,26 @@ const AgentChatPopup: React.FC = () => {
     try {
       console.log('🤖 Sending message to agent:', userMessage.text);
       console.log('🔑 Using token:', token);
+      console.log('🤖 AI Mode State:', isAIMode);
+      console.log('🤖 AI Mode Type:', typeof isAIMode);
+      console.log('🤖 localStorage AI Mode:', localStorage.getItem('vanlang-agent-ai-mode'));
+
+      const requestBody = {
+        message: userMessage.text,
+        language: 'vi',
+        aiMode: isAIMode // 🤖 Include AI mode flag
+      };
+
+      console.log('📤 Request body:', requestBody);
+      console.log('🔍 Request body detailed debug:', {
+        message: userMessage.text,
+        language: 'vi',
+        aiMode: isAIMode,
+        aiModeType: typeof isAIMode,
+        aiModeValue: isAIMode,
+        requestBodyStringified: JSON.stringify(requestBody),
+        requestBodyKeys: Object.keys(requestBody)
+      });
 
       const response = await fetch('/api/agent/ask', {
         method: 'POST',
@@ -125,10 +198,7 @@ const AgentChatPopup: React.FC = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({
-          message: userMessage.text,
-          language: 'vi'
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log('📡 Agent response status:', response.status);
@@ -241,6 +311,27 @@ const AgentChatPopup: React.FC = () => {
                   <CardTitle className="text-sm font-medium">VanLang Agent</CardTitle>
                   <div className="text-xs opacity-90">AI Trợ lý tài chính v2</div>
                 </div>
+
+                {/* 🤖 AI Mode Toggle */}
+                <div className="flex items-center space-x-2 ml-2">
+                  <div className="text-xs opacity-90">🤖 AI Mode</div>
+                  <button
+                    onClick={toggleAIMode}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 ${isAIMode ? 'bg-white' : 'bg-white/30'
+                      }`}
+                    role="switch"
+                    aria-checked={isAIMode}
+                    aria-label="Toggle AI Mode"
+                  >
+                    <span
+                      className={`inline-block h-3 w-3 transform rounded-full transition-transform ${isAIMode
+                        ? 'translate-x-5 bg-emerald-500'
+                        : 'translate-x-1 bg-gray-400'
+                        }`}
+                    />
+                  </button>
+                </div>
+
                 {sessionInfo && (
                   <Badge variant="secondary" className="text-xs bg-white/20 text-white">
                     {sessionInfo.messageCount} tin nhắn
@@ -324,15 +415,26 @@ const AgentChatPopup: React.FC = () => {
 
                 {/* Input */}
                 <div className="p-4 border-t">
+                  {/* AI Mode Indicator */}
+                  {isAIMode && (
+                    <div className="mb-2 flex items-center space-x-2 text-xs text-emerald-600 dark:text-emerald-400">
+                      <Bot className="h-3 w-3" />
+                      <span className="font-medium">🤖 AI Mode: Có thể hỏi bất kỳ câu hỏi nào!</span>
+                    </div>
+                  )}
+
                   <div className="flex space-x-2">
                     <Input
                       ref={inputRef}
                       value={inputMessage}
                       onChange={(e) => setInputMessage(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      placeholder="Nhập tin nhắn cho VanLang Agent v2..."
+                      placeholder={isAIMode
+                        ? "🤖 AI Mode: Hỏi bất kỳ điều gì..."
+                        : "Nhập tin nhắn cho VanLang Agent v2..."
+                      }
                       disabled={isLoading}
-                      className="flex-1"
+                      className={`flex-1 ${isAIMode ? 'border-emerald-300 focus:border-emerald-500' : ''}`}
                     />
                     <Button
                       onClick={sendMessage}

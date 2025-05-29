@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/Alert'
 import { SearchFilter, type FilterOptions } from '@/components/common/SearchFilter'
 import { Pagination } from '@/components/common/Pagination'
 import { LoanForm } from './LoanForm'
+import { LoanStatusIndicator } from './LoanStatusIndicator'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { Edit2, Trash2 } from 'lucide-react'
 import type { Loan } from '@/types'
@@ -558,6 +559,9 @@ export function LoanList({ loans, isLoading, onEdit, onDelete, onRowClick }: Loa
 
     return (
         <div className="space-y-4">
+            {/* Real-time Status Indicator */}
+            <LoanStatusIndicator />
+
             <SearchFilter
                 onSearch={handleSearch}
                 onFilter={handleFilter}

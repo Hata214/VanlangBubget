@@ -10,6 +10,22 @@ interface LoanState {
     isLoading: boolean
     error: string | null
     status: 'idle' | 'loading' | 'succeeded' | 'failed'
+    statusCheck: {
+        isChecking: boolean
+        lastCheck: Date | null
+        result: {
+            total: number
+            updated: number
+            statusChanges: Array<{
+                loanId: string
+                oldStatus: string
+                newStatus: string
+                description: string
+                amount: number
+                dueDate: string
+            }>
+        } | null
+    }
 }
 
 const initialState: LoanState = {
@@ -18,7 +34,12 @@ const initialState: LoanState = {
     totalLoan: 0,
     isLoading: false,
     error: null,
-    status: 'idle'
+    status: 'idle',
+    statusCheck: {
+        isChecking: false,
+        lastCheck: null,
+        result: null
+    }
 }
 
 // Định nghĩa interface cho response từ API
@@ -84,6 +105,16 @@ export const deleteLoan = createAsyncThunk(
         console.log(`Deleting loan with id: ${id}`);
         await loanService.delete(id)
         return id
+    }
+)
+
+export const checkLoanStatus = createAsyncThunk(
+    'loan/checkStatus',
+    async () => {
+        console.log('Checking loan status real-time');
+        const response = await loanService.checkStatus();
+        console.log('Check status response:', response);
+        return response;
     }
 )
 
@@ -307,6 +338,26 @@ const loanSlice = createSlice({
                 state.isLoading = false
                 state.error = action.error.message || 'Có lỗi xảy ra'
                 console.error('deleteLoan.rejected - Error:', action.error);
+            })
+
+            // Check loan status
+            .addCase(checkLoanStatus.pending, (state) => {
+                state.statusCheck.isChecking = true
+            })
+            .addCase(checkLoanStatus.fulfilled, (state, action) => {
+                state.statusCheck.isChecking = false
+                state.statusCheck.lastCheck = new Date()
+                state.statusCheck.result = action.payload
+
+                // If there were status changes, refresh the loans list
+                if (action.payload.updated > 0) {
+                    console.log('Status check found updates, will refresh loans list');
+                }
+            })
+            .addCase(checkLoanStatus.rejected, (state, action) => {
+                state.statusCheck.isChecking = false
+                state.error = action.error.message || 'Có lỗi xảy ra khi kiểm tra trạng thái'
+                console.error('checkLoanStatus.rejected - Error:', action.error);
             })
     },
 })

@@ -7,6 +7,12 @@ import Loan from '../models/loanModel.js';
 import Investment from '../models/investmentModel.js';
 import logger from '../utils/logger.js';
 import NLPService from '../services/nlpService.js'; // Import NLPService mới
+import Notification from '../models/Notification.js';
+import socketManager from '../utils/socketManager.js';
+import CalculationCoordinator from './calculationCoordinator.js';
+import EnhancedStatisticsEngine from './enhancedStatisticsEngine.js';
+import EnhancedConversationHandler from './enhancedConversationHandler.js';
+import EnhancedGeminiService from '../services/enhancedGeminiService.js';
 
 class VanLangAgent {
     constructor(geminiApiKey) {
@@ -16,38 +22,84 @@ class VanLangAgent {
         // Lưu trữ context cuộc hội thoại để xử lý các yêu cầu chi tiết
         this.conversationContext = new Map();
         this.nlpService = new NLPService(); // Khởi tạo NLPService
+        this.calculationCoordinator = new CalculationCoordinator(); // Khởi tạo Calculation Coordinator
+        this.statisticsEngine = new EnhancedStatisticsEngine(); // Khởi tạo Enhanced Statistics Engine
+        this.conversationHandler = new EnhancedConversationHandler(this); // Khởi tạo Enhanced Conversation Handler
+        this.enhancedGemini = new EnhancedGeminiService(geminiApiKey); // Khởi tạo Enhanced Gemini Service
     }
 
     /**
-     * Gọi Gemini AI API
+     * ⚡ Enhanced Gemini AI API with optimizations
      */
     async callGeminiAI(prompt, options = {}) {
         try {
-            const response = await axios.post(
-                this.baseUrl,
-                {
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: options.temperature || 0.7,
-                        topK: options.topK || 40,
-                        topP: options.topP || 0.95,
-                        maxOutputTokens: options.maxOutputTokens || 1024,
-                    }
-                },
-                {
-                    params: { key: this.geminiApiKey },
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                }
-            );
+            // Use Enhanced Gemini Service for optimized requests
+            return await this.enhancedGemini.generateContent(prompt, options);
+        } catch (error) {
+            logger.error('Enhanced Gemini AI error:', error.message);
+            throw new Error('Không thể kết nối với AI. Vui lòng thử lại sau.');
+        }
+    }
 
-            const result = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-            logger.info('Gemini AI response received', { promptLength: prompt.length, responseLength: result.length });
+    /**
+     * 🎯 Specialized Gemini methods for different use cases
+     */
+    async callGeminiForIntent(prompt) {
+        return await this.enhancedGemini.analyzeIntent(prompt);
+    }
+
+    async callGeminiForDataExtraction(prompt) {
+        return await this.enhancedGemini.extractData(prompt);
+    }
+
+    async callGeminiForFinancialAnalysis(prompt) {
+        return await this.enhancedGemini.analyzeFinances(prompt);
+    }
+
+    async callGeminiForConversation(prompt) {
+        return await this.enhancedGemini.generateConversation(prompt);
+    }
+
+    async callGeminiForCalculation(prompt) {
+        return await this.enhancedGemini.calculateFinancial(prompt);
+    }
+
+    async callGeminiForAdvice(prompt) {
+        return await this.enhancedGemini.generateAdvice(prompt);
+    }
+
+    /**
+     * 📊 Get Gemini performance metrics
+     */
+    getGeminiMetrics() {
+        return this.enhancedGemini.getMetrics();
+    }
+
+    /**
+     * 🧮 Enhanced Calculation Type Detection
+     */
+    async detectCalculationType(message) {
+        try {
+            const result = await this.calculationCoordinator.detectCalculationType(message);
+
+            // Log for demo purposes
+            logger.info('🎯 Calculation Detection Result', {
+                message,
+                isCalculation: result.isCalculation,
+                type: result.type,
+                confidence: result.confidence,
+                intent: result.intent
+            });
+
             return result;
         } catch (error) {
-            logger.error('Gemini AI API error:', error.response?.data || error.message);
-            throw new Error('Không thể kết nối với AI. Vui lòng thử lại sau.');
+            logger.error('Error in calculation type detection:', error);
+            return {
+                isCalculation: false,
+                type: 'none',
+                confidence: 0,
+                intent: 'other'
+            };
         }
     }
 
@@ -79,71 +131,42 @@ class VanLangAgent {
         // Kiểm tra các intent cơ bản trước (dựa trên training data)
         const normalizedMessage = message.toLowerCase().trim();
 
-        // Kiểm tra calculation query trước (ưu tiên cao nhất) - Sử dụng Gemini AI
-        const calculationKeywords = [
-            'còn bao nhiều', 'con bao nhieu', 'còn lại bao nhiều', 'con lai bao nhieu',
-            'sẽ còn', 'se con', 'tôi sẽ có', 'toi se co', 'tính toán', 'tinh toan',
-            'calculate', 'how much left', 'bao nhiêu tiền', 'bao nhieu tien'
-        ];
+        // 🔍 TÍNH NĂNG 4: TÌM KIẾM NÂNG CAO (ADVANCED FILTERING) - ƯU TIÊN CAO NHẤT
+        console.log('🔍 CHECKING ADVANCED FILTER FIRST:', normalizedMessage);
+        if (this.detectAdvancedFilter(normalizedMessage)) {
+            console.log('✅ ADVANCED FILTER DETECTED - RETURNING filter_query');
+            return 'filter_query';
+        }
 
-        const hasCalculationKeywords = calculationKeywords.some(keyword =>
-            normalizedMessage.includes(keyword)
-        );
+        // ⏰ TÍNH NĂNG 6: TRUY VẤN THEO THỜI GIAN (TIME-BASED QUERIES)
+        console.log('🔍 CHECKING TIME QUERY FIRST:', normalizedMessage);
+        if (this.detectTimeBasedQuery(normalizedMessage)) {
+            console.log('✅ TIME QUERY DETECTED - RETURNING time_query');
+            return 'time_query';
+        }
 
-        const hasConditionalStructure = (normalizedMessage.includes('nếu') && normalizedMessage.includes('thì')) ||
-            (normalizedMessage.includes('neu') && normalizedMessage.includes('thi'));
-
-        if (hasCalculationKeywords || hasConditionalStructure) {
-            logger.info('Potential calculation query detected, using Gemini AI for confirmation', {
+        // Enhanced Calculation Detection - Phân biệt 2 loại tính toán
+        const calculationResult = await this.detectCalculationType(normalizedMessage);
+        if (calculationResult.isCalculation) {
+            logger.info('Calculation detected', {
                 message: normalizedMessage,
-                hasCalculationKeywords,
-                hasConditionalStructure
+                calculationType: calculationResult.type,
+                confidence: calculationResult.confidence
             });
-
-            // Sử dụng Gemini AI để xác nhận calculation intent
-            const calculationPrompt = `
-Phân tích câu sau và xác định xem đây có phải là câu hỏi tính toán tài chính không:
-"${message}"
-
-Câu hỏi tính toán tài chính là những câu:
-- Hỏi về số tiền còn lại sau khi chi tiêu
-- Hỏi về khả năng chi tiêu
-- Tính toán số dư
-- Có cấu trúc "nếu... thì..."
-- Có từ khóa: còn bao nhiều, sẽ còn, tính toán
-
-VÍ DỤ:
-- "nếu tôi lấy tiền tiết kiệm để mua xe đạp giá 4tr thì tôi sẽ còn bao nhiều tiền?" → CALCULATION
-- "tôi mua xe đạp 4tr" → NOT_CALCULATION
-- "tôi chi 500k thì còn bao nhiều?" → CALCULATION
-- "mua cà phê 50k" → NOT_CALCULATION
-
-Chỉ trả về: "CALCULATION" hoặc "NOT_CALCULATION"`;
-
-            try {
-                const geminiResult = await this.callGeminiAI(calculationPrompt);
-                const isCalculation = geminiResult.trim().toUpperCase() === 'CALCULATION';
-
-                logger.info('Gemini calculation analysis result', {
-                    message: normalizedMessage,
-                    geminiResult: geminiResult.trim(),
-                    isCalculation
-                });
-
-                if (isCalculation) {
-                    return 'calculation_query';
-                }
-            } catch (error) {
-                logger.error('Error in Gemini calculation analysis:', error);
-                // Fallback to keyword detection
-                if (hasCalculationKeywords || hasConditionalStructure) {
-                    return 'calculation_query';
-                }
-            }
+            return calculationResult.intent;
         }
 
         // Kiểm tra các câu lệnh POST sau (ưu tiên thấp hơn)
         const hasAmount = /\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)/i.test(message);
+
+        // Định nghĩa các biến calculation keywords
+        const hasCalculationKeywords = normalizedMessage.includes('có thể chi') ||
+            normalizedMessage.includes('còn bao nhiêu') || normalizedMessage.includes('đủ tiền') ||
+            normalizedMessage.includes('thiếu bao nhiêu') || normalizedMessage.includes('nếu chi') ||
+            normalizedMessage.includes('sau khi chi') || normalizedMessage.includes('tính toán');
+
+        const hasConditionalStructure = normalizedMessage.includes('nếu') ||
+            normalizedMessage.includes('sau khi') || normalizedMessage.includes('có thể');
 
         // AGENT INTERACTION: Kiểm tra xem tin nhắn có chứa thông tin về số tiền hay không.
         if (hasAmount) {
@@ -287,19 +310,49 @@ Chỉ trả về: "CALCULATION" hoặc "NOT_CALCULATION"`;
             return 'funny.chat';
         }
 
+        // Kiểm tra statistics query trước khi gọi Gemini AI (ưu tiên cao nhất)
+        if (normalizedMessage.includes('trung bình') || normalizedMessage.includes('trung binh') ||
+            normalizedMessage.includes('average') || normalizedMessage.includes('so sánh') ||
+            normalizedMessage.includes('so sanh') || normalizedMessage.includes('compare') ||
+            normalizedMessage.includes('phân tích') || normalizedMessage.includes('phan tich') ||
+            normalizedMessage.includes('analyze') || normalizedMessage.includes('thống kê') ||
+            normalizedMessage.includes('thong ke') || normalizedMessage.includes('statistics') ||
+            normalizedMessage.includes('breakdown') || normalizedMessage.includes('tỷ lệ') ||
+            normalizedMessage.includes('ty le') || normalizedMessage.includes('ratio')) {
+            return 'statistics_query';
+        }
+
+        // Kiểm tra calculation query trước khi gọi Gemini AI
+        if (normalizedMessage.includes('có thể chi') || normalizedMessage.includes('co the chi') ||
+            normalizedMessage.includes('còn bao nhiêu') || normalizedMessage.includes('con bao nhieu') ||
+            normalizedMessage.includes('đủ tiền') || normalizedMessage.includes('du tien') ||
+            normalizedMessage.includes('thiếu bao nhiêu') || normalizedMessage.includes('thieu bao nhieu') ||
+            normalizedMessage.includes('nếu chi') || normalizedMessage.includes('neu chi') ||
+            normalizedMessage.includes('sau khi chi') || normalizedMessage.includes('sau khi chi') ||
+            normalizedMessage.includes('tính toán') || normalizedMessage.includes('tinh toan') ||
+            normalizedMessage.includes('calculate') || normalizedMessage.includes('calculation')) {
+            return 'calculation_query';
+        }
+
+
+
+        console.log('🤖 FALLBACK TO GEMINI AI INTENT ANALYSIS:', normalizedMessage);
         const intentPrompt = `
 Phân tích mục đích của câu sau và trả lời bằng một từ duy nhất: "${message}"
 
-Các mục đích có thể:
+Các mục đích có thể (theo thứ tự ưu tiên):
+- statistics_query: Thống kê nâng cao (từ khóa: "trung bình", "average", "tổng cộng", "sum", "so sánh", "compare", "phân tích", "analyze", "thống kê", "statistics", "breakdown", "tỷ lệ", "ratio")
+- calculation_query: Câu hỏi suy luận, tính toán (từ khóa: tính, lãi suất, kế hoạch, dự đoán, "có thể chi", "còn bao nhiêu", "đủ tiền", "thiếu bao nhiêu", "nếu chi")
 - income_query: Hỏi về thu nhập (từ khóa: thu nhập, lương, tiền lương, income, salary, kiếm được, nhận được)
 - savings_income_query: Hỏi về tiền tiết kiệm trong thu nhập (từ khóa: tiền tiết kiệm, tiết kiệm - KHÔNG có "ngân hàng")
-- expense_query: Hỏi về chi tiêu (từ khóa: chi tiêu, chi phí, tiêu dùng, expense, spending, mua, trả, thanh toán)
+- expense_query: Hỏi về chi tiêu (từ khóa: chi tiêu, chi phí, tiêu dùng, expense, spending, mua, trả, thanh toán - NHƯNG KHÔNG có "trung bình", "average", "so sánh", "phân tích")
 - loan_query: Hỏi về khoản vay (từ khóa: khoản vay, vay, nợ, loan, debt, mượn, cho vay)
 - investment_query: Hỏi về đầu tư (từ khóa: đầu tư, investment, cổ phiếu, stock, vàng, gold, bất động sản, real estate)
 - savings_query: Hỏi về tiết kiệm ngân hàng (từ khóa: tiết kiệm ngân hàng, tiền gửi ngân hàng, gửi tiết kiệm, tiết kiệm từ ngân hàng, tiền tiết kiệm ngân hàng, bank savings)
 - balance_query: Hỏi về số dư, tổng quan tài chính (từ khóa: số dư, balance, tổng quan, overview, tình hình tài chính)
-- calculation_query: Câu hỏi suy luận, tính toán (từ khóa: tính, lãi suất, kế hoạch, dự đoán, phân tích, so sánh)
 - detail_query: Xem chi tiết các khoản còn lại (từ khóa: "còn lại", "khác", "chi tiết", "xem thêm", "tất cả", "danh sách đầy đủ")
+- filter_query: Tìm kiếm có điều kiện (từ khóa: "trên", "dưới", "lớn hơn", "nhỏ hơn", "cao nhất", "thấp nhất", "lớn nhất", "nhỏ nhất", "above", "below", "highest", "lowest")
+- time_query: Truy vấn theo thời gian cụ thể (từ khóa: "tuần này", "tháng trước", "năm nay", "hôm qua", "this week", "last month", "yesterday")
 
 **THÊM DỮ LIỆU - Ưu tiên cao:**
 - insert_savings: Thêm tiền tiết kiệm (cấu trúc: "tôi tiết kiệm", "tiết kiệm được", "mới tiết kiệm", "vừa tiết kiệm", "để dành", "gom góp", "dành dụm", "save" + số tiền - KHÔNG có "ngân hàng")
@@ -319,14 +372,197 @@ Các mục đích có thể:
 
 Chỉ trả lời một từ duy nhất.`;
 
-        // AGENT INTERACTION: Nếu phân tích dựa trên từ khóa không xác định rõ, sử dụng Gemini AI để phân tích intent.
+        // AGENT INTERACTION: Nếu phân tích dựa trên từ khóa không xác định rõ, sử dụng Enhanced Gemini AI để phân tích intent.
         try {
-            const intent = await this.callGeminiAI(intentPrompt, { temperature: 0.3 });
+            const intent = await this.callGeminiForIntent(intentPrompt);
             return intent.trim().toLowerCase();
         } catch (error) {
             logger.error('Intent analysis error:', error);
             return 'other';
         }
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Phát hiện truy vấn lọc nâng cao
+     */
+    detectAdvancedFilter(message) {
+        const normalizedMessage = message.toLowerCase().trim();
+
+        // DIRECT CONSOLE LOG - Không dùng logger
+        console.log('🔍 DIRECT LOG - Advanced Filter Detection START:', {
+            originalMessage: message,
+            normalizedMessage: normalizedMessage,
+            timestamp: new Date().toISOString()
+        });
+
+        // Debug log để kiểm tra
+        logger.info('🔍 Checking Advanced Filter Detection', {
+            message: normalizedMessage,
+            originalMessage: message
+        });
+
+        const filterPatterns = [
+            // Toán tử so sánh với số tiền - CẢI THIỆN
+            /\b(trên|lớn hơn|lớn hon|above|greater than|greater|higher than|higher)\s+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /\b(dưới|duoi|nhỏ hơn|nho hon|below|less than|less|lower than|lower)\s+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // Tìm kiếm cực trị - GENERAL PATTERNS
+            /\b(cao nhất|cao nhat|lớn nhất|lon nhat|highest|maximum|max|biggest|largest)/i,
+            /\b(thấp nhất|thap nhat|nhỏ nhất|nho nhat|lowest|minimum|min|smallest)/i,
+
+            // CHI TIÊU PATTERNS - CỤ THỂ
+            /(chi tiêu|chi tieu|expense|spending).*(cao nhất|cao nhat|lớn nhất|lon nhat|highest|maximum|max)/i,
+            /(chi tiêu|chi tieu|expense|spending).*(thấp nhất|thap nhat|nhỏ nhất|nho nhat|lowest|minimum|min)/i,
+            /(chi tiêu|chi tieu|expense|spending).*(trên|above|lớn hơn|lon hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /(chi tiêu|chi tieu|expense|spending).*(dưới|duoi|nhỏ hơn|nho hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // THU NHẬP PATTERNS - CỤ THỂ
+            /(thu nhập|thu nhap|income|salary).*(cao nhất|cao nhat|lớn nhất|lon nhat|highest|maximum|max)/i,
+            /(thu nhập|thu nhap|income|salary).*(thấp nhất|thap nhat|nhỏ nhất|nho nhat|lowest|minimum|min)/i,
+            /(thu nhập|thu nhap|income|salary).*(trên|above|lớn hơn|lon hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /(thu nhập|thu nhap|income|salary).*(dưới|duoi|nhỏ hơn|nho hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // KHOẢN VAY PATTERNS - CỤ THỂ
+            /(khoản vay|khoan vay|loan|debt).*(cao nhất|cao nhat|lớn nhất|lon nhat|highest|maximum|max)/i,
+            /(khoản vay|khoan vay|loan|debt).*(thấp nhất|thap nhat|nhỏ nhất|nho nhat|lowest|minimum|min)/i,
+            /(khoản vay|khoan vay|loan|debt).*(trên|above|lớn hơn|lon hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /(khoản vay|khoan vay|loan|debt).*(dưới|duoi|nhỏ hơn|nho hon).+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // PATTERNS ĐƠN GIẢN CHO TEST CASES - CẢI THIỆN
+            /chi tiêu.*cao nhất/i,
+            /chi tiêu.*lớn nhất/i,
+            /chi tiêu.*thấp nhất/i,
+            /chi tiêu.*nhỏ nhất/i,
+            /chi tiêu.*trên.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /chi tiêu.*dưới.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            /thu nhập.*cao nhất/i,
+            /thu nhập.*lớn nhất/i,
+            /thu nhập.*thấp nhất/i,
+            /thu nhập.*nhỏ nhất/i,
+            /thu nhập.*trên.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /thu nhập.*dưới.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            /khoản vay.*cao nhất/i,
+            /khoản vay.*lớn nhất/i,
+            /khoản vay.*thấp nhất/i,
+            /khoản vay.*nhỏ nhất/i,
+            /khoản vay.*trên.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /khoản vay.*dưới.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // PATTERNS ĐẶC BIỆT CHO "500k"
+            /khoản vay.*dưới.*500k/i,
+            /khoản vay.*nhỏ hơn.*500k/i,
+            /khoản vay.*below.*500k/i,
+            /khoản vay.*less.*500k/i,
+
+            // PATTERNS CHO CẤU TRÚC "NÀO"
+            /khoản vay.*nào.*dưới.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /khoản vay.*nào.*nhỏ hơn.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /khoản vay.*nào.*below.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /khoản vay.*nào.*less.*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+            /khoản vay.*nào.*dưới.*500k/i,
+
+            // PATTERNS CHO CẤU TRÚC KHÁC
+            /(chi tiêu|thu nhập|khoản vay).*nào.*(cao nhất|thấp nhất|lớn nhất|nhỏ nhất)/i,
+            /(chi tiêu|thu nhập|khoản vay).*nào.*(trên|dưới|lớn hơn|nhỏ hơn).*(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+
+            // PATTERNS ĐẶC BIỆT CHO "THU NHẬP THẤP NHẤT"
+            /thu nhập.*thấp nhất/i,
+            /thu nhap.*thap nhat/i,
+            /income.*lowest/i,
+            /income.*minimum/i,
+            /thu nhập.*nhỏ nhất/i,
+            /thu nhap.*nho nhat/i
+        ];
+
+        // SPECIAL DEBUG CHO "THU NHẬP THẤP NHẤT"
+        if (normalizedMessage.includes('thu nhập thấp nhất')) {
+            console.log('🚨 SPECIAL DEBUG - THU NHẬP THẤP NHẤT DETECTED!');
+            console.log('🚨 Message:', normalizedMessage);
+            console.log('🚨 Total patterns:', filterPatterns.length);
+
+            // Test từng pattern cuối cùng
+            const lastPatterns = filterPatterns.slice(-6);
+            lastPatterns.forEach((pattern, index) => {
+                const actualIndex = filterPatterns.length - 6 + index;
+                const testResult = pattern.test(normalizedMessage);
+                console.log(`🚨 PATTERN ${actualIndex} (${pattern.toString()}): ${testResult}`);
+            });
+
+            // Test specific patterns manually
+            console.log('🚨 MANUAL PATTERN TESTS:');
+            console.log('- /thu nhập.*thấp nhất/i.test():', /thu nhập.*thấp nhất/i.test(normalizedMessage));
+            console.log('- /thấp nhất/i.test():', /thấp nhất/i.test(normalizedMessage));
+            console.log('- includes("thu nhập"):', normalizedMessage.includes('thu nhập'));
+            console.log('- includes("thấp nhất"):', normalizedMessage.includes('thấp nhất'));
+        }
+
+        // Kiểm tra từng pattern và log kết quả
+        for (let i = 0; i < filterPatterns.length; i++) {
+            const pattern = filterPatterns[i];
+            const isMatch = pattern.test(normalizedMessage);
+
+            // Log chi tiết cho patterns cuối (thu nhập thấp nhất)
+            if (normalizedMessage.includes('thu nhập thấp nhất') && i >= filterPatterns.length - 6) {
+                console.log(`🚨 TESTING PATTERN ${i}:`, {
+                    pattern: pattern.toString(),
+                    message: normalizedMessage,
+                    isMatch: isMatch,
+                    testResult: pattern.test(normalizedMessage)
+                });
+            }
+
+            if (isMatch) {
+                console.log('🎯 DIRECT LOG - Advanced Filter Pattern MATCHED!', {
+                    patternIndex: i,
+                    pattern: pattern.toString(),
+                    message: normalizedMessage
+                });
+
+                logger.info('🎯 Advanced Filter Pattern Matched!', {
+                    patternIndex: i,
+                    pattern: pattern.toString(),
+                    message: normalizedMessage
+                });
+                return true;
+            }
+        }
+
+        console.log('❌ DIRECT LOG - No Advanced Filter Pattern Matched', {
+            message: normalizedMessage,
+            totalPatterns: filterPatterns.length
+        });
+
+        logger.info('❌ No Advanced Filter Pattern Matched', {
+            message: normalizedMessage,
+            totalPatterns: filterPatterns.length
+        });
+
+        return false;
+    }
+
+    /**
+     * ⏰ TÍNH NĂNG 6: Phát hiện truy vấn theo thời gian
+     */
+    detectTimeBasedQuery(message) {
+        const timePatterns = [
+            // Thời gian cụ thể
+            /\b(tuần này|tuan nay|this week|tuần hiện tại|tuan hien tai)/i,
+            /\b(tháng trước|thang truoc|last month|tháng vừa rồi|thang vua roi)/i,
+            /\b(hôm nay|hom nay|today|ngày hôm nay|ngay hom nay)/i,
+            /\b(hôm qua|hom qua|yesterday|ngày hôm qua|ngay hom qua)/i,
+            /\b(tháng này|thang nay|this month|tháng hiện tại|thang hien tai)/i,
+            /\b(năm nay|nam nay|this year|năm hiện tại|nam hien tai)/i,
+
+            // Cấu trúc với dữ liệu tài chính
+            /(thu nhập|thu nhap|income).*(tuần này|tuan nay|this week)/i,
+            /(chi tiêu|chi tieu|expense).*(tháng trước|thang truoc|last month)/i,
+            /(khoản vay|khoan vay|loan).*(hôm nay|hom nay|today)/i,
+            /(tổng quan|tong quan|overview).*(tháng này|thang nay|this month)/i
+        ];
+
+        return timePatterns.some(pattern => pattern.test(message));
     }
 
     /**
@@ -396,10 +632,132 @@ Chỉ trả lời một từ duy nhất.`;
             normalizedMessage.includes('tiêu dùng') || normalizedNoDiacritics.includes('tieu dung') ||
             normalizedMessage.includes('expense') || normalizedMessage.includes('spending')) {
             category = 'expense';
-        } else if (normalizedMessage.includes('khoản vay') || normalizedNoDiacritics.includes('khoan vay') ||
-            normalizedMessage.includes('vay') || normalizedMessage.includes('nợ') || normalizedNoDiacritics.includes('no') ||
-            normalizedMessage.includes('loan') || normalizedMessage.includes('debt')) {
+        } else if (
+            // Khoản vay quá hạn - Cải thiện khả năng nhận diện
+            normalizedMessage.includes('nợ quá hạn') || normalizedNoDiacritics.includes('no qua han') ||
+            normalizedMessage.includes('quá hạn') || normalizedNoDiacritics.includes('qua han') ||
+            normalizedMessage.includes('vay quá hạn') || normalizedNoDiacritics.includes('vay qua han') ||
+            normalizedMessage.includes('khoản vay quá hạn') || normalizedNoDiacritics.includes('khoan vay qua han') ||
+            normalizedMessage.includes('nợ trễ hạn') || normalizedNoDiacritics.includes('no tre han') ||
+            normalizedMessage.includes('trễ hạn') || normalizedNoDiacritics.includes('tre han') ||
+            normalizedMessage.includes('nợ đến hạn') || normalizedNoDiacritics.includes('no den han') ||
+            normalizedMessage.includes('đến hạn') || normalizedNoDiacritics.includes('den han') ||
+            normalizedMessage.includes('hết hạn') || normalizedNoDiacritics.includes('het han') ||
+            normalizedMessage.includes('nợ xấu') || normalizedNoDiacritics.includes('no xau') ||
+            normalizedMessage.includes('vay xấu') || normalizedNoDiacritics.includes('vay xau') ||
+            normalizedMessage.includes('nợ khó đòi') || normalizedNoDiacritics.includes('no kho doi') ||
+            normalizedMessage.includes('vay khó đòi') || normalizedNoDiacritics.includes('vay kho doi') ||
+            normalizedMessage.includes('nợ chậm trả') || normalizedNoDiacritics.includes('no cham tra') ||
+            normalizedMessage.includes('vay chậm trả') || normalizedNoDiacritics.includes('vay cham tra') ||
+            normalizedMessage.includes('nợ tồn đọng') || normalizedNoDiacritics.includes('no ton dong') ||
+            normalizedMessage.includes('vay tồn đọng') || normalizedNoDiacritics.includes('vay ton dong') ||
+            normalizedMessage.includes('nợ khó thu') || normalizedNoDiacritics.includes('no kho thu') ||
+            normalizedMessage.includes('vay khó thu') || normalizedNoDiacritics.includes('vay kho thu') ||
+            normalizedMessage.includes('overdue loan') || normalizedMessage.includes('overdue debt') ||
+            normalizedMessage.includes('late payment') || normalizedMessage.includes('past due') ||
+            normalizedMessage.includes('delinquent') || normalizedMessage.includes('defaulted') ||
+            normalizedMessage.includes('bad debt') || normalizedMessage.includes('non-performing')
+        ) {
+            category = 'loan_overdue';
+            logger.info('Keyword analysis: detected loan_overdue', {
+                message: normalizedMessage,
+                normalizedNoDiacritics,
+                matchedKeywords: {
+                    noQuaHan: normalizedMessage.includes('nợ quá hạn') || normalizedNoDiacritics.includes('no qua han'),
+                    quaHan: normalizedMessage.includes('quá hạn') || normalizedNoDiacritics.includes('qua han'),
+                    vayQuaHan: normalizedMessage.includes('vay quá hạn') || normalizedNoDiacritics.includes('vay qua han'),
+                    khoanVayQuaHan: normalizedMessage.includes('khoản vay quá hạn') || normalizedNoDiacritics.includes('khoan vay qua han'),
+                    noTreHan: normalizedMessage.includes('nợ trễ hạn') || normalizedNoDiacritics.includes('no tre han'),
+                    treHan: normalizedMessage.includes('trễ hạn') || normalizedNoDiacritics.includes('tre han'),
+                    noDenHan: normalizedMessage.includes('nợ đến hạn') || normalizedNoDiacritics.includes('no den han'),
+                    denHan: normalizedMessage.includes('đến hạn') || normalizedNoDiacritics.includes('den han'),
+                    hetHan: normalizedMessage.includes('hết hạn') || normalizedNoDiacritics.includes('het han'),
+                    noXau: normalizedMessage.includes('nợ xấu') || normalizedNoDiacritics.includes('no xau'),
+                    vayXau: normalizedMessage.includes('vay xấu') || normalizedNoDiacritics.includes('vay xau'),
+                    noKhoDoi: normalizedMessage.includes('nợ khó đòi') || normalizedNoDiacritics.includes('no kho doi'),
+                    vayKhoDoi: normalizedMessage.includes('vay khó đòi') || normalizedNoDiacritics.includes('vay kho doi'),
+                    noChamTra: normalizedMessage.includes('nợ chậm trả') || normalizedNoDiacritics.includes('no cham tra'),
+                    vayChamTra: normalizedMessage.includes('vay chậm trả') || normalizedNoDiacritics.includes('vay cham tra'),
+                    noTonDong: normalizedMessage.includes('nợ tồn đọng') || normalizedNoDiacritics.includes('no ton dong'),
+                    vayTonDong: normalizedMessage.includes('vay tồn đọng') || normalizedNoDiacritics.includes('vay ton dong'),
+                    noKhoThu: normalizedMessage.includes('nợ khó thu') || normalizedNoDiacritics.includes('no kho thu'),
+                    vayKhoThu: normalizedMessage.includes('vay khó thu') || normalizedNoDiacritics.includes('vay kho thu'),
+                    overdueEn: normalizedMessage.includes('overdue loan') || normalizedMessage.includes('overdue debt'),
+                    latePayment: normalizedMessage.includes('late payment') || normalizedMessage.includes('past due'),
+                    delinquent: normalizedMessage.includes('delinquent') || normalizedMessage.includes('defaulted'),
+                    badDebt: normalizedMessage.includes('bad debt') || normalizedMessage.includes('non-performing')
+                }
+            });
+        } else if (
+            // Khoản vay còn lại - ưu tiên cao hơn
+            normalizedMessage.includes('nợ còn lại') || normalizedNoDiacritics.includes('no con lai') ||
+            normalizedMessage.includes('còn nợ') || normalizedNoDiacritics.includes('con no') ||
+            normalizedMessage.includes('vay còn lại') || normalizedNoDiacritics.includes('vay con lai') ||
+            normalizedMessage.includes('khoản vay còn lại') || normalizedNoDiacritics.includes('khoan vay con lai') ||
+            // Thêm xử lý lỗi đánh máy "alji" thay vì "lại"
+            normalizedMessage.includes('vay còn alji') || normalizedMessage.includes('khoản vay còn alji') ||
+            normalizedMessage.includes('chưa trả') || normalizedNoDiacritics.includes('chua tra') ||
+            normalizedMessage.includes('chưa tất toán') || normalizedNoDiacritics.includes('chua tat toan') ||
+            normalizedMessage.includes('chưa thanh toán') || normalizedNoDiacritics.includes('chua thanh toan') ||
+            normalizedMessage.includes('chưa trả hết') || normalizedNoDiacritics.includes('chua tra het') ||
+            normalizedMessage.includes('remaining debt') || normalizedMessage.includes('outstanding debt') ||
+            normalizedMessage.includes('unpaid loan') || normalizedMessage.includes('active loan')
+        ) {
+            category = 'loan_remaining';
+            logger.info('Keyword analysis: detected loan_remaining', {
+                message: normalizedMessage,
+                normalizedNoDiacritics,
+                matchedKeywords: {
+                    noConLai: normalizedMessage.includes('nợ còn lại') || normalizedNoDiacritics.includes('no con lai'),
+                    conNo: normalizedMessage.includes('còn nợ') || normalizedNoDiacritics.includes('con no'),
+                    vayConLai: normalizedMessage.includes('vay còn lại') || normalizedNoDiacritics.includes('vay con lai'),
+                    khoanVayConLai: normalizedMessage.includes('khoản vay còn lại') || normalizedNoDiacritics.includes('khoan vay con lai'),
+                    vayConAlji: normalizedMessage.includes('vay còn alji') || normalizedMessage.includes('khoản vay còn alji'),
+                    chuaTra: normalizedMessage.includes('chưa trả') || normalizedNoDiacritics.includes('chua tra'),
+                    chuaTatToan: normalizedMessage.includes('chưa tất toán') || normalizedNoDiacritics.includes('chua tat toan'),
+                    chuaThanhToan: normalizedMessage.includes('chưa thanh toán') || normalizedNoDiacritics.includes('chua thanh toan'),
+                    chuaTraHet: normalizedMessage.includes('chưa trả hết') || normalizedNoDiacritics.includes('chua tra het')
+                }
+            });
+        } else if (
+            // Khoản vay đã trả hết
+            normalizedMessage.includes('nợ đã trả') || normalizedNoDiacritics.includes('no da tra') ||
+            normalizedMessage.includes('đã trả nợ') || normalizedNoDiacritics.includes('da tra no') ||
+            normalizedMessage.includes('khoản vay đã trả') || normalizedNoDiacritics.includes('khoan vay da tra') ||
+            normalizedMessage.includes('vay đã trả') || normalizedNoDiacritics.includes('vay da tra') ||
+            normalizedMessage.includes('đã tất toán') || normalizedNoDiacritics.includes('da tat toan') ||
+            normalizedMessage.includes('đã thanh toán') || normalizedNoDiacritics.includes('da thanh toan') ||
+            normalizedMessage.includes('đã trả hết') || normalizedNoDiacritics.includes('da tra het') ||
+            normalizedMessage.includes('paid debt') || normalizedMessage.includes('paid loan') ||
+            normalizedMessage.includes('completed loan') || normalizedMessage.includes('settled debt')
+        ) {
+            category = 'loan_paid';
+            logger.info('Keyword analysis: detected loan_paid', {
+                message: normalizedMessage,
+                normalizedNoDiacritics,
+                matchedKeywords: {
+                    noDaTra: normalizedMessage.includes('nợ đã trả') || normalizedNoDiacritics.includes('no da tra'),
+                    daTraNo: normalizedMessage.includes('đã trả nợ') || normalizedNoDiacritics.includes('da tra no'),
+                    khoanVayDaTra: normalizedMessage.includes('khoản vay đã trả') || normalizedNoDiacritics.includes('khoan vay da tra'),
+                    vayDaTra: normalizedMessage.includes('vay đã trả') || normalizedNoDiacritics.includes('vay da tra'),
+                    daTatToan: normalizedMessage.includes('đã tất toán') || normalizedNoDiacritics.includes('da tat toan'),
+                    daThanhToan: normalizedMessage.includes('đã thanh toán') || normalizedNoDiacritics.includes('da thanh toan'),
+                    daTraHet: normalizedMessage.includes('đã trả hết') || normalizedNoDiacritics.includes('da tra het')
+                }
+            });
+        } else if (normalizedMessage.includes('loan') || normalizedMessage.includes('debt') ||
+            normalizedMessage.includes('số nợ') || normalizedNoDiacritics.includes('so no') ||
+            (normalizedMessage.includes('khoản vay') && !normalizedMessage.includes('khoản vay còn lại') && !normalizedMessage.includes('khoản vay đã trả')) ||
+            (normalizedNoDiacritics.includes('khoan vay') && !normalizedNoDiacritics.includes('khoan vay con lai') && !normalizedNoDiacritics.includes('khoan vay da tra')) ||
+            (normalizedMessage.includes('vay') && !normalizedMessage.includes('vay còn lại') && !normalizedMessage.includes('vay đã trả')) ||
+            (normalizedMessage.includes('nợ') && !normalizedMessage.includes('nợ còn lại') && !normalizedMessage.includes('nợ đã trả')) ||
+            (normalizedNoDiacritics.includes('no') && !normalizedNoDiacritics.includes('no con lai') && !normalizedNoDiacritics.includes('no da tra'))) {
             category = 'loan';
+            logger.info('Keyword analysis: detected general loan', {
+                message: normalizedMessage,
+                normalizedNoDiacritics,
+                excludedSpecificLoanTypes: true
+            });
         } else if (normalizedMessage.includes('cổ phiếu') || normalizedNoDiacritics.includes('co phieu') ||
             normalizedMessage.includes('stock') || normalizedMessage.includes('chứng khoán') ||
             normalizedNoDiacritics.includes('chung khoan')) {
@@ -519,7 +877,7 @@ Format JSON cần trả về:
     "amount": số tiền (chỉ số, không có đơn vị),
     "category": "danh mục phù hợp",
     "note": "ghi chú hoặc mô tả",
-    "date": "YYYY-MM-DD" (nếu không có thì để ngày hôm nay),
+    "date": "YYYY-MM-DD" (nếu không có thì để ngày hôm nay - ${new Date().toISOString().split('T')[0]}),
     "needsCategoryConfirmation": true/false,
     "suggestedCategories": ["danh_mục_1", "danh_mục_2", "danh_mục_3"]
 }
@@ -536,18 +894,19 @@ Thu nhập: "Lương", "Thưởng", "Thu nhập khác", "Freelance", "Bán hàng
 Chi tiêu: "Ăn uống", "Di chuyển", "Giải trí", "Mua sắm", "Học tập", "Y tế", "Hóa đơn", "Khác"
 Khoản vay: "Ngân hàng", "Bạn bè", "Gia đình", "Công ty", "Khác"
 
-Ví dụ:
-- "Tôi tiết kiệm được 2 triệu" -> {"type": "savings", "amount": 2000000, "category": "Tiền tiết kiệm", "note": "Tiết kiệm được", "date": "2024-01-15"}
-- "Tôi mới tiết kiệm được 500k" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Mới tiết kiệm được", "date": "2024-01-15"}
-- "Vừa tiết kiệm 1 triệu" -> {"type": "savings", "amount": 1000000, "category": "Tiền tiết kiệm", "note": "Vừa tiết kiệm", "date": "2024-01-15"}
-- "Để dành 500k hôm nay" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Để dành", "date": "2024-01-15"}
-- "Tôi vừa mua cà phê 50k" -> {"type": "expense", "amount": 50000, "category": "Ăn uống", "note": "Mua cà phê", "date": "2024-01-15"}
-- "Nhận lương 15 triệu hôm nay" -> {"type": "income", "amount": 15000000, "category": "Lương", "note": "Nhận lương", "date": "2024-01-15"}
-- "Tôi tiêu 200k mua quần áo" -> {"type": "expense", "amount": 200000, "category": "Mua sắm", "note": "Mua quần áo", "date": "2024-01-15"}
-- "Mua xe đạp 4 triệu" -> {"type": "expense", "amount": 4000000, "category": "Mua sắm", "note": "Mua xe đạp", "date": "2024-01-15"}
-- "Đổ xăng 200k" -> {"type": "expense", "amount": 200000, "category": "Di chuyển", "note": "Đổ xăng", "date": "2024-01-15"}
-- "Được thưởng 2 triệu" -> {"type": "income", "amount": 2000000, "category": "Thưởng", "note": "Được thưởng", "date": "2024-01-15"}
-- "Vay bạn 500k" -> {"type": "loan", "amount": 500000, "category": "Bạn bè", "note": "Vay bạn", "date": "2024-01-15"}
+Ví dụ (sử dụng ngày hiện tại ${new Date().toISOString().split('T')[0]}):
+- "Tôi tiết kiệm được 2 triệu" -> {"type": "savings", "amount": 2000000, "category": "Tiền tiết kiệm", "note": "Tiết kiệm được", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Tôi mới tiết kiệm được 500k" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Mới tiết kiệm được", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Vừa tiết kiệm 1 triệu" -> {"type": "savings", "amount": 1000000, "category": "Tiền tiết kiệm", "note": "Vừa tiết kiệm", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Để dành 500k hôm nay" -> {"type": "savings", "amount": 500000, "category": "Tiền tiết kiệm", "note": "Để dành", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Tôi vừa mua cà phê 50k" -> {"type": "expense", "amount": 50000, "category": "Ăn uống", "note": "Mua cà phê", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Nhận lương 15 triệu hôm nay" -> {"type": "income", "amount": 15000000, "category": "Lương", "note": "Nhận lương", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Tôi tiêu 200k mua quần áo" -> {"type": "expense", "amount": 200000, "category": "Mua sắm", "note": "Mua quần áo", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Mua xe đạp 4 triệu" -> {"type": "expense", "amount": 4000000, "category": "Mua sắm", "note": "Mua xe đạp", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Mua ô tô 200tr" -> {"type": "expense", "amount": 200000000, "category": "Mua sắm", "note": "Mua ô tô", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Đổ xăng 200k" -> {"type": "expense", "amount": 200000, "category": "Di chuyển", "note": "Đổ xăng", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Được thưởng 2 triệu" -> {"type": "income", "amount": 2000000, "category": "Thưởng", "note": "Được thưởng", "date": "${new Date().toISOString().split('T')[0]}"}
+- "Vay bạn 500k" -> {"type": "loan", "amount": 500000, "category": "Bạn bè", "note": "Vay bạn", "date": "${new Date().toISOString().split('T')[0]}"}
 
 Chỉ trả về JSON, không có text khác.`;
 
@@ -560,6 +919,13 @@ Chỉ trả về JSON, không có text khác.`;
             // Ưu tiên forceType nếu có
             if (forceType) {
                 result.type = forceType;
+            }
+
+            // Đảm bảo date luôn là ngày hiện tại nếu không có hoặc sai
+            const today = new Date().toISOString().split('T')[0];
+            if (!result.date || result.date === "2024-01-15" || new Date(result.date) < new Date('2024-10-01')) {
+                result.date = today;
+                logger.info('Date corrected to today', { originalDate: result.date, correctedDate: today });
             }
 
             return result;
@@ -753,16 +1119,88 @@ Chỉ trả về JSON, không có text khác.`;
     }
 
     /**
+     * Làm sạch message để xử lý nhất quán
+     */
+    cleanMessage(message) {
+        if (!message) return '';
+
+        return message
+            .trim() // Xóa khoảng trắng đầu cuối
+            .normalize('NFC') // Chuẩn hóa Unicode về dạng precomposed
+            .replace(/\u00A0/g, ' ') // Thay non-breaking space bằng space thường
+            .replace(/\u200B/g, '') // Xóa zero-width space
+            .replace(/\u200C/g, '') // Xóa zero-width non-joiner
+            .replace(/\u200D/g, '') // Xóa zero-width joiner
+            .replace(/\uFEFF/g, '') // Xóa byte order mark
+            .replace(/[\u2000-\u200A]/g, ' ') // Thay các loại space khác bằng space thường
+            .replace(/\s+/g, ' ') // Thay nhiều space liên tiếp bằng 1 space
+            .trim(); // Trim lại lần nữa
+    }
+
+    /**
      * Xử lý tin nhắn chính từ người dùng
      */
-    async handleUserMessage(userId, message, sessionId = null) {
+    async handleUserMessage(userId, message, sessionId = null, options = {}) {
         try {
-            logger.info('Processing user message', { userId, message, sessionId });
+            // Extract AI mode flag from options
+            const isAIMode = options.aiMode === true;
+
+            // Debug chi tiết message
+            logger.info('Processing user message', {
+                userId,
+                message,
+                sessionId,
+                isAIMode,
+                messageLength: message.length,
+                trimmedMessage: message.trim(),
+                normalizedMessage: message.toLowerCase().trim()
+            });
+
+            // Làm sạch message để xử lý nhất quán
+            const cleanedMessage = this.cleanMessage(message);
+            logger.info('Cleaned message', {
+                original: message,
+                cleaned: cleanedMessage,
+                changed: message !== cleanedMessage,
+                aiModeEnabled: isAIMode
+            });
+
+            // 🤖 AI Mode: Nếu AI mode được bật từ toggle switch
+            if (isAIMode) {
+                logger.info('🤖 AI MODE ACTIVATED - Bypassing normal VanLang Agent logic', {
+                    userId,
+                    message: cleanedMessage,
+                    sessionId,
+                    aiMode: true,
+                    source: 'Toggle Switch',
+                    originalMessage: message,
+                    optionsReceived: options
+                });
+
+                // Directly call AI without any VanLang Agent processing
+                const aiResponse = await this.handleAIDirectMode(userId, cleanedMessage, sessionId);
+
+                logger.info('🤖 AI MODE RESPONSE GENERATED', {
+                    userId,
+                    responseLength: aiResponse.length,
+                    responsePreview: aiResponse.substring(0, 100) + '...'
+                });
+
+                return aiResponse;
+            }
+
+            // 🔧 Normal Mode: VanLang Agent logic
+            logger.info('🔧 NORMAL MODE - Using VanLang Agent logic', {
+                userId,
+                message: cleanedMessage,
+                sessionId,
+                aiMode: false
+            });
 
             // AGENT INTERACTION: Bắt đầu xử lý tin nhắn từ người dùng.
-            // Sử dụng NLPService để có được phân tích ban đầu
-            const nlpAnalysis = this.nlpService.analyzeIntent(message);
-            logger.info('NLPService analysis for handleUserMessage', { nlpAnalysis, message });
+            // Sử dụng NLPService để có được phân tích ban đầu với cleaned message
+            const nlpAnalysis = this.nlpService.analyzeIntent(cleanedMessage);
+            logger.info('NLPService analysis for handleUserMessage', { nlpAnalysis, message: cleanedMessage });
 
             let intent = nlpAnalysis.intent; // Lấy intent từ NLPService
             let confidence = nlpAnalysis.confidence;
@@ -785,12 +1223,19 @@ Chỉ trả về JSON, không có text khác.`;
             // hoặc là một intent tài chính chung chung, thì sử dụng logic phân tích intent hiện tại của VanLangAgent
             if (intent === 'unknown' || intent === 'financial_low_confidence' || intent === 'financial_medium_confidence' || intent === 'financial_high_confidence' || !intent) {
                 logger.info('NLPService intent is general or low confidence, falling back to VanLangAgent internal intent analysis', { currentIntentFromNLP: intent, confidence });
-                intent = await this.analyzeIntent(message); // AGENT INTERACTION: Gọi lại hàm analyzeIntent nội bộ nếu NLPService không đủ chắc chắn hoặc là intent tài chính chung.
+                intent = await this.analyzeIntent(cleanedMessage); // AGENT INTERACTION: Gọi lại hàm analyzeIntent nội bộ nếu NLPService không đủ chắc chắn hoặc là intent tài chính chung.
                 logger.info('VanLangAgent internal analyzeIntent result', {
                     intentFromInternal: intent,
-                    message
+                    message: cleanedMessage
                 });
             }
+
+            logger.info('Intent after NLP analysis', {
+                originalIntent: nlpAnalysis.intent,
+                finalIntent: intent,
+                message,
+                confidence
+            });
 
             logger.info('analyzeIntent result', {
                 intent,
@@ -806,9 +1251,16 @@ Chỉ trả về JSON, không có text khác.`;
                 return await this.handleCategoryConfirmation(userId, message, context);
             }
 
-            // Chỉ sử dụng keyword analysis cho GET operations nếu analyzeIntent không trả về POST intent
-            if (!intent || (!intent.startsWith('insert_') && !intent.includes('calculation') && !intent.includes('detail'))) {
-                const { category } = this.analyzeKeywordsAndTime(message);
+            // Chỉ sử dụng keyword analysis cho GET operations nếu analyzeIntent không trả về POST intent hoặc special intent
+            // KHÔNG OVERRIDE các intent đặc biệt như filter_query, time_query, calculation_query, statistics_query
+            if (!intent || (!intent.startsWith('insert_') && !intent.includes('calculation') && !intent.includes('detail') && !intent.includes('statistics') && intent !== 'filter_query' && intent !== 'time_query')) {
+                const { category } = this.analyzeKeywordsAndTime(cleanedMessage);
+
+                logger.info('Keyword analysis result', {
+                    message: cleanedMessage,
+                    category,
+                    intent: intent || 'none'
+                });
 
                 if (category === 'savings') {
                     intent = 'savings_query';
@@ -820,6 +1272,12 @@ Chỉ trả về JSON, không có text khác.`;
                     intent = 'expense_query';
                 } else if (category === 'loan') {
                     intent = 'loan_query';
+                } else if (category === 'loan_paid') {
+                    intent = 'loan_paid_query';
+                } else if (category === 'loan_overdue') {
+                    intent = 'loan_overdue_query';
+                } else if (category === 'loan_remaining') {
+                    intent = 'loan_remaining_query';
                 } else if (category === 'stock') {
                     intent = 'stock_query';
                 } else if (category === 'gold') {
@@ -868,13 +1326,22 @@ Chỉ trả về JSON, không có text khác.`;
 
                 // Nhóm Query - Truy vấn thông tin
                 case 'income_query':
-                    return await this.handleSpecificQuery(userId, message, 'income');
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'income');
 
                 case 'expense_query':
-                    return await this.handleSpecificQuery(userId, message, 'expense');
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'expense');
 
                 case 'loan_query':
-                    return await this.handleSpecificQuery(userId, message, 'loan');
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'loan');
+
+                case 'loan_paid_query':
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'loan_paid');
+
+                case 'loan_overdue_query':
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'loan_overdue');
+
+                case 'loan_remaining_query':
+                    return await this.handleSpecificQuery(userId, cleanedMessage, 'loan_remaining');
 
                 case 'investment_query':
                     return await this.handleSpecificQuery(userId, message, 'investment');
@@ -901,8 +1368,26 @@ Chỉ trả về JSON, không có text khác.`;
                 case 'detail_query':
                     return await this.handleDetailQuery(userId, message);
 
-                // Nhóm Calculation - Suy luận và tính toán
-                case 'calculation_query':
+                // Nhóm Filter - Tìm kiếm có điều kiện
+                case 'filter_query':
+                    return await this.handleFilterQuery(userId, message);
+
+                // Nhóm Statistics - Thống kê nâng cao
+                case 'statistics_query':
+                    return await this.handleStatisticsQuery(userId, message);
+
+                // Nhóm Time - Truy vấn theo thời gian
+                case 'time_query':
+                    return await this.handleTimeQuery(userId, message);
+
+                // Nhóm Calculation - Enhanced với 2 loại tính toán
+                case 'general_calculation':
+                    return await this.handleGeneralCalculation(userId, message);
+
+                case 'financial_calculation':
+                    return await this.handleFinancialCalculation(userId, message);
+
+                case 'calculation_query': // Legacy support
                     return await this.handleCalculationQuery(userId, message);
 
                 // Nhóm Analysis - Phân tích
@@ -943,7 +1428,15 @@ Chỉ trả về JSON, không có text khác.`;
                     return this.getFunnyResponse();
 
                 default:
-                    return await this.handleGeneralQuestion(message);
+                    // Kiểm tra nếu user chỉ nói tên category mà không có context
+                    const normalizedMessage = message.toLowerCase().trim();
+                    const categoryKeywords = ['mua sắm', 'ăn uống', 'di chuyển', 'giải trí', 'học tập', 'y tế', 'hóa đơn'];
+
+                    if (categoryKeywords.includes(normalizedMessage)) {
+                        return `Không thể lưu chi tiêu. Bạn có thể nói rõ hơn như: "Tôi mua cà phê 50k" hoặc "Chi tiêu ăn uống 200 nghìn"?`;
+                    }
+
+                    return await this.handleGeneralQuestion(userId, message);
             }
         } catch (error) {
             logger.error('Error handling user message:', error);
@@ -1011,6 +1504,17 @@ Chỉ trả về JSON, không có text khác.`;
                 await income.save();
                 logger.info('Savings saved to Income collection', { incomeId: income._id, amount: transactionData.amount });
 
+                // Tạo notification cho savings
+                try {
+                    const notification = await Notification.createIncomeNotification(income);
+                    if (socketManager && socketManager.to) {
+                        socketManager.to(userId).emit('notification', notification);
+                    }
+                    logger.info('Notification created for agent savings', { notificationId: notification._id });
+                } catch (notificationError) {
+                    logger.error('Error creating notification for agent savings:', notificationError);
+                }
+
                 // Tạo response cho savings
                 const successMessage = `✅ **Đã lưu tiền tiết kiệm thành công!**
 
@@ -1045,6 +1549,52 @@ ${transactionData.note ? `• Ghi chú: ${transactionData.note}` : ''}
             await transaction.syncWithExistingModels();
 
             logger.info('Transaction created by agent', { userId, transactionId: transaction._id, type: transactionData.type });
+
+            // Tạo notification cho transaction
+            try {
+                let notification = null;
+                if (transactionData.type === 'income') {
+                    // Tìm income record đã được tạo
+                    const income = await Income.findOne({
+                        userId,
+                        amount: transactionData.amount,
+                        description: transactionData.note
+                    }).sort({ createdAt: -1 });
+                    if (income) {
+                        notification = await Notification.createIncomeNotification(income);
+                    }
+                } else if (transactionData.type === 'expense') {
+                    // Tìm expense record đã được tạo
+                    const expense = await Expense.findOne({
+                        userId,
+                        amount: transactionData.amount,
+                        description: transactionData.note
+                    }).sort({ createdAt: -1 });
+                    if (expense) {
+                        notification = await Notification.createExpenseNotification(expense);
+                    }
+                } else if (transactionData.type === 'loan') {
+                    // Tìm loan record đã được tạo
+                    const loan = await Loan.findOne({
+                        userId,
+                        amount: transactionData.amount,
+                        description: transactionData.note
+                    }).sort({ createdAt: -1 });
+                    if (loan) {
+                        notification = await Notification.createLoanNotification(loan);
+                    }
+                }
+
+                if (notification && socketManager && socketManager.to) {
+                    socketManager.to(userId).emit('notification', notification);
+                    logger.info('Notification created for agent transaction', {
+                        notificationId: notification._id,
+                        type: transactionData.type
+                    });
+                }
+            } catch (notificationError) {
+                logger.error('Error creating notification for agent transaction:', notificationError);
+            }
 
             const typeNames = {
                 'savings': 'tiền tiết kiệm',
@@ -1125,6 +1675,65 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
         } catch (error) {
             logger.error('Error analyzing finances:', error);
             return 'Không thể phân tích dữ liệu tài chính. Vui lòng thử lại sau.';
+        }
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Xử lý truy vấn lọc nâng cao
+     */
+    async handleFilterQuery(userId, message) {
+        try {
+            logger.info('🔍 Advanced Filter Query detected', { userId, message });
+
+            // 🚨 DEBUG: Log parseFilterConditions result
+            const filterAnalysis = this.parseFilterConditions(message);
+            logger.info('🚨 DEBUG parseFilterConditions result:', filterAnalysis);
+
+            if (!filterAnalysis.isValid) {
+                logger.error('🚨 DEBUG: filterAnalysis.isValid is FALSE!', {
+                    isValid: filterAnalysis.isValid,
+                    dataType: filterAnalysis.dataType,
+                    operator: filterAnalysis.operator,
+                    amount: filterAnalysis.amount
+                });
+                return `❌ **Không thể hiểu điều kiện lọc.**\n\n💡 **Ví dụ hợp lệ:**\n• "Chi tiêu trên 1 triệu"\n• "Thu nhập dưới 500k"\n• "Khoản vay cao nhất"\n• "Chi tiêu thấp nhất"`;
+            }
+
+            logger.info('🎉 DEBUG: filterAnalysis.isValid is TRUE! Proceeding with filter...');
+
+            // Lấy dữ liệu và áp dụng filter
+            const results = await this.applyAdvancedFilter(userId, filterAnalysis);
+
+            return this.formatFilterResults(results, filterAnalysis);
+
+        } catch (error) {
+            logger.error('Error in handleFilterQuery:', error);
+            return 'Xin lỗi, tôi gặp lỗi khi lọc dữ liệu. Vui lòng thử lại sau.';
+        }
+    }
+
+    /**
+     * ⏰ TÍNH NĂNG 6: Xử lý truy vấn theo thời gian
+     */
+    async handleTimeQuery(userId, message) {
+        try {
+            logger.info('⏰ Time-based Query detected', { userId, message });
+
+            // Phân tích khoảng thời gian
+            const timeAnalysis = this.parseTimeConditions(message);
+
+            if (!timeAnalysis.isValid) {
+                return `❌ **Không thể hiểu khoảng thời gian.**\n\n💡 **Ví dụ hợp lệ:**\n• "Thu nhập tuần này"\n• "Chi tiêu tháng trước"\n• "Khoản vay hôm nay"\n• "Tổng quan tài chính tháng này"`;
+            }
+
+            // Lấy dữ liệu theo thời gian
+            const results = await this.getDataByTimeRange(userId, timeAnalysis);
+
+            return this.formatTimeResults(results, timeAnalysis);
+
+        } catch (error) {
+            logger.error('Error in handleTimeQuery:', error);
+            return 'Xin lỗi, tôi gặp lỗi khi truy vấn dữ liệu theo thời gian. Vui lòng thử lại sau.';
         }
     }
 
@@ -1272,57 +1881,275 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                     break;
 
                 case 'loan':
+                    // Tính toán chi tiết cho tổng quan
+                    let totalOriginalAmount = 0;
+                    let totalPaidAmount = 0;
+                    let totalRemainingAmount = 0;
+                    let totalInterestAmount = 0;
+
+                    financialData.loans.forEach(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        const remainingAmount = Math.max(0, loan.amount - totalPaid);
+
+                        totalOriginalAmount += loan.amount;
+                        totalPaidAmount += totalPaid;
+                        totalRemainingAmount += remainingAmount;
+
+                        // Tính lãi cho khoản vay đang hoạt động
+                        if (loan.startDate && loan.dueDate && loan.interestRate && loan.status?.toUpperCase() === 'ACTIVE') {
+                            const startDate = new Date(loan.startDate);
+                            const dueDate = new Date(loan.dueDate);
+                            const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            let interestMultiplier = 0;
+                            switch (loan.interestRateType) {
+                                case 'DAY': interestMultiplier = diffDays; break;
+                                case 'WEEK': interestMultiplier = diffDays / 7; break;
+                                case 'MONTH': interestMultiplier = diffDays / 30; break;
+                                case 'QUARTER': interestMultiplier = diffDays / 90; break;
+                                case 'YEAR': interestMultiplier = diffDays / 365; break;
+                            }
+                            const interestAmount = Math.round(remainingAmount * (loan.interestRate / 100) * interestMultiplier);
+                            totalInterestAmount += interestAmount;
+                        }
+                    });
+
                     const totalLoan = financialData.summary.totalLoans;
                     const activeLoans = financialData.summary.activeLoans;
-                    response = `🏦 **Tổng khoản vay ${timeDescription} (bao gồm lãi):** ${totalLoan.toLocaleString('vi-VN')} VND\n`;
-                    response += `📈 **Số khoản vay đang hoạt động:** ${activeLoans}\n\n`;
 
-                    if (financialData.loans.length > 0) {
-                        response += `📊 **Chi tiết khoản vay:**\n`;
-                        financialData.loans.slice(0, 5).forEach((loan, index) => {
-                            const date = new Date(loan.createdAt).toLocaleDateString('vi-VN');
-                            const status = loan.status?.toUpperCase() === 'ACTIVE' ? '🟢 Đang hoạt động' : '🔴 Đã đóng';
+                    response = `🏦 **Tổng quan khoản vay ${timeDescription}:**\n\n`;
+                    response += `💰 **Tổng tiền gốc:** ${totalOriginalAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `⏳ **Còn lại:** ${totalRemainingAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `📈 **Tiền lãi:** ${totalInterestAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `🔥 **Tổng phải trả:** ${(totalRemainingAmount + totalInterestAmount).toLocaleString('vi-VN')} VND\n`;
+                    response += `📊 **Số khoản đang hoạt động:** ${activeLoans}/${financialData.loans.length}`;
 
-                            // Tính toán chi tiết giống như frontend
-                            const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
-                            const remainingAmount = Math.max(0, loan.amount - totalPaid);
+                    if (financialData.loans.length === 0) {
+                        response += `\n\nKhông có dữ liệu khoản vay ${timeDescription}.`;
+                    }
+                    break;
 
-                            let totalWithInterest = remainingAmount;
-                            if (loan.startDate && loan.dueDate && loan.interestRate && loan.status?.toUpperCase() === 'ACTIVE') {
-                                const startDate = new Date(loan.startDate);
-                                const dueDate = new Date(loan.dueDate);
-                                const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                case 'loan_paid':
+                    // Lọc chỉ những khoản vay đã trả hết
+                    const paidLoans = financialData.loans.filter(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        const remainingAmount = Math.max(0, loan.amount - totalPaid);
+                        return loan.status?.toUpperCase() === 'PAID' || remainingAmount === 0;
+                    });
 
-                                let interestMultiplier = 0;
-                                switch (loan.interestRateType) {
-                                    case 'DAY': interestMultiplier = diffDays; break;
-                                    case 'WEEK': interestMultiplier = diffDays / 7; break;
-                                    case 'MONTH': interestMultiplier = diffDays / 30; break;
-                                    case 'QUARTER': interestMultiplier = diffDays / 90; break;
-                                    case 'YEAR': interestMultiplier = diffDays / 365; break;
-                                }
-                                const interestAmount = Math.round(remainingAmount * (loan.interestRate / 100) * interestMultiplier);
-                                totalWithInterest = remainingAmount + interestAmount;
+                    let totalPaidOriginalAmount = 0;
+                    let totalPaidPaidAmount = 0;
+
+                    paidLoans.forEach(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        totalPaidOriginalAmount += loan.amount;
+                        totalPaidPaidAmount += totalPaid;
+                    });
+
+                    response = `✅ **Khoản vay đã trả hết ${timeDescription}:**\n\n`;
+                    response += `💰 **Tổng tiền gốc đã trả:** ${totalPaidOriginalAmount.toLocaleString('vi-VN')} VND\n`;
+                    // Xóa dòng "Tổng số tiền đã thanh toán" khi số tiền = 0
+                    if (totalPaidPaidAmount > 0) {
+                        response += `✅ **Tổng số tiền đã thanh toán:** ${totalPaidPaidAmount.toLocaleString('vi-VN')} VND\n`;
+                    }
+                    response += `📊 **Số khoản đã hoàn thành:** ${paidLoans.length}/${financialData.loans.length}`;
+
+                    if (paidLoans.length === 0) {
+                        response += `\n\nKhông có khoản vay nào đã trả hết ${timeDescription}.\n\n`;
+                        response += `💡 **Gợi ý:** Bạn có thể:\n`;
+                        response += `• Hỏi "khoản vay của tôi" để xem tất cả khoản vay\n`;
+                        response += `• Hỏi "nợ còn lại" để xem các khoản chưa trả hết`;
+                    }
+                    break;
+
+                case 'loan_overdue':
+                    // Lọc chỉ những khoản vay quá hạn - Cải thiện logic nhận diện
+                    const today = new Date();
+                    const overdueLoans = financialData.loans.filter(loan => {
+                        // Kiểm tra trạng thái OVERDUE trực tiếp
+                        if (loan.status?.toUpperCase() === 'OVERDUE') {
+                            return true;
+                        }
+
+                        // Kiểm tra khoản vay ACTIVE nhưng đã quá hạn thanh toán
+                        if (loan.status?.toUpperCase() === 'ACTIVE' && loan.dueDate) {
+                            const dueDate = new Date(loan.dueDate);
+                            return today > dueDate;
+                        }
+
+                        // Kiểm tra khoản vay không có trạng thái rõ ràng nhưng đã quá hạn
+                        if (!loan.status && loan.dueDate) {
+                            const dueDate = new Date(loan.dueDate);
+                            return today > dueDate;
+                        }
+
+                        return false;
+                    });
+
+                    let totalOverdueOriginalAmount = 0;
+                    let totalOverduePaidAmount = 0;
+                    let totalOverdueRemainingAmount = 0;
+                    let totalOverdueInterestAmount = 0;
+                    let totalOverduePenalty = 0; // Thêm phí phạt quá hạn
+
+                    const overdueDetails = overdueLoans.map(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        const remainingAmount = Math.max(0, loan.amount - totalPaid);
+
+                        // Tính số ngày quá hạn
+                        const dueDate = new Date(loan.dueDate);
+                        const overdueDays = Math.max(0, Math.ceil((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24)));
+
+                        totalOverdueOriginalAmount += (loan.amount || 0);
+                        totalOverduePaidAmount += totalPaid;
+                        totalOverdueRemainingAmount += remainingAmount;
+
+                        let interestAmount = 0;
+                        let penaltyAmount = 0;
+
+                        // Tính lãi cho khoản vay quá hạn
+                        if (loan.startDate && loan.dueDate && loan.interestRate) {
+                            const startDate = new Date(loan.startDate);
+                            const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            let interestMultiplier = 0;
+                            switch (loan.interestRateType) {
+                                case 'DAY': interestMultiplier = diffDays; break;
+                                case 'WEEK': interestMultiplier = diffDays / 7; break;
+                                case 'MONTH': interestMultiplier = diffDays / 30; break;
+                                case 'QUARTER': interestMultiplier = diffDays / 90; break;
+                                case 'YEAR': interestMultiplier = diffDays / 365; break;
                             }
+                            interestAmount = Math.round(remainingAmount * (loan.interestRate / 100) * interestMultiplier);
+                            totalOverdueInterestAmount += interestAmount;
+                        }
 
-                            response += `${index + 1}. ${loan.description || 'Khoản vay'}: ${totalWithInterest.toLocaleString('vi-VN')} VND - ${status} (${date})\n`;
+                        // Tính phí phạt quá hạn (giả sử 0.1% mỗi ngày quá hạn)
+                        if (overdueDays > 0) {
+                            penaltyAmount = Math.round(remainingAmount * 0.001 * overdueDays);
+                            totalOverduePenalty += penaltyAmount;
+                        }
+
+                        return {
+                            ...loan,
+                            amount: loan.amount || 0,
+                            remainingAmount,
+                            interestAmount,
+                            penaltyAmount,
+                            overdueDays,
+                            totalWithInterestAndPenalty: remainingAmount + interestAmount + penaltyAmount
+                        };
+                    });
+
+                    response = `🚨 **Khoản vay quá hạn ${timeDescription}:**\n\n`;
+                    response += `💰 **Tổng tiền gốc:** ${totalOverdueOriginalAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `⏳ **Còn lại:** ${totalOverdueRemainingAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `📈 **Tiền lãi:** ${totalOverdueInterestAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `⚠️ **Phí phạt:** ${totalOverduePenalty.toLocaleString('vi-VN')} VND\n`;
+                    response += `🔥 **Tổng cần trả:** ${(totalOverdueRemainingAmount + totalOverdueInterestAmount + totalOverduePenalty).toLocaleString('vi-VN')} VND\n`;
+                    response += `📊 **Số khoản quá hạn:** ${overdueLoans.length}/${financialData.loans.length}`;
+
+                    if (overdueLoans.length === 0) {
+                        response += `\n\n🎉 **Tuyệt vời!** Bạn không có khoản vay nào quá hạn ${timeDescription}.\n\n`;
+                        response += `💡 **Gợi ý:** Bạn có thể:\n`;
+                        response += `• Hỏi "khoản vay của tôi" để xem tất cả khoản vay\n`;
+                        response += `• Hỏi "nợ còn lại" để xem các khoản chưa trả hết`;
+                    } else {
+                        response += `\n\n📋 **Chi tiết các khoản quá hạn:**\n`;
+                        overdueDetails.slice(0, 5).forEach((loan, index) => {
+                            const description = loan.description || loan.purpose || 'Khoản vay';
+                            const amount = loan.amount || 0;
+                            const remainingAmount = loan.remainingAmount || 0;
+                            const interestAmount = loan.interestAmount || 0;
+                            const penaltyAmount = loan.penaltyAmount || 0;
+                            const overdueDays = loan.overdueDays || 0;
+                            const totalWithInterestAndPenalty = loan.totalWithInterestAndPenalty || 0;
+
+                            response += `${index + 1}. **${description}** - 🚨 Quá hạn ${overdueDays} ngày\n`;
+                            response += `   💰 Gốc: ${amount.toLocaleString('vi-VN')} VND\n`;
+                            response += `   ⏳ Còn lại: ${remainingAmount.toLocaleString('vi-VN')} VND`;
+                            if (interestAmount > 0) {
+                                response += ` | 📈 Lãi: ${interestAmount.toLocaleString('vi-VN')} VND`;
+                            }
+                            if (penaltyAmount > 0) {
+                                response += ` | ⚠️ Phạt: ${penaltyAmount.toLocaleString('vi-VN')} VND`;
+                            }
+                            response += `\n   🔥 Tổng: ${totalWithInterestAndPenalty.toLocaleString('vi-VN')} VND\n\n`;
                         });
 
-                        if (financialData.loans.length > 5) {
-                            response += `\n... và ${financialData.loans.length - 5} khoản vay khác.`;
+                        if (overdueLoans.length > 5) {
+                            response += `... và ${overdueLoans.length - 5} khoản quá hạn khác.\n\n`;
                             // Lưu context để xử lý yêu cầu xem chi tiết
                             this.conversationContext.set(userId, {
-                                type: 'loan',
-                                data: financialData.loans,
+                                type: 'loan_overdue',
+                                data: overdueDetails,
                                 timeFilter,
                                 timeDescription,
                                 timestamp: Date.now()
                             });
-                            response += `\n\n💡 *Bạn có thể hỏi "xem chi tiết các khoản còn lại" để xem tất cả.*`;
+                            response += `💡 *Bạn có thể hỏi "xem chi tiết các khoản còn lại" để xem tất cả.*\n\n`;
                         }
-                    } else {
-                        response += `Không có dữ liệu khoản vay ${timeDescription}.`;
+
+                        response += `⚠️ **Cảnh báo:** Bạn có ${overdueLoans.length} khoản vay quá hạn cần ưu tiên thanh toán ngay!\n`;
+                        response += `💡 **Khuyến nghị:** Hãy liên hệ với người cho vay để thỏa thuận kế hoạch thanh toán.`;
+                    }
+                    break;
+
+                case 'loan_remaining':
+                    // Lọc chỉ những khoản vay còn lại chưa trả hết
+                    const remainingLoans = financialData.loans.filter(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        const remainingAmount = Math.max(0, loan.amount - totalPaid);
+                        return loan.status?.toUpperCase() === 'ACTIVE' && remainingAmount > 0;
+                    });
+
+                    let totalRemainingOriginalAmount = 0;
+                    let totalRemainingPaidAmount = 0;
+                    let totalRemainingRemainingAmount = 0;
+                    let totalRemainingInterestAmount = 0;
+
+                    remainingLoans.forEach(loan => {
+                        const totalPaid = loan.payments ? loan.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                        const remainingAmount = Math.max(0, loan.amount - totalPaid);
+
+                        totalRemainingOriginalAmount += loan.amount;
+                        totalRemainingPaidAmount += totalPaid;
+                        totalRemainingRemainingAmount += remainingAmount;
+
+                        // Tính lãi cho khoản vay đang hoạt động
+                        if (loan.startDate && loan.dueDate && loan.interestRate) {
+                            const startDate = new Date(loan.startDate);
+                            const dueDate = new Date(loan.dueDate);
+                            const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                            let interestMultiplier = 0;
+                            switch (loan.interestRateType) {
+                                case 'DAY': interestMultiplier = diffDays; break;
+                                case 'WEEK': interestMultiplier = diffDays / 7; break;
+                                case 'MONTH': interestMultiplier = diffDays / 30; break;
+                                case 'QUARTER': interestMultiplier = diffDays / 90; break;
+                                case 'YEAR': interestMultiplier = diffDays / 365; break;
+                            }
+                            const interestAmount = Math.round(remainingAmount * (loan.interestRate / 100) * interestMultiplier);
+                            totalRemainingInterestAmount += interestAmount;
+                        }
+                    });
+
+                    response = `⏳ **Khoản vay còn lại chưa trả hết ${timeDescription}:**\n\n`;
+                    response += `💰 **Tổng tiền gốc:** ${totalRemainingOriginalAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `⏳ **Còn lại:** ${totalRemainingRemainingAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `📈 **Tiền lãi:** ${totalRemainingInterestAmount.toLocaleString('vi-VN')} VND\n`;
+                    response += `🔥 **Tổng cần trả:** ${(totalRemainingRemainingAmount + totalRemainingInterestAmount).toLocaleString('vi-VN')} VND\n`;
+                    response += `📊 **Số khoản chưa hoàn thành:** ${remainingLoans.length}/${financialData.loans.length}`;
+
+                    if (remainingLoans.length === 0) {
+                        response += `\n\n🎉 **Chúc mừng!** Bạn không có khoản vay nào chưa trả hết ${timeDescription}.\n\n`;
+                        response += `💡 **Gợi ý:** Bạn có thể:\n`;
+                        response += `• Hỏi "khoản vay của tôi" để xem tất cả khoản vay\n`;
+                        response += `• Hỏi "nợ đã trả" để xem các khoản đã hoàn thành`;
                     }
                     break;
 
@@ -1613,8 +2440,7 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                 stack: error.stack,
                 userId,
                 category,
-                message,
-                timeFilter
+                message
             });
             const categoryNames = {
                 'income': 'thu nhập',
@@ -1726,6 +2552,9 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                 'income': 'thu nhập',
                 'expense': 'chi tiêu',
                 'loan': 'khoản vay',
+                'loan_paid': 'khoản vay đã trả hết',
+                'loan_overdue': 'khoản vay quá hạn',
+                'loan_remaining': 'khoản vay chưa trả hết',
                 'investment': 'đầu tư',
                 'savings': 'tiết kiệm ngân hàng',
                 'savings_income': 'tiền tiết kiệm',
@@ -1738,6 +2567,9 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                 'income': '💰',
                 'expense': '💸',
                 'loan': '🏦',
+                'loan_paid': '✅',
+                'loan_overdue': '🚨',
+                'loan_remaining': '⏳',
                 'investment': '📈',
                 'savings': '🏦',
                 'stock': '📈',
@@ -1774,7 +2606,7 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                                 const totalPaid = item.payments ? item.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
                                 const remainingAmount = Math.max(0, item.amount - totalPaid);
 
-                                let totalWithInterest = remainingAmount;
+                                let interestAmount = 0;
                                 if (item.startDate && item.dueDate && item.interestRate && item.status?.toUpperCase() === 'ACTIVE') {
                                     const startDate = new Date(item.startDate);
                                     const dueDate = new Date(item.dueDate);
@@ -1789,11 +2621,93 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                                         case 'QUARTER': interestMultiplier = diffDays / 90; break;
                                         case 'YEAR': interestMultiplier = diffDays / 365; break;
                                     }
-                                    const interestAmount = Math.round(remainingAmount * (item.interestRate / 100) * interestMultiplier);
-                                    totalWithInterest = remainingAmount + interestAmount;
+                                    interestAmount = Math.round(remainingAmount * (item.interestRate / 100) * interestMultiplier);
                                 }
 
-                                response += `${index + 6}. ${item.description || 'Khoản vay'}: ${totalWithInterest.toLocaleString('vi-VN')} VND - ${status} (${date})\n`;
+                                const totalWithInterest = remainingAmount + interestAmount;
+
+                                response += `${index + 6}. **${item.description || 'Khoản vay'}** - ${status}\n`;
+                                response += `   💰 Gốc: ${item.amount.toLocaleString('vi-VN')} VND\n`;
+                                response += `   ⏳ Còn lại: ${remainingAmount.toLocaleString('vi-VN')} VND`;
+                                if (interestAmount > 0) {
+                                    response += ` | 📈 Lãi: ${interestAmount.toLocaleString('vi-VN')} VND`;
+                                }
+                                response += `\n   🔥 **Tổng phải trả: ${totalWithInterest.toLocaleString('vi-VN')} VND** (${date})\n\n`;
+                                break;
+                            case 'loan_paid':
+                                const totalPaidAmount = item.payments ? item.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+
+                                response += `${index + 6}. **${item.description || 'Khoản vay'}** - 🔴 Đã hoàn thành\n`;
+                                response += `   💰 Tiền gốc: ${item.amount.toLocaleString('vi-VN')} VND\n`;
+                                response += `   ✅ Đã thanh toán: ${totalPaidAmount.toLocaleString('vi-VN')} VND\n`;
+                                response += `   📅 Ngày tạo: ${date}\n\n`;
+                                break;
+                            case 'loan_remaining':
+                                const totalPaidRemaining = item.payments ? item.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                                const remainingAmountRemaining = Math.max(0, item.amount - totalPaidRemaining);
+
+                                let interestAmountRemaining = 0;
+                                if (item.startDate && item.dueDate && item.interestRate) {
+                                    const startDate = new Date(item.startDate);
+                                    const dueDate = new Date(item.dueDate);
+                                    const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                    let interestMultiplier = 0;
+                                    switch (item.interestRateType) {
+                                        case 'DAY': interestMultiplier = diffDays; break;
+                                        case 'WEEK': interestMultiplier = diffDays / 7; break;
+                                        case 'MONTH': interestMultiplier = diffDays / 30; break;
+                                        case 'QUARTER': interestMultiplier = diffDays / 90; break;
+                                        case 'YEAR': interestMultiplier = diffDays / 365; break;
+                                    }
+                                    interestAmountRemaining = Math.round(remainingAmountRemaining * (item.interestRate / 100) * interestMultiplier);
+                                }
+
+                                const totalWithInterestRemaining = remainingAmountRemaining + interestAmountRemaining;
+
+                                response += `${index + 6}. **${item.description || 'Khoản vay'}** - 🟢 Chưa hoàn thành\n`;
+                                response += `   💰 Gốc: ${item.amount.toLocaleString('vi-VN')} VND\n`;
+                                response += `   ⏳ Còn lại: ${remainingAmountRemaining.toLocaleString('vi-VN')} VND`;
+                                if (interestAmountRemaining > 0) {
+                                    response += ` | 📈 Lãi: ${interestAmountRemaining.toLocaleString('vi-VN')} VND`;
+                                }
+                                response += `\n   🔥 **Cần trả: ${totalWithInterestRemaining.toLocaleString('vi-VN')} VND** (${date})\n\n`;
+                                break;
+                            case 'loan_overdue':
+                                const totalPaidOverdue = item.payments ? item.payments.reduce((sum, payment) => sum + payment.amount, 0) : 0;
+                                const remainingAmountOverdue = Math.max(0, item.amount - totalPaidOverdue);
+
+                                let interestAmountOverdue = 0;
+                                if (item.startDate && item.dueDate && item.interestRate) {
+                                    const startDate = new Date(item.startDate);
+                                    const dueDate = new Date(item.dueDate);
+                                    const diffTime = Math.abs(dueDate.getTime() - startDate.getTime());
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                    let interestMultiplier = 0;
+                                    switch (item.interestRateType) {
+                                        case 'DAY': interestMultiplier = diffDays; break;
+                                        case 'WEEK': interestMultiplier = diffDays / 7; break;
+                                        case 'MONTH': interestMultiplier = diffDays / 30; break;
+                                        case 'QUARTER': interestMultiplier = diffDays / 90; break;
+                                        case 'YEAR': interestMultiplier = diffDays / 365; break;
+                                    }
+                                    interestAmountOverdue = Math.round(remainingAmountOverdue * (item.interestRate / 100) * interestMultiplier);
+                                }
+
+                                const totalWithInterestOverdue = remainingAmountOverdue + interestAmountOverdue;
+                                const today = new Date();
+                                const dueDate = new Date(item.dueDate);
+                                const overdueDays = Math.ceil((today.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+
+                                response += `${index + 6}. **${item.description || 'Khoản vay'}** - 🚨 Quá hạn ${overdueDays} ngày\n`;
+                                response += `   💰 Gốc: ${item.amount.toLocaleString('vi-VN')} VND\n`;
+                                response += `   ⏳ Còn lại: ${remainingAmountOverdue.toLocaleString('vi-VN')} VND`;
+                                if (interestAmountOverdue > 0) {
+                                    response += ` | 📈 Lãi: ${interestAmountOverdue.toLocaleString('vi-VN')} VND`;
+                                }
+                                response += `\n   🔥 **Cần trả gấp: ${totalWithInterestOverdue.toLocaleString('vi-VN')} VND** (${date})\n\n`;
                                 break;
                             case 'investment':
                                 const investmentType = item.type || 'Không xác định';
@@ -1828,8 +2742,8 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
 
                     // Tính tổng số tiền khác nhau cho từng loại
                     let totalAmount = 0;
-                    if (type === 'loan') {
-                        // Tính tổng khoản vay bao gồm lãi
+                    if (type === 'loan' || type === 'loan_remaining' || type === 'loan_overdue') {
+                        // Tính tổng khoản vay bao gồm lãi (cho loan, loan_remaining và loan_overdue)
                         totalAmount = data.reduce((sum, item) => {
                             const totalPaid = item.payments ? item.payments.reduce((s, payment) => s + payment.amount, 0) : 0;
                             const remainingAmount = Math.max(0, item.amount - totalPaid);
@@ -1853,6 +2767,12 @@ Hãy đưa ra phân tích chi tiết và lời khuyên thực tế.`;
                                 totalWithInterest = remainingAmount + interestAmount;
                             }
                             return sum + totalWithInterest;
+                        }, 0);
+                    } else if (type === 'loan_paid') {
+                        // Tính tổng số tiền đã thanh toán cho khoản vay đã trả hết
+                        totalAmount = data.reduce((sum, item) => {
+                            const totalPaid = item.payments ? item.payments.reduce((s, payment) => s + payment.amount, 0) : 0;
+                            return sum + totalPaid;
                         }, 0);
                     } else if (type === 'investment' || type === 'savings' || type === 'stock' || type === 'gold' || type === 'realestate') {
                         // Tính tổng đầu tư, tiết kiệm, cổ phiếu, vàng hoặc đất đai
@@ -1908,7 +2828,62 @@ Hãy trả lời câu hỏi một cách chính xác và hữu ích.`;
     }
 
     /**
-     * Xử lý câu hỏi suy luận và tính toán
+     * 🧮 Xử lý tính toán thông thường (General Calculation)
+     */
+    async handleGeneralCalculation(userId, message) {
+        try {
+            logger.info('Processing general calculation', { userId, message });
+
+            const result = await this.calculationCoordinator.processCalculation(message, 'general');
+
+            return result;
+
+        } catch (error) {
+            logger.error('Error handling general calculation:', error);
+            return `❌ **Lỗi tính toán thông thường**
+
+🔄 **Vui lòng thử lại hoặc:**
+• Kiểm tra cú pháp của biểu thức toán học
+• Sử dụng các phép tính được hỗ trợ
+
+💡 **Ví dụ:**
+• "2 + 3 = ?"
+• "15% của 1 triệu"
+• "lãi suất 5% của 10 triệu trong 12 tháng"`;
+        }
+    }
+
+    /**
+     * 💰 Xử lý tính toán tài chính (Financial Calculation)
+     */
+    async handleFinancialCalculation(userId, message) {
+        try {
+            logger.info('Processing financial calculation', { userId, message });
+
+            // Lấy dữ liệu tài chính hiện tại
+            const financialData = await this.getUserFinancialData(userId);
+
+            const result = await this.calculationCoordinator.processCalculation(message, 'financial', financialData);
+
+            return result;
+
+        } catch (error) {
+            logger.error('Error handling financial calculation:', error);
+            return `❌ **Lỗi tính toán tài chính**
+
+🔄 **Vui lòng thử lại hoặc:**
+• Đảm bảo có đủ dữ liệu tài chính
+• Nói rõ hơn về số tiền cần tính toán
+
+💡 **Ví dụ:**
+• "Tôi có thể chi 4tr được không?"
+• "Nếu tôi chi 2 triệu thì còn bao nhiêu?"
+• "Số dư của tôi"`;
+        }
+    }
+
+    /**
+     * Xử lý câu hỏi suy luận và tính toán (Legacy)
      */
     async handleCalculationQuery(userId, message) {
         try {
@@ -2094,8 +3069,12 @@ ${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số t
             const { transactionData, forceType, sessionId } = context;
             const normalizedMessage = message.toLowerCase().trim();
 
-            // Xóa context
-            this.conversationContext.delete(userId);
+            logger.info('Category confirmation received', {
+                userId,
+                message,
+                suggestedCategories: transactionData.suggestedCategories,
+                transactionData
+            });
 
             // Kiểm tra nếu user chọn số thứ tự
             const numberMatch = normalizedMessage.match(/^(\d+)$/);
@@ -2103,33 +3082,277 @@ ${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số t
                 const index = parseInt(numberMatch[1]) - 1;
                 if (index >= 0 && index < transactionData.suggestedCategories.length) {
                     transactionData.category = transactionData.suggestedCategories[index];
+                    logger.info('Category selected by number', {
+                        userId,
+                        selectedIndex: index,
+                        selectedCategory: transactionData.category
+                    });
                 } else {
                     return 'Số thứ tự không hợp lệ. Vui lòng chọn lại hoặc nói tên danh mục.';
                 }
             } else {
-                // Kiểm tra nếu user nói tên category
-                const selectedCategory = transactionData.suggestedCategories.find(cat =>
+                // Kiểm tra nếu user nói tên category - cải thiện logic matching
+                let selectedCategory = null;
+
+                // Tìm kiếm chính xác trước
+                selectedCategory = transactionData.suggestedCategories.find(cat =>
+                    normalizedMessage === cat.toLowerCase() ||
                     normalizedMessage.includes(cat.toLowerCase()) ||
                     cat.toLowerCase().includes(normalizedMessage)
                 );
 
+                // Nếu không tìm thấy, thử tìm kiếm mờ
+                if (!selectedCategory) {
+                    selectedCategory = transactionData.suggestedCategories.find(cat => {
+                        const catWords = cat.toLowerCase().split(' ');
+                        const messageWords = normalizedMessage.split(' ');
+
+                        // Kiểm tra nếu có từ nào khớp
+                        return catWords.some(catWord =>
+                            messageWords.some(msgWord =>
+                                catWord.includes(msgWord) || msgWord.includes(catWord)
+                            )
+                        );
+                    });
+                }
+
                 if (selectedCategory) {
                     transactionData.category = selectedCategory;
+                    logger.info('Category selected by name', {
+                        userId,
+                        selectedCategory: transactionData.category,
+                        originalMessage: message
+                    });
                 } else {
-                    return `Không tìm thấy danh mục "${message}". Vui lòng chọn một trong các danh mục đã gợi ý hoặc nói rõ hơn.`;
+                    // Nếu vẫn không tìm thấy, sử dụng category đầu tiên làm mặc định
+                    transactionData.category = transactionData.suggestedCategories[0];
+                    logger.info('Using default category (no match found)', {
+                        userId,
+                        defaultCategory: transactionData.category,
+                        originalMessage: message,
+                        suggestedCategories: transactionData.suggestedCategories
+                    });
                 }
             }
+
+            // Xóa context để tránh loop
+            this.conversationContext.delete(userId);
 
             // Xóa needsCategoryConfirmation để tránh loop
             transactionData.needsCategoryConfirmation = false;
 
-            // Tiếp tục xử lý transaction với category đã được xác nhận
-            return await this.handleInsertTransaction(userId, `${transactionData.note} ${transactionData.amount}`, sessionId, forceType);
+            // Gọi trực tiếp API để lưu transaction thay vì gọi lại handleInsertTransaction
+            const apiEndpoint = this.getApiEndpoint(transactionData.type);
+            // Thêm userId vào transactionData
+            transactionData.userId = userId;
+            const response = await this.callTransactionAPI(apiEndpoint, transactionData, sessionId);
+
+            if (response.success) {
+                return `✅ **Đã lưu thành công!**
+
+💰 **Số tiền:** ${transactionData.amount.toLocaleString('vi-VN')} VND
+📝 **Ghi chú:** ${transactionData.note}
+📂 **Danh mục:** ${transactionData.category}
+📅 **Ngày:** ${new Date(transactionData.date).toLocaleDateString('vi-VN')}
+
+Giao dịch đã được thêm vào hệ thống.`;
+            } else {
+                return `❌ **Lỗi khi lưu:** ${response.message || 'Không thể lưu giao dịch'}`;
+            }
 
         } catch (error) {
             logger.error('Error handling category confirmation:', error);
             return 'Có lỗi xảy ra khi xác nhận danh mục. Vui lòng thử lại.';
         }
+    }
+
+
+
+    /**
+     * 📊 Xử lý thống kê nâng cao với Enhanced Statistics Engine
+     */
+    async handleStatisticsQuery(userId, message) {
+        try {
+            logger.info('Processing enhanced statistics query', { userId, message });
+
+            // Phân tích từ khóa và thời gian từ tin nhắn
+            const { timeFilter } = this.analyzeKeywordsAndTime(message);
+
+            // Lấy dữ liệu tài chính với bộ lọc thời gian
+            const financialData = await this.getUserFinancialData(userId, timeFilter);
+
+            // Kiểm tra xem có phải statistics query không
+            const detection = this.statisticsEngine.detectStatisticsQuery(message);
+
+            logger.info('Statistics detection result', {
+                message,
+                detection,
+                willUseEnhanced: detection.isStatistics
+            });
+
+            if (!detection.isStatistics) {
+                // Fallback to legacy statistics handling
+                logger.info('Using legacy statistics handling');
+                return this.handleLegacyStatistics(financialData, message);
+            }
+
+            // Xử lý với Enhanced Statistics Engine
+            const response = await this.statisticsEngine.processStatistics(message, financialData, timeFilter);
+
+            logger.info('Enhanced statistics processed successfully', {
+                userId,
+                statisticsType: detection.type,
+                confidence: detection.confidence
+            });
+
+            return response;
+
+        } catch (error) {
+            logger.error('Error handling enhanced statistics query:', error);
+            return this.statisticsEngine.getErrorResponse();
+        }
+    }
+
+    /**
+     * 📊 Legacy statistics handling (fallback)
+     */
+    handleLegacyStatistics(financialData, message) {
+        const messageLower = message.toLowerCase();
+        let response = '';
+
+        if (messageLower.includes('trung bình') || messageLower.includes('average')) {
+            // Thống kê trung bình
+            const avgIncome = financialData.incomes.length > 0 ?
+                financialData.summary.totalIncomes / financialData.incomes.length : 0;
+            const avgExpense = financialData.expenses.length > 0 ?
+                financialData.summary.totalExpenses / financialData.expenses.length : 0;
+
+            response = `📊 **Thống kê trung bình:**\n\n`;
+            response += `💰 **Thu nhập trung bình:** ${avgIncome.toLocaleString('vi-VN')} VND/giao dịch\n`;
+            response += `💸 **Chi tiêu trung bình:** ${avgExpense.toLocaleString('vi-VN')} VND/giao dịch\n`;
+            response += `📈 **Tỷ lệ tiết kiệm:** ${((financialData.summary.totalIncomes - financialData.summary.totalExpenses) / financialData.summary.totalIncomes * 100).toFixed(1)}%`;
+
+        } else if (messageLower.includes('so sánh') || messageLower.includes('compare')) {
+            // So sánh thu chi
+            const balance = financialData.summary.totalIncomes - financialData.summary.totalExpenses;
+            const ratio = financialData.summary.totalExpenses / financialData.summary.totalIncomes * 100;
+
+            response = `📊 **So sánh thu chi:**\n\n`;
+            response += `💰 **Tổng thu nhập:** ${financialData.summary.totalIncomes.toLocaleString('vi-VN')} VND\n`;
+            response += `💸 **Tổng chi tiêu:** ${financialData.summary.totalExpenses.toLocaleString('vi-VN')} VND\n`;
+            response += `${balance >= 0 ? '💚' : '💔'} **Số dư:** ${balance.toLocaleString('vi-VN')} VND\n`;
+            response += `📈 **Tỷ lệ chi tiêu:** ${ratio.toFixed(1)}% thu nhập\n\n`;
+
+            if (balance >= 0) {
+                response += `✅ **Tình hình tài chính tốt!** Bạn đang tiết kiệm được ${(100 - ratio).toFixed(1)}% thu nhập.`;
+            } else {
+                response += `⚠️ **Cần chú ý!** Chi tiêu vượt quá thu nhập ${Math.abs(balance).toLocaleString('vi-VN')} VND.`;
+            }
+
+        } else if (messageLower.includes('phân tích') || messageLower.includes('analyze')) {
+            // Phân tích tổng quan
+            response = `📊 **Phân tích tổng quan:**\n\n`;
+            response += `📈 **Số giao dịch:**\n`;
+            response += `• Thu nhập: ${financialData.incomes.length} giao dịch\n`;
+            response += `• Chi tiêu: ${financialData.expenses.length} giao dịch\n`;
+            response += `• Khoản vay: ${financialData.loans.length} khoản\n`;
+            response += `• Đầu tư: ${financialData.investments.length} khoản\n\n`;
+
+            response += `💰 **Tổng số tiền:**\n`;
+            response += `• Thu nhập: ${financialData.summary.totalIncomes.toLocaleString('vi-VN')} VND\n`;
+            response += `• Chi tiêu: ${financialData.summary.totalExpenses.toLocaleString('vi-VN')} VND\n`;
+            response += `• Khoản vay: ${financialData.summary.totalLoans.toLocaleString('vi-VN')} VND\n`;
+            response += `• Đầu tư: ${financialData.summary.totalInvestments.toLocaleString('vi-VN')} VND`;
+
+        } else {
+            // Thống kê tổng quan
+            response = `📊 **Thống kê tổng quan:**\n\n`;
+            response += `📈 **Số giao dịch:**\n`;
+            response += `• Thu nhập: ${financialData.incomes.length} giao dịch\n`;
+            response += `• Chi tiêu: ${financialData.expenses.length} giao dịch\n`;
+            response += `• Khoản vay: ${financialData.loans.length} khoản\n`;
+            response += `• Đầu tư: ${financialData.investments.length} khoản\n\n`;
+
+            response += `💰 **Tổng số tiền:**\n`;
+            response += `• Thu nhập: ${financialData.summary.totalIncomes.toLocaleString('vi-VN')} VND\n`;
+            response += `• Chi tiêu: ${financialData.summary.totalExpenses.toLocaleString('vi-VN')} VND\n`;
+            response += `• Khoản vay: ${financialData.summary.totalLoans.toLocaleString('vi-VN')} VND\n`;
+            response += `• Đầu tư: ${financialData.summary.totalInvestments.toLocaleString('vi-VN')} VND`;
+        }
+
+        return response;
+    }
+
+    /**
+     * ⏰ Xử lý truy vấn theo thời gian
+     */
+    async handleTimeQuery(userId, message) {
+        try {
+            const { timeFilter } = this.analyzeKeywordsAndTime(message);
+
+            if (!timeFilter) {
+                return 'Tôi chưa hiểu rõ khoảng thời gian bạn muốn xem. Bạn có thể nói:\n• "Thu nhập tuần này"\n• "Chi tiêu tháng trước"\n• "Khoản vay hôm qua"';
+            }
+
+            const financialData = await this.getUserFinancialData(userId, timeFilter);
+
+            let timeDescription = '';
+            switch (timeFilter.type) {
+                case 'today': timeDescription = 'hôm nay'; break;
+                case 'week': timeDescription = 'tuần này'; break;
+                case 'current_month': timeDescription = 'tháng này'; break;
+                case 'month': timeDescription = `tháng ${timeFilter.value}`; break;
+                case 'year': timeDescription = `năm ${timeFilter.value}`; break;
+                default: timeDescription = 'thời gian được chỉ định';
+            }
+
+            let response = `📅 **Tổng quan tài chính ${timeDescription}:**\n\n`;
+            response += `💰 **Thu nhập:** ${financialData.summary.totalIncomes.toLocaleString('vi-VN')} VND (${financialData.incomes.length} giao dịch)\n`;
+            response += `💸 **Chi tiêu:** ${financialData.summary.totalExpenses.toLocaleString('vi-VN')} VND (${financialData.expenses.length} giao dịch)\n`;
+            response += `🏦 **Khoản vay:** ${financialData.summary.totalLoans.toLocaleString('vi-VN')} VND (${financialData.loans.length} khoản)\n`;
+            response += `📈 **Đầu tư:** ${financialData.summary.totalInvestments.toLocaleString('vi-VN')} VND (${financialData.investments.length} khoản)\n\n`;
+
+            const balance = financialData.summary.totalIncomes - financialData.summary.totalExpenses;
+            response += `${balance >= 0 ? '💚' : '💔'} **Số dư ${timeDescription}:** ${balance.toLocaleString('vi-VN')} VND`;
+
+            return response;
+
+        } catch (error) {
+            logger.error('Error handling time query:', error);
+            return 'Không thể truy vấn dữ liệu theo thời gian. Vui lòng thử lại sau.';
+        }
+    }
+
+    /**
+     * 🔧 Helper method để trích xuất số tiền từ text
+     */
+    extractAmount(text) {
+        const amountRegex = /(\d+(?:\.\d+)?)\s*(k|nghìn|triệu|tr|m|tỷ|billion|million|thousand)?/i;
+        const match = text.match(amountRegex);
+
+        if (match) {
+            const number = parseFloat(match[1]);
+            const unit = match[2]?.toLowerCase() || '';
+
+            switch (unit) {
+                case 'k':
+                case 'nghìn':
+                case 'thousand':
+                    return number * 1000;
+                case 'triệu':
+                case 'tr':
+                case 'm':
+                case 'million':
+                    return number * 1000000;
+                case 'tỷ':
+                case 'billion':
+                    return number * 1000000000;
+                default:
+                    return number;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -2141,114 +3364,180 @@ ${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số t
     }
 
     /**
-     * Xử lý câu hỏi chung
+     * 🤖 AI Direct Mode Handler - Chỉ sử dụng AI để trả lời
      */
-    async handleGeneralQuestion(message) {
-        // Kiểm tra xem có phải câu hỏi liên quan đến tài chính không
-        const normalizedMessage = message.toLowerCase().trim();
-        const removeDiacritics = (str) => {
-            return str.normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-                .replace(/đ/g, 'd')
-                .replace(/Đ/g, 'D');
-        };
-        const normalizedNoDiacritics = removeDiacritics(normalizedMessage);
-
-        // Danh sách từ khóa tài chính mở rộng (dựa trên training data)
-        const financialKeywords = [
-            // Tiền bạc cơ bản
-            'tiền', 'tien', 'money', 'cash', 'đồng', 'dong', 'vnd',
-
-            // Tài chính tổng quát
-            'tài chính', 'tai chinh', 'finance', 'financial',
-            'ngân hàng', 'ngan hang', 'bank', 'banking',
-            'số dư', 'so du', 'balance', 'tài khoản', 'tai khoan',
-
-            // Thu nhập
-            'thu nhập', 'thu nhap', 'income', 'salary',
-            'lương', 'luong', 'wage', 'pay', 'tiền lương', 'tien luong',
-            'tiền thưởng', 'tien thuong', 'bonus', 'thưởng', 'thuong',
-            'kiếm được', 'kiem duoc', 'nhận được', 'nhan duoc',
-
-            // Chi tiêu
-            'chi tiêu', 'chi tieu', 'expense', 'spending',
-            'chi phí', 'chi phi', 'cost', 'tiêu dùng', 'tieu dung',
-            'tiêu', 'tieu', 'spend', 'mua', 'buy', 'thanh toán', 'thanh toan',
-
-            // Khoản vay và nợ
-            'vay', 'loan', 'debt', 'nợ', 'no', 'khoản vay', 'khoan vay',
-            'nợ nần', 'no nan', 'mượn', 'muon', 'borrow',
-            'trả nợ', 'tra no', 'repay', 'thanh toán nợ', 'thanh toan no',
-
-            // Đầu tư
-            'đầu tư', 'dau tu', 'investment', 'invest',
-            'cổ phiếu', 'co phieu', 'stock', 'share', 'chứng khoán', 'chung khoan',
-            'vàng', 'vang', 'gold', 'crypto', 'bitcoin',
-            'bất động sản', 'bat dong san', 'real estate', 'property',
-            'đất', 'dat', 'land', 'nhà', 'nha', 'house',
-            'lợi nhuận', 'loi nhuan', 'profit', 'lãi', 'lai',
-            'thua lỗ', 'thua lo', 'loss', 'lỗ', 'lo',
-
-            // Tiết kiệm và ngân sách
-            'tiết kiệm', 'tiet kiem', 'saving', 'savings',
-            'ngân sách', 'ngan sach', 'budget', 'hạn mức', 'han muc',
-            'kế hoạch', 'ke hoach', 'plan', 'planning',
-            'mục tiêu', 'muc tieu', 'goal', 'target',
-
-            // Báo cáo và thống kê
-            'báo cáo', 'bao cao', 'report', 'thống kê', 'thong ke',
-            'biểu đồ', 'bieu do', 'chart', 'phân tích', 'phan tich',
-            'tổng quan', 'tong quan', 'overview', 'summary',
-
-            // Danh mục và phân loại
-            'danh mục', 'danh muc', 'category', 'phân loại', 'phan loai',
-            'ăn uống', 'an uong', 'food', 'di chuyển', 'di chuyen',
-            'giải trí', 'giai tri', 'entertainment', 'học tập', 'hoc tap',
-
-            // Lãi suất và tính toán
-            'lãi suất', 'lai suat', 'interest', 'rate',
-            'tính toán', 'tinh toan', 'calculate', 'calculation',
-
-            // Kinh doanh
-            'kinh doanh', 'business', 'doanh nghiệp', 'doanh nghiep'
-        ];
-
-        const isFinancialQuestion = financialKeywords.some(keyword =>
-            normalizedMessage.includes(keyword) || normalizedNoDiacritics.includes(keyword)
-        );
-
-        if (isFinancialQuestion) {
-            const generalPrompt = `
-Bạn là VanLang Agent - trợ lý tài chính AI thông minh. Hãy trả lời câu hỏi sau một cách hữu ích và chuyên nghiệp: "${message}"
-
-Hướng dẫn:
-- Nếu câu hỏi về tài chính cá nhân, hãy đưa ra lời khuyên thực tế
-- Nếu hỏi về thuật ngữ tài chính, hãy giải thích rõ ràng
-- Nếu hỏi về đầu tư, hãy đưa ra thông tin khách quan
-- Nếu hỏi về quản lý tiền bạc, hãy đưa ra các bước cụ thể
-- Luôn khuyến khích người dùng sử dụng các tính năng của hệ thống để theo dõi tài chính
-
-Trả lời bằng tiếng Việt, thân thiện và chuyên nghiệp.`;
-
-            try {
-                const response = await this.callGeminiAI(generalPrompt);
-                return response;
-            } catch (error) {
-                return 'Tôi hiểu bạn đang hỏi về vấn đề tài chính. Tuy nhiên, tôi gặp lỗi khi xử lý. Bạn có thể hỏi tôi về thu nhập, chi tiêu, đầu tư, khoản vay, hoặc bất kỳ vấn đề tài chính nào khác.';
+    async handleAIDirectMode(userId, aiQuery, sessionId = null) {
+        try {
+            // Validate input
+            if (!aiQuery || aiQuery.trim().length === 0) {
+                return '🤖 **AI Mode:** Bạn muốn hỏi gì? Hãy nhập câu hỏi bất kỳ!\n\nVí dụ: "Thời tiết hôm nay như thế nào?" hoặc "Làm thế nào để nấu phở?"';
             }
-        } else {
-            // Câu hỏi không liên quan đến tài chính
-            return `Chào bạn! Tôi là VanLang Agent - trợ lý tài chính AI chuyên nghiệp.
 
-Tôi chỉ có thể hỗ trợ các vấn đề liên quan đến tài chính như:
-💰 Thu nhập và chi tiêu
-📊 Đầu tư (cổ phiếu, vàng, bất động sản)
-🏦 Khoản vay và tiết kiệm
-📈 Phân tích và lập kế hoạch tài chính
-💡 Lời khuyên quản lý tiền bạc
+            logger.info('AI Direct Mode processing - Pure AI response', {
+                userId,
+                aiQuery,
+                sessionId,
+                queryLength: aiQuery.length
+            });
 
-Bạn có thể hỏi tôi: "Tôi có bao nhiều tiền?", "Đầu tư vàng như thế nào?", "Chi tiêu tháng này ra sao?" hoặc bất kỳ câu hỏi tài chính nào khác.`;
+            // Get user's financial data for context
+            const financialData = await this.getUserFinancialData(userId);
+
+            // Build enhanced AI prompt with financial context
+            const enhancedAIPrompt = this.buildEnhancedAIPrompt(aiQuery, financialData, userId);
+
+            // 🤖 PURE AI MODE: Chỉ sử dụng Gemini AI, không qua Enhanced Conversation Handler
+            logger.info('Calling Gemini AI directly for pure AI response');
+
+            const aiResponse = await this.callGeminiAI(enhancedAIPrompt, {
+                temperature: 0.7,
+                maxOutputTokens: 1000,
+                topP: 0.8,
+                topK: 40
+            });
+
+            // Add AI mode indicator to response
+            let response = `🤖 **AI Mode:** ${aiResponse}`;
+
+            // Add usage tip
+            response += '\n\n💬 **Tip:** Bật/tắt AI Mode bằng toggle switch để chuyển đổi chế độ!';
+
+            logger.info('Pure AI Direct Mode response generated', {
+                userId,
+                aiQuery,
+                responseLength: response.length,
+                source: 'Gemini AI Direct'
+            });
+
+            return response;
+
+        } catch (error) {
+            logger.error('Error in AI Direct Mode:', error);
+            return '🤖 **AI Mode:** Xin lỗi, tôi gặp lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại!\n\n💬 **Tip:** Bật/tắt AI Mode bằng toggle switch để chuyển đổi chế độ!';
         }
+    }
+
+    /**
+     * 🏗️ Build Enhanced AI Prompt with Financial Context
+     */
+    buildEnhancedAIPrompt(aiQuery, financialData, userId) {
+        const summary = financialData.summary || {};
+        const balance = (summary.totalIncomes || 0) - (summary.totalExpenses || 0);
+
+        const prompt = `
+Bạn là VanLang Agent trong AI Mode - một trợ lý AI thông minh có thể trả lời MỌI câu hỏi. Người dùng đã bật AI Mode và hỏi: "${aiQuery}"
+
+**Thông tin tài chính của người dùng (để tham khảo khi cần):**
+- Tổng thu nhập: ${(summary.totalIncomes || 0).toLocaleString('vi-VN')} VND
+- Tổng chi tiêu: ${(summary.totalExpenses || 0).toLocaleString('vi-VN')} VND
+- Số dư hiện tại: ${balance.toLocaleString('vi-VN')} VND
+- Tổng đầu tư: ${(summary.totalInvestments || 0).toLocaleString('vi-VN')} VND
+- Tổng khoản vay: ${(summary.totalLoans || 0).toLocaleString('vi-VN')} VND
+
+**NHIỆM VỤ CHÍNH:**
+🎯 Trả lời CHÍNH XÁC và HỮU ÍCH câu hỏi của người dùng, bất kể chủ đề gì:
+- ☀️ Thời tiết: Cung cấp thông tin thời tiết chi tiết
+- 🍜 Nấu ăn: Hướng dẫn công thức, mẹo nấu ăn
+- 💻 Công nghệ: Giải thích khái niệm, xu hướng tech
+- 🏥 Sức khỏe: Lời khuyên sức khỏe, dinh dưỡng
+- 📚 Giáo dục: Kiến thức tổng quát, học tập
+- 🌍 Thời sự: Thông tin về sự kiện, tin tức
+- 💰 Tài chính: Sử dụng dữ liệu cá nhân để tư vấn cụ thể
+- 🎯 Bất kỳ chủ đề nào khác
+
+**CÁCH TRẢ LỜI:**
+✅ Trả lời trực tiếp và chính xác câu hỏi
+✅ Cung cấp thông tin hữu ích, thực tế
+✅ Nếu liên quan tài chính → kết hợp với dữ liệu cá nhân
+✅ Nếu không liên quan tài chính → vẫn trả lời đầy đủ
+✅ Sử dụng emoji phù hợp
+✅ Tone thân thiện, chuyên nghiệp
+✅ Có thể gợi ý liên kết với quản lý tài chính nếu phù hợp
+
+**LƯU Ý QUAN TRỌNG:**
+🚨 KHÔNG từ chối trả lời vì "không phải chuyên môn tài chính"
+🚨 PHẢI trả lời mọi câu hỏi một cách hữu ích
+🚨 Đây là AI Mode - có thể trả lời về BẤT KỲ chủ đề nào
+
+Trả lời bằng tiếng Việt, tối đa 350 từ, tập trung vào câu hỏi chính.`;
+
+        return prompt;
+    }
+
+    /**
+     * 🗣️ Enhanced General Question Handler with Conversation Context
+     */
+    async handleGeneralQuestion(userId, message) {
+        try {
+            // Get user's financial data for personalized responses
+            const financialData = await this.getUserFinancialData(userId);
+
+            // Use Enhanced Conversation Handler
+            const conversationResult = await this.conversationHandler.handleConversation(
+                userId,
+                message,
+                financialData
+            );
+
+            logger.info('Enhanced conversation result', {
+                userId,
+                message,
+                hasFollowUps: conversationResult.followUpQuestions?.length > 0,
+                conversationContext: conversationResult.conversationContext
+            });
+
+            // Return enhanced response with follow-up questions
+            let response = conversationResult.response;
+
+            // Add follow-up questions if available
+            if (conversationResult.followUpQuestions && conversationResult.followUpQuestions.length > 0) {
+                response += '\n\n💡 **Câu hỏi gợi ý:**\n';
+                conversationResult.followUpQuestions.forEach((question, index) => {
+                    response += `${index + 1}. ${question}\n`;
+                });
+            }
+
+            return response;
+
+        } catch (error) {
+            logger.error('Error in enhanced general question handler:', error);
+            return 'Xin lỗi, tôi gặp lỗi khi xử lý câu hỏi của bạn. Bạn có thể thử hỏi lại không?';
+        }
+    }
+
+    /**
+     * 🚀 Start conversation flow manually
+     */
+    async handleConversationFlow(userId, flowType) {
+        try {
+            const result = await this.conversationHandler.startFlow(userId, flowType);
+
+            logger.info('Conversation flow started', {
+                userId,
+                flowType,
+                success: !!result.response
+            });
+
+            return result.response;
+
+        } catch (error) {
+            logger.error('Error starting conversation flow:', error);
+            return 'Không thể bắt đầu cuộc hội thoại. Vui lòng thử lại sau.';
+        }
+    }
+
+    /**
+     * 📊 Get conversation statistics
+     */
+    getConversationStats(userId) {
+        return this.conversationHandler.getConversationStats(userId);
+    }
+
+    /**
+     * 🗑️ Clear conversation context
+     */
+    clearConversation(userId) {
+        return this.conversationHandler.clearConversation(userId);
     }
 
     /**
@@ -2364,6 +3653,692 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
 
         return funnyResponses[Math.floor(Math.random() * funnyResponses.length)];
     }
+
+    /**
+     * Lấy API endpoint dựa trên loại transaction
+     */
+    getApiEndpoint(type) {
+        const endpoints = {
+            'income': '/api/incomes',
+            'expense': '/api/expenses',
+            'loan': '/api/loans',
+            'savings': '/api/incomes' // Savings được lưu vào income
+        };
+        return endpoints[type] || '/api/transactions';
+    }
+
+    /**
+     * Gọi API để lưu transaction
+     */
+    async callTransactionAPI(endpoint, transactionData, sessionId) {
+        try {
+            const baseUrl = process.env.BACKEND_URL || 'http://localhost:4000';
+            const url = `${baseUrl}${endpoint}`;
+
+            // Chuẩn bị data cho API call
+            const apiData = {
+                amount: transactionData.amount,
+                description: transactionData.note,
+                category: transactionData.category,
+                date: transactionData.date
+            };
+
+            // Thêm fields đặc biệt cho loan
+            if (transactionData.type === 'loan') {
+                apiData.lender = transactionData.category; // Sử dụng category làm lender
+                apiData.interestRate = 0;
+                apiData.interestRateType = 'MONTH';
+                apiData.startDate = transactionData.date;
+                apiData.dueDate = new Date(new Date(transactionData.date).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 30 ngày sau
+                apiData.status = 'ACTIVE';
+            }
+
+            logger.info('Calling transaction API', {
+                url,
+                type: transactionData.type,
+                apiData,
+                sessionId
+            });
+
+            // Gọi API trực tiếp thông qua model thay vì HTTP request
+            if (transactionData.type === 'income' || transactionData.type === 'savings') {
+                const income = new Income({
+                    userId: transactionData.userId,
+                    ...apiData
+                });
+                await income.save();
+
+                // Tạo notification
+                const notification = await Notification.createIncomeNotification(income);
+                if (socketManager && socketManager.to) {
+                    socketManager.to(transactionData.userId).emit('notification', notification);
+                }
+
+                return { success: true, data: income };
+            } else if (transactionData.type === 'expense') {
+                const expense = new Expense({
+                    userId: transactionData.userId,
+                    ...apiData
+                });
+                await expense.save();
+
+                // Tạo notification
+                const notification = await Notification.createExpenseNotification(expense);
+                if (socketManager && socketManager.to) {
+                    socketManager.to(transactionData.userId).emit('notification', notification);
+                }
+
+                return { success: true, data: expense };
+            } else if (transactionData.type === 'loan') {
+                const loan = new Loan({
+                    userId: transactionData.userId,
+                    ...apiData
+                });
+                await loan.save();
+
+                // Tạo notification
+                const notification = await Notification.createLoanNotification(loan);
+                if (socketManager && socketManager.to) {
+                    socketManager.to(transactionData.userId).emit('notification', notification);
+                }
+
+                return { success: true, data: loan };
+            }
+
+            return { success: false, message: 'Unsupported transaction type' };
+
+        } catch (error) {
+            logger.error('Error calling transaction API:', error);
+            return { success: false, message: error.message };
+        }
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Phân tích điều kiện lọc từ tin nhắn
+     */
+    parseFilterConditions(message) {
+        const normalizedMessage = message.toLowerCase().trim().normalize('NFC');
+
+        console.log('🚨 parseFilterConditions DEBUG START:', {
+            originalMessage: message,
+            normalizedMessage: normalizedMessage
+        });
+
+        // 🚨 UNICODE DEBUG
+        console.log('🚨 UNICODE DEBUG:');
+        console.log('- normalizedMessage length:', normalizedMessage.length);
+        console.log('- normalizedMessage charCodes:', [...normalizedMessage].map(c => c.charCodeAt(0)));
+        console.log('- normalizedMessage chars:', [...normalizedMessage]);
+
+        // Test specific substrings
+        console.log('🚨 SUBSTRING TESTS:');
+        console.log('- contains "cao":', normalizedMessage.includes('cao'));
+        console.log('- contains "nhất":', normalizedMessage.includes('nhất'));
+        console.log('- contains "cao nhất":', normalizedMessage.includes('cao nhất'));
+        console.log('- indexOf "cao nhất":', normalizedMessage.indexOf('cao nhất'));
+
+        // Try Unicode normalization
+        const nfdNormalized = normalizedMessage.normalize('NFD');
+        const nfcNormalized = normalizedMessage.normalize('NFC');
+        console.log('🚨 NORMALIZED VERSIONS:');
+        console.log('- NFD normalized:', nfdNormalized);
+        console.log('- NFC normalized:', nfcNormalized);
+        console.log('- NFD includes "cao nhất":', nfdNormalized.includes('cao nhất'));
+        console.log('- NFC includes "cao nhất":', nfcNormalized.includes('cao nhất'));
+
+        // Phân tích loại dữ liệu (income, expense, loan)
+        let dataType = null;
+
+        console.log('🚨 Testing includes for thu nhập:', normalizedMessage.includes('thu nhập'));
+        console.log('🚨 Testing includes for thu nhap:', normalizedMessage.includes('thu nhap'));
+        console.log('🚨 Testing includes for income:', normalizedMessage.includes('income'));
+        console.log('🚨 Testing includes for salary:', normalizedMessage.includes('salary'));
+
+        if (normalizedMessage.includes('chi tiêu') || normalizedMessage.includes('chi tieu') ||
+            normalizedMessage.includes('expense') || normalizedMessage.includes('spending')) {
+            dataType = 'expense';
+            console.log('🚨 dataType detected: expense');
+        } else if (normalizedMessage.includes('thu nhập') || normalizedMessage.includes('thu nhap') ||
+            normalizedMessage.includes('income') || normalizedMessage.includes('salary')) {
+            dataType = 'income';
+            console.log('🚨 dataType detected: income');
+        } else if (normalizedMessage.includes('khoản vay') || normalizedMessage.includes('khoan vay') ||
+            normalizedMessage.includes('loan') || normalizedMessage.includes('debt') ||
+            normalizedMessage.includes('vay') || normalizedMessage.includes('nợ')) {
+            dataType = 'loan';
+            console.log('🚨 dataType detected: loan');
+        }
+
+        console.log('🚨 dataType final:', dataType);
+
+        // Phân tích toán tử và giá trị
+        let operator = null;
+        let amount = null;
+
+        // Tìm kiếm cực trị (cao nhất, thấp nhất)
+        console.log('🚨 Testing includes for cao nhất:', normalizedMessage.includes('cao nhất'));
+        console.log('🚨 Testing includes for cao nhat:', normalizedMessage.includes('cao nhat'));
+        console.log('🚨 Testing includes for highest:', normalizedMessage.includes('highest'));
+        console.log('🚨 Testing includes for maximum:', normalizedMessage.includes('maximum'));
+        console.log('🚨 Testing includes for thấp nhất:', normalizedMessage.includes('thấp nhất'));
+        console.log('🚨 Testing includes for thap nhat:', normalizedMessage.includes('thap nhat'));
+        console.log('🚨 Testing includes for lowest:', normalizedMessage.includes('lowest'));
+        console.log('🚨 Testing includes for minimum:', normalizedMessage.includes('minimum'));
+
+        if (normalizedMessage.includes('cao nhất') || normalizedMessage.includes('cao nhat') ||
+            normalizedMessage.includes('lớn nhất') || normalizedMessage.includes('lon nhat') ||
+            normalizedMessage.includes('highest') || normalizedMessage.includes('maximum') ||
+            normalizedMessage.includes('max') || normalizedMessage.includes('biggest')) {
+            operator = 'max';
+            console.log('🚨 operator detected: max');
+        } else if (normalizedMessage.includes('thấp nhất') || normalizedMessage.includes('thap nhat') ||
+            normalizedMessage.includes('nhỏ nhất') || normalizedMessage.includes('nho nhat') ||
+            normalizedMessage.includes('lowest') || normalizedMessage.includes('minimum') ||
+            normalizedMessage.includes('min') || normalizedMessage.includes('smallest')) {
+            operator = 'min';
+            console.log('🚨 operator detected: min');
+        } else {
+            // Tìm kiếm toán tử so sánh với số tiền
+            const greaterPatterns = [
+                /\b(trên|above|lớn hơn|lon hon|greater than|higher than)\s+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+                /(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)\s+(trở lên|tro len|or more|and above)/i
+            ];
+
+            const lessPatterns = [
+                /\b(dưới|duoi|nhỏ hơn|nho hon|below|less than|lower than)\s+(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)/i,
+                /(\d+[\s]*(k|nghìn|triệu|tr|m|đồng|vnd)?)\s+(trở xuống|tro xuong|or less|and below)/i
+            ];
+
+            for (const pattern of greaterPatterns) {
+                const match = normalizedMessage.match(pattern);
+                if (match) {
+                    operator = 'greater';
+                    amount = this.parseAmount(match[2] || match[1]);
+                    break;
+                }
+            }
+
+            if (!operator) {
+                for (const pattern of lessPatterns) {
+                    const match = normalizedMessage.match(pattern);
+                    if (match) {
+                        operator = 'less';
+                        amount = this.parseAmount(match[2] || match[1]);
+                        break;
+                    }
+                }
+            }
+        }
+
+        console.log('🚨 operator final:', operator);
+
+        const result = {
+            isValid: !!(dataType && operator),  // ✅ FORCE BOOLEAN CONVERSION
+            dataType,
+            operator,
+            amount,
+            originalMessage: message
+        };
+
+        console.log('🚨 parseFilterConditions FINAL RESULT:', result);
+
+        return result;
+    }
+
+    /**
+     * ⏰ TÍNH NĂNG 6: Phân tích điều kiện thời gian từ tin nhắn
+     */
+    parseTimeConditions(message) {
+        const normalizedMessage = message.toLowerCase().trim();
+
+        // Phân tích loại dữ liệu
+        let dataType = 'overview'; // Mặc định là tổng quan
+        if (normalizedMessage.includes('chi tiêu') || normalizedMessage.includes('chi tieu') ||
+            normalizedMessage.includes('expense') || normalizedMessage.includes('spending')) {
+            dataType = 'expense';
+        } else if (normalizedMessage.includes('thu nhập') || normalizedMessage.includes('thu nhap') ||
+            normalizedMessage.includes('income') || normalizedMessage.includes('salary')) {
+            dataType = 'income';
+        } else if (normalizedMessage.includes('khoản vay') || normalizedMessage.includes('khoan vay') ||
+            normalizedMessage.includes('loan') || normalizedMessage.includes('debt') ||
+            normalizedMessage.includes('vay') || normalizedMessage.includes('nợ')) {
+            dataType = 'loan';
+        }
+
+        // Phân tích khoảng thời gian
+        let timeRange = null;
+        let timeDescription = '';
+
+        const now = new Date();
+
+        if (normalizedMessage.includes('tuần này') || normalizedMessage.includes('tuan nay') ||
+            normalizedMessage.includes('this week')) {
+            const startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - now.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            const endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
+            timeRange = { start: startOfWeek, end: endOfWeek };
+            timeDescription = 'tuần này';
+        } else if (normalizedMessage.includes('tháng trước') || normalizedMessage.includes('thang truoc') ||
+            normalizedMessage.includes('last month')) {
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+            endOfLastMonth.setHours(23, 59, 59, 999);
+
+            timeRange = { start: lastMonth, end: endOfLastMonth };
+            timeDescription = 'tháng trước';
+        } else if (normalizedMessage.includes('hôm nay') || normalizedMessage.includes('hom nay') ||
+            normalizedMessage.includes('today')) {
+            const startOfDay = new Date(now);
+            startOfDay.setHours(0, 0, 0, 0);
+
+            const endOfDay = new Date(now);
+            endOfDay.setHours(23, 59, 59, 999);
+
+            timeRange = { start: startOfDay, end: endOfDay };
+            timeDescription = 'hôm nay';
+        } else if (normalizedMessage.includes('tháng này') || normalizedMessage.includes('thang nay') ||
+            normalizedMessage.includes('this month')) {
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            endOfMonth.setHours(23, 59, 59, 999);
+
+            timeRange = { start: startOfMonth, end: endOfMonth };
+            timeDescription = 'tháng này';
+        }
+
+        return {
+            isValid: timeRange !== null,
+            dataType,
+            timeRange,
+            timeDescription,
+            originalMessage: message
+        };
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Áp dụng filter nâng cao lên dữ liệu
+     */
+    async applyAdvancedFilter(userId, filterAnalysis) {
+        try {
+            const { dataType, operator, amount } = filterAnalysis;
+            let results = [];
+
+            // Import models
+            const Income = (await import('../models/incomeModel.js')).default;
+            const Expense = (await import('../models/expenseModel.js')).default;
+            const Loan = (await import('../models/loanModel.js')).default;
+
+            // Lấy dữ liệu theo loại
+            if (dataType === 'income') {
+                const incomes = await Income.find({ userId }).sort({ amount: -1 });
+                results = this.applyFilterToData(incomes, operator, amount);
+            } else if (dataType === 'expense') {
+                const expenses = await Expense.find({ userId }).sort({ amount: -1 });
+                results = this.applyFilterToData(expenses, operator, amount);
+            } else if (dataType === 'loan') {
+                const loans = await Loan.find({ userId }).sort({ amount: -1 });
+                results = this.applyFilterToData(loans, operator, amount);
+            }
+
+            return {
+                dataType,
+                operator,
+                amount,
+                results,
+                totalFound: results.length
+            };
+
+        } catch (error) {
+            logger.error('Error applying advanced filter:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Áp dụng logic filter lên array dữ liệu
+     */
+    applyFilterToData(data, operator, amount) {
+        switch (operator) {
+            case 'greater':
+                return data.filter(item => item.amount > amount);
+            case 'less':
+                return data.filter(item => item.amount < amount);
+            case 'max':
+                if (data.length === 0) return [];
+                const maxAmount = Math.max(...data.map(item => item.amount));
+                return data.filter(item => item.amount === maxAmount);
+            case 'min':
+                if (data.length === 0) return [];
+                const minAmount = Math.min(...data.map(item => item.amount));
+                return data.filter(item => item.amount === minAmount);
+            default:
+                return data;
+        }
+    }
+
+    /**
+     * ⏰ TÍNH NĂNG 6: Lấy dữ liệu theo khoảng thời gian
+     */
+    async getDataByTimeRange(userId, timeAnalysis) {
+        try {
+            const { dataType, timeRange } = timeAnalysis;
+
+            // Import models
+            const Income = (await import('../models/incomeModel.js')).default;
+            const Expense = (await import('../models/expenseModel.js')).default;
+            const Loan = (await import('../models/loanModel.js')).default;
+
+            const dateFilter = {
+                userId,
+                date: {
+                    $gte: timeRange.start,
+                    $lte: timeRange.end
+                }
+            };
+
+            let results = {};
+
+            if (dataType === 'income') {
+                const incomes = await Income.find(dateFilter).sort({ date: -1 });
+                const total = incomes.reduce((sum, item) => sum + item.amount, 0);
+                results = { incomes, total, count: incomes.length };
+            } else if (dataType === 'expense') {
+                const expenses = await Expense.find(dateFilter).sort({ date: -1 });
+                const total = expenses.reduce((sum, item) => sum + item.amount, 0);
+                results = { expenses, total, count: expenses.length };
+            } else if (dataType === 'loan') {
+                const loans = await Loan.find({
+                    userId,
+                    createdAt: {
+                        $gte: timeRange.start,
+                        $lte: timeRange.end
+                    }
+                }).sort({ createdAt: -1 });
+                const total = loans.reduce((sum, item) => sum + item.amount, 0);
+                results = { loans, total, count: loans.length };
+            } else {
+                // Tổng quan tất cả
+                const [incomes, expenses, loans] = await Promise.all([
+                    Income.find(dateFilter).sort({ date: -1 }),
+                    Expense.find(dateFilter).sort({ date: -1 }),
+                    Loan.find({
+                        userId,
+                        createdAt: {
+                            $gte: timeRange.start,
+                            $lte: timeRange.end
+                        }
+                    }).sort({ createdAt: -1 })
+                ]);
+
+                const totalIncome = incomes.reduce((sum, item) => sum + item.amount, 0);
+                const totalExpense = expenses.reduce((sum, item) => sum + item.amount, 0);
+                const totalLoan = loans.reduce((sum, item) => sum + item.amount, 0);
+
+                results = {
+                    incomes,
+                    expenses,
+                    loans,
+                    totals: {
+                        income: totalIncome,
+                        expense: totalExpense,
+                        loan: totalLoan,
+                        balance: totalIncome - totalExpense
+                    },
+                    counts: {
+                        income: incomes.length,
+                        expense: expenses.length,
+                        loan: loans.length
+                    }
+                };
+            }
+
+            return {
+                dataType,
+                timeRange,
+                results
+            };
+
+        } catch (error) {
+            logger.error('Error getting data by time range:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 🔍 TÍNH NĂNG 4: Format kết quả filter nâng cao
+     */
+    formatFilterResults(filterData, filterAnalysis) {
+        const { dataType, operator, amount, results, totalFound } = filterData;
+        const { originalMessage } = filterAnalysis;
+
+        let title = '';
+        let operatorText = '';
+
+        // Tạo tiêu đề dựa trên loại dữ liệu
+        const dataTypeText = {
+            'income': 'Thu nhập',
+            'expense': 'Chi tiêu',
+            'loan': 'Khoản vay'
+        };
+
+        // Tạo text mô tả toán tử
+        switch (operator) {
+            case 'greater':
+                operatorText = `trên ${this.formatCurrency(amount)}`;
+                break;
+            case 'less':
+                operatorText = `dưới ${this.formatCurrency(amount)}`;
+                break;
+            case 'max':
+                operatorText = 'cao nhất';
+                break;
+            case 'min':
+                operatorText = 'thấp nhất';
+                break;
+        }
+
+        title = `🔍 **${dataTypeText[dataType]} ${operatorText}**`;
+
+        if (totalFound === 0) {
+            return `${title}\n\n❌ **Không tìm thấy kết quả nào.**\n\n💡 Thử điều chỉnh điều kiện tìm kiếm của bạn.`;
+        }
+
+        let response = `${title}\n\n✅ **Tìm thấy ${totalFound} kết quả:**\n\n`;
+
+        // Hiển thị từng kết quả
+        results.slice(0, 10).forEach((item, index) => {
+            const date = item.date ? new Date(item.date).toLocaleDateString('vi-VN') :
+                new Date(item.createdAt).toLocaleDateString('vi-VN');
+            const description = item.description || item.note || 'Không có mô tả';
+            const category = item.category || 'Khác';
+
+            response += `**${index + 1}.** ${this.formatCurrency(item.amount)} VND\n`;
+            response += `   📅 ${date} | 📂 ${category}\n`;
+            response += `   📝 ${description}\n\n`;
+        });
+
+        if (totalFound > 10) {
+            response += `... và ${totalFound - 10} kết quả khác.\n\n`;
+        }
+
+        // Thống kê tổng kết
+        const totalAmount = results.reduce((sum, item) => sum + item.amount, 0);
+        response += `📊 **Tổng kết:**\n`;
+        response += `• Số lượng: ${totalFound} giao dịch\n`;
+        response += `• Tổng tiền: ${this.formatCurrency(totalAmount)} VND`;
+
+        return response;
+    }
+
+    /**
+     * ⏰ TÍNH NĂNG 6: Format kết quả truy vấn theo thời gian
+     */
+    formatTimeResults(timeData, timeAnalysis) {
+        const { dataType, timeRange, results } = timeData;
+        const { timeDescription, originalMessage } = timeAnalysis;
+
+        const startDate = timeRange.start.toLocaleDateString('vi-VN');
+        const endDate = timeRange.end.toLocaleDateString('vi-VN');
+
+        let title = `⏰ **Dữ liệu tài chính ${timeDescription}**\n`;
+        title += `📅 *Từ ${startDate} đến ${endDate}*\n\n`;
+
+        if (dataType === 'overview') {
+            // Tổng quan tất cả
+            const { totals, counts } = results;
+
+            if (counts.income === 0 && counts.expense === 0 && counts.loan === 0) {
+                return `${title}❌ **Không có dữ liệu nào trong khoảng thời gian này.**`;
+            }
+
+            let response = title;
+            response += `📊 **Tổng quan tài chính:**\n\n`;
+
+            if (counts.income > 0) {
+                response += `💰 **Thu nhập:** ${this.formatCurrency(totals.income)} VND (${counts.income} giao dịch)\n`;
+            }
+
+            if (counts.expense > 0) {
+                response += `💸 **Chi tiêu:** ${this.formatCurrency(totals.expense)} VND (${counts.expense} giao dịch)\n`;
+            }
+
+            if (counts.loan > 0) {
+                response += `🏦 **Khoản vay:** ${this.formatCurrency(totals.loan)} VND (${counts.loan} khoản)\n`;
+            }
+
+            response += `\n💹 **Số dư:** ${this.formatCurrency(totals.balance)} VND\n`;
+
+            // Hiển thị chi tiết một số giao dịch gần nhất
+            if (counts.income > 0 || counts.expense > 0) {
+                response += `\n📋 **Giao dịch gần nhất:**\n`;
+
+                const allTransactions = [
+                    ...results.incomes.map(item => ({ ...item, type: 'income' })),
+                    ...results.expenses.map(item => ({ ...item, type: 'expense' }))
+                ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+                allTransactions.forEach((item, index) => {
+                    const icon = item.type === 'income' ? '💰' : '💸';
+                    const date = new Date(item.date).toLocaleDateString('vi-VN');
+                    response += `${icon} ${this.formatCurrency(item.amount)} VND - ${item.description} (${date})\n`;
+                });
+            }
+
+            return response;
+        } else {
+            // Dữ liệu cụ thể theo loại
+            const dataTypeText = {
+                'income': 'Thu nhập',
+                'expense': 'Chi tiêu',
+                'loan': 'Khoản vay'
+            };
+
+            const { total, count } = results;
+            const dataArray = results[dataType === 'loan' ? 'loans' : dataType === 'income' ? 'incomes' : 'expenses'];
+
+            if (count === 0) {
+                return `${title}❌ **Không có ${dataTypeText[dataType].toLowerCase()} nào trong ${timeDescription}.**`;
+            }
+
+            let response = title;
+            response += `📊 **${dataTypeText[dataType]} ${timeDescription}:**\n\n`;
+            response += `💰 **Tổng cộng:** ${this.formatCurrency(total)} VND\n`;
+            response += `📈 **Số lượng:** ${count} giao dịch\n\n`;
+
+            // Hiển thị chi tiết
+            response += `📋 **Chi tiết:**\n`;
+            dataArray.slice(0, 8).forEach((item, index) => {
+                const date = item.date ? new Date(item.date).toLocaleDateString('vi-VN') :
+                    new Date(item.createdAt).toLocaleDateString('vi-VN');
+                const description = item.description || item.note || 'Không có mô tả';
+                const category = item.category || 'Khác';
+
+                response += `**${index + 1}.** ${this.formatCurrency(item.amount)} VND\n`;
+                response += `   📅 ${date} | 📂 ${category}\n`;
+                response += `   📝 ${description}\n\n`;
+            });
+
+            if (count > 8) {
+                response += `... và ${count - 8} giao dịch khác.\n`;
+            }
+
+            return response;
+        }
+    }
+
+    /**
+     * 🔧 Helper method để parse số tiền từ text
+     */
+    parseAmount(amountStr) {
+        const number = parseFloat(amountStr.replace(/[^\d.]/g, ''));
+
+        if (amountStr.includes('k') || amountStr.includes('nghìn')) {
+            return number * 1000;
+        }
+        if (amountStr.includes('triệu') || amountStr.includes('tr') || amountStr.includes('m')) {
+            return number * 1000000;
+        }
+
+        return number;
+    }
+
+    /**
+     * 🔧 Helper method để format số tiền
+     */
+    formatCurrency(amount) {
+        if (typeof amount !== 'number') {
+            return '0';
+        }
+
+        return amount.toLocaleString('vi-VN');
+    }
 }
 
 export default VanLangAgent;
+
+// 🚨 IMMEDIATE TEST FUNCTION
+if (import.meta.url === `file://${process.argv[1]}`) {
+    console.log('🔍 TESTING BOTH detectAdvancedFilter AND parseFilterConditions...\n');
+
+    const agent = new VanLangAgent();
+
+    const testCases = [
+        'thu nhập thấp nhất',
+        'chi tiêu thấp nhất',
+        'chi tiêu cao nhất',
+        'khoản vay cao nhất'
+    ];
+
+    testCases.forEach(testCase => {
+        console.log(`\n📝 Testing: "${testCase}"`);
+        console.log('='.repeat(60));
+
+        // Test detectAdvancedFilter
+        console.log('🔍 Testing detectAdvancedFilter:');
+        const filterDetected = agent.detectAdvancedFilter(testCase);
+        console.log('  - detectAdvancedFilter result:', filterDetected);
+
+        // Test parseFilterConditions
+        console.log('🔍 Testing parseFilterConditions:');
+        const result = agent.parseFilterConditions(testCase);
+        console.log('  - isValid:', result.isValid);
+        console.log('  - dataType:', result.dataType);
+        console.log('  - operator:', result.operator);
+        console.log('  - amount:', result.amount);
+
+        if (filterDetected && result.isValid) {
+            console.log('✅ BOTH METHODS WORK!');
+        } else if (filterDetected && !result.isValid) {
+            console.log('⚠️ detectAdvancedFilter=true but parseFilterConditions=false');
+        } else if (!filterDetected && result.isValid) {
+            console.log('⚠️ detectAdvancedFilter=false but parseFilterConditions=true');
+        } else {
+            console.log('❌ BOTH METHODS FAILED!');
+        }
+    });
+}
