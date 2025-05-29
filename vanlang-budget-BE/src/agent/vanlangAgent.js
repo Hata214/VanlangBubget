@@ -3759,84 +3759,37 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
     parseFilterConditions(message) {
         const normalizedMessage = message.toLowerCase().trim().normalize('NFC');
 
-        console.log('🚨 parseFilterConditions DEBUG START:', {
-            originalMessage: message,
-            normalizedMessage: normalizedMessage
-        });
 
-        // 🚨 UNICODE DEBUG
-        console.log('🚨 UNICODE DEBUG:');
-        console.log('- normalizedMessage length:', normalizedMessage.length);
-        console.log('- normalizedMessage charCodes:', [...normalizedMessage].map(c => c.charCodeAt(0)));
-        console.log('- normalizedMessage chars:', [...normalizedMessage]);
-
-        // Test specific substrings
-        console.log('🚨 SUBSTRING TESTS:');
-        console.log('- contains "cao":', normalizedMessage.includes('cao'));
-        console.log('- contains "nhất":', normalizedMessage.includes('nhất'));
-        console.log('- contains "cao nhất":', normalizedMessage.includes('cao nhất'));
-        console.log('- indexOf "cao nhất":', normalizedMessage.indexOf('cao nhất'));
-
-        // Try Unicode normalization
-        const nfdNormalized = normalizedMessage.normalize('NFD');
-        const nfcNormalized = normalizedMessage.normalize('NFC');
-        console.log('🚨 NORMALIZED VERSIONS:');
-        console.log('- NFD normalized:', nfdNormalized);
-        console.log('- NFC normalized:', nfcNormalized);
-        console.log('- NFD includes "cao nhất":', nfdNormalized.includes('cao nhất'));
-        console.log('- NFC includes "cao nhất":', nfcNormalized.includes('cao nhất'));
 
         // Phân tích loại dữ liệu (income, expense, loan)
         let dataType = null;
-
-        console.log('🚨 Testing includes for thu nhập:', normalizedMessage.includes('thu nhập'));
-        console.log('🚨 Testing includes for thu nhap:', normalizedMessage.includes('thu nhap'));
-        console.log('🚨 Testing includes for income:', normalizedMessage.includes('income'));
-        console.log('🚨 Testing includes for salary:', normalizedMessage.includes('salary'));
-
         if (normalizedMessage.includes('chi tiêu') || normalizedMessage.includes('chi tieu') ||
             normalizedMessage.includes('expense') || normalizedMessage.includes('spending')) {
             dataType = 'expense';
-            console.log('🚨 dataType detected: expense');
         } else if (normalizedMessage.includes('thu nhập') || normalizedMessage.includes('thu nhap') ||
             normalizedMessage.includes('income') || normalizedMessage.includes('salary')) {
             dataType = 'income';
-            console.log('🚨 dataType detected: income');
         } else if (normalizedMessage.includes('khoản vay') || normalizedMessage.includes('khoan vay') ||
             normalizedMessage.includes('loan') || normalizedMessage.includes('debt') ||
             normalizedMessage.includes('vay') || normalizedMessage.includes('nợ')) {
             dataType = 'loan';
-            console.log('🚨 dataType detected: loan');
         }
-
-        console.log('🚨 dataType final:', dataType);
 
         // Phân tích toán tử và giá trị
         let operator = null;
         let amount = null;
 
         // Tìm kiếm cực trị (cao nhất, thấp nhất)
-        console.log('🚨 Testing includes for cao nhất:', normalizedMessage.includes('cao nhất'));
-        console.log('🚨 Testing includes for cao nhat:', normalizedMessage.includes('cao nhat'));
-        console.log('🚨 Testing includes for highest:', normalizedMessage.includes('highest'));
-        console.log('🚨 Testing includes for maximum:', normalizedMessage.includes('maximum'));
-        console.log('🚨 Testing includes for thấp nhất:', normalizedMessage.includes('thấp nhất'));
-        console.log('🚨 Testing includes for thap nhat:', normalizedMessage.includes('thap nhat'));
-        console.log('🚨 Testing includes for lowest:', normalizedMessage.includes('lowest'));
-        console.log('🚨 Testing includes for minimum:', normalizedMessage.includes('minimum'));
-
         if (normalizedMessage.includes('cao nhất') || normalizedMessage.includes('cao nhat') ||
             normalizedMessage.includes('lớn nhất') || normalizedMessage.includes('lon nhat') ||
             normalizedMessage.includes('highest') || normalizedMessage.includes('maximum') ||
             normalizedMessage.includes('max') || normalizedMessage.includes('biggest')) {
             operator = 'max';
-            console.log('🚨 operator detected: max');
         } else if (normalizedMessage.includes('thấp nhất') || normalizedMessage.includes('thap nhat') ||
             normalizedMessage.includes('nhỏ nhất') || normalizedMessage.includes('nho nhat') ||
             normalizedMessage.includes('lowest') || normalizedMessage.includes('minimum') ||
             normalizedMessage.includes('min') || normalizedMessage.includes('smallest')) {
             operator = 'min';
-            console.log('🚨 operator detected: min');
         } else {
             // Tìm kiếm toán tử so sánh với số tiền
             const greaterPatterns = [
@@ -3870,7 +3823,7 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
             }
         }
 
-        console.log('🚨 operator final:', operator);
+
 
         const result = {
             isValid: !!(dataType && operator),  // ✅ FORCE BOOLEAN CONVERSION
@@ -3879,8 +3832,6 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
             amount,
             originalMessage: message
         };
-
-        console.log('🚨 parseFilterConditions FINAL RESULT:', result);
 
         return result;
     }
@@ -4114,7 +4065,6 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
      */
     formatFilterResults(filterData, filterAnalysis) {
         const { dataType, operator, amount, results, totalFound } = filterData;
-        const { originalMessage } = filterAnalysis;
 
         let title = '';
         let operatorText = '';
@@ -4180,7 +4130,7 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
      */
     formatTimeResults(timeData, timeAnalysis) {
         const { dataType, timeRange, results } = timeData;
-        const { timeDescription, originalMessage } = timeAnalysis;
+        const { timeDescription } = timeAnalysis;
 
         const startDate = timeRange.start.toLocaleDateString('vi-VN');
         const endDate = timeRange.end.toLocaleDateString('vi-VN');
@@ -4222,7 +4172,7 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
                     ...results.expenses.map(item => ({ ...item, type: 'expense' }))
                 ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
-                allTransactions.forEach((item, index) => {
+                allTransactions.forEach((item) => {
                     const icon = item.type === 'income' ? '💰' : '💸';
                     const date = new Date(item.date).toLocaleDateString('vi-VN');
                     response += `${icon} ${this.formatCurrency(item.amount)} VND - ${item.description} (${date})\n`;
