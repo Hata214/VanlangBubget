@@ -8,6 +8,7 @@ import Budget from '../models/budgetModel.js';
 import Notification from '../models/Notification.js';
 import catchAsync from '../utils/catchAsync.js';
 import logger from '../utils/logger.js';
+import AdminActivityLogger from '../utils/adminActivityLogger.js';
 import mongoose from 'mongoose';
 
 /**
@@ -301,6 +302,15 @@ export const getAdminUserList = catchAsync(async (req, res, next) => {
     // Ghi log
     logger.info(`Admin ${req.user.id} đã truy cập danh sách người dùng với bộ lọc: ${JSON.stringify(req.query)}`);
 
+    // Log admin activity
+    await AdminActivityLogger.logSystemAction(
+        req.user.id,
+        'USER_VIEW',
+        { filters: req.query, resultCount: users.length },
+        'SUCCESS',
+        req
+    );
+
     res.status(200).json({
         status: 'success',
         results: users.length,
@@ -398,6 +408,16 @@ export const createAdminUser = catchAsync(async (req, res, next) => {
 
     // Ghi log
     logger.info(`Admin ${req.user.id} đã tạo người dùng mới: ${newUser._id} (${newUser.email})`);
+
+    // Log admin activity
+    await AdminActivityLogger.logUserAction(
+        req.user.id,
+        'USER_CREATE',
+        newUser._id,
+        { email, firstName, lastName, role },
+        'SUCCESS',
+        req
+    );
 
     res.status(201).json({
         status: 'success',
@@ -544,6 +564,16 @@ export const promoteToAdmin = catchAsync(async (req, res, next) => {
 
     // Ghi log
     logger.info(`SuperAdmin ${req.user.id} đã thăng cấp người dùng ${userId} lên Admin`);
+
+    // Log admin activity
+    await AdminActivityLogger.logUserAction(
+        req.user.id,
+        'USER_PROMOTE',
+        userId,
+        { fromRole: 'user', toRole: 'admin' },
+        'SUCCESS',
+        req
+    );
 
     res.status(200).json({
         status: 'success',

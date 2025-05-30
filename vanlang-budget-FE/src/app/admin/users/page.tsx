@@ -140,13 +140,31 @@ export default function AdminUsersPage() {
                 sortDirection
             })
 
-            setUsers(response.data)
-            setTotalUsers(response.totalCount || response.data.length)
-            setTotalPages(Math.ceil((response.totalCount || response.data.length) / itemsPerPage))
-        } catch (err) {
+            // Handle response format from backend
+            if (response.success && response.data) {
+                setUsers(response.data.map((user: any) => ({
+                    id: user._id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    role: user.role,
+                    active: user.active,
+                    createdAt: user.createdAt,
+                    lastLogin: user.lastLogin
+                })))
+                setTotalUsers(response.total || response.data.length)
+                setTotalPages(response.totalPages || Math.ceil((response.total || response.data.length) / 10))
+            } else {
+                // Fallback for different response format
+                setUsers(response.data || [])
+                setTotalUsers(response.totalCount || response.total || response.data?.length || 0)
+                setTotalPages(Math.ceil((response.totalCount || response.total || response.data?.length || 0) / 10))
+            }
+        } catch (err: any) {
             console.error('Error fetching users:', err)
             setError('Không thể tải danh sách người dùng')
-            toast.error('Lỗi khi tải danh sách người dùng')
+            const errorMessage = err?.response?.data?.message || 'Lỗi khi tải danh sách người dùng'
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -287,9 +305,10 @@ export default function AdminUsersPage() {
             await userService.promoteToAdmin(userId)
             toast.success('Đã thăng cấp người dùng thành Admin')
             fetchUsers()
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error promoting user:', err)
-            toast.error('Không thể thăng cấp người dùng')
+            const errorMessage = err?.response?.data?.message || 'Không thể thăng cấp người dùng'
+            toast.error(errorMessage)
         } finally {
             setProcessingUser(null)
         }
@@ -306,9 +325,10 @@ export default function AdminUsersPage() {
             await userService.demoteFromAdmin(userId)
             toast.success('Đã hạ cấp Admin xuống người dùng thường')
             fetchUsers()
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error demoting admin:', err)
-            toast.error('Không thể hạ cấp Admin')
+            const errorMessage = err?.response?.data?.message || 'Không thể hạ cấp Admin'
+            toast.error(errorMessage)
         } finally {
             setProcessingUser(null)
         }
@@ -325,9 +345,10 @@ export default function AdminUsersPage() {
                 toast.success('Đã kích hoạt tài khoản người dùng')
             }
             fetchUsers()
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error toggling user status:', err)
-            toast.error(`Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản người dùng`)
+            const errorMessage = err?.response?.data?.message || `Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản người dùng`
+            toast.error(errorMessage)
         } finally {
             setProcessingUser(null)
         }
@@ -349,9 +370,10 @@ export default function AdminUsersPage() {
                 role: 'user'
             })
             fetchUsers()
-        } catch (error) {
+        } catch (error: any) {
             console.error('Lỗi khi tạo người dùng:', error)
-            toast.error('Không thể tạo người dùng mới')
+            const errorMessage = error?.response?.data?.message || 'Không thể tạo người dùng mới'
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }

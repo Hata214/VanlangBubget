@@ -40,6 +40,7 @@ import {
     Filter,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import adminService from '@/services/adminService';
 
 interface ActivityLog {
     _id: string;
@@ -127,42 +128,43 @@ export default function ActivityLogsPage() {
         try {
             setLoading(true);
 
-            // Xây dựng query params
-            const params = new URLSearchParams();
-            params.append('adminId', selectedAdminId);
-            params.append('page', currentPage.toString());
-            params.append('limit', '20');
+            // Xây dựng options cho adminService
+            const options: any = {
+                page: currentPage,
+                limit: 20
+            };
 
-            if (searchTerm) {
-                params.append('search', searchTerm);
+            // Chỉ thêm adminId nếu không phải 'all'
+            if (selectedAdminId && selectedAdminId !== 'all') {
+                options.adminId = selectedAdminId;
             }
 
             if (filterAction && filterAction !== 'all') {
-                params.append('action', filterAction);
+                options.actionType = filterAction;
             }
 
             if (dateRange.start) {
-                params.append('startDate', dateRange.start);
+                options.startDate = dateRange.start;
             }
 
             if (dateRange.end) {
-                params.append('endDate', dateRange.end);
+                options.endDate = dateRange.end;
             }
 
-            // Gọi API lấy lịch sử hoạt động
-            const response = await fetch(`/api/admin/activity-logs?${params.toString()}`);
-            const data = await response.json();
+            // Gọi adminService để lấy lịch sử hoạt động
+            const response = await adminService.getActivityLogs(options);
 
-            if (data.success) {
-                setActivityLogs(data.data || []);
-                setTotalPages(data.totalPages || 1);
+            if (response.success) {
+                setActivityLogs(response.data || []);
+                setTotalPages(response.pagination?.totalPages || 1);
             } else {
-                console.error('Lỗi khi lấy lịch sử hoạt động:', data.message);
+                console.error('Lỗi khi lấy lịch sử hoạt động:', response.message);
                 toast.error('Không thể tải lịch sử hoạt động');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Lỗi khi tải lịch sử hoạt động:', error);
-            toast.error('Đã xảy ra lỗi khi tải dữ liệu');
+            const errorMessage = error?.response?.data?.message || 'Đã xảy ra lỗi khi tải dữ liệu';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -190,34 +192,34 @@ export default function ActivityLogsPage() {
         fetchActivityLogs();
     };
 
-    const handleExport = () => {
+    const handleExport = async () => {
         try {
-            // Chuyển đổi dữ liệu hoạt động thành chuỗi CSV
-            const header = ['Thời gian', 'Admin', 'Hành động', 'Đối tượng', 'Chi tiết'];
-            const rows = activityLogs.map(log => [
-                formatDate(log.timestamp),
-                log.adminId ? `${log.adminId.firstName} ${log.adminId.lastName}` : 'N/A',
-                getActionLabel(log.action),
-                log.targetId ? `${log.targetId.firstName} ${log.targetId.lastName}` : '-',
-                JSON.stringify(log.details)
-            ]);
+            // Xây dựng filters cho export
+            const exportFilters: any = {};
 
-            const csvContent = [header, ...rows].map(row => row.join(',')).join('\n');
+            if (selectedAdminId && selectedAdminId !== 'all') {
+                exportFilters.adminId = selectedAdminId;
+            }
 
-            // Tạo blob và tải xuống
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', `activity-logs-${new Date().toISOString().slice(0, 10)}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            if (filterAction && filterAction !== 'all') {
+                exportFilters.actionType = filterAction;
+            }
 
+            if (dateRange.start) {
+                exportFilters.startDate = dateRange.start;
+            }
+
+            if (dateRange.end) {
+                exportFilters.endDate = dateRange.end;
+            }
+
+            // Sử dụng adminService để xuất CSV
+            await adminService.exportActivityLogsCSV(exportFilters);
             toast.success('Đã xuất dữ liệu thành công');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Lỗi khi xuất dữ liệu:', error);
-            toast.error('Không thể xuất dữ liệu');
+            const errorMessage = error?.response?.data?.message || 'Không thể xuất dữ liệu';
+            toast.error(errorMessage);
         }
     };
 

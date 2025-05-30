@@ -34,7 +34,6 @@ export default function AdminLoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
-    const [showAdminHelp, setShowAdminHelp] = useState(false);
 
     // Khi người dùng rời trang admin, reset CSS
     useEffect(() => {
@@ -88,11 +87,12 @@ export default function AdminLoginPage() {
 
         if (token && (role === 'admin' || role === 'superadmin')) {
             try {
-                // Kiểm tra token có hợp lệ không
-                const response = await fetch('/api/admin/auth/verify', {
+                // Kiểm tra token có hợp lệ không với backend thực
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/users/me`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
                     }
                 });
 
@@ -102,9 +102,9 @@ export default function AdminLoginPage() {
                     const data = await response.json();
                     console.log('Dữ liệu xác thực:', data);
 
-                    if (data.success && data.user &&
-                        (data.user.role === 'admin' || data.user.role === 'superadmin')) {
-                        console.log('Người dùng đã đăng nhập với vai trò:', data.user.role);
+                    if (data.status === 'success' && data.data &&
+                        (data.data.role === 'admin' || data.data.role === 'superadmin')) {
+                        console.log('Người dùng đã đăng nhập với vai trò:', data.data.role);
 
                         // Đảm bảo token được lưu với tên 'token' để phù hợp với middleware
                         if (!localStorage.getItem('token')) {
@@ -143,8 +143,8 @@ export default function AdminLoginPage() {
         setError('');
 
         try {
-            // Gọi API xác thực
-            const response = await fetch('/api/admin/auth', {
+            // Gọi API xác thực backend thực
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -155,7 +155,7 @@ export default function AdminLoginPage() {
             const data = await response.json();
 
             // Kiểm tra phản hồi từ server
-            if (response.ok && data.success) {
+            if (response.ok && data.status === 'success') {
                 console.log('Đăng nhập thành công với role:', data.user.role);
 
                 if (data.user.role !== 'admin' && data.user.role !== 'superadmin') {
@@ -166,9 +166,11 @@ export default function AdminLoginPage() {
 
                 // Lưu token vào cookie và localStorage
                 const token = data.token;
+                const refreshToken = data.refreshToken;
                 const role = data.user.role;
+                const userId = data.user.id || data.user._id;
 
-                // Lưu cookie với maxAge 24 giờ - sử dụng tên 'token' để phù hợp với middleware
+                // Lưu cookie với maxAge 24 giờ
                 setCookie('token', token, {
                     maxAge: 60 * 60 * 24,
                     path: '/',
@@ -178,9 +180,12 @@ export default function AdminLoginPage() {
 
                 // Lưu thông tin người dùng vào localStorage
                 localStorage.setItem('token', token);
+                localStorage.setItem('refreshToken', refreshToken);
+                localStorage.setItem('user_id', userId);
                 localStorage.setItem('user_role', role);
                 localStorage.setItem('user_email', data.user.email);
-                localStorage.setItem('user_name', data.user.name || email.split('@')[0]);
+                localStorage.setItem('user_name', data.user.fullName || `${data.user.firstName} ${data.user.lastName}`);
+                localStorage.setItem('isLoggedIn', 'true');
 
                 // Lưu thêm với tên cũ để tương thích với code cũ
                 localStorage.setItem('auth_token', token);
@@ -203,59 +208,9 @@ export default function AdminLoginPage() {
         }
     };
 
-    const createSuperAdmin = async () => {
-        setLoading(true);
-        setError('');
 
-        try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/emergency-create-admin`);
-            const data = await response.json();
 
-            if (response.ok) {
-                setEmail('superadmin@control.vn');
-                setPassword('Admin123!');
-                setShowAdminHelp(false);
-                setError('');
-                alert('Tài khoản superadmin đã được tạo thành công. Email: superadmin@control.vn, Mật khẩu: Admin123!');
-            } else {
-                setError(data.message || 'Không thể tạo tài khoản superadmin.');
-            }
-        } catch (error) {
-            console.error('Create superadmin error:', error);
-            setError('Lỗi kết nối đến máy chủ. Vui lòng thử lại sau.');
-        } finally {
-            setLoading(false);
-        }
-    };
 
-    const handleEmergencyLogin = () => {
-        setEmail('superadmin@control.vn');
-        setPassword('Admin123!');
-
-        // Tạo token giả lập
-        const mockToken = `mock_${Date.now()}_superadmin_token`;
-
-        // Lưu vào cả cookie và localStorage với tên 'token' để phù hợp với middleware
-        setCookie('token', mockToken, {
-            maxAge: 60 * 60 * 24,
-            path: '/',
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
-        });
-
-        localStorage.setItem('token', mockToken);
-        localStorage.setItem('user_role', 'superadmin');
-        localStorage.setItem('user_email', 'superadmin@control.vn');
-        localStorage.setItem('user_name', 'Super Admin');
-
-        // Lưu thêm với tên cũ để tương thích với code cũ
-        localStorage.setItem('auth_token', mockToken);
-
-        console.log('Đăng nhập khẩn cấp thành công, chuyển hướng đến trang dashboard');
-        setTimeout(() => {
-            router.push('/admin/dashboard');
-        }, 100);
-    };
 
     return (
         <div className="admin-login-layout" style={{
@@ -326,41 +281,7 @@ export default function AdminLoginPage() {
                     }}>Vui lòng đăng nhập với tài khoản quản trị</p>
                 </div>
 
-                {showAdminHelp && (
-                    <div style={{
-                        padding: '16px',
-                        marginBottom: '24px',
-                        backgroundColor: '#e0e7ff',
-                        borderRadius: '8px',
-                        fontSize: '14px',
-                        color: '#4338ca',
-                        boxShadow: '0 2px 5px rgba(67, 56, 202, 0.1)'
-                    }}>
-                        <p style={{ marginBottom: '8px', fontWeight: '500' }}>Tài khoản superadmin mặc định:</p>
-                        <p style={{ marginBottom: '4px' }}><strong>Email:</strong> superadmin@control.vn</p>
-                        <p style={{ marginBottom: '8px' }}><strong>Mật khẩu:</strong> Admin123!</p>
 
-                        <button
-                            onClick={handleEmergencyLogin}
-                            style={{
-                                marginTop: '12px',
-                                padding: '10px 16px',
-                                backgroundColor: '#4f46e5',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                fontSize: '14px',
-                                fontWeight: '500',
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                opacity: loading ? 0.7 : 1,
-                                transition: 'all 0.2s',
-                                boxShadow: '0 2px 4px rgba(79, 70, 229, 0.2)'
-                            }}
-                        >
-                            {loading ? 'Đang xử lý...' : 'Đăng nhập khẩn cấp'}
-                        </button>
-                    </div>
-                )}
 
                 {error && (
                     <div style={{
@@ -501,6 +422,8 @@ export default function AdminLoginPage() {
                         {loading ? 'Đang xử lý...' : 'Đăng nhập'}
                     </button>
                 </form>
+
+
             </div>
             <style jsx>{`
                 @keyframes fadeIn {

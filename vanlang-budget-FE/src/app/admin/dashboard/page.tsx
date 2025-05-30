@@ -16,14 +16,33 @@ import {
     Calendar,
     BarChart3,
     Activity,
-    Shield
+    Shield,
+    TrendingUp,
+    Database,
+    Users,
+    FileText
 } from 'lucide-react'
+import adminService from '@/services/adminService'
+import { toast } from 'react-hot-toast'
 
-interface StatData {
-    userCount: number
-    transactionCount: number
-    activeUserCount: number
-    todayTransactions: number
+interface DashboardData {
+    users: {
+        total: number;
+        new: number;
+        active: number;
+        admin: number;
+        byRole: Array<{ _id: string; count: number }>;
+    };
+    financialData: {
+        incomes: number;
+        expenses: number;
+        loans: number;
+        budgets: number;
+    };
+    adminActivity: {
+        recent: Array<any>;
+        period: string;
+    };
 }
 
 interface UserInfo {
@@ -34,14 +53,10 @@ interface UserInfo {
 
 export default function AdminDashboardPage() {
     const t = useTranslations()
-    const [stats, setStats] = useState<StatData>({
-        userCount: 0,
-        transactionCount: 0,
-        activeUserCount: 0,
-        todayTransactions: 0
-    })
+    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<UserInfo | null>(null)
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         // Lấy thông tin người dùng từ localStorage
@@ -60,62 +75,114 @@ export default function AdminDashboardPage() {
             }
         }
 
-        // Giả lập dữ liệu trong môi trường dev
-        const loadMockData = () => {
-            setStats({
-                userCount: 1250,
-                transactionCount: 18743,
-                activeUserCount: 843,
-                todayTransactions: 124
-            })
-            setLoading(false)
-        }
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true)
+                setError(null)
 
-        try {
-            const fetchStats = async () => {
-                try {
-                    setLoading(true)
-                    const response = await fetch('/api/admin/stats')
+                const response = await adminService.getDashboardData()
 
-                    if (response.ok) {
-                        const data = await response.json()
-                        setStats(data)
-                    } else {
-                        // Nếu API trả về lỗi, sử dụng dữ liệu mẫu
-                        loadMockData()
-                    }
-                } catch (error) {
-                    console.error('Lỗi khi tải dữ liệu thống kê:', error)
-                    loadMockData()
-                } finally {
-                    setLoading(false)
+                if (response.status === 'success' && response.data) {
+                    setDashboardData(response.data)
+                } else {
+                    throw new Error('Invalid response format')
                 }
-            }
+            } catch (err: any) {
+                console.error('Lỗi khi tải dữ liệu dashboard:', err)
+                setError('Không thể tải dữ liệu dashboard')
 
-            // Thử gọi API, nếu lỗi sẽ load dữ liệu mẫu
-            fetchStats()
-        } catch (error) {
-            console.error('Lỗi khi khởi tạo trang:', error)
-            loadMockData()
+                // Fallback data for development
+                setDashboardData({
+                    users: {
+                        total: 1250,
+                        new: 45,
+                        active: 843,
+                        admin: 3,
+                        byRole: [
+                            { _id: 'user', count: 1244 },
+                            { _id: 'admin', count: 5 },
+                            { _id: 'superadmin', count: 1 }
+                        ]
+                    },
+                    financialData: {
+                        incomes: 2847,
+                        expenses: 3921,
+                        loans: 156,
+                        budgets: 89
+                    },
+                    adminActivity: {
+                        recent: [],
+                        period: '7 ngày qua'
+                    }
+                })
+
+                toast.error('Sử dụng dữ liệu mẫu do không thể kết nối backend')
+            } finally {
+                setLoading(false)
+            }
         }
+
+        fetchDashboardData()
     }, [])
 
-    const stats_cards = [
+    const stats_cards = dashboardData ? [
         {
-            title: t('admin.stats.totalUsers'),
-            value: stats.userCount.toLocaleString(),
-            description: t('admin.stats.registeredUsers'),
-            icon: UserIcon,
+            title: 'Tổng số người dùng',
+            value: dashboardData.users.total.toLocaleString(),
+            description: 'Người dùng đã đăng ký',
+            icon: Users,
             color: 'bg-blue-500'
         },
         {
-            title: t('admin.stats.activeUsers'),
-            value: stats.activeUserCount.toLocaleString(),
-            description: t('admin.stats.last30Days'),
+            title: 'Người dùng mới',
+            value: dashboardData.users.new.toLocaleString(),
+            description: '30 ngày qua',
+            icon: TrendingUp,
+            color: 'bg-green-500'
+        },
+        {
+            title: 'Người dùng hoạt động',
+            value: dashboardData.users.active.toLocaleString(),
+            description: 'Đang hoạt động',
             icon: Activity,
             color: 'bg-yellow-500'
+        },
+        {
+            title: 'Quản trị viên',
+            value: dashboardData.users.admin.toLocaleString(),
+            description: 'Admin & SuperAdmin',
+            icon: Shield,
+            color: 'bg-purple-500'
+        },
+        {
+            title: 'Thu nhập',
+            value: dashboardData.financialData.incomes.toLocaleString(),
+            description: 'Bản ghi thu nhập',
+            icon: DollarSign,
+            color: 'bg-emerald-500'
+        },
+        {
+            title: 'Chi tiêu',
+            value: dashboardData.financialData.expenses.toLocaleString(),
+            description: 'Bản ghi chi tiêu',
+            icon: FileText,
+            color: 'bg-red-500'
+        },
+        {
+            title: 'Khoản vay',
+            value: dashboardData.financialData.loans.toLocaleString(),
+            description: 'Khoản vay đang quản lý',
+            icon: BarChart3,
+            color: 'bg-orange-500'
+        },
+        {
+            title: 'Ngân sách',
+            value: dashboardData.financialData.budgets.toLocaleString(),
+            description: 'Kế hoạch ngân sách',
+            icon: Database,
+            color: 'bg-indigo-500'
         }
-    ]
+    ] : []
 
     return (
         <div className="space-y-6 p-6">
@@ -156,89 +223,151 @@ export default function AdminDashboardPage() {
                 </Card>
             )}
 
+            {/* Error Display */}
+            {error && (
+                <Card className="border-red-200 bg-red-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center space-x-2 text-red-600">
+                            <Activity className="h-4 w-4" />
+                            <span className="text-sm font-medium">{error}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* Statistics Cards */}
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {stats_cards.map((card, index) => (
-                    <Card key={index}>
-                        <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-                            <CardTitle className="text-sm font-medium">
-                                {card.title}
-                            </CardTitle>
-                            <div className={`p-2 rounded-full ${card.color}`}>
-                                <card.icon className="h-4 w-4 text-white" />
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-2xl font-bold">
-                                {loading ? (
-                                    <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
-                                ) : (
-                                    card.value
-                                )}
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                                {card.description}
-                            </p>
-                        </CardContent>
-                    </Card>
-                ))}
+                {loading ? (
+                    // Loading skeleton
+                    [...Array(8)].map((_, index) => (
+                        <Card key={index}>
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                                <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
+                                <div className="h-8 w-8 bg-muted animate-pulse rounded-full"></div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="h-8 w-16 bg-muted animate-pulse rounded mb-1"></div>
+                                <div className="h-3 w-20 bg-muted animate-pulse rounded"></div>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    stats_cards.map((card, index) => (
+                        <Card key={index} className="hover:shadow-md transition-shadow">
+                            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+                                <CardTitle className="text-sm font-medium">
+                                    {card.title}
+                                </CardTitle>
+                                <div className={`p-2 rounded-full ${card.color}`}>
+                                    <card.icon className="h-4 w-4 text-white" />
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="text-2xl font-bold">
+                                    {card.value}
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    {card.description}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
 
+            {/* Additional Information Cards */}
             <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+                {/* User Roles Distribution */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>{t('admin.recentUsers')}</CardTitle>
+                        <CardTitle>Phân bố vai trò người dùng</CardTitle>
                         <CardDescription>
-                            {t('admin.recentUsersDescription')}
+                            Thống kê người dùng theo vai trò
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
-                            <div className="space-y-2">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="flex items-center space-x-4">
-                                        <div className="h-10 w-10 rounded-full bg-muted animate-pulse"></div>
-                                        <div className="space-y-2">
-                                            <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                                            <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
+                            <div className="space-y-3">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
+                                        <div className="h-4 w-12 bg-muted animate-pulse rounded"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : dashboardData ? (
+                            <div className="space-y-3">
+                                {dashboardData.users.byRole.map((role, index) => (
+                                    <div key={index} className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <div className={`w-3 h-3 rounded-full ${role._id === 'superadmin' ? 'bg-red-500' :
+                                                role._id === 'admin' ? 'bg-blue-500' : 'bg-gray-500'
+                                                }`}></div>
+                                            <span className="text-sm font-medium capitalize">
+                                                {role._id === 'superadmin' ? 'Super Admin' :
+                                                    role._id === 'admin' ? 'Admin' : 'Người dùng'}
+                                            </span>
                                         </div>
+                                        <span className="text-sm font-bold">
+                                            {role.count.toLocaleString()}
+                                        </span>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-8">
                                 <p className="text-muted-foreground">
-                                    {t('admin.connectBackendForData')}
+                                    Không có dữ liệu
                                 </p>
                             </div>
                         )}
                     </CardContent>
                 </Card>
 
+                {/* Admin Activity Summary */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>{t('admin.recentTransactions')}</CardTitle>
+                        <CardTitle>Hoạt động quản trị</CardTitle>
                         <CardDescription>
-                            {t('admin.recentTransactionsDescription')}
+                            {dashboardData?.adminActivity.period || 'Thống kê hoạt động'}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {loading ? (
-                            <div className="space-y-2">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="flex items-center space-x-4">
-                                        <div className="h-8 w-8 rounded-full bg-muted animate-pulse"></div>
-                                        <div className="space-y-2 flex-1">
-                                            <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                                            <div className="h-3 w-32 bg-muted animate-pulse rounded"></div>
+                            <div className="space-y-3">
+                                {[...Array(4)].map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between">
+                                        <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
+                                        <div className="h-4 w-8 bg-muted animate-pulse rounded"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : dashboardData && dashboardData.adminActivity.recent.length > 0 ? (
+                            <div className="space-y-3">
+                                {dashboardData.adminActivity.recent.slice(0, 5).map((activity, index) => (
+                                    <div key={index} className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <Activity className="h-4 w-4 text-blue-500" />
+                                            <span className="text-sm">
+                                                {activity._id}
+                                            </span>
                                         </div>
-                                        <div className="h-4 w-16 bg-muted animate-pulse rounded"></div>
+                                        <div className="text-right">
+                                            <div className="text-sm font-bold">
+                                                {activity.total}
+                                            </div>
+                                            <div className="text-xs text-green-600">
+                                                {activity.success} thành công
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="text-center py-8">
-                                <p className="text-muted-foreground">
-                                    {t('admin.connectBackendForData')}
+                                <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                <p className="text-muted-foreground text-sm">
+                                    Chưa có hoạt động nào được ghi nhận
                                 </p>
                             </div>
                         )}

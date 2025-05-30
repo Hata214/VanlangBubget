@@ -93,9 +93,26 @@ export const protect = async (req, res, next) => {
         }
 
         try {
-            // Xác minh token
-            const decoded = await verifyToken(cleanedToken, process.env.JWT_SECRET);
-            logger.info('Token verified successfully for user:', decoded.id);
+            let decoded;
+
+            // Development mode: Handle mock tokens
+            if (process.env.NODE_ENV === 'development' && cleanedToken.startsWith('mock_')) {
+                logger.info('Development mode: Processing mock token');
+
+                // Extract user ID from mock token (format: mock_userId_timestamp)
+                const parts = cleanedToken.split('_');
+                if (parts.length >= 2) {
+                    const userId = parts[1];
+                    decoded = { id: userId };
+                    logger.info('Mock token decoded for user:', userId);
+                } else {
+                    throw new Error('Invalid mock token format');
+                }
+            } else {
+                // Production mode: Verify JWT token
+                decoded = await verifyToken(cleanedToken, process.env.JWT_SECRET);
+                logger.info('Token verified successfully for user:', decoded.id);
+            }
 
             // Tìm người dùng - THÊM +active +loginAttempts +lastLoginAttempt +blockedUntil vào select
             const currentUser = await User.findById(decoded.id).select('+active +loginAttempts +lastLoginAttempt +blockedUntil');

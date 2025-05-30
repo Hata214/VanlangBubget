@@ -23,6 +23,12 @@ import {
     toggleAdminStatus,
     getAdminActivityLogs
 } from '../controllers/adminManagementController.js';
+import {
+    getActivityLogs,
+    getActivityStats,
+    getLogsByAction,
+    getLogsByDateRange
+} from '../controllers/activityLogController.js';
 
 const router = express.Router();
 
@@ -81,13 +87,37 @@ router.put('/manage/update/:id', updateAdmin);
 router.delete('/manage/delete/:id', deleteAdmin);
 router.patch('/manage/toggle-status/:id', toggleAdminStatus);
 
+// === Activity Logs Routes ===
 /**
- * Lấy lịch sử hoạt động của admin
+ * Lấy danh sách activity logs
+ * - Admin chỉ có thể xem logs của chính mình
+ * - SuperAdmin có thể xem tất cả logs
+ */
+router.get('/activity-logs', getActivityLogs);
+
+/**
+ * Lấy thống kê hoạt động admin
+ */
+router.get('/activity-logs/stats', getActivityStats);
+
+/**
+ * Lấy logs theo action type (SuperAdmin only)
+ */
+router.get('/activity-logs/by-action/:actionType', restrictTo('superadmin'), getLogsByAction);
+
+/**
+ * Lấy logs trong khoảng thời gian
+ */
+router.get('/activity-logs/by-date', getLogsByDateRange);
+
+/**
+ * Lấy lịch sử hoạt động của admin cụ thể
  * - Superadmin có thể xem tất cả
  * - Admin chỉ có thể xem lịch sử của mình
  */
 router.get('/activity-logs/:adminId', getAdminActivityLogs);
 
+// === Dashboard Route ===
 router.get('/dashboard', adminDashboard);
 
 export default router; 
