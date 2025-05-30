@@ -11,11 +11,11 @@ export default function NotFound() {
             <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 py-16">
                 <div className="space-y-8 max-w-lg mx-auto">
                     <div className="space-y-4">
-                        <h1 className="text-9xl font-bold text-indigo-600">404</h1>
-                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                        <h1 className="text-9xl font-bold text-indigo-600 dark:text-indigo-400">404</h1>
+                        <h2 className="text-3xl font-bold text-foreground">
                             Không tìm thấy trang
                         </h2>
-                        <p className="text-lg text-gray-500 dark:text-gray-400">
+                        <p className="text-lg text-muted-foreground">
                             Trang bạn đang tìm kiếm không tồn tại hoặc đã bị di chuyển.
                         </p>
                     </div>

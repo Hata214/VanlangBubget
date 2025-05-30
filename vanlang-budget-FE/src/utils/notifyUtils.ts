@@ -264,21 +264,21 @@ export const getNotificationTypeText = (type: NotificationType): string => {
 export const getNotificationTypeColor = (type: NotificationType): string => {
     switch (type) {
         case 'expense':
-            return 'text-red-500';
+            return 'text-red-500 dark:text-red-400';
         case 'income':
-            return 'text-green-500';
+            return 'text-green-500 dark:text-green-400';
         case 'budget':
-            return 'text-yellow-500';
+            return 'text-yellow-500 dark:text-yellow-400';
         case 'system':
-            return 'text-blue-500';
+            return 'text-blue-500 dark:text-blue-400';
         case 'account-balance':
-            return 'text-purple-500';
+            return 'text-purple-500 dark:text-purple-400';
         case 'loan-due':
-            return 'text-amber-500';
+            return 'text-amber-500 dark:text-amber-400';
         case 'loan-overdue':
-            return 'text-rose-600';
+            return 'text-rose-600 dark:text-rose-400';
         default:
-            return 'text-gray-500';
+            return 'text-muted-foreground';
     }
 };
 

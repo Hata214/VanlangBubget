@@ -370,29 +370,32 @@ export default function NotificationsPage() {
     const renderDefaultNotification = (notification: DisplayNotification) => {
         return (
             <div
-                className={`flex items-start gap-3 p-3 rounded-lg border ${notification.read ? 'bg-gray-50' : 'bg-blue-50 border-blue-100'}`}
+                className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${notification.read
+                    ? 'bg-muted/30 dark:bg-muted/20 border-border'
+                    : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800'
+                    }`}
             >
                 <div className="flex-shrink-0 mt-1">
                     {getNotificationTypeIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                        <div className="font-medium">
+                        <div className="font-medium text-foreground">
                             {notification.title}
                             {!notification.read && (
-                                <Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                                <Badge variant="secondary" className="ml-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-900/70">
                                     Mới
                                 </Badge>
                             )}
                         </div>
-                        <small className="text-gray-500 shrink-0 ml-2">
+                        <small className="text-muted-foreground shrink-0 ml-2">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                         {notification.message}
                     </p>
                     <div className="flex items-center justify-between mt-2">
@@ -401,6 +404,7 @@ export default function NotificationsPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
                                     onClick={() => {
                                         try {
                                             console.log('Navigating to detail link:', notification.link);
@@ -449,6 +453,7 @@ export default function NotificationsPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
                                     onClick={() => handleMarkAsRead(notification._id)}
                                 >
                                     <Check className="mr-1 h-3 w-3" />
@@ -459,7 +464,7 @@ export default function NotificationsPage() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="text-red-500 hover:text-red-700"
+                            className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/50"
                             onClick={() => handleDelete(notification._id)}
                         >
                             <Trash2 className="h-3 w-3" />
@@ -476,40 +481,40 @@ export default function NotificationsPage() {
 
         switch (notification.type?.toUpperCase()) {
             case 'ERROR':
-                bgColor = 'bg-red-50';
-                borderColor = 'border-red-100';
-                textColor = 'text-red-700';
-                buttonColor = 'text-red-600 hover:bg-red-100';
+                bgColor = 'bg-red-50 dark:bg-red-950/30';
+                borderColor = 'border-red-200 dark:border-red-800';
+                textColor = 'text-red-700 dark:text-red-300';
+                buttonColor = 'text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 hover:text-red-800 dark:hover:text-red-300';
                 break;
             case 'ACCOUNT-BALANCE':
-                bgColor = 'bg-purple-50';
-                borderColor = 'border-purple-100';
-                textColor = 'text-purple-700';
-                buttonColor = 'text-purple-600 hover:bg-purple-100';
+                bgColor = 'bg-purple-50 dark:bg-purple-950/30';
+                borderColor = 'border-purple-200 dark:border-purple-800';
+                textColor = 'text-purple-700 dark:text-purple-300';
+                buttonColor = 'text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-950/50 hover:text-purple-800 dark:hover:text-purple-300';
                 break;
             case 'LOAN-DUE':
-                bgColor = 'bg-amber-50';
-                borderColor = 'border-amber-100';
-                textColor = 'text-amber-700';
-                buttonColor = 'text-amber-600 hover:bg-amber-100';
+                bgColor = 'bg-amber-50 dark:bg-amber-950/30';
+                borderColor = 'border-amber-200 dark:border-amber-800';
+                textColor = 'text-amber-700 dark:text-amber-300';
+                buttonColor = 'text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/50 hover:text-amber-800 dark:hover:text-amber-300';
                 break;
             case 'LOAN-OVERDUE':
-                bgColor = 'bg-rose-50';
-                borderColor = 'border-rose-100';
-                textColor = 'text-rose-700';
-                buttonColor = 'text-rose-600 hover:bg-rose-100';
+                bgColor = 'bg-rose-50 dark:bg-rose-950/30';
+                borderColor = 'border-rose-200 dark:border-rose-800';
+                textColor = 'text-rose-700 dark:text-rose-300';
+                buttonColor = 'text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/50 hover:text-rose-800 dark:hover:text-rose-300';
                 break;
             case 'WARNING':
             default:
-                bgColor = 'bg-amber-50';
-                borderColor = 'border-amber-100';
-                textColor = 'text-amber-700';
-                buttonColor = 'text-amber-600 hover:bg-amber-100';
+                bgColor = 'bg-amber-50 dark:bg-amber-950/30';
+                borderColor = 'border-amber-200 dark:border-amber-800';
+                textColor = 'text-amber-700 dark:text-amber-300';
+                buttonColor = 'text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-950/50 hover:text-amber-800 dark:hover:text-amber-300';
                 break;
         }
 
         return (
-            <div className={`flex items-start gap-3 p-3 rounded-lg border ${borderColor} ${notification.read ? `${bgColor} bg-opacity-50` : bgColor}`}>
+            <div className={`flex items-start gap-3 p-3 rounded-lg border transition-colors ${borderColor} ${notification.read ? `${bgColor} opacity-70` : bgColor}`}>
                 <div className="flex-shrink-0 mt-1">
                     {getNotificationTypeIcon(notification.type)}
                 </div>
@@ -518,12 +523,12 @@ export default function NotificationsPage() {
                         <div className={`font-medium ${textColor}`}>
                             {notification.title}
                             {!notification.read && (
-                                <Badge variant="secondary" className={`ml-2 ${bgColor} ${textColor} hover:${bgColor}`}>
+                                <Badge variant="secondary" className={`ml-2 ${bgColor} ${textColor} hover:opacity-80`}>
                                     Mới
                                 </Badge>
                             )}
                         </div>
-                        <small className="text-gray-500 shrink-0 ml-2">
+                        <small className="text-muted-foreground shrink-0 ml-2">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
@@ -575,37 +580,37 @@ export default function NotificationsPage() {
     // Render thông báo thành công
     const renderSuccessNotification = (notification: DisplayNotification) => {
         return (
-            <div className={`flex items-start gap-3 p-4 rounded-lg border border-green-100 ${notification.read ? 'bg-green-50 bg-opacity-30' : 'bg-green-50'}`}>
+            <div className={`flex items-start gap-3 p-4 rounded-lg border border-green-200 dark:border-green-800 transition-colors ${notification.read ? 'bg-green-50 dark:bg-green-950/20 opacity-70' : 'bg-green-50 dark:bg-green-950/30'}`}>
                 <div className="flex-shrink-0 mt-1">
-                    <CheckCheck className="text-green-600" />
+                    <CheckCheck className="text-green-600 dark:text-green-400" />
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                         <div>
-                            <div className="font-medium text-green-900">
+                            <div className="font-medium text-green-900 dark:text-green-100">
                                 {notification.title}
                                 {!notification.read && (
-                                    <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800 hover:bg-green-200">
+                                    <Badge variant="secondary" className="ml-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/70">
                                         Mới
                                     </Badge>
                                 )}
                             </div>
-                            <small className="text-green-500 text-xs">Cập nhật dữ liệu</small>
+                            <small className="text-green-500 dark:text-green-400 text-xs">Cập nhật dữ liệu</small>
                         </div>
-                        <small className="text-green-500 shrink-0 ml-2">
+                        <small className="text-green-500 dark:text-green-400 shrink-0 ml-2">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className="text-sm text-green-700 mt-1">
+                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
                         {notification.message}
                     </p>
                     {notification.link && notification.link !== '#' && (
                         <Button
                             variant="link"
-                            className="p-0 mt-1 h-auto text-green-700 hover:text-green-900"
+                            className="p-0 mt-1 h-auto text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
                             onClick={() => navigateToTarget(router, notification.link as string, notification.relatedId)}
                         >
                             <LinkIcon className="h-3 w-3 mr-1" />
@@ -616,7 +621,7 @@ export default function NotificationsPage() {
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs text-green-700 hover:text-green-900 bg-green-50 hover:bg-green-100"
+                            className="h-7 px-2 text-xs text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 bg-green-50 dark:bg-green-950/50 hover:bg-green-100 dark:hover:bg-green-950/70"
                             onClick={() => handleMarkAsRead(notification._id)}
                             disabled={notification.read}
                         >
@@ -719,8 +724,8 @@ export default function NotificationsPage() {
         <MainLayout>
             <div className="container pb-12 pt-4">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold">{t('notifications.title')}</h1>
-                    <p className="text-gray-500 mt-2">{t('notifications.subtitle')}</p>
+                    <h1 className="text-3xl font-bold text-foreground">{t('notifications.title')}</h1>
+                    <p className="text-muted-foreground mt-2">{t('notifications.subtitle')}</p>
                 </div>
 
                 <Card>
@@ -751,7 +756,7 @@ export default function NotificationsPage() {
                         {reduxLoading && !showMockData ? (
                             <div className="space-y-4">
                                 {Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className="flex items-start gap-3 p-4 rounded-lg border border-gray-100">
+                                    <div key={i} className="flex items-start gap-3 p-4 rounded-lg border border-border bg-card">
                                         <div className="flex-shrink-0 mt-1">
                                             <Skeleton className="h-5 w-5 rounded-full" />
                                         </div>
@@ -773,9 +778,9 @@ export default function NotificationsPage() {
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-10 text-center space-y-3">
-                                <Bell className="h-12 w-12 text-gray-300" />
-                                <h3 className="text-lg font-medium text-gray-700">{t('notifications.noNotifications')}</h3>
-                                <p className="text-gray-500 max-w-md">{t('notifications.emptyMessage')}</p>
+                                <Bell className="h-12 w-12 text-muted-foreground/50" />
+                                <h3 className="text-lg font-medium text-foreground">{t('notifications.noNotifications')}</h3>
+                                <p className="text-muted-foreground max-w-md">{t('notifications.emptyMessage')}</p>
                             </div>
                         )}
                     </CardContent>

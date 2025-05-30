@@ -22,9 +22,9 @@ const badgeVariants = cva(
                 outline:
                     'text-foreground border border-input hover:bg-accent hover:text-accent-foreground',
                 success:
-                    'bg-green-100 text-green-800 border-green-200 hover:bg-green-200',
+                    'bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-200 dark:border-green-800 hover:bg-green-200 dark:hover:bg-green-900/70',
                 warning:
-                    'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-200',
+                    'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 border-yellow-200 dark:border-yellow-800 hover:bg-yellow-200 dark:hover:bg-yellow-900/70',
             },
         },
         defaultVariants: {

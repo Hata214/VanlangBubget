@@ -26,7 +26,7 @@ const BackToHome: React.FC<BackToHomeProps> = ({ className = '' }) => {
     return (
         <button
             onClick={handleBackToHome}
-            className={`inline-flex items-center gap-1 px-3 py-2 bg-white rounded-md shadow-sm border border-gray-200 text-gray-700 hover:text-indigo-600 hover:bg-gray-50 transition-all duration-200 ${className}`}
+            className={`inline-flex items-center gap-1 px-3 py-2 bg-background dark:bg-card rounded-md shadow-sm border border-border text-foreground hover:text-primary hover:bg-muted transition-all duration-200 ${className}`}
         >
             <ChevronLeft size={16} strokeWidth={2.5} />
             <span className="font-medium">Trang chủ</span>
