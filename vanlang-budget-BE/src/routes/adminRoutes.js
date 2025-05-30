@@ -120,4 +120,69 @@ router.get('/activity-logs/:adminId', getAdminActivityLogs);
 // === Dashboard Route ===
 router.get('/dashboard', adminDashboard);
 
-export default router; 
+// === Test Route ===
+router.get('/test-logs', async (req, res) => {
+    try {
+        const AdminActivityLog = (await import('../models/adminActivityLogModel.js')).default;
+        const User = (await import('../models/userModel.js')).default;
+
+        // Kiểm tra số lượng logs hiện tại
+        const count = await AdminActivityLog.countDocuments();
+        console.log(`📊 Current logs count: ${count}`);
+
+        // Nếu chưa có logs, tạo một số logs mẫu
+        if (count === 0) {
+            console.log('🔄 Creating sample logs...');
+
+            // Lấy admin users
+            const adminUsers = await User.find({ role: { $in: ['admin', 'superadmin'] } });
+            console.log(`👥 Found ${adminUsers.length} admin users`);
+
+            if (adminUsers.length > 0) {
+                const sampleLogs = [];
+                const actionTypes = ['LOGIN', 'DASHBOARD_VIEW', 'USER_VIEW', 'EXPORT_DATA'];
+
+                for (let i = 0; i < 10; i++) {
+                    const randomAdmin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
+                    const randomAction = actionTypes[Math.floor(Math.random() * actionTypes.length)];
+
+                    sampleLogs.push({
+                        adminId: randomAdmin._id,
+                        actionType: randomAction,
+                        targetType: 'System',
+                        result: 'SUCCESS',
+                        timestamp: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random trong 7 ngày qua
+                        ipAddress: `192.168.1.${Math.floor(Math.random() * 255)}`,
+                        userAgent: 'Mozilla/5.0 (Test Browser)',
+                        metadata: { source: 'test-endpoint' }
+                    });
+                }
+
+                await AdminActivityLog.insertMany(sampleLogs);
+                console.log(`✅ Created ${sampleLogs.length} sample logs`);
+            }
+        }
+
+        // Lấy logs để hiển thị
+        const logs = await AdminActivityLog.find()
+            .populate('adminId', 'firstName lastName email role')
+            .sort({ timestamp: -1 })
+            .limit(5);
+
+        const finalCount = await AdminActivityLog.countDocuments();
+
+        res.json({
+            success: true,
+            totalLogs: finalCount,
+            sampleLogs: logs
+        });
+    } catch (error) {
+        console.error('❌ Test logs error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+export default router;

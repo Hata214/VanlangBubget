@@ -38,7 +38,11 @@ export const siteContentService = {
 
             try {
                 const params = actualLanguage ? { language: actualLanguage } : {};
+                // Add timestamp to prevent caching
+                params._t = Date.now();
+                console.log(`[FRONTEND SERVICE DEBUG] Calling API: ${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, params);
                 const response = await axios.get(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, { params });
+                console.log(`[FRONTEND SERVICE DEBUG] API Response:`, response.data);
                 return response.data;
             } catch (apiError) {
                 console.error(`Lỗi khi lấy nội dung ${type} từ API:`, apiError);
@@ -70,13 +74,39 @@ export const siteContentService = {
 
     /**
      * Cập nhật nội dung trang web theo loại
-     * @param type Loại nội dung
+     * @param contentKey Khóa nội dung (format: "homepage-vi", "about-en")
      * @param content Nội dung cần cập nhật
      * @param status Trạng thái nội dung (draft, published, pending_review)
      */
-    async updateContentByType(type: string, content: any, status?: string) {
-        const response = await axios.put(`${API_ENDPOINTS.SITE_CONTENT}/${type}`, { content, status });
-        return response.data;
+    async updateContentByType(contentKey: string, content: any, status?: string) {
+        try {
+            // Parse contentKey format: "homepage-vi" -> type="homepage", language="vi"
+            let actualType = contentKey;
+            let actualLanguage = 'vi';
+
+            // Kiểm tra nếu contentKey có dạng "xxx-vi" hoặc "xxx-en"
+            if (contentKey.includes('-')) {
+                const parts = contentKey.split('-');
+                if (parts.length === 2 && (parts[1] === 'vi' || parts[1] === 'en')) {
+                    actualType = parts[0];
+                    actualLanguage = parts[1];
+                }
+            }
+
+            // Chuẩn hóa loại nội dung
+            if (actualType === 'home') {
+                actualType = 'homepage';
+            }
+
+            console.log(`Cập nhật nội dung cho type=${actualType}, language=${actualLanguage}`);
+
+            const requestData = { content, status };
+            const response = await axios.put(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}?_t=${Date.now()}`, requestData);
+            return response.data;
+        } catch (error) {
+            console.error(`Lỗi khi cập nhật nội dung ${contentKey}:`, error);
+            throw error;
+        }
     },
 
     /**
@@ -174,21 +204,47 @@ export const siteContentService = {
 
     /**
      * Phê duyệt nội dung theo loại (chỉ dành cho SuperAdmin)
-     * @param type Loại nội dung
+     * @param contentKey Khóa nội dung (format: "homepage-vi", "about-en")
      */
-    async approveContentByType(type: string) {
-        const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/approve`);
-        return response.data;
+    async approveContentByType(contentKey: string) {
+        // Parse contentKey để lấy type thực tế
+        let actualType = contentKey;
+        if (contentKey.includes('-')) {
+            const parts = contentKey.split('-');
+            if (parts.length === 2 && (parts[1] === 'vi' || parts[1] === 'en')) {
+                actualType = parts[0];
+            }
+        }
+
+        if (actualType === 'homepage') {
+            return this.approveHomepageContent();
+        } else {
+            const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}/approve`);
+            return response.data;
+        }
     },
 
     /**
      * Từ chối nội dung theo loại (chỉ dành cho SuperAdmin)
-     * @param type Loại nội dung
+     * @param contentKey Khóa nội dung (format: "homepage-vi", "about-en")
      * @param reason Lý do từ chối
      */
-    async rejectContentByType(type: string, reason?: string) {
-        const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${type}/reject`, { reason });
-        return response.data;
+    async rejectContentByType(contentKey: string, reason?: string) {
+        // Parse contentKey để lấy type thực tế
+        let actualType = contentKey;
+        if (contentKey.includes('-')) {
+            const parts = contentKey.split('-');
+            if (parts.length === 2 && (parts[1] === 'vi' || parts[1] === 'en')) {
+                actualType = parts[0];
+            }
+        }
+
+        if (actualType === 'homepage') {
+            return this.rejectHomepageContent(reason);
+        } else {
+            const response = await axios.post(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}/reject`, { reason });
+            return response.data;
+        }
     },
 
     /**

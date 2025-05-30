@@ -138,16 +138,32 @@ siteContentSchema.statics.updateFooterContent = async function (content, userId)
  */
 siteContentSchema.statics.getHomepageContent = async function (language = 'vi') {
     try {
+        console.log(`[DEBUG] getHomepageContent called with language: ${language}`);
         const homepageContent = await this.findOne({ type: 'homepage' });
-        if (!homepageContent) return null;
+        console.log(`[DEBUG] Found homepage content:`, homepageContent ? 'YES' : 'NO');
+
+        if (!homepageContent) {
+            console.log(`[DEBUG] No homepage content found in database`);
+            return null;
+        }
+
+        console.log(`[DEBUG] Homepage content structure:`, {
+            id: homepageContent._id,
+            type: homepageContent.type,
+            version: homepageContent.version,
+            status: homepageContent.status,
+            hasContent: !!homepageContent.content,
+            contentKeys: homepageContent.content ? Object.keys(homepageContent.content) : []
+        });
 
         // Xử lý nội dung theo ngôn ngữ nếu được hỗ trợ
         if (language && language !== 'vi' && homepageContent.content[language]) {
+            console.log(`[DEBUG] Returning content for language: ${language}`);
             return homepageContent.content[language];
         }
 
         // Trả về cả thông tin meta (version, updatedAt, v.v.) kèm theo nội dung
-        return {
+        const result = {
             content: homepageContent.content,
             version: homepageContent.version,
             updatedAt: homepageContent.updatedAt,
@@ -155,6 +171,9 @@ siteContentSchema.statics.getHomepageContent = async function (language = 'vi') 
             status: homepageContent.status,
             sections: homepageContent.sections
         };
+
+        console.log(`[DEBUG] Returning homepage content with keys:`, Object.keys(result.content || {}));
+        return result;
     } catch (error) {
         console.error('Lỗi khi lấy nội dung trang chủ:', error);
         return null;

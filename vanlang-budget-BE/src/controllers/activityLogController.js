@@ -24,6 +24,16 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
     const filterAdminId = req.user.role === 'admin' ? req.user.id : adminId;
 
     try {
+        console.log('🔍 Activity logs query params:', {
+            adminId: filterAdminId,
+            actionType,
+            targetType,
+            startDate,
+            endDate,
+            page: parseInt(page),
+            limit: parseInt(limit)
+        });
+
         const result = await AdminActivityLogger.getLogs({
             adminId: filterAdminId,
             actionType,
@@ -32,6 +42,13 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
             endDate,
             page: parseInt(page),
             limit: parseInt(limit)
+        });
+
+        console.log('📊 Activity logs result:', {
+            totalLogs: result.total,
+            logsCount: result.logs?.length,
+            page: result.page,
+            totalPages: result.totalPages
         });
 
         // Log việc xem activity logs
@@ -56,6 +73,7 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
         });
     } catch (error) {
         logger.error('Error fetching activity logs:', error);
+        console.error('❌ Activity logs error details:', error);
         return next(new AppError('Không thể lấy danh sách hoạt động', 500));
     }
 });
@@ -113,7 +131,7 @@ export const getAdminActivityLogs = catchAsync(async (req, res, next) => {
  */
 export const getActivityStats = catchAsync(async (req, res, next) => {
     const { days = 30 } = req.query;
-    
+
     // Admin chỉ có thể xem stats của chính mình
     const adminId = req.user.role === 'admin' ? req.user.id : null;
 

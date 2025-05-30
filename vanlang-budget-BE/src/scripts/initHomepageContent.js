@@ -31,23 +31,32 @@ const initHomepageContent = async () => {
             console.log('Status:', existingHomepage.status);
             console.log('Sections:', existingHomepage.sections);
 
-            // Hỏi người dùng có muốn ghi đè không
-            const readline = require('readline').createInterface({
-                input: process.stdin,
-                output: process.stdout
-            });
+            // Kiểm tra tham số force update
+            const forceUpdate = process.argv.includes('--force') || process.argv.includes('-f');
 
-            readline.question('Bạn có muốn ghi đè dữ liệu hiện tại không? (y/n) ', async (answer) => {
-                if (answer.toLowerCase() === 'y') {
-                    await updateHomepageContent();
-                    readline.close();
-                    process.exit(0);
-                } else {
-                    console.log('Hủy thao tác');
-                    readline.close();
-                    process.exit(0);
-                }
-            });
+            if (forceUpdate) {
+                console.log('Force update được kích hoạt, đang cập nhật dữ liệu...');
+                await updateHomepageContent();
+                process.exit(0);
+            } else {
+                // Hỏi người dùng có muốn ghi đè không
+                const readline = require('readline').createInterface({
+                    input: process.stdin,
+                    output: process.stdout
+                });
+
+                readline.question('Bạn có muốn ghi đè dữ liệu hiện tại không? (y/n) ', async (answer) => {
+                    if (answer.toLowerCase() === 'y') {
+                        await updateHomepageContent();
+                        readline.close();
+                        process.exit(0);
+                    } else {
+                        console.log('Hủy thao tác');
+                        readline.close();
+                        process.exit(0);
+                    }
+                });
+            }
         } else {
             // Nếu chưa có dữ liệu, tạo mới
             await createHomepageContent();

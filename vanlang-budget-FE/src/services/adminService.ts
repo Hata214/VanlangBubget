@@ -25,7 +25,13 @@ export const adminService = {
         endDate?: string;
     }) {
         const params = options || {};
+        console.log('🔄 AdminService.getActivityLogs - Params:', params);
+
         const response = await api.get('/api/admin/activity-logs', { params });
+
+        console.log('📡 AdminService.getActivityLogs - Response:', response);
+        console.log('📊 AdminService.getActivityLogs - Response Data:', response.data);
+
         return response.data;
     },
 
@@ -145,11 +151,11 @@ export const adminService = {
         search?: string;
     }) {
         const params = filters || {};
-        const response = await api.get('/api/admin/users/export', { 
+        const response = await api.get('/api/admin/users/export', {
             params,
             responseType: 'blob'
         });
-        
+
         // Tạo file download
         const blob = new Blob([response.data], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -160,7 +166,7 @@ export const adminService = {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         return { success: true, message: 'Xuất dữ liệu thành công' };
     },
 
@@ -174,11 +180,11 @@ export const adminService = {
         endDate?: string;
     }) {
         const params = filters || {};
-        const response = await api.get('/api/admin/activity-logs/export', { 
+        const response = await api.get('/api/admin/activity-logs/export', {
             params,
             responseType: 'blob'
         });
-        
+
         // Tạo file download
         const blob = new Blob([response.data], { type: 'text/csv' });
         const url = window.URL.createObjectURL(blob);
@@ -189,7 +195,7 @@ export const adminService = {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
+
         return { success: true, message: 'Xuất dữ liệu thành công' };
     }
 };

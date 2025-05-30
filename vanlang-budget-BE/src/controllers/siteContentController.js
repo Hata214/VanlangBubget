@@ -64,7 +64,7 @@ export const getSiteContentByType = async (req, res, next) => {
 
         console.log(`getSiteContentByType được gọi với type=${type}, language=${language}`);
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -116,7 +116,7 @@ export const updateSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { content, status } = req.body;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
+        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));

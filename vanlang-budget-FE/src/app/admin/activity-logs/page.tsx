@@ -110,14 +110,16 @@ export default function ActivityLogsPage() {
 
     const fetchAdmins = async () => {
         try {
-            // Gọi API lấy danh sách admin
-            const response = await fetch('/api/admin/manage-admins');
-            const data = await response.json();
+            // Sử dụng adminService thay vì fetch trực tiếp
+            const response = await adminService.getAdminList();
 
-            if (data.success) {
-                setAdmins(data.data || []);
+            console.log('🔍 Admin list response:', response);
+            if (response.success) {
+                setAdmins(response.data || []);
+                console.log('✅ Admin list loaded:', response.data?.length, 'admins');
+                console.log('🔍 First admin sample:', response.data?.[0]);
             } else {
-                console.error('Lỗi khi lấy danh sách admin:', data.message);
+                console.error('Lỗi khi lấy danh sách admin:', response.message);
             }
         } catch (error) {
             console.error('Lỗi khi tải danh sách admin:', error);
@@ -154,9 +156,15 @@ export default function ActivityLogsPage() {
             // Gọi adminService để lấy lịch sử hoạt động
             const response = await adminService.getActivityLogs(options);
 
-            if (response.success) {
+            console.log('📊 Activity logs response:', response);
+
+            if (response.status === 'success') {
                 setActivityLogs(response.data || []);
                 setTotalPages(response.pagination?.totalPages || 1);
+                console.log('✅ Activity logs loaded:', response.data?.length, 'logs');
+                console.log('🔍 First log sample:', response.data?.[0]);
+                console.log('🔍 Action field:', response.data?.[0]?.action || response.data?.[0]?.actionType);
+                console.log('🔍 Admin field:', response.data?.[0]?.adminId);
             } else {
                 console.error('Lỗi khi lấy lịch sử hoạt động:', response.message);
                 toast.error('Không thể tải lịch sử hoạt động');
@@ -237,26 +245,39 @@ export default function ActivityLogsPage() {
 
     const getActionLabel = (action: string) => {
         const actionLabels: Record<string, string> = {
+            // Dashboard Actions
+            DASHBOARD_VIEW: 'Xem dashboard',
+            VIEW_DASHBOARD: 'Xem dashboard',
+
+            // Admin Management
             VIEW_ADMIN_LIST: 'Xem danh sách admin',
             CREATE_ADMIN: 'Tạo admin mới',
             UPDATE_ADMIN: 'Cập nhật admin',
             DELETE_ADMIN: 'Xóa admin',
             ACTIVATE_ADMIN: 'Kích hoạt admin',
             DEACTIVATE_ADMIN: 'Vô hiệu hóa admin',
+
+            // Content Management
             VIEW_SITE_CONTENT: 'Xem nội dung site',
             UPDATE_SITE_CONTENT: 'Cập nhật nội dung site',
             APPROVE_CONTENT: 'Phê duyệt nội dung',
             REJECT_CONTENT: 'Từ chối nội dung',
             RESTORE_CONTENT_VERSION: 'Khôi phục phiên bản',
+
+            // User Management
             VIEW_USER_LIST: 'Xem danh sách người dùng',
             UPDATE_USER: 'Cập nhật người dùng',
             DELETE_USER: 'Xóa người dùng',
             RESET_USER_PASSWORD: 'Đặt lại mật khẩu',
             ACTIVATE_USER: 'Kích hoạt người dùng',
             DEACTIVATE_USER: 'Vô hiệu hóa người dùng',
+
+            // Authentication
             LOGIN: 'Đăng nhập',
             LOGOUT: 'Đăng xuất',
             FAILED_LOGIN: 'Đăng nhập thất bại',
+
+            // System
             SYSTEM_CONFIG: 'Cấu hình hệ thống',
             OTHER: 'Hoạt động khác'
         };
@@ -264,7 +285,16 @@ export default function ActivityLogsPage() {
         return actionLabels[action] || action;
     };
 
-    const getActionBadgeColor = (action: string) => {
+    const getAdminName = (adminId: string) => {
+        const admin = admins.find(a => a.id === adminId || a._id === adminId);
+        if (admin) {
+            return `${admin.firstName} ${admin.lastName}`;
+        }
+        return adminId; // Fallback to ID if not found
+    };
+
+    const getActionBadgeColor = (action: string | undefined) => {
+        if (!action) return 'bg-gray-100 text-gray-800 border-gray-300';
         if (action.includes('CREATE') || action.includes('APPROVE')) return 'bg-green-100 text-green-800 border-green-300';
         if (action.includes('DELETE') || action.includes('REJECT') || action.includes('FAILED')) return 'bg-red-100 text-red-800 border-red-300';
         if (action.includes('UPDATE') || action.includes('RESTORE')) return 'bg-blue-100 text-blue-800 border-blue-300';
@@ -413,7 +443,7 @@ export default function ActivityLogsPage() {
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
                                                         {log.adminId ? (
                                                             <span>
-                                                                {log.adminId.firstName} {log.adminId.lastName}
+                                                                {getAdminName(log.adminId)}
                                                             </span>
                                                         ) : 'N/A'}
                                                     </div>

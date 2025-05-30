@@ -96,13 +96,17 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
             }
 
             // Tải dữ liệu từ API
+            console.log(`[PROVIDER DEBUG] Loading content for type: ${contentType}`);
             const response = await siteContentService.getContentByType(contentType);
+            console.log(`[PROVIDER DEBUG] Service response:`, response);
 
             if (response && response.data) {
                 // Lưu nội dung vào state
+                console.log(`[PROVIDER DEBUG] Setting content for ${contentType}:`, response.data);
                 setContent(prev => ({ ...prev, [contentType]: response.data }));
             } else {
                 // Sử dụng dữ liệu fallback nếu không có dữ liệu từ API
+                console.log(`[PROVIDER DEBUG] Using fallback for ${contentType}`);
                 const fallbackData = localFallbackData[contentType] || {};
                 setContent(prev => ({ ...prev, [contentType]: fallbackData }));
             }

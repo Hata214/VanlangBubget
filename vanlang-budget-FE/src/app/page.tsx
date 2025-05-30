@@ -29,12 +29,23 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import PublicLayout from '@/components/layout/PublicLayout'
+import { useSiteContent } from '@/components/SiteContentProvider'
 
 export default function HomePage() {
     const t = useTranslations()
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
+    const { content, isLoading } = useSiteContent()
 
-    const features = [
+    console.log('[HOMEPAGE DEBUG] useSiteContent result:', { content, isLoading })
+
+    // Lấy content cho homepage-vi
+    const homepageData = content?.['homepage-vi'] || {}
+    const homepageContent = homepageData?.content || {}
+    console.log('[HOMEPAGE DEBUG] Homepage data:', homepageData)
+    console.log('[HOMEPAGE DEBUG] Homepage content:', homepageContent)
+
+    // Dynamic features từ database hoặc fallback
+    const defaultFeatures = [
         {
             icon: <BarChart3 className="h-8 w-8 text-primary" />,
             title: t('home.features.expenseTracking.title'),
@@ -66,6 +77,13 @@ export default function HomePage() {
             description: t('home.features.dataSecurity.description')
         }
     ];
+
+    // Sử dụng features từ database nếu có, nếu không dùng default
+    const features = homepageContent?.features?.items?.map((feature, index) => ({
+        icon: defaultFeatures[index]?.icon || <BarChart3 className="h-8 w-8 text-primary" />,
+        title: feature.title || defaultFeatures[index]?.title || '',
+        description: feature.description || defaultFeatures[index]?.description || ''
+    })) || defaultFeatures;
 
     const testimonials = [
         {
@@ -118,17 +136,17 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                             <div className="space-y-8">
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground">
-                                    {t('home.hero.title')}
+                                    {homepageContent?.hero?.title || t('home.hero.title')}
                                 </h1>
                                 <p className="text-lg text-muted-foreground">
-                                    {t('home.hero.description')}
+                                    {homepageContent?.hero?.subtitle || t('home.hero.description')}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <Link
-                                        href={isAuthenticated ? "/dashboard" : "/register"}
+                                        href={homepageContent?.hero?.buttonLink || (isAuthenticated ? "/dashboard" : "/register")}
                                         className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                                     >
-                                        {t('home.hero.getStarted')}
+                                        {homepageContent?.hero?.buttonText || t('home.hero.getStarted')}
                                         <ChevronRight className="ml-2 -mr-1 h-4 w-4" />
                                     </Link>
                                     <Link
@@ -163,16 +181,28 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">--</p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">{t('home.stats.monthlyUsers')}</p>
+                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
+                                    {homepageContent?.statistics?.items?.[0]?.value || '--'}
+                                </p>
+                                <p className="mt-2 text-lg text-primary-foreground/80">
+                                    {homepageContent?.statistics?.items?.[0]?.label || t('home.stats.monthlyUsers')}
+                                </p>
                             </div>
                             <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">--</p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">{t('home.stats.transactionsManaged')}</p>
+                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
+                                    {homepageContent?.statistics?.items?.[1]?.value || '--'}
+                                </p>
+                                <p className="mt-2 text-lg text-primary-foreground/80">
+                                    {homepageContent?.statistics?.items?.[1]?.label || t('home.stats.transactionsManaged')}
+                                </p>
                             </div>
                             <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">--</p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">{t('home.stats.savingsIncrease')}</p>
+                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
+                                    {homepageContent?.statistics?.items?.[2]?.value || '--'}
+                                </p>
+                                <p className="mt-2 text-lg text-primary-foreground/80">
+                                    {homepageContent?.statistics?.items?.[2]?.label || t('home.stats.savingsIncrease')}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -183,10 +213,10 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {t('home.features.title')}
+                                {homepageContent?.features?.title || t('home.features.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                                {t('home.features.subtitle')}
+                                {homepageContent?.features?.description || t('home.features.subtitle')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -240,24 +270,26 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {t('home.testimonials.title')}
+                                {homepageContent?.testimonials?.title || t('home.testimonials.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-
+                                {homepageContent?.testimonials?.description || ''}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {testimonials.map((testimonial, index) => (
+                            {(homepageContent?.testimonials?.items || testimonials).map((testimonial, index) => (
                                 <div key={index} className="bg-card p-8 rounded-lg shadow-md border border-border">
                                     <div className="flex mb-4">
                                         {[1, 2, 3, 4, 5].map((star) => (
-                                            <Star key={star} className="h-5 w-5 text-amber-400 fill-current" />
+                                            <Star key={star} className={`h-5 w-5 ${star <= (testimonial.rating || 5) ? 'text-amber-400 fill-current' : 'text-gray-300'}`} />
                                         ))}
                                     </div>
-                                    <p className="text-foreground mb-6">{testimonial.content ? `"${testimonial.content}"` : ""}</p>
+                                    <p className="text-foreground mb-6">
+                                        {testimonial.content || testimonial.quote ? `"${testimonial.content || testimonial.quote}"` : ""}
+                                    </p>
                                     <div>
-                                        <p className="font-semibold text-primary">{testimonial.author}</p>
-                                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                                        <p className="font-semibold text-primary">{testimonial.author || testimonial.name}</p>
+                                        <p className="text-sm text-muted-foreground">{testimonial.title || testimonial.position || testimonial.role}</p>
                                     </div>
                                 </div>
                             ))}
@@ -270,14 +302,14 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {t('home.pricing.title')}
+                                {homepageContent?.pricing?.title || t('home.pricing.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                                {t('home.pricing.subtitle')}
+                                {homepageContent?.pricing?.description || t('home.pricing.subtitle')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            {pricingPlans.map((plan, index) => (
+                            {(homepageContent?.pricing?.plans || pricingPlans).map((plan, index) => (
                                 <div key={index} className={`bg-card rounded-lg shadow-md overflow-hidden border ${index === 1 ? 'border-primary' : 'border-border'}`}>
                                     <div className={`p-6 ${index === 1 ? 'bg-primary' : 'bg-muted dark:bg-muted/60'}`}>
                                         <h3 className={`text-xl font-bold ${index === 1 ? 'text-primary-foreground' : 'text-foreground'}`}>{plan.name}</h3>
@@ -337,17 +369,20 @@ export default function HomePage() {
                 <section className="py-16 md:py-24 bg-card">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-                            {t('home.cta.title')}
+                            {homepageContent?.cta?.title || t('home.cta.title')}
                         </h2>
+                        <p className="text-lg text-muted-foreground mb-8">
+                            {homepageContent?.cta?.description || ''}
+                        </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link href={isAuthenticated ? "/dashboard" : "/register"}>
+                            <Link href={homepageContent?.cta?.primaryButtonLink || (isAuthenticated ? "/dashboard" : "/register")}>
                                 <button className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    {t('home.cta.getStarted')} <ChevronRight className="ml-2 h-4 w-4" />
+                                    {homepageContent?.cta?.primaryButtonText || t('home.cta.getStarted')} <ChevronRight className="ml-2 h-4 w-4" />
                                 </button>
                             </Link>
-                            <Link href="/contact">
+                            <Link href={homepageContent?.cta?.secondaryButtonLink || "/contact"}>
                                 <button className="inline-flex items-center px-6 py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    {t('home.cta.contact')} <ChevronRight className="ml-2 h-4 w-4" />
+                                    {homepageContent?.cta?.secondaryButtonText || t('home.cta.contact')} <ChevronRight className="ml-2 h-4 w-4" />
                                 </button>
                             </Link>
                         </div>

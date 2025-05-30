@@ -23,12 +23,17 @@ export async function GET(request: NextRequest) {
         backendParams.append('page', page.toString());
         backendParams.append('limit', limit.toString());
 
+        // Chỉ thêm adminId nếu không phải 'all'
+        if (adminId && adminId !== 'all') {
+            backendParams.append('adminId', adminId);
+        }
+
         if (search) {
             backendParams.append('search', search);
         }
 
         if (action && action !== 'all') {
-            backendParams.append('action', action);
+            backendParams.append('actionType', action); // Fix: backend expects 'actionType'
         }
 
         if (startDate) {
@@ -39,9 +44,11 @@ export async function GET(request: NextRequest) {
             backendParams.append('endDate', endDate);
         }
 
-        // Gọi API backend
+        console.log('🔄 Calling backend API:', `${process.env.NEXT_PUBLIC_API_URL}/api/admin/activity-logs?${backendParams.toString()}`);
+
+        // Gọi API backend - Fix: gọi endpoint chính thay vì endpoint với adminId
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/activity-logs/${adminId}?${backendParams.toString()}`,
+            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/activity-logs?${backendParams.toString()}`,
             {
                 method: 'GET',
                 headers: {

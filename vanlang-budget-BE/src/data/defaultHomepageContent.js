@@ -12,7 +12,7 @@ export const defaultHomepageContent = {
     },
     features: {
         title: 'Tính năng nổi bật',
-        subtitle: 'Những công cụ giúp bạn quản lý tài chính hiệu quả',
+        description: 'Những công cụ giúp bạn quản lý tài chính hiệu quả',
         items: [
             {
                 title: 'Theo dõi chi tiêu',
@@ -33,40 +33,72 @@ export const defaultHomepageContent = {
                 title: 'Quản lý khoản vay',
                 description: 'Theo dõi các khoản vay và lịch trả nợ',
                 icon: 'loan'
+            },
+            {
+                title: 'Quản lý đầu tư',
+                description: 'Theo dõi danh mục đầu tư và lợi nhuận',
+                icon: 'investment'
+            },
+            {
+                title: 'Bảo mật dữ liệu',
+                description: 'Dữ liệu được mã hóa và bảo vệ tuyệt đối',
+                icon: 'security'
+            }
+        ]
+    },
+    statistics: {
+        title: 'Thống kê ấn tượng',
+        description: 'Những con số chứng minh hiệu quả của VanLang Budget',
+        items: [
+            {
+                value: '10,000+',
+                label: 'Người dùng hàng tháng'
+            },
+            {
+                value: '500,000+',
+                label: 'Giao dịch được quản lý'
+            },
+            {
+                value: '25%',
+                label: 'Tăng tiết kiệm trung bình'
             }
         ]
     },
     testimonials: {
         title: 'Khách hàng nói gì về chúng tôi',
-        subtitle: 'Trải nghiệm từ người dùng thực tế',
+        description: 'Trải nghiệm từ người dùng thực tế',
         items: [
             {
-                name: 'Nguyễn Văn A',
-                position: 'Nhân viên văn phòng',
-                quote: 'Ứng dụng giúp tôi kiểm soát chi tiêu hiệu quả và tiết kiệm được nhiều hơn.',
+                author: 'Nguyễn Văn A',
+                title: 'Nhân viên văn phòng',
+                content: 'Ứng dụng giúp tôi kiểm soát chi tiêu hiệu quả và tiết kiệm được nhiều hơn.',
+                rating: 5,
                 avatarUrl: '/images/homepage/avatar1.jpg'
             },
             {
-                name: 'Trần Thị B',
-                position: 'Giáo viên',
-                quote: 'Tôi đã đạt được mục tiêu tài chính của mình nhờ sử dụng ứng dụng này.',
+                author: 'Trần Thị B',
+                title: 'Giáo viên',
+                content: 'Tôi đã đạt được mục tiêu tài chính của mình nhờ sử dụng ứng dụng này.',
+                rating: 5,
                 avatarUrl: '/images/homepage/avatar2.jpg'
             },
             {
-                name: 'Lê Văn C',
-                position: 'Kỹ sư phần mềm',
-                quote: 'Giao diện đơn giản, dễ sử dụng và có nhiều tính năng hữu ích.',
+                author: 'Lê Văn C',
+                title: 'Kỹ sư phần mềm',
+                content: 'Giao diện đơn giản, dễ sử dụng và có nhiều tính năng hữu ích.',
+                rating: 5,
                 avatarUrl: '/images/homepage/avatar3.jpg'
             }
         ]
     },
     pricing: {
         title: 'Bảng giá',
-        subtitle: 'Lựa chọn gói phù hợp với nhu cầu của bạn',
+        description: 'Lựa chọn gói phù hợp với nhu cầu của bạn',
         plans: [
             {
                 name: 'Cơ bản',
-                price: '0',
+                price: 'Miễn phí',
+                description: 'Hoàn hảo cho người mới bắt đầu',
                 features: [
                     'Theo dõi chi tiêu',
                     'Lập ngân sách cơ bản',
@@ -76,25 +108,24 @@ export const defaultHomepageContent = {
             },
             {
                 name: 'Tiêu chuẩn',
-                price: '99.000',
+                price: '99.000đ/tháng',
+                description: 'Dành cho người dùng thường xuyên',
                 features: [
                     'Tất cả tính năng cơ bản',
                     'Báo cáo chi tiết',
                     'Quản lý khoản vay',
                     'Hỗ trợ 24/7'
                 ]
-            },
-            {
-                name: 'Cao cấp',
-                price: '199.000',
-                features: [
-                    'Tất cả tính năng tiêu chuẩn',
-                    'Tư vấn tài chính cá nhân',
-                    'Đồng bộ hóa với ngân hàng',
-                    'Ưu tiên hỗ trợ kỹ thuật'
-                ]
             }
         ]
+    },
+    cta: {
+        title: 'Sẵn sàng kiểm soát tài chính của bạn?',
+        description: 'Tham gia cùng hàng nghìn người dùng đã cải thiện tình hình tài chính với VanLang Budget',
+        primaryButtonText: 'Bắt đầu miễn phí',
+        primaryButtonLink: '/register',
+        secondaryButtonText: 'Liên hệ tư vấn',
+        secondaryButtonLink: '/contact'
     }
 };
 
