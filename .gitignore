@@ -76,6 +76,11 @@ __pycache__/
 /temp
 temp/
 
+# Documentation and configuration files
+*.md
+*.cursorrules
+.cursor/
+
 # Keep these directories (if needed)
 !vanlang-budget-BE/
 !vanlang-budget-FE/
