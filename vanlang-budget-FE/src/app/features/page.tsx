@@ -8,19 +8,15 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import * as Icons from 'lucide-react'
+import useAdminContent from '@/hooks/useAdminContent'
 
 export default function FeaturesPage() {
     const t = useTranslations()
-    const [isLoading, setIsLoading] = useState(true)
+    const { content: featuresContent, isLoading } = useAdminContent('features', 'vi')
 
-    useEffect(() => {
-        // Giả lập thời gian tải
-        const timer = setTimeout(() => {
-            setIsLoading(false)
-        }, 500)
-
-        return () => clearTimeout(timer)
-    }, [])
+    // Debug logs
+    console.log('🔍 FeaturesPage - featuresContent:', featuresContent)
+    console.log('🔍 FeaturesPage - isLoading:', isLoading)
 
     // Render dynamic icon based on iconName
     const renderIcon = (iconName: string, className: string = "h-6 w-6") => {
@@ -138,8 +134,12 @@ export default function FeaturesPage() {
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         <span>{t('common.backToHome')}</span>
                     </Link>
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('features.title')}</h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300">{t('features.subtitle')}</p>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        {featuresContent?.title || t('features.title')}
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-300">
+                        {featuresContent?.subtitle || t('features.subtitle')}
+                    </p>
                 </div>
 
                 {/* Mô tả tổng quan */}
@@ -147,7 +147,7 @@ export default function FeaturesPage() {
                     <Card>
                         <CardContent className="p-8">
                             <p className="text-lg leading-relaxed">
-                                {t('features.description')}
+                                {featuresContent?.description || t('features.description')}
                             </p>
                         </CardContent>
                     </Card>

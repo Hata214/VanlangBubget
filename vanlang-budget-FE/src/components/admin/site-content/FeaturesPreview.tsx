@@ -18,7 +18,7 @@ interface FeaturesPreviewProps {
 export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewProps) {
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editValue, setEditValue] = useState<string>('');
-    const [updatedContent, setUpdatedContent] = useState<any>(content);
+    const [updatedContent, setUpdatedContent] = useState<any>(content || {});
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [changedFields, setChangedFields] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -26,8 +26,21 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
     const isSuperAdmin = user?.role === 'superadmin';
 
     useEffect(() => {
-        setUpdatedContent(content);
+        console.log('🔄 FeaturesPreview content updated:', content);
+        setUpdatedContent(content || {});
     }, [content]);
+
+    // Early return if no content
+    if (!content && !updatedContent) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+                    <p className="text-gray-500">Đang tải nội dung...</p>
+                </div>
+            </div>
+        );
+    }
 
     // Hàm bắt đầu chỉnh sửa một trường
     const startInlineEdit = (key: string, value: any) => {
@@ -125,7 +138,8 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
 
         setIsSaving(true);
         try {
-            await siteContentService.updateContentByType('features', updatedContent);
+            // Features là một section của homepage, không phải content type riêng biệt
+            await siteContentService.updateHomepageSection('features', updatedContent);
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung trang Tính năng!'
                 : 'Đã gửi nội dung trang Tính năng để SuperAdmin phê duyệt!');
@@ -144,6 +158,9 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
 
     // Render một trường có thể chỉnh sửa
     const renderEditableField = (key: string, value: any, className: string = '') => {
+        // Safe value handling
+        const safeValue = value || '';
+
         if (editingField === key) {
             return (
                 <div className="inline-flex items-center bg-blue-50 p-1 rounded border border-blue-200">
@@ -178,10 +195,11 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
         return (
             <span
                 className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
-                onClick={() => startInlineEdit(key, value)}
+                onClick={() => startInlineEdit(key, safeValue)}
                 data-field={key}
+                title="Nhấp để chỉnh sửa"
             >
-                {value}
+                {safeValue || `[Chưa có nội dung cho ${key}]`}
                 <Edit size={14} className="inline-block ml-1 text-gray-400 opacity-0 group-hover:opacity-100" />
             </span>
         );

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import {
     Save,
     RefreshCw,
+    RotateCcw,
     Eye,
     CheckCircle,
     XCircle,
@@ -36,7 +37,7 @@ interface ContentData {
 }
 
 // Các sections thuộc homepage
-const HOMEPAGE_SECTIONS = ['homepage', 'features', 'pricing', 'testimonials', 'statistics'];
+const HOMEPAGE_SECTIONS = ['homepage', 'pricing', 'testimonials', 'statistics'];
 
 export default function FullPageContentManager({ user }: FullPageContentManagerProps) {
     // State management
@@ -49,6 +50,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     const [viewMode, setViewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [editingField, setEditingField] = useState<string | null>(null);
+    const [previewKey, setPreviewKey] = useState<number>(0);
 
     const isSuperAdmin = user?.role === 'superadmin';
 
@@ -71,10 +73,17 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             }
 
             // Đối với homepage và các sections của nó, luôn sử dụng 'homepage' làm contentKey
-            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : `${basePage}-${currentLanguage}`;
-            console.log('Loading content for:', contentKey);
-            const response = await siteContentService.getContentByType(contentKey);
-            console.log('Loaded content response:', response);
+            // Đối với các trang khác, chỉ sử dụng basePage (backend xử lý language qua query param)
+            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
+            console.log('🔍 DEBUG - basePage:', basePage);
+            console.log('🔍 DEBUG - HOMEPAGE_SECTIONS:', HOMEPAGE_SECTIONS);
+            console.log('🔍 DEBUG - HOMEPAGE_SECTIONS.includes(basePage):', HOMEPAGE_SECTIONS.includes(basePage));
+            console.log('🔍 DEBUG - contentKey:', contentKey);
+            console.log('🔄 Loading content for:', contentKey, 'language:', currentLanguage);
+            const response = await siteContentService.getContentByType(contentKey, currentLanguage);
+            console.log('✅ Loaded content response:', response);
+            console.log('📝 Response data:', response?.data);
+            console.log('📝 Response data type:', typeof response?.data);
 
             // Extract content from response structure
             let contentData = response.data?.content || response.data || {};
@@ -97,6 +106,9 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
 
             setContent(cleanedContent);
             console.log('Content set to state:', cleanedContent);
+
+            // Force re-render of preview
+            setPreviewKey(prev => prev + 1);
         } catch (error) {
             console.error('Lỗi khi tải nội dung:', error);
             toast.error('Không thể tải nội dung. Vui lòng thử lại sau.');
@@ -168,7 +180,12 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
 
             // Đối với homepage và các sections của nó, luôn sử dụng 'homepage' làm contentKey
-            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : `${basePage}-${currentLanguage}`;
+            // Đối với các trang khác, chỉ sử dụng basePage (backend xử lý language qua query param)
+            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
+            console.log('🔍 SAVE DEBUG - basePage:', basePage);
+            console.log('🔍 SAVE DEBUG - HOMEPAGE_SECTIONS:', HOMEPAGE_SECTIONS);
+            console.log('🔍 SAVE DEBUG - HOMEPAGE_SECTIONS.includes(basePage):', HOMEPAGE_SECTIONS.includes(basePage));
+            console.log('🔍 SAVE DEBUG - contentKey:', contentKey);
 
             let contentToSave = content;
 
@@ -185,8 +202,12 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 };
             }
 
-            console.log('Saving content:', contentKey, contentToSave);
-            await siteContentService.updateContentByType(contentKey, contentToSave);
+            console.log('💾 Saving content with key:', contentKey);
+            console.log('💾 Content to save:', JSON.stringify(contentToSave, null, 2));
+
+            const saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
+            console.log('✅ Save response:', saveResponse);
+
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công!'
                 : 'Đã gửi nội dung để SuperAdmin phê duyệt!');
@@ -194,10 +215,15 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             setEditingField(null);
 
             // Force reload content with cache busting to ensure fresh data
-            console.log('Content saved successfully, reloading with cache busting...');
-            setTimeout(async () => {
-                await loadContent();
-            }, 500);
+            console.log('🔄 Content saved successfully, reloading with cache busting...');
+
+            // Immediately reload content to refresh preview
+            await loadContent();
+            console.log('🔄 Content reloaded after save');
+
+            // Force re-render of PagePreview component
+            setPreviewKey(prev => prev + 1);
+            console.log('🔄 Preview key updated to force re-render');
         } catch (error) {
             console.error('Lỗi khi lưu nội dung:', error);
             toast.error('Không thể lưu nội dung. Vui lòng thử lại sau.');
@@ -388,13 +414,38 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
 
                             {/* Refresh Preview Button */}
                             <button
-                                onClick={loadContent}
+                                onClick={() => {
+                                    console.log('🔄 Manual refresh clicked');
+                                    loadContent();
+                                    setPreviewKey(prev => prev + 1);
+                                }}
                                 disabled={isLoading}
                                 className="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 disabled:opacity-50"
                                 title="Làm mới preview"
                             >
                                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                                 Làm mới
+                            </button>
+
+                            {/* Hard Refresh Button */}
+                            <button
+                                onClick={() => {
+                                    console.log('🔄 Hard refresh clicked - clearing cache');
+                                    // Clear localStorage cache
+                                    const basePage = selectedPage.split('-')[0];
+                                    const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
+                                    localStorage.removeItem(`content_cache_${contentKey}`);
+                                    // Force reload with timestamp
+                                    const timestamp = Date.now();
+                                    setPreviewKey(timestamp);
+                                    loadContent();
+                                }}
+                                disabled={isLoading}
+                                className="flex items-center px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                title="Làm mới hoàn toàn (xóa cache)"
+                            >
+                                <RotateCcw className={`h-4 w-4 mr-2`} />
+                                Hard Refresh
                             </button>
 
                             {/* Action Buttons */}
@@ -454,6 +505,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 {/* Preview Area */}
                 <div className="flex-1 overflow-hidden">
                     <PagePreview
+                        key={`${selectedPage}-${currentLanguage}-${previewKey}`}
                         page={selectedPage}
                         language={currentLanguage}
                         content={content}

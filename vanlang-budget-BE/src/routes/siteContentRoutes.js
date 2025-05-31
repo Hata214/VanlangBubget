@@ -10,7 +10,8 @@ import {
     restoreContentVersion,
     approveHomepageContent,
     rejectHomepageContent,
-    initializeHomepageContent
+    initializeHomepageContent,
+    initializeFeaturesContent
 } from '../controllers/siteContentController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 
@@ -32,10 +33,27 @@ router.get('/homepage', (req, res, next) => {
 // Lấy nội dung trang chủ theo section
 router.get('/homepage/:section', getHomepageSection);
 
+// === Routes cho các trang riêng biệt ===
+router.get('/features', (req, res, next) => {
+    req.params.type = 'features';
+    getSiteContentByType(req, res, next);
+});
+router.get('/roadmap', (req, res, next) => {
+    req.params.type = 'roadmap';
+    getSiteContentByType(req, res, next);
+});
+router.get('/pricing', (req, res, next) => {
+    req.params.type = 'pricing';
+    getSiteContentByType(req, res, next);
+});
+
+// Initialize routes cho các trang riêng biệt
+router.post('/features/initialize', protect, restrictTo('admin', 'superadmin'), initializeFeaturesContent);
+
 // === Route mới: Xử lý truy cập trực tiếp đến các section của homepage ===
 router.get('/:sectionType', (req, res, next) => {
     const { sectionType } = req.params;
-    const homepageSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
+    const homepageSections = ['hero', 'testimonials', 'cta', 'stats', 'footer', 'header'];
 
     if (homepageSections.includes(sectionType)) {
         console.log(`Chuyển hướng truy cập từ /${sectionType} sang /homepage/${sectionType}`);

@@ -8,19 +8,11 @@ import { ChevronLeft, Users, Target, Star, Clock } from 'lucide-react'
 import PublicLayout from '@/components/layout/PublicLayout'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import useAdminContent from '@/hooks/useAdminContent'
 
 export default function AboutPage() {
     const t = useTranslations()
-    const [isLoading, setIsLoading] = useState(true)
-
-    useEffect(() => {
-        // Giả lập thời gian tải trang
-        const timer = setTimeout(() => {
-            setIsLoading(false)
-        }, 500)
-
-        return () => clearTimeout(timer)
-    }, [])
+    const { content: aboutContent, isLoading } = useAdminContent('about', 'vi')
 
     if (isLoading) {
         return (
@@ -42,8 +34,12 @@ export default function AboutPage() {
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         <span>{t('common.backToHome')}</span>
                     </Link>
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('about.title')}</h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300">{t('about.subtitle')}</p>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        {aboutContent?.title || t('about.title')}
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-300">
+                        {aboutContent?.subtitle || t('about.subtitle')}
+                    </p>
                 </div>
 
                 {/* Giới thiệu */}
@@ -51,7 +47,7 @@ export default function AboutPage() {
                     <Card>
                         <CardContent className="p-8">
                             <p className="text-lg leading-relaxed">
-                                {t('about.description')}
+                                {aboutContent?.description || t('about.description')}
                             </p>
                         </CardContent>
                     </Card>
@@ -63,9 +59,13 @@ export default function AboutPage() {
                         <CardContent className="p-8">
                             <div className="flex items-center mb-4">
                                 <Target className="h-8 w-8 text-indigo-600 mr-3" />
-                                <h2 className="text-2xl font-bold">{t('about.mission.title')}</h2>
+                                <h2 className="text-2xl font-bold">
+                                    {aboutContent?.mission?.title || t('about.mission.title')}
+                                </h2>
                             </div>
-                            <p className="text-lg leading-relaxed">{t('about.mission.content')}</p>
+                            <p className="text-lg leading-relaxed">
+                                {aboutContent?.mission?.content || t('about.mission.content')}
+                            </p>
                         </CardContent>
                     </Card>
 
@@ -73,35 +73,56 @@ export default function AboutPage() {
                         <CardContent className="p-8">
                             <div className="flex items-center mb-4">
                                 <Star className="h-8 w-8 text-indigo-600 mr-3" />
-                                <h2 className="text-2xl font-bold">{t('about.vision.title')}</h2>
+                                <h2 className="text-2xl font-bold">
+                                    {aboutContent?.vision?.title || t('about.vision.title')}
+                                </h2>
                             </div>
-                            <p className="text-lg leading-relaxed">{t('about.vision.content')}</p>
+                            <p className="text-lg leading-relaxed">
+                                {aboutContent?.vision?.content || t('about.vision.content')}
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Giá trị cốt lõi */}
                 <div className="mb-16">
-                    <h2 className="text-3xl font-bold mb-8 text-center">{t('about.values.title')}</h2>
+                    <h2 className="text-3xl font-bold mb-8 text-center">
+                        {aboutContent?.values?.title || t('about.values.title')}
+                    </h2>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <Card>
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.simplicity.title')}</h3>
-                                <p className="text-gray-700 dark:text-gray-300">{t('about.values.simplicity.content')}</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.transparency.title')}</h3>
-                                <p className="text-gray-700 dark:text-gray-300">{t('about.values.transparency.content')}</p>
-                            </CardContent>
-                        </Card>
-                        <Card>
-                            <CardContent className="p-6">
-                                <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.support.title')}</h3>
-                                <p className="text-gray-700 dark:text-gray-300">{t('about.values.support.content')}</p>
-                            </CardContent>
-                        </Card>
+                        {aboutContent?.values?.items ? (
+                            // Render admin content values
+                            aboutContent.values.items.map((item, index) => (
+                                <Card key={index}>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{item.title}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{item.description}</p>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            // Fallback to translation values
+                            <>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.simplicity.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.simplicity.content')}</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.transparency.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.transparency.content')}</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.support.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.support.content')}</p>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
                     </div>
                 </div>
 

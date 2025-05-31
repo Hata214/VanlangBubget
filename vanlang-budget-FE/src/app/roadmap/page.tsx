@@ -5,9 +5,23 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import { useTranslations } from 'next-intl'
 import { ArrowLeft, Lightbulb, Share, BrainCircuit, Calendar, CheckCircle, BarChart, PiggyBank, LineChart, Clock, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import useAdminContent from '@/hooks/useAdminContent'
 
 export default function RoadmapPage() {
     const t = useTranslations()
+    const { content: roadmapContent, isLoading } = useAdminContent('roadmap', 'vi')
+
+    if (isLoading) {
+        return (
+            <PublicLayout>
+                <div className="container mx-auto py-12">
+                    <div className="flex justify-center items-center min-h-[50vh]">
+                        <div className="animate-pulse text-xl">{t('common.loading')}</div>
+                    </div>
+                </div>
+            </PublicLayout>
+        )
+    }
 
     // Tính năng đã hoàn thành
     const completedFeatures = [
@@ -63,10 +77,10 @@ export default function RoadmapPage() {
                             <Lightbulb className="h-16 w-16 text-indigo-600" />
                         </div>
                         <h1 className="text-4xl font-bold text-foreground mb-4">
-                            {t('roadmap.title')}
+                            {roadmapContent?.title || t('roadmap.title')}
                         </h1>
                         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                            {t('roadmap.description')}
+                            {roadmapContent?.description || t('roadmap.description')}
                         </p>
                     </div>
 

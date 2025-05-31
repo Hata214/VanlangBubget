@@ -116,6 +116,9 @@ export const updateSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { content, status } = req.body;
 
+        console.log(`🔄 updateSiteContentByType được gọi với type=${type}`);
+        console.log(`📝 Content được gửi:`, JSON.stringify(content, null, 2));
+
         const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
         if (!type || !validTypes.includes(type)) {
@@ -158,6 +161,7 @@ export const updateSiteContentByType = async (req, res, next) => {
 
         // Ghi log kết quả
         logger.info(`Cập nhật nội dung ${type} thành công, ID: ${updatedContent._id}`);
+        console.log(`✅ Cập nhật thành công, trả về data:`, JSON.stringify(updatedContent.content, null, 2));
 
         res.status(200).json({
             status: 'success',
@@ -564,5 +568,257 @@ export const initializeHomepageContent = async (req, res, next) => {
     } catch (error) {
         logger.error('Lỗi khi khởi tạo dữ liệu trang chủ:', error);
         next(new AppError('Không thể khởi tạo dữ liệu trang chủ', 500));
+    }
+};
+
+/**
+ * @desc    Khởi tạo dữ liệu mặc định cho trang Features
+ * @route   POST /api/site-content/features/initialize
+ * @access  Private (Admin/Superadmin)
+ */
+export const initializeFeaturesContent = async (req, res, next) => {
+    try {
+        const defaultFeaturesContent = {
+            vi: {
+                title: "Tính năng nổi bật",
+                subtitle: "Công cụ quản lý tài chính mạnh mẽ",
+                description: "Những công cụ giúp bạn quản lý tài chính hiệu quả",
+                features: [
+                    {
+                        icon: "📊",
+                        title: "Theo dõi thu chi",
+                        description: "Ghi lại và phân loại tất cả các khoản thu nhập, chi phí hàng ngày, hàng tuần và hàng tháng với giao diện thân thiện và dễ sử dụng."
+                    },
+                    {
+                        icon: "🎯",
+                        title: "Quản lý ngân sách",
+                        description: "Thiết lập và theo dõi ngân sách theo danh mục, giúp bạn kiểm soát chi tiêu và hình thành thói quen tài chính tốt."
+                    },
+                    {
+                        icon: "💰",
+                        title: "Quản lý khoản vay",
+                        description: "Theo dõi các khoản vay, lịch trả nợ và tính toán lãi suất một cách chính xác và chi tiết."
+                    },
+                    {
+                        icon: "📈",
+                        title: "Quản lý đầu tư",
+                        description: "Theo dõi danh mục đầu tư bất động sản, tiết kiệm ngân hàng với tính năng tính lãi suất tự động."
+                    },
+                    {
+                        icon: "🤖",
+                        title: "VanLang Agent AI",
+                        description: "Trợ lý AI thông minh hỗ trợ trả lời câu hỏi tài chính, tính toán và phân tích dữ liệu bằng tiếng Việt."
+                    },
+                    {
+                        icon: "📱",
+                        title: "Giao diện thân thiện",
+                        description: "Thiết kế responsive, hỗ trợ dark mode và đa ngôn ngữ (Tiếng Việt/English) cho trải nghiệm tốt nhất."
+                    }
+                ]
+            },
+            en: {
+                title: "Outstanding Features",
+                subtitle: "Powerful financial management tools",
+                description: "Tools that help you manage your finances effectively",
+                features: [
+                    {
+                        icon: "📊",
+                        title: "Income & Expense Tracking",
+                        description: "Record and categorize all income and expenses daily, weekly, and monthly with a user-friendly interface."
+                    },
+                    {
+                        icon: "🎯",
+                        title: "Budget Management",
+                        description: "Set up and track budgets by category, helping you control spending and develop good financial habits."
+                    },
+                    {
+                        icon: "💰",
+                        title: "Loan Management",
+                        description: "Track loans, repayment schedules, and calculate interest rates accurately and in detail."
+                    },
+                    {
+                        icon: "📈",
+                        title: "Investment Management",
+                        description: "Track real estate investment portfolios, bank savings with automatic interest calculation features."
+                    },
+                    {
+                        icon: "🤖",
+                        title: "VanLang Agent AI",
+                        description: "Smart AI assistant that helps answer financial questions, calculations, and data analysis in Vietnamese."
+                    },
+                    {
+                        icon: "📱",
+                        title: "User-friendly Interface",
+                        description: "Responsive design, dark mode support, and multilingual (Vietnamese/English) for the best experience."
+                    }
+                ]
+            }
+        };
+
+        // Kiểm tra xem đã có dữ liệu features chưa
+        const existingFeatures = await SiteContent.findOne({ type: 'features' });
+
+        let result;
+        if (existingFeatures) {
+            // Nếu đã có dữ liệu, cập nhật
+            logger.info(`Admin ${req.user.email} đang cập nhật dữ liệu mặc định cho trang Features`);
+            result = await SiteContent.findOneAndUpdate(
+                { type: 'features' },
+                {
+                    content: defaultFeaturesContent,
+                    lastUpdatedBy: req.user._id,
+                    status: 'published'
+                },
+                { new: true, upsert: true }
+            );
+            logger.info(`Dữ liệu trang Features đã được cập nhật thành công bởi ${req.user.email}`);
+        } else {
+            // Nếu chưa có dữ liệu, tạo mới
+            logger.info(`Admin ${req.user.email} đang tạo dữ liệu mặc định cho trang Features`);
+            result = await SiteContent.create({
+                type: 'features',
+                content: defaultFeaturesContent,
+                lastUpdatedBy: req.user._id,
+                status: 'published',
+                version: 1
+            });
+            logger.info(`Dữ liệu trang Features đã được tạo thành công bởi ${req.user.email}`);
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: existingFeatures ? 'Dữ liệu trang Features đã được cập nhật thành công' : 'Dữ liệu trang Features đã được tạo thành công',
+            data: {
+                content: result.content,
+                version: result.version,
+                status: result.status,
+                type: result.type
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi khởi tạo dữ liệu trang Features:', error);
+        next(new AppError('Không thể khởi tạo dữ liệu trang Features', 500));
+    }
+};
+
+/**
+ * @desc    Khởi tạo dữ liệu mặc định cho trang Roadmap
+ * @route   POST /api/site-content/roadmap/initialize
+ * @access  Private (Admin/Superadmin)
+ */
+export const initializeRoadmapContent = async (req, res, next) => {
+    try {
+        const defaultRoadmapContent = {
+            vi: {
+                title: "Lộ trình phát triển",
+                subtitle: "Kế hoạch phát triển sản phẩm",
+                description: "Những tính năng và cải tiến sẽ được phát triển trong tương lai",
+                roadmap: []
+            },
+            en: {
+                title: "Development Roadmap",
+                subtitle: "Product development plan",
+                description: "Features and improvements to be developed in the future",
+                roadmap: []
+            }
+        };
+
+        const existingRoadmap = await SiteContent.findOne({ type: 'roadmap' });
+
+        let result;
+        if (existingRoadmap) {
+            result = await SiteContent.findOneAndUpdate(
+                { type: 'roadmap' },
+                {
+                    content: defaultRoadmapContent,
+                    lastUpdatedBy: req.user._id,
+                    status: 'published'
+                },
+                { new: true, upsert: true }
+            );
+        } else {
+            result = await SiteContent.create({
+                type: 'roadmap',
+                content: defaultRoadmapContent,
+                lastUpdatedBy: req.user._id,
+                status: 'published',
+                version: 1
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: existingRoadmap ? 'Dữ liệu trang Roadmap đã được cập nhật thành công' : 'Dữ liệu trang Roadmap đã được tạo thành công',
+            data: {
+                content: result.content,
+                version: result.version,
+                status: result.status,
+                type: result.type
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi khởi tạo dữ liệu trang Roadmap:', error);
+        next(new AppError('Không thể khởi tạo dữ liệu trang Roadmap', 500));
+    }
+};
+
+/**
+ * @desc    Khởi tạo dữ liệu mặc định cho trang Pricing
+ * @route   POST /api/site-content/pricing/initialize
+ * @access  Private (Admin/Superadmin)
+ */
+export const initializePricingContent = async (req, res, next) => {
+    try {
+        const defaultPricingContent = {
+            vi: {
+                title: "Bảng giá",
+                subtitle: "Lựa chọn gói phù hợp với bạn",
+                description: "Các gói dịch vụ với mức giá hợp lý",
+                plans: []
+            },
+            en: {
+                title: "Pricing",
+                subtitle: "Choose the plan that suits you",
+                description: "Service packages with reasonable prices",
+                plans: []
+            }
+        };
+
+        const existingPricing = await SiteContent.findOne({ type: 'pricing' });
+
+        let result;
+        if (existingPricing) {
+            result = await SiteContent.findOneAndUpdate(
+                { type: 'pricing' },
+                {
+                    content: defaultPricingContent,
+                    lastUpdatedBy: req.user._id,
+                    status: 'published'
+                },
+                { new: true, upsert: true }
+            );
+        } else {
+            result = await SiteContent.create({
+                type: 'pricing',
+                content: defaultPricingContent,
+                lastUpdatedBy: req.user._id,
+                status: 'published',
+                version: 1
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: existingPricing ? 'Dữ liệu trang Pricing đã được cập nhật thành công' : 'Dữ liệu trang Pricing đã được tạo thành công',
+            data: {
+                content: result.content,
+                version: result.version,
+                status: result.status,
+                type: result.type
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi khởi tạo dữ liệu trang Pricing:', error);
+        next(new AppError('Không thể khởi tạo dữ liệu trang Pricing', 500));
     }
 };

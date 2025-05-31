@@ -31,9 +31,19 @@ export default function PagePreview({
 
     // Force re-render when content changes
     useEffect(() => {
-        console.log('PagePreview: Content updated, forcing re-render', content);
-        console.log('PagePreview: Content structure:', JSON.stringify(content, null, 2));
-        console.log('PagePreview: Hero subtitle value:', content?.hero?.subtitle);
+        console.log('🔄 PagePreview: Content updated, forcing re-render');
+        console.log('📄 PagePreview: Page:', page);
+        console.log('🌐 PagePreview: Language:', language);
+        console.log('📝 PagePreview: Content:', content);
+        console.log('📝 PagePreview: Content structure:', JSON.stringify(content, null, 2));
+
+        // For features page, check specific content
+        if (page === 'features') {
+            console.log('🎯 Features page - Title:', content?.title);
+            console.log('🎯 Features page - Subtitle:', content?.subtitle);
+            console.log('🎯 Features page - Features array:', content?.features);
+        }
+
         setRenderKey(prev => prev + 1);
     }, [content, page, language]);
 
@@ -297,49 +307,127 @@ export default function PagePreview({
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                     <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('about.title', content?.about?.title || 'Về chúng tôi')}
+                        {renderEditableContent('title', content?.title || 'Về Chúng Tôi')}
                     </h1>
                     <p className="text-xl text-gray-600">
-                        {renderEditableContent('about.subtitle', content?.about?.subtitle || 'Câu chuyện về VanLang Budget')}
+                        {renderEditableContent('subtitle', content?.subtitle || 'Hành trình của VanLang Budget')}
                     </p>
                 </div>
 
-                <div className="prose prose-lg mx-auto">
-                    <div className="text-gray-700 leading-relaxed">
-                        {renderEditableContent('about.content', content?.about?.content || 'Nội dung giới thiệu về công ty...')}
+                <div className="prose prose-lg mx-auto mb-12">
+                    <div className="text-gray-700 leading-relaxed text-lg">
+                        {renderEditableContent('description', content?.description || 'VanLang Budget được phát triển bởi một nhóm những người đam mê tài chính cá nhân...')}
+                    </div>
+                </div>
+
+                {/* Mission Section */}
+                {content?.mission && (
+                    <div className="mb-12">
+                        <div className="bg-blue-50 rounded-lg p-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                {renderEditableContent('mission.title', content.mission.title || 'Sứ Mệnh')}
+                            </h2>
+                            <p className="text-gray-700 text-lg">
+                                {renderEditableContent('mission.content', content.mission.content || '')}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Vision Section */}
+                {content?.vision && (
+                    <div className="mb-12">
+                        <div className="bg-green-50 rounded-lg p-8">
+                            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                                {renderEditableContent('vision.title', content.vision.title || 'Tầm Nhìn')}
+                            </h2>
+                            <p className="text-gray-700 text-lg">
+                                {renderEditableContent('vision.content', content.vision.content || '')}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Values Section */}
+                {content?.values && (
+                    <div className="mb-12">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+                            {renderEditableContent('values.title', content.values.title || 'Giá Trị Cốt Lõi')}
+                        </h2>
+                        <div className="grid md:grid-cols-3 gap-8">
+                            {content.values.items?.map((item: any, index: number) => (
+                                <div key={index} className="bg-gray-50 rounded-lg p-6">
+                                    <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                                        {renderEditableContent(`values.items.${index}.title`, item.title || '')}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {renderEditableContent(`values.items.${index}.description`, item.description || '')}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
+    const renderFeaturesPage = () => {
+        // Get content for current language
+        const featuresData = content?.[language] || content?.vi || {};
+        const featuresArray = featuresData.features || [];
+
+        console.log('🎯 renderFeaturesPage called');
+        console.log('🎯 Current language:', language);
+        console.log('🎯 Raw content:', content);
+        console.log('🎯 Features data:', featuresData);
+        console.log('🎯 Features array:', featuresArray);
+        console.log('🎯 Title from featuresData:', featuresData.title);
+        console.log('🎯 Subtitle from featuresData:', featuresData.subtitle);
+
+        return (
+            <div className="min-h-screen bg-white py-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            {renderEditableContent('title', featuresData.title || 'Tính năng nổi bật')}
+                        </h1>
+                        <p className="text-xl text-gray-600">
+                            {renderEditableContent('subtitle', featuresData.subtitle || 'Công cụ quản lý tài chính mạnh mẽ')}
+                        </p>
+                        <p className="text-lg text-gray-500 mt-4">
+                            {renderEditableContent('description', featuresData.description || 'Những công cụ giúp bạn quản lý tài chính hiệu quả')}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {featuresArray.length > 0 ? featuresArray.map((feature, index) => (
+                            <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
+                                <div className="text-4xl mb-4">
+                                    {feature.icon || '🔧'}
+                                </div>
+                                <h3 className="text-xl font-semibold mb-3">
+                                    {renderEditableContent(`features.${index}.title`, feature.title || `Tính năng ${index + 1}`)}
+                                </h3>
+                                <p className="text-gray-600">
+                                    {renderEditableContent(`features.${index}.description`, feature.description || `Mô tả tính năng ${index + 1}`)}
+                                </p>
+                            </div>
+                        )) : [1, 2, 3, 4, 5, 6].map((index) => (
+                            <div key={index} className="bg-gray-50 p-6 rounded-lg">
+                                <h3 className="text-xl font-semibold mb-3">
+                                    {renderEditableContent(`features.item${index}.title`, `Tính năng ${index}`)}
+                                </h3>
+                                <p className="text-gray-600">
+                                    {renderEditableContent(`features.item${index}.description`, `Mô tả tính năng ${index}`)}
+                                </p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
-        </div>
-    );
-
-    const renderFeaturesPage = () => (
-        <div className="min-h-screen bg-white py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('features.title', content?.features?.title || 'Tính năng')}
-                    </h1>
-                    <p className="text-xl text-gray-600">
-                        {renderEditableContent('features.subtitle', content?.features?.subtitle || 'Khám phá các tính năng mạnh mẽ')}
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[1, 2, 3, 4, 5, 6].map((index) => (
-                        <div key={index} className="bg-gray-50 p-6 rounded-lg">
-                            <h3 className="text-xl font-semibold mb-3">
-                                {renderEditableContent(`features.item${index}.title`, content?.features?.[`item${index}`]?.title || `Tính năng ${index}`)}
-                            </h3>
-                            <p className="text-gray-600">
-                                {renderEditableContent(`features.item${index}.description`, content?.features?.[`item${index}`]?.description || `Mô tả tính năng ${index}`)}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const renderRoadmapPage = () => (
         <div className="min-h-screen bg-white py-20">

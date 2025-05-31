@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button'
 import { Textarea } from '@/components/ui/Textarea'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { Label } from '@/components/ui/Label'
+import useAdminContent from '@/hooks/useAdminContent'
 
 interface FormField {
     name: string
@@ -19,7 +20,8 @@ interface FormField {
 }
 
 export default function ContactPage() {
-    const t = useTranslations();
+    const t = useTranslations()
+    const { content: contactContent, isLoading } = useAdminContent('contact', 'vi')
     const [formData, setFormData] = useState<Record<string, string>>({
         name: '',
         email: '',
@@ -126,6 +128,18 @@ export default function ContactPage() {
         }
     };
 
+    if (isLoading) {
+        return (
+            <PublicLayout>
+                <div className="container mx-auto py-12">
+                    <div className="flex justify-center items-center min-h-[50vh]">
+                        <div className="animate-pulse text-xl">{t('common.loading')}</div>
+                    </div>
+                </div>
+            </PublicLayout>
+        )
+    }
+
     return (
         <PublicLayout>
             <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -134,8 +148,12 @@ export default function ContactPage() {
                         <ChevronLeft className="w-5 h-5 mr-1" />
                         <span>{t('common.backToHome')}</span>
                     </Link>
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">{t('contact.title')}</h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300">{t('contact.subtitle')}</p>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        {contactContent?.title || t('contact.title')}
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-300">
+                        {contactContent?.subtitle || t('contact.subtitle')}
+                    </p>
                 </div>
 
                 {/* Mô tả */}
@@ -143,7 +161,7 @@ export default function ContactPage() {
                     <Card>
                         <CardContent className="p-8">
                             <p className="text-lg leading-relaxed">
-                                {t('contact.description')}
+                                {contactContent?.description || t('contact.description')}
                             </p>
                         </CardContent>
                     </Card>
