@@ -29,7 +29,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
     const startInlineEdit = (key: string, value: any) => {
         setEditingField(key);
         setEditValue(value);
-        
+
         // Focus vào input sau khi render
         setTimeout(() => {
             if (inputRef.current) {
@@ -75,20 +75,20 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
         // Phân tích key để cập nhật đúng vị trí trong nested object
         const keys = key.split('.');
         const lastKey = keys.pop();
-        
+
         setUpdatedContent((prev: any) => {
             const newContent = { ...prev };
-            
+
             // Tìm đến object cần cập nhật
             let current = newContent;
             for (const k of keys) {
                 if (!current[k]) current[k] = {};
                 current = current[k];
             }
-            
+
             // Cập nhật giá trị
             if (lastKey) current[lastKey] = value;
-            
+
             return newContent;
         });
 
@@ -125,7 +125,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung Footer!'
                 : 'Đã gửi nội dung Footer để SuperAdmin phê duyệt!');
-            
+
             setChangedFields([]);
             if (onUpdate) {
                 onUpdate();
@@ -155,13 +155,13 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                         className="flex-1 p-1 text-sm border-none focus:ring-0 bg-transparent"
                         autoFocus
                     />
-                    <button 
+                    <button
                         onClick={() => saveInlineEdit(key)}
                         className="p-1 text-green-600 hover:text-green-800"
                     >
                         <Save size={16} />
                     </button>
-                    <button 
+                    <button
                         onClick={cancelInlineEdit}
                         className="p-1 text-red-600 hover:text-red-800"
                     >
@@ -172,7 +172,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
         }
 
         return (
-            <span 
+            <span
                 className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
                 onClick={() => startInlineEdit(key, value)}
                 data-field={key}
@@ -210,7 +210,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                                 {renderEditableField('companyDescription', updatedContent?.companyDescription || 'Giải pháp quản lý tài chính cá nhân thông minh giúp bạn kiểm soát chi tiêu và đạt được mục tiêu tài chính.', 'text-gray-400')}
                             </p>
                         </div>
-                        
+
                         <div>
                             <h3 className="text-lg font-semibold mb-4 group">
                                 {renderEditableField('linksTitle', updatedContent?.linksTitle || 'Liên kết nhanh', 'text-lg font-semibold')}
@@ -238,7 +238,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                                 </li>
                             </ul>
                         </div>
-                        
+
                         <div>
                             <h3 className="text-lg font-semibold mb-4 group">
                                 {renderEditableField('legalTitle', updatedContent?.legalTitle || 'Pháp lý', 'text-lg font-semibold')}
@@ -261,7 +261,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                                 </li>
                             </ul>
                         </div>
-                        
+
                         <div>
                             <h3 className="text-lg font-semibold mb-4 group">
                                 {renderEditableField('contactTitle', updatedContent?.contactTitle || 'Liên hệ', 'text-lg font-semibold')}
@@ -282,28 +282,66 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                             </ul>
                         </div>
                     </div>
-                    
+
                     <div className="border-t border-gray-700 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center">
                         <p className="text-gray-400 text-sm group">
                             {renderEditableField('copyright', updatedContent?.copyright || '© 2023 VanLang Budget. Tất cả các quyền được bảo lưu.', 'text-gray-400 text-sm')}
                         </p>
                         <div className="flex space-x-4 mt-4 md:mt-0">
                             <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('social.facebook', updatedContent?.social?.facebook || 'Facebook', 'text-gray-400 hover:text-white')}
+                                {renderEditableField('socialFacebook', updatedContent?.socialFacebook || 'Facebook', 'text-gray-400 hover:text-white')}
                             </a>
                             <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('social.twitter', updatedContent?.social?.twitter || 'Twitter', 'text-gray-400 hover:text-white')}
+                                {renderEditableField('socialTwitter', updatedContent?.socialTwitter || 'Twitter', 'text-gray-400 hover:text-white')}
                             </a>
                             <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('social.linkedin', updatedContent?.social?.linkedin || 'LinkedIn', 'text-gray-400 hover:text-white')}
+                                {renderEditableField('socialLinkedin', updatedContent?.socialLinkedin || 'LinkedIn', 'text-gray-400 hover:text-white')}
                             </a>
                             <a href="#" className="text-gray-400 hover:text-white transition-colors group">
-                                {renderEditableField('social.instagram', updatedContent?.social?.instagram || 'Instagram', 'text-gray-400 hover:text-white')}
+                                {renderEditableField('socialInstagram', updatedContent?.socialInstagram || 'Instagram', 'text-gray-400 hover:text-white')}
                             </a>
+                        </div>
+
+                        {/* Social URLs Section */}
+                        <div className="mt-6 p-4 bg-gray-700 rounded-lg">
+                            <h4 className="text-sm font-semibold mb-3 text-gray-300">Social Media URLs</h4>
+                            <div className="space-y-2 text-sm">
+                                <div className="flex items-center">
+                                    <span className="w-20 text-gray-400">Facebook:</span>
+                                    <div className="flex-1 group">
+                                        {renderEditableField('socialFacebookUrl', updatedContent?.socialFacebookUrl || 'https://facebook.com/vanlangbudget', 'text-blue-400 hover:text-blue-300')}
+                                    </div>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="w-20 text-gray-400">Twitter:</span>
+                                    <div className="flex-1 group">
+                                        {renderEditableField('socialTwitterUrl', updatedContent?.socialTwitterUrl || 'https://twitter.com/vanlangbudget', 'text-blue-400 hover:text-blue-300')}
+                                    </div>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="w-20 text-gray-400">LinkedIn:</span>
+                                    <div className="flex-1 group">
+                                        {renderEditableField('socialLinkedinUrl', updatedContent?.socialLinkedinUrl || 'https://linkedin.com/company/vanlangbudget', 'text-blue-400 hover:text-blue-300')}
+                                    </div>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="w-20 text-gray-400">Instagram:</span>
+                                    <div className="flex-1 group">
+                                        {renderEditableField('socialInstagramUrl', updatedContent?.socialInstagramUrl || 'https://instagram.com/vanlangbudget', 'text-blue-400 hover:text-blue-300')}
+                                    </div>
+                                </div>
+                                <div className="flex items-center">
+                                    <span className="w-20 text-gray-400">GitHub:</span>
+                                    <div className="flex-1 group">
+                                        {renderEditableField('socialGithubUrl', updatedContent?.socialGithubUrl || 'https://github.com/vanlangbudget', 'text-blue-400 hover:text-blue-300')}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </footer>
         </div>
+            </footer >
+        </div >
     );
 }

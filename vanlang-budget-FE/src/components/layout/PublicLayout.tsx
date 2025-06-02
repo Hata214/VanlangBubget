@@ -21,6 +21,7 @@ import {
 import { User, Settings, LogOut } from 'lucide-react'
 import { useAppDispatch } from '@/redux/hooks'
 import { logout } from '@/redux/features/authSlice'
+import { useHeaderContent } from '@/hooks/useHeaderContent'
 
 interface PublicLayoutProps {
     children: ReactNode
@@ -31,15 +32,21 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     const pathname = usePathname()
     const dispatch = useAppDispatch()
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
+    const { content: headerContent, loading: headerLoading } = useHeaderContent()
 
-    // Các trang trong thanh điều hướng
+    // Debug logging
+    console.log('🏠 PublicLayout - headerContent:', headerContent);
+    console.log('🏠 PublicLayout - headerLoading:', headerLoading);
+
+    // Các trang trong thanh điều hướng - sử dụng admin content
     const navLinks = [
-        { href: '/about', label: t('header.links.aboutUs') },
-        { href: '/features', label: t('header.links.features') },
-        { href: '/roadmap', label: t('header.links.roadmap') },
-        { href: '/pricing', label: t('header.links.pricing') },
-        { href: '/contact', label: t('header.links.contact') }
+        { href: '/about', label: headerContent?.nav1 || t('header.links.aboutUs') },
+        { href: '/features', label: headerContent?.nav2 || t('header.links.features') },
+        { href: '/pricing', label: headerContent?.nav3 || t('header.links.pricing') },
+        { href: '/contact', label: headerContent?.nav4 || t('header.links.contact') }
     ]
+
+    console.log('🔗 PublicLayout - navLinks:', navLinks);
 
     const handleLogout = () => {
         dispatch(logout())
@@ -62,7 +69,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                                     className="rounded-sm"
                                 />
                                 <span className="hidden font-bold md:inline-block">
-                                    {t('app.name')}
+                                    {headerContent?.logo || t('app.name')}
                                 </span>
                             </Link>
                         </div>
@@ -137,10 +144,10 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                             ) : (
                                 <div className="hidden md:flex space-x-3">
                                     <Link href="/login">
-                                        <Button variant="outline">{t('header.buttons.login')}</Button>
+                                        <Button variant="outline">{headerContent?.loginButton || t('header.buttons.login')}</Button>
                                     </Link>
                                     <Link href="/register">
-                                        <Button>{t('header.buttons.register')}</Button>
+                                        <Button>{headerContent?.signupButton || t('header.buttons.register')}</Button>
                                     </Link>
                                 </div>
                             )}

@@ -37,7 +37,7 @@ export default function ContentSidebar({
     onLanguageChange,
     hasChanges
 }: ContentSidebarProps) {
-    const [expandedSections, setExpandedSections] = useState<string[]>(['pages']);
+    const [expandedSections, setExpandedSections] = useState<string[]>(['pages', 'global']);
 
     const pages: PageItem[] = [
         {
@@ -137,8 +137,8 @@ export default function ContentSidebar({
                     <button
                         onClick={() => handleLanguageClick('vi')}
                         className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${currentLanguage === 'vi'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         Tiếng Việt
@@ -146,8 +146,8 @@ export default function ContentSidebar({
                     <button
                         onClick={() => handleLanguageClick('en')}
                         className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${currentLanguage === 'en'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-600 hover:text-gray-900'
+                            ? 'bg-white text-blue-600 shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900'
                             }`}
                     >
                         English
@@ -178,8 +178,8 @@ export default function ContentSidebar({
                                     <button
                                         onClick={() => handlePageClick(page.id)}
                                         className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${selectedPage === page.id
-                                                ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                : 'text-gray-700 hover:bg-gray-50'
+                                            ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                            : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                     >
                                         <span className={`mr-3 ${selectedPage === page.id ? 'text-blue-600' : 'text-gray-400'
@@ -220,20 +220,36 @@ export default function ContentSidebar({
                             <button
                                 onClick={() => handlePageClick('header')}
                                 className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${selectedPage === 'header'
-                                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                        : 'text-gray-700 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    : 'text-gray-700 hover:bg-gray-50'
                                     }`}
                             >
-                                <span className="text-sm">Header</span>
+                                <span className={`mr-3 ${selectedPage === 'header' ? 'text-blue-600' : 'text-gray-400'}`}>
+                                    🔝
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium">Header</div>
+                                    <div className="text-xs text-gray-500 truncate">
+                                        Logo, menu điều hướng, nút đăng nhập
+                                    </div>
+                                </div>
                             </button>
                             <button
                                 onClick={() => handlePageClick('footer')}
                                 className={`w-full flex items-center px-3 py-2 text-left rounded-lg transition-colors ${selectedPage === 'footer'
-                                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                        : 'text-gray-700 hover:bg-gray-50'
+                                    ? 'bg-blue-50 text-blue-700 border border-blue-200'
+                                    : 'text-gray-700 hover:bg-gray-50'
                                     }`}
                             >
-                                <span className="text-sm">Footer</span>
+                                <span className={`mr-3 ${selectedPage === 'footer' ? 'text-blue-600' : 'text-gray-400'}`}>
+                                    🔻
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                    <div className="text-sm font-medium">Footer</div>
+                                    <div className="text-xs text-gray-500 truncate">
+                                        Thông tin công ty, liên kết, bản quyền
+                                    </div>
+                                </div>
                             </button>
                         </div>
                     )}

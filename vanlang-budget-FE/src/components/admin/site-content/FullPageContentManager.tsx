@@ -118,6 +118,32 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     response.data = response.data[currentLanguage];
                     console.log('📞 Extracted contact content for', currentLanguage, ':', response.data);
                 }
+            } else if (basePage === 'header') {
+                // Header cần xử lý đặc biệt
+                response = await siteContentService.getContentByType('header', currentLanguage);
+                console.log('🔝 Header response:', response);
+                console.log('🔝 Header response data:', response?.data);
+                console.log('🔝 Header response data type:', typeof response?.data);
+                console.log('🔝 Header response data structure:', JSON.stringify(response?.data, null, 2));
+
+                // Extract language specific content for header
+                if (response && response.data && response.data[currentLanguage]) {
+                    response.data = response.data[currentLanguage];
+                    console.log('🔝 Extracted header content for', currentLanguage, ':', response.data);
+                }
+            } else if (basePage === 'footer') {
+                // Footer cần xử lý đặc biệt
+                response = await siteContentService.getContentByType('footer', currentLanguage);
+                console.log('🔻 Footer response:', response);
+                console.log('🔻 Footer response data:', response?.data);
+                console.log('🔻 Footer response data type:', typeof response?.data);
+                console.log('🔻 Footer response data structure:', JSON.stringify(response?.data, null, 2));
+
+                // Extract language specific content for footer
+                if (response && response.data && response.data[currentLanguage]) {
+                    response.data = response.data[currentLanguage];
+                    console.log('🔻 Extracted footer content for', currentLanguage, ':', response.data);
+                }
             } else {
                 response = await siteContentService.getContentByType(contentKey, currentLanguage);
             }
@@ -126,9 +152,9 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             console.log('📝 Response data type:', typeof response?.data);
 
             // Extract content from response structure
-            // For roadmap, features, pricing, and contact, after language extraction, data is already the content
+            // For roadmap, features, pricing, contact, header, and footer, after language extraction, data is already the content
             let contentData;
-            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing' || basePage === 'contact') {
+            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing' || basePage === 'contact' || basePage === 'header' || basePage === 'footer') {
                 contentData = response.data || {};
             } else {
                 contentData = response.data?.content || response.data || {};
@@ -282,6 +308,22 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 console.log('📞 Saving contact content:', JSON.stringify(dataToSave, null, 2));
                 saveResponse = await siteContentService.updateContentByType('contact', dataToSave);
                 console.log('📞 Contact save response:', saveResponse);
+            } else if (basePage === 'header') {
+                // Header cần wrap trong language object
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                console.log('🔝 Saving header content:', JSON.stringify(dataToSave, null, 2));
+                saveResponse = await siteContentService.updateContentByType('header', dataToSave);
+                console.log('🔝 Header save response:', saveResponse);
+            } else if (basePage === 'footer') {
+                // Footer cần wrap trong language object
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                console.log('🔻 Saving footer content:', JSON.stringify(dataToSave, null, 2));
+                saveResponse = await siteContentService.updateContentByType('footer', dataToSave);
+                console.log('🔻 Footer save response:', saveResponse);
             } else {
                 saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
             }
@@ -320,8 +362,8 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 if (HOMEPAGE_SECTIONS.includes(basePage)) {
                     await siteContentService.initializeHomepageContent(currentLanguage);
                 } else {
-                    // Xử lý đặc biệt cho pricing, features, roadmap, contact
-                    if (['pricing', 'features', 'roadmap', 'contact'].includes(basePage)) {
+                    // Xử lý đặc biệt cho pricing, features, roadmap, contact, header, footer
+                    if (['pricing', 'features', 'roadmap', 'contact', 'header', 'footer'].includes(basePage)) {
                         console.log(`🔄 Initializing ${basePage} content...`);
                         await siteContentService.initializeContentByType(basePage, currentLanguage);
                     } else {
@@ -402,6 +444,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             roadmap: 'Lộ trình',
             pricing: 'Bảng giá',
             contact: 'Liên hệ',
+            header: 'Header',
             footer: 'Footer'
         };
         return titles[page] || page.charAt(0).toUpperCase() + page.slice(1);
@@ -506,6 +549,24 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     Làm nổi bật
                                 </button>
                             )}
+
+                            {/* Hard Refresh Button */}
+                            <button
+                                onClick={() => {
+                                    console.log('🔄 Hard refresh clicked - clearing cache');
+                                    // Clear any potential cache
+                                    localStorage.removeItem(`content-${selectedPage}-${currentLanguage}`);
+                                    // Force reload
+                                    loadContent();
+                                    setPreviewKey(prev => prev + 1);
+                                    toast.success('Đã làm mới nội dung');
+                                }}
+                                className="flex items-center px-3 py-2 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200"
+                                title="Làm mới và xóa cache"
+                            >
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Hard Refresh
+                            </button>
 
                             {/* Refresh Preview Button */}
                             <button

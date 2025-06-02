@@ -10,8 +10,8 @@ const siteContentSchema = new mongoose.Schema(
             type: String,
             required: [true, 'Loại nội dung là bắt buộc'],
             enum: {
-                values: ['footer', 'about', 'terms', 'privacy', 'homepage', 'faq', 'contact', 'roadmap', 'pricing', 'features'],
-                message: 'Loại nội dung phải là một trong những giá trị: footer, about, terms, privacy, homepage, faq, contact, roadmap, pricing, features'
+                values: ['footer', 'header', 'about', 'terms', 'privacy', 'homepage', 'faq', 'contact', 'roadmap', 'pricing', 'features'],
+                message: 'Loại nội dung phải là một trong những giá trị: footer, header, about, terms, privacy, homepage, faq, contact, roadmap, pricing, features'
             },
             unique: true
         },

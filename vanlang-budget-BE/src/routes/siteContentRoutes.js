@@ -27,7 +27,10 @@ router.get('/header', (req, res, next) => {
     getSiteContentByType(req, res, next);
 });
 // Lấy nội dung footer
-router.get('/footer', getFooterContent);
+router.get('/footer', (req, res, next) => {
+    req.params.type = 'footer';
+    getSiteContentByType(req, res, next);
+});
 
 // === Routes cụ thể cho Homepage (trước route chung) ===
 // Lấy toàn bộ nội dung trang chủ

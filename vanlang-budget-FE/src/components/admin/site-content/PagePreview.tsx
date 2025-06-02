@@ -97,6 +97,11 @@ export default function PagePreview({
     const renderEditableContent = (field: string, value: any, className: string = '') => {
         const isEditing = editingField === field;
 
+        // Debug logging for header fields
+        if (page === 'header' && ['nav1', 'nav2', 'nav3', 'nav4', 'logo'].includes(field)) {
+            console.log(`🔍 renderEditableContent - field: ${field}, value: ${value}, content.${field}: ${content?.[field]}`);
+        }
+
         return (
             <span
                 className={`editable-content ${className} ${isEditMode
@@ -779,77 +784,115 @@ export default function PagePreview({
         );
     };
 
-    const renderHeaderContent = () => (
-        <div className="bg-white border-b border-gray-200 p-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                        <div className="text-2xl font-bold text-blue-600">
-                            {renderEditableContent('header.logo', content?.header?.logo || 'VanLang Budget')}
-                        </div>
-                    </div>
-                    <nav className="hidden md:flex space-x-8">
-                        {['Trang chủ', 'Tính năng', 'Bảng giá', 'Liên hệ'].map((item, index) => (
-                            <a key={index} href="#" className="text-gray-700 hover:text-blue-600">
-                                {renderEditableContent(`header.nav${index + 1}`, content?.header?.[`nav${index + 1}`] || item)}
-                            </a>
-                        ))}
-                    </nav>
-                    <div className="flex items-center space-x-4">
-                        <button className="text-gray-700 hover:text-blue-600">
-                            {renderEditableContent('header.loginButton', content?.header?.loginButton || 'Đăng nhập')}
-                        </button>
-                        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-                            {renderEditableContent('header.signupButton', content?.header?.signupButton || 'Đăng ký')}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    const renderHeaderContent = () => {
+        console.log('🔝 Rendering header content with:', content);
+        console.log('🔝 Content keys:', content ? Object.keys(content) : 'No content');
+        console.log('🔝 nav1 value:', content?.nav1);
+        console.log('🔝 logo value:', content?.logo);
+        console.log('🔝 Full content object:', JSON.stringify(content, null, 2));
 
-    const renderFooterContent = () => (
-        <div className="bg-gray-900 text-white p-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">
-                            {renderEditableContent('footer.companyName', content?.footer?.companyName || 'VanLang Budget')}
-                        </h3>
-                        <p className="text-gray-400">
-                            {renderEditableContent('footer.description', content?.footer?.description || 'Ứng dụng quản lý tài chính cá nhân thông minh')}
-                        </p>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold mb-4">Sản phẩm</h4>
-                        <ul className="space-y-2 text-gray-400">
-                            <li>{renderEditableContent('footer.product1', content?.footer?.product1 || 'Quản lý chi tiêu')}</li>
-                            <li>{renderEditableContent('footer.product2', content?.footer?.product2 || 'Lập ngân sách')}</li>
-                            <li>{renderEditableContent('footer.product3', content?.footer?.product3 || 'Báo cáo tài chính')}</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold mb-4">Hỗ trợ</h4>
-                        <ul className="space-y-2 text-gray-400">
-                            <li>{renderEditableContent('footer.support1', content?.footer?.support1 || 'Trung tâm trợ giúp')}</li>
-                            <li>{renderEditableContent('footer.support2', content?.footer?.support2 || 'Liên hệ')}</li>
-                            <li>{renderEditableContent('footer.support3', content?.footer?.support3 || 'FAQ')}</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold mb-4">Liên hệ</h4>
-                        <div className="space-y-2 text-gray-400">
-                            <p>{renderEditableContent('footer.email', content?.footer?.email || 'contact@vanlangbudget.com')}</p>
-                            <p>{renderEditableContent('footer.phone', content?.footer?.phone || '+84 123 456 789')}</p>
+        return (
+            <div className="bg-white border-b border-gray-200 p-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <div className="text-2xl font-bold text-blue-600">
+                                {renderEditableContent('logo', content?.logo || 'VanLang Budget')}
+                            </div>
+                        </div>
+                        <nav className="hidden md:flex space-x-8">
+                            {['nav1', 'nav2', 'nav3', 'nav4'].map((navKey, index) => {
+                                const defaultValues = ['Về chúng tôi', 'Tính năng', 'Bảng giá', 'Liên hệ'];
+                                return (
+                                    <a key={index} href="#" className="text-gray-700 hover:text-blue-600">
+                                        {renderEditableContent(navKey, content?.[navKey] || defaultValues[index])}
+                                    </a>
+                                );
+                            })}
+                        </nav>
+                        <div className="flex items-center space-x-4">
+                            <button className="text-gray-700 hover:text-blue-600">
+                                {renderEditableContent('loginButton', content?.loginButton || 'Đăng nhập')}
+                            </button>
+                            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                {renderEditableContent('signupButton', content?.signupButton || 'Đăng ký')}
+                            </button>
                         </div>
                     </div>
                 </div>
-                <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-                    <p>{renderEditableContent('footer.copyright', content?.footer?.copyright || '© 2024 VanLang Budget. All rights reserved.')}</p>
+            </div>
+        );
+    };
+
+    const renderFooterContent = () => {
+        console.log('🔻 Rendering footer content with:', content);
+        console.log('🔻 Content keys:', content ? Object.keys(content) : 'No content');
+
+        return (
+            <div className="bg-gray-900 text-white p-6">
+                <div className="max-w-7xl mx-auto">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                        <div>
+                            <h3 className="text-lg font-semibold mb-4">
+                                {renderEditableContent('companyName', content?.companyName || 'VanLang Budget')}
+                            </h3>
+                            <p className="text-gray-400">
+                                {renderEditableContent('description', content?.description || 'Ứng dụng quản lý tài chính cá nhân thông minh')}
+                            </p>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Sản phẩm</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li>{renderEditableContent('product1', content?.product1 || 'Quản lý chi tiêu')}</li>
+                                <li>{renderEditableContent('product2', content?.product2 || 'Lập ngân sách')}</li>
+                                <li>{renderEditableContent('product3', content?.product3 || 'Báo cáo tài chính')}</li>
+                                <li>{renderEditableContent('product4', content?.product4 || 'Mục tiêu tiết kiệm')}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Công ty</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li>{renderEditableContent('company1', content?.company1 || 'Về chúng tôi')}</li>
+                                <li>{renderEditableContent('company2', content?.company2 || 'Liên hệ')}</li>
+                                <li>{renderEditableContent('company3', content?.company3 || 'Tuyển dụng')}</li>
+                                <li>{renderEditableContent('company4', content?.company4 || 'Tin tức')}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="font-semibold mb-4">Hỗ trợ</h4>
+                            <ul className="space-y-2 text-gray-400">
+                                <li>{renderEditableContent('support1', content?.support1 || 'Trung tâm hỗ trợ')}</li>
+                                <li>{renderEditableContent('support2', content?.support2 || 'Hướng dẫn sử dụng')}</li>
+                                <li>{renderEditableContent('support3', content?.support3 || 'FAQ')}</li>
+                                <li>{renderEditableContent('support4', content?.support4 || 'Báo lỗi')}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div className="border-t border-gray-800 mt-8 pt-8">
+                        <div className="flex flex-col md:flex-row justify-between items-center">
+                            <p className="text-gray-400 text-center md:text-left">
+                                {renderEditableContent('copyright', content?.copyright || '© 2024 VanLang Budget. Tất cả quyền được bảo lưu.')}
+                            </p>
+                            <div className="flex space-x-4 mt-4 md:mt-0">
+                                <a href="#" className="text-gray-400 hover:text-white">
+                                    {renderEditableContent('socialFacebook', content?.socialFacebook || 'Facebook')}
+                                </a>
+                                <a href="#" className="text-gray-400 hover:text-white">
+                                    {renderEditableContent('socialTwitter', content?.socialTwitter || 'Twitter')}
+                                </a>
+                                <a href="#" className="text-gray-400 hover:text-white">
+                                    {renderEditableContent('socialLinkedin', content?.socialLinkedin || 'LinkedIn')}
+                                </a>
+                                <a href="#" className="text-gray-400 hover:text-white">
+                                    {renderEditableContent('socialInstagram', content?.socialInstagram || 'Instagram')}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderDefaultPage = () => {
         const basePage = page.split('-')[0];
