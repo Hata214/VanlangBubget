@@ -80,7 +80,21 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             console.log('🔍 DEBUG - HOMEPAGE_SECTIONS.includes(basePage):', HOMEPAGE_SECTIONS.includes(basePage));
             console.log('🔍 DEBUG - contentKey:', contentKey);
             console.log('🔄 Loading content for:', contentKey, 'language:', currentLanguage);
-            const response = await siteContentService.getContentByType(contentKey, currentLanguage);
+
+            let response;
+            if (basePage === 'features') {
+                // Features cần xử lý đặc biệt
+                response = await siteContentService.getContentByType('features', currentLanguage);
+                console.log('🔍 Features response:', response);
+
+                // Extract language specific content
+                if (response && response.data && response.data[currentLanguage]) {
+                    response.data = response.data[currentLanguage];
+                    console.log('🔍 Extracted features content for', currentLanguage, ':', response.data);
+                }
+            } else {
+                response = await siteContentService.getContentByType(contentKey, currentLanguage);
+            }
             console.log('✅ Loaded content response:', response);
             console.log('📝 Response data:', response?.data);
             console.log('📝 Response data type:', typeof response?.data);
@@ -205,7 +219,16 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             console.log('💾 Saving content with key:', contentKey);
             console.log('💾 Content to save:', JSON.stringify(contentToSave, null, 2));
 
-            const saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
+            let saveResponse;
+            if (basePage === 'features') {
+                // Features cần wrap trong language object
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                saveResponse = await siteContentService.updateContentByType('features', dataToSave);
+            } else {
+                saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
+            }
             console.log('✅ Save response:', saveResponse);
 
             toast.success(isSuperAdmin

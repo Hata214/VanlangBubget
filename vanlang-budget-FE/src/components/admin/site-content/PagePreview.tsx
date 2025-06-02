@@ -42,6 +42,9 @@ export default function PagePreview({
             console.log('🎯 Features page - Title:', content?.title);
             console.log('🎯 Features page - Subtitle:', content?.subtitle);
             console.log('🎯 Features page - Features array:', content?.features);
+            console.log('🎯 Features page - Content keys:', Object.keys(content || {}));
+            console.log('🎯 Features page - Title value type:', typeof content?.title);
+            console.log('🎯 Features page - Title exact value:', JSON.stringify(content?.title));
         }
 
         setRenderKey(prev => prev + 1);
@@ -373,8 +376,8 @@ export default function PagePreview({
     );
 
     const renderFeaturesPage = () => {
-        // Get content for current language
-        const featuresData = content?.[language] || content?.vi || {};
+        // Get content for current language - sử dụng content trực tiếp
+        const featuresData = content || {};
         const featuresArray = featuresData.features || [];
 
         console.log('🎯 renderFeaturesPage called');

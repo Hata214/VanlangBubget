@@ -18,8 +18,8 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
             try {
                 console.log(`🔍 Loading ${contentType} content from admin...`)
 
-                // Các sections thuộc homepage
-                const HOMEPAGE_SECTIONS = ['homepage', 'pricing', 'testimonials', 'statistics', 'features']
+                // Các sections thuộc homepage - chỉ admin interface sử dụng
+                const HOMEPAGE_SECTIONS = ['homepage', 'pricing', 'testimonials', 'statistics']
 
                 let actualContentType = contentType
                 let extractSection = null
@@ -31,6 +31,11 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                     console.log(`🔍 ${contentType} is homepage section, loading from homepage and extracting ${extractSection}`)
                 }
 
+                // Features được xử lý như content type riêng biệt cho trang công khai
+                if (contentType === 'features') {
+                    console.log(`🔍 Loading features as separate content type`)
+                }
+
                 const response = await siteContentService.getContentByType(actualContentType, language)
                 console.log(`🔍 ${contentType} content response:`, response)
                 console.log(`🔍 ${contentType} response.data:`, response.data)
@@ -39,8 +44,19 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                 if (response.data) {
                     let finalContent = response.data
 
+                    // Xử lý đặc biệt cho Features - extract language specific content
+                    if (contentType === 'features') {
+                        console.log(`🔍 Processing features content for language: ${language}`)
+                        if (response.data[language]) {
+                            finalContent = response.data[language]
+                            console.log(`🔍 Extracted features content for ${language}:`, finalContent)
+                        } else {
+                            console.log(`🔍 No ${language} content found, using full response`)
+                            finalContent = response.data
+                        }
+                    }
                     // Nếu cần extract section từ homepage content
-                    if (extractSection) {
+                    else if (extractSection) {
                         console.log(`🔍 Extracting ${extractSection} from response:`, response.data)
 
                         // Kiểm tra cấu trúc response: { status: 'success', data: { content: {...} } }

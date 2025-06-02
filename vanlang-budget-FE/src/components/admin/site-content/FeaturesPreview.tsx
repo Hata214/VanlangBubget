@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import siteContentService from '@/services/siteContentService';
 import { useAppSelector } from '@/redux/hooks';
+import { useSiteContent } from '@/components/SiteContentProvider';
 
 interface FeaturesPreviewProps {
     content: any;
@@ -21,14 +22,39 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
     const [updatedContent, setUpdatedContent] = useState<any>(content || {});
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [changedFields, setChangedFields] = useState<string[]>([]);
+    const [lastSaved, setLastSaved] = useState<Date | null>(null);
+    const [saveSuccess, setSaveSuccess] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
     const { user } = useAppSelector((state) => state.auth);
     const isSuperAdmin = user?.role === 'superadmin';
+    const { refreshContent } = useSiteContent();
 
     useEffect(() => {
         console.log('🔄 FeaturesPreview content updated:', content);
         setUpdatedContent(content || {});
+        // Reset changed fields khi content thay đổi từ bên ngoài
+        setChangedFields([]);
     }, [content]);
+
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ctrl+S để save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (changedFields.length > 0) {
+                    saveAllChanges();
+                }
+            }
+            // Escape để cancel editing
+            if (e.key === 'Escape' && editingField) {
+                cancelInlineEdit();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [changedFields.length, editingField]);
 
     // Early return if no content
     if (!content && !updatedContent) {
@@ -138,16 +164,55 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
 
         setIsSaving(true);
         try {
-            // Features là một section của homepage, không phải content type riêng biệt
-            await siteContentService.updateHomepageSection('features', updatedContent);
+            // Features được xử lý như content type riêng biệt, cần wrap trong language object
+            const dataToSave = {
+                vi: updatedContent
+            };
+
+            console.log('💾 Saving features content:', dataToSave);
+            const saveResponse = await siteContentService.updateContentByType('features', dataToSave);
+            console.log('✅ Save response:', saveResponse);
+
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung trang Tính năng!'
                 : 'Đã gửi nội dung trang Tính năng để SuperAdmin phê duyệt!');
 
+            // Set success state và timestamp
+            setLastSaved(new Date());
+            setSaveSuccess(true);
             setChangedFields([]);
+
+            // Reset success animation sau 3 giây
+            setTimeout(() => setSaveSuccess(false), 3000);
+
+            // Force reload fresh content từ server
+            console.log('🔄 Force reloading features content...');
+            try {
+                const freshContent = await siteContentService.getContentByType('features');
+                console.log('🔄 Fresh content loaded:', freshContent);
+
+                if (freshContent && freshContent.data && freshContent.data.vi) {
+                    console.log('🔄 Updating local state with fresh content');
+                    setUpdatedContent(freshContent.data.vi);
+                }
+            } catch (reloadError) {
+                console.error('Error reloading fresh content:', reloadError);
+            }
+
+            // Refresh content trong SiteContentProvider
+            await refreshContent();
+
+            // Force update parent component
             if (onUpdate) {
+                console.log('🔄 Calling parent onUpdate...');
                 onUpdate();
             }
+
+            // Additional force refresh after a short delay
+            setTimeout(async () => {
+                console.log('🔄 Additional refresh after delay...');
+                await refreshContent();
+            }, 1000);
         } catch (error) {
             console.error('Lỗi khi cập nhật nội dung trang Tính năng:', error);
             toast.error('Không thể lưu nội dung. Vui lòng thử lại sau.');
@@ -192,15 +257,30 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
             );
         }
 
+        const isChanged = changedFields.includes(key);
+
         return (
             <span
-                className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
+                className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-2 rounded transition-all duration-300 relative ${className} ${isChanged ? 'bg-green-50 border-2 border-green-300 shadow-sm' : ''
+                    }`}
                 onClick={() => startInlineEdit(key, safeValue)}
                 data-field={key}
-                title="Nhấp để chỉnh sửa"
+                title={isChanged ? "Đã thay đổi - Nhấp để chỉnh sửa" : "Nhấp để chỉnh sửa"}
+                style={{
+                    position: 'relative',
+                    display: 'inline-block'
+                }}
             >
                 {safeValue || `[Chưa có nội dung cho ${key}]`}
                 <Edit size={14} className="inline-block ml-1 text-gray-400 opacity-0 group-hover:opacity-100" />
+                {isChanged && (
+                    <span
+                        className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs font-bold animate-pulse"
+                        title="Đã thay đổi"
+                    >
+                        ✓
+                    </span>
+                )}
             </span>
         );
     };
@@ -230,13 +310,53 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
 
     return (
         <div className="features-preview">
+            {/* Status Bar */}
+            <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 px-4 py-2 z-40 shadow-sm">
+                <div className="flex justify-between items-center max-w-7xl mx-auto">
+                    <div className="flex items-center space-x-4">
+                        <span className="text-sm font-medium text-gray-700">
+                            Features Content Management
+                        </span>
+                        {changedFields.length > 0 && (
+                            <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                                {changedFields.length} thay đổi chưa lưu
+                            </span>
+                        )}
+                        {saveSuccess && (
+                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium animate-pulse">
+                                ✅ Đã lưu thành công!
+                            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        {lastSaved && (
+                            <span>
+                                Lần cuối: {lastSaved.toLocaleTimeString('vi-VN')}
+                            </span>
+                        )}
+                        {changedFields.length > 0 && (
+                            <span className="text-xs">
+                                Đã sửa: {changedFields.slice(0, 3).join(', ')}
+                                {changedFields.length > 3 && ` +${changedFields.length - 3} khác`}
+                            </span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                            Ctrl+S: Lưu | Esc: Hủy
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             {/* Floating save button */}
             {changedFields.length > 0 && (
                 <div className="fixed bottom-4 right-4 z-50">
                     <button
                         onClick={saveAllChanges}
                         disabled={isSaving}
-                        className="bg-green-600 text-white px-4 py-2 rounded-md shadow-lg hover:bg-green-700 transition-colors flex items-center"
+                        className={`px-4 py-2 rounded-md shadow-lg transition-all duration-300 flex items-center ${isSaving
+                            ? 'bg-gray-400 text-white cursor-not-allowed'
+                            : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-xl'
+                            }`}
                     >
                         <Save size={18} className="mr-2" />
                         {isSaving ? 'Đang lưu...' : `Lưu ${changedFields.length} thay đổi`}
@@ -244,7 +364,7 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
                 </div>
             )}
 
-            <div className="container mx-auto py-12 px-4">
+            <div className="container mx-auto py-12 px-4 pt-20">
                 {/* Header */}
                 <div className="text-center mb-16">
                     <h1 className="text-4xl font-bold mb-4 group">

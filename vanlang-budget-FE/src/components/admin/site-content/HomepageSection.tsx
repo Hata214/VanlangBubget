@@ -52,6 +52,16 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                 // Nếu là homepage, sử dụng getContentByType để lấy toàn bộ nội dung trang chủ
                 response = await siteContentService.getContentByType("homepage");
                 console.log(`Đã tải nội dung cho homepage:`, response);
+            } else if (section === "features") {
+                // Features được xử lý như content type riêng biệt
+                response = await siteContentService.getContentByType("features");
+                console.log(`Đã tải nội dung cho features content type:`, response);
+
+                // Extract Vietnamese content if available
+                if (response && response.data && response.data.vi) {
+                    response.data = response.data.vi;
+                    console.log(`Extracted Vietnamese features content:`, response.data);
+                }
             } else {
                 // Với các section khác, sử dụng getHomepageSection
                 response = await siteContentService.getHomepageSection(section);
@@ -117,6 +127,13 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                 // Nếu là homepage, sử dụng updateContentByType để cập nhật toàn bộ nội dung trang chủ
                 response = await siteContentService.updateContentByType("homepage", content);
                 console.log(`Đã lưu nội dung cho homepage:`, response);
+            } else if (section === "features") {
+                // Features được xử lý như content type riêng biệt, cần wrap trong language object
+                const dataToSave = {
+                    vi: content
+                };
+                response = await siteContentService.updateContentByType("features", dataToSave);
+                console.log(`Đã lưu nội dung cho features content type:`, response);
             } else {
                 // Với các section khác, sử dụng updateHomepageSection
                 response = await siteContentService.updateHomepageSection(section, content);

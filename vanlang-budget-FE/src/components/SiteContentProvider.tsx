@@ -123,9 +123,18 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
         }
     };
 
-    // Tải lại nội dung
+    // Tải lại nội dung với force refresh
     const refreshContent = async () => {
+        console.log('🔄 [PROVIDER] Force refreshing content...');
+
+        // Clear current content để force reload
+        setContent({});
+        setError(null);
+
+        // Reload content
         await loadContent();
+
+        console.log('✅ [PROVIDER] Content refreshed successfully');
     };
 
     // Lấy dữ liệu fallback nếu dữ liệu chính rỗng
