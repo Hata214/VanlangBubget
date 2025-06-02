@@ -47,6 +47,16 @@ export default function PagePreview({
             console.log('🎯 Features page - Title exact value:', JSON.stringify(content?.title));
         }
 
+        // For roadmap page, check specific content
+        if (page === 'roadmap') {
+            console.log('🗺️ Roadmap page - Title:', content?.title);
+            console.log('🗺️ Roadmap page - Description:', content?.description);
+            console.log('🗺️ Roadmap page - Milestones array:', content?.milestones);
+            console.log('🗺️ Roadmap page - Content keys:', Object.keys(content || {}));
+            console.log('🗺️ Roadmap page - Title value type:', typeof content?.title);
+            console.log('🗺️ Roadmap page - Title exact value:', JSON.stringify(content?.title));
+        }
+
         setRenderKey(prev => prev + 1);
     }, [content, page, language]);
 
@@ -432,72 +442,165 @@ export default function PagePreview({
         );
     };
 
-    const renderRoadmapPage = () => (
-        <div className="min-h-screen bg-white py-20">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('roadmap.title', content?.roadmap?.title || 'Lộ trình phát triển')}
-                    </h1>
-                    <p className="text-xl text-gray-600">
-                        {renderEditableContent('roadmap.subtitle', content?.roadmap?.subtitle || 'Kế hoạch phát triển sản phẩm')}
-                    </p>
-                </div>
+    const renderRoadmapPage = () => {
+        // Get content for current language - sử dụng content trực tiếp
+        const roadmapData = content || {};
+        const milestonesArray = roadmapData.milestones || [];
 
-                <div className="space-y-8">
-                    {[1, 2, 3, 4].map((index) => (
-                        <div key={index} className="flex items-start">
-                            <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
-                                {index}
+        console.log('🎯 renderRoadmapPage called');
+        console.log('🎯 Current language:', language);
+        console.log('🎯 Raw content:', content);
+        console.log('🎯 Roadmap data:', roadmapData);
+        console.log('🎯 Milestones array:', milestonesArray);
+        console.log('🎯 Title from roadmapData:', roadmapData.title);
+        console.log('🎯 Description from roadmapData:', roadmapData.description);
+        console.log('🎯 Roadmap content keys:', Object.keys(roadmapData || {}));
+        console.log('🎯 Title value type:', typeof roadmapData?.title);
+        console.log('🎯 Title exact value:', JSON.stringify(roadmapData?.title));
+
+        return (
+            <div className="min-h-screen bg-white py-20">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            {renderEditableContent('title', roadmapData.title || 'Lộ trình phát triển')}
+                        </h1>
+                        <p className="text-xl text-gray-600">
+                            {renderEditableContent('description', roadmapData.description || 'Kế hoạch phát triển sản phẩm')}
+                        </p>
+                    </div>
+
+                    <div className="space-y-8">
+                        {milestonesArray.length > 0 ? milestonesArray.map((milestone, index) => (
+                            <div key={index} className="flex items-start">
+                                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                                    {index + 1}
+                                </div>
+                                <div className="ml-4">
+                                    <h3 className="text-xl font-semibold mb-2">
+                                        {renderEditableContent(`milestones.${index}.title`, milestone.title || `Giai đoạn ${index + 1}`)}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {renderEditableContent(`milestones.${index}.description`, milestone.description || `Mô tả giai đoạn ${index + 1}`)}
+                                    </p>
+                                    <p className="text-sm text-blue-600 mt-2">
+                                        {renderEditableContent(`milestones.${index}.date`, milestone.date || `Q${index + 1} 2025`)}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="ml-4">
-                                <h3 className="text-xl font-semibold mb-2">
-                                    {renderEditableContent(`roadmap.phase${index}.title`, content?.roadmap?.[`phase${index}`]?.title || `Giai đoạn ${index}`)}
+                        )) : [1, 2, 3, 4].map((index) => (
+                            <div key={index} className="flex items-start">
+                                <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                                    {index}
+                                </div>
+                                <div className="ml-4">
+                                    <h3 className="text-xl font-semibold mb-2">
+                                        {renderEditableContent(`milestones.${index - 1}.title`, `Giai đoạn ${index}`)}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {renderEditableContent(`milestones.${index - 1}.description`, `Mô tả giai đoạn ${index}`)}
+                                    </p>
+                                    <p className="text-sm text-blue-600 mt-2">
+                                        {renderEditableContent(`milestones.${index - 1}.date`, `Q${index} 2025`)}
+                                    </p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    const renderPricingPage = () => {
+        // Get content for current language - extract từ nested structure
+        let pricingData = content || {};
+
+        // Nếu content có structure {vi: {...}} thì extract language content
+        if (pricingData[language]) {
+            pricingData = pricingData[language];
+        }
+
+        const plansArray = pricingData.plans || [];
+
+        console.log('💰 renderPricingPage called');
+        console.log('💰 Current language:', language);
+        console.log('💰 Raw content:', content);
+        console.log('💰 Pricing data after extraction:', pricingData);
+        console.log('💰 Plans array:', plansArray);
+        console.log('💰 Title from pricingData:', pricingData.title);
+        console.log('💰 Description from pricingData:', pricingData.description);
+
+        return (
+            <div className="min-h-screen bg-white py-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            {renderEditableContent('title', pricingData.title || 'Bảng giá')}
+                        </h1>
+                        <p className="text-xl text-gray-600">
+                            {renderEditableContent('description', pricingData.description || 'Chọn gói dịch vụ phù hợp với nhu cầu tài chính của bạn')}
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        {plansArray.length > 0 ? plansArray.map((plan, index) => (
+                            <div key={index} className={`bg-white border border-gray-200 rounded-lg p-6 shadow-md ${plan.popular ? 'ring-2 ring-indigo-500' : ''}`}>
+                                {plan.popular && (
+                                    <div className="bg-indigo-500 text-white text-xs font-bold uppercase py-1 text-center mb-4 -mx-6 -mt-6">
+                                        {plan.popularLabel || 'Phổ biến nhất'}
+                                    </div>
+                                )}
+                                <h3 className="text-xl font-bold mb-2">
+                                    {renderEditableContent(`plans.${index}.name`, plan.name || `Gói ${index + 1}`)}
                                 </h3>
-                                <p className="text-gray-600">
-                                    {renderEditableContent(`roadmap.phase${index}.description`, content?.roadmap?.[`phase${index}`]?.description || `Mô tả giai đoạn ${index}`)}
+                                <div className="text-3xl font-bold text-indigo-600 mb-4">
+                                    {renderEditableContent(`plans.${index}.price`, plan.price || 'Miễn phí')}
+                                </div>
+                                <p className="text-gray-600 mb-6">
+                                    {renderEditableContent(`plans.${index}.description`, plan.description || `Mô tả gói ${index + 1}`)}
                                 </p>
+                                <ul className="space-y-3 mb-6">
+                                    {(plan.features || ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).map((feature, featureIndex) => (
+                                        <li key={featureIndex} className="flex items-start">
+                                            <span className="text-green-500 mr-2 mt-1">✓</span>
+                                            <span>{renderEditableContent(`plans.${index}.features.${featureIndex}`, feature)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button className={`w-full py-2 px-4 rounded-md font-medium ${plan.popular ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'} transition-colors`}>
+                                    {renderEditableContent(`plans.${index}.buttonText`, plan.buttonText || 'Đăng ký ngay')}
+                                </button>
                             </div>
-                        </div>
-                    ))}
+                        )) : [0, 1].map((index) => (
+                            <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                                <h3 className="text-xl font-bold mb-2">
+                                    {renderEditableContent(`plans.${index}.name`, `Gói ${index + 1}`)}
+                                </h3>
+                                <div className="text-3xl font-bold text-indigo-600 mb-4">
+                                    {renderEditableContent(`plans.${index}.price`, 'Miễn phí')}
+                                </div>
+                                <p className="text-gray-600 mb-6">
+                                    {renderEditableContent(`plans.${index}.description`, `Mô tả gói ${index + 1}`)}
+                                </p>
+                                <ul className="space-y-3 mb-6">
+                                    {[0, 1, 2].map((featureIndex) => (
+                                        <li key={featureIndex} className="flex items-start">
+                                            <span className="text-green-500 mr-2 mt-1">✓</span>
+                                            <span>{renderEditableContent(`plans.${index}.features.${featureIndex}`, `Tính năng ${featureIndex + 1}`)}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <button className="w-full py-2 px-4 rounded-md font-medium bg-gray-100 text-gray-800 hover:bg-gray-200 transition-colors">
+                                    {renderEditableContent(`plans.${index}.buttonText`, 'Đăng ký ngay')}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-
-    const renderPricingPage = () => (
-        <div className="min-h-screen bg-white py-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('pricing.title', content?.pricing?.title || 'Bảng giá')}
-                    </h1>
-                    <p className="text-xl text-gray-600">
-                        {renderEditableContent('pricing.subtitle', content?.pricing?.subtitle || 'Chọn gói phù hợp với bạn')}
-                    </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {[1, 2, 3].map((index) => (
-                        <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
-                            <h3 className="text-2xl font-bold mb-4">
-                                {renderEditableContent(`pricing.plan${index}.name`, content?.pricing?.[`plan${index}`]?.name || `Gói ${index}`)}
-                            </h3>
-                            <div className="text-3xl font-bold text-blue-600 mb-4">
-                                {renderEditableContent(`pricing.plan${index}.price`, content?.pricing?.[`plan${index}`]?.price || 'Miễn phí')}
-                            </div>
-                            <p className="text-gray-600 mb-6">
-                                {renderEditableContent(`pricing.plan${index}.description`, content?.pricing?.[`plan${index}`]?.description || `Mô tả gói ${index}`)}
-                            </p>
-                            <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors">
-                                Chọn gói này
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+        );
+    };
 
     const renderContactPage = () => (
         <div className="min-h-screen bg-white py-20">

@@ -74,32 +74,28 @@
             "title": "Đơn giản và minh bạch",
             "subtitle": "Chọn gói phù hợp với nhu cầu của bạn",
             "comingSoon": "Sắp ra mắt",
-            "pageDescription": "Chúng tôi đang làm việc để cung cấp cho bạn các gói dịch vụ tốt nhất. Vui lòng quay lại sau để biết thông tin chi tiết về bảng giá.",
-            "basic": {
-                "title": "Cơ bản",
+            "pageDescription": "Chúng tôi đang hoàn thiện các gói dịch vụ phù hợp với nhu cầu của bạn. Hiện tại, VanLang Budget hoàn toàn miễn phí!",
+            "plan1": {
+                "title": "Gói 1",
                 "price": "Miễn phí",
-                "description": "Dành cho người mới bắt đầu",
+                "description": "Mô tả gói 1",
                 "features": [
-                    "Theo dõi thu chi không giới hạn",
-                    "Báo cáo cơ bản",
-                    "Quản lý ngân sách",
-                    "Xuất dữ liệu CSV"
+                    "Tính năng 1",
+                    "Tính năng 2",
+                    "Tính năng 3"
                 ],
                 "action": "Đăng ký ngay"
             },
-            "premium": {
-                "title": "Premium",
-                "price": "Sắp ra mắt",
-                "description": "Dành cho người dùng cao cấp",
+            "plan2": {
+                "title": "Gói 2",
+                "price": "Miễn phí",
+                "description": "Mô tả gói 2",
                 "features": [
-                    "Tất cả tính năng của gói Cơ bản",
-                    "Báo cáo nâng cao",
-                    "Dự báo tài chính",
-                    "Đồng bộ hóa nhiều thiết bị",
-                    "Hỗ trợ ưu tiên",
-                    "Không hiển thị quảng cáo"
+                    "Tính năng 1",
+                    "Tính năng 2",
+                    "Tính năng 3"
                 ],
-                "action": "Sắp ra mắt"
+                "action": "Đăng ký ngay"
             }
         },
         "faq": {
@@ -1044,8 +1040,14 @@
     "pricing": {
         "title": "Bảng Giá",
         "subtitle": "Các gói dịch vụ VanLang Budget",
-        "description": "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá.",
-        "comingSoon": "Sắp Ra Mắt"
+        "description": "Chọn gói dịch vụ phù hợp với nhu cầu tài chính của bạn",
+        "comingSoon": "Sắp Ra Mắt",
+        "comingSoonDescription": "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá.",
+        "cta": {
+            "title": "Sẵn sàng bắt đầu?",
+            "description": "Tham gia cùng hàng nghìn người dùng đã tin tưởng VanLang Budget để quản lý tài chính hiệu quả.",
+            "contact": "Liên hệ tư vấn"
+        }
     },
     "roadmap": {
         "title": "Lộ Trình Phát Triển",

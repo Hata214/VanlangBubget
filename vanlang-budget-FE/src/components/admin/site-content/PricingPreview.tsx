@@ -29,7 +29,7 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
     const startInlineEdit = (key: string, value: any) => {
         setEditingField(key);
         setEditValue(value);
-        
+
         // Focus vào input sau khi render
         setTimeout(() => {
             if (inputRef.current) {
@@ -75,20 +75,20 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
         // Phân tích key để cập nhật đúng vị trí trong nested object
         const keys = key.split('.');
         const lastKey = keys.pop();
-        
+
         setUpdatedContent((prev: any) => {
             const newContent = { ...prev };
-            
+
             // Tìm đến object cần cập nhật
             let current = newContent;
             for (const k of keys) {
                 if (!current[k]) current[k] = {};
                 current = current[k];
             }
-            
+
             // Cập nhật giá trị
             if (lastKey) current[lastKey] = value;
-            
+
             return newContent;
         });
 
@@ -125,7 +125,7 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung trang Bảng giá!'
                 : 'Đã gửi nội dung trang Bảng giá để SuperAdmin phê duyệt!');
-            
+
             setChangedFields([]);
             if (onUpdate) {
                 onUpdate();
@@ -155,13 +155,13 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
                         className="flex-1 p-1 text-sm border-none focus:ring-0 bg-transparent"
                         autoFocus
                     />
-                    <button 
+                    <button
                         onClick={() => saveInlineEdit(key)}
                         className="p-1 text-green-600 hover:text-green-800"
                     >
                         <Save size={16} />
                     </button>
-                    <button 
+                    <button
                         onClick={cancelInlineEdit}
                         className="p-1 text-red-600 hover:text-red-800"
                     >
@@ -172,7 +172,7 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
         }
 
         return (
-            <span 
+            <span
                 className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
                 onClick={() => startInlineEdit(key, value)}
                 data-field={key}
@@ -211,21 +211,21 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
                 </div>
 
                 {/* Pricing Plans */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                    {[0, 1, 2].map((index) => {
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+                    {[0, 1].map((index) => {
                         const plan = updatedContent?.plans?.[index] || {
-                            name: index === 0 ? 'Miễn phí' : index === 1 ? 'Cơ bản' : 'Cao cấp',
-                            price: index === 0 ? '0₫' : index === 1 ? '49.000₫' : '99.000₫',
-                            description: `Mô tả gói ${index === 0 ? 'Miễn phí' : index === 1 ? 'Cơ bản' : 'Cao cấp'}`,
+                            name: `Gói ${index + 1}`,
+                            price: 'Miễn phí',
+                            description: `Mô tả gói ${index + 1}`,
                             features: [
                                 'Tính năng 1',
                                 'Tính năng 2',
                                 'Tính năng 3'
                             ],
                             buttonText: 'Đăng ký ngay',
-                            popular: index === 1
+                            popular: false
                         };
-                        
+
                         return (
                             <div key={index} className={`bg-white rounded-lg shadow-md overflow-hidden ${plan.popular ? 'border-2 border-indigo-500 relative' : ''}`}>
                                 {plan.popular && (
@@ -248,7 +248,7 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
                                             <li key={featureIndex} className="flex items-start">
                                                 <Check className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                                                 <span className="group">
-                                                    {renderEditableField(`plans.${index}.features.${featureIndex}`, 
+                                                    {renderEditableField(`plans.${index}.features.${featureIndex}`,
                                                         plan.features?.[featureIndex] || `Tính năng ${featureIndex + 1}`)}
                                                 </span>
                                             </li>
@@ -274,7 +274,7 @@ export default function PricingPreview({ content, onUpdate }: PricingPreviewProp
                                 question: `Câu hỏi thường gặp ${index + 1}?`,
                                 answer: `Câu trả lời cho câu hỏi thường gặp ${index + 1}.`
                             };
-                            
+
                             return (
                                 <div key={index} className="bg-white p-5 rounded-md shadow-sm">
                                     <h3 className="text-lg font-semibold mb-2 group">

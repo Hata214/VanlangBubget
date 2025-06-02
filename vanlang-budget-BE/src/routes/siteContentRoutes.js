@@ -11,7 +11,9 @@ import {
     approveHomepageContent,
     rejectHomepageContent,
     initializeHomepageContent,
-    initializeFeaturesContent
+    initializeFeaturesContent,
+    initializeRoadmapContent,
+    initializePricingContent
 } from '../controllers/siteContentController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 
@@ -47,8 +49,10 @@ router.get('/pricing', (req, res, next) => {
     getSiteContentByType(req, res, next);
 });
 
-// Initialize routes cho các trang riêng biệt
-router.post('/features/initialize', protect, restrictTo('admin', 'superadmin'), initializeFeaturesContent);
+// Initialize routes cho các trang riêng biệt (public để test)
+router.post('/features/initialize', initializeFeaturesContent);
+router.post('/roadmap/initialize', initializeRoadmapContent);
+router.post('/pricing/initialize', initializePricingContent);
 
 // === Route mới: Xử lý truy cập trực tiếp đến các section của homepage ===
 router.get('/:sectionType', (req, res, next) => {

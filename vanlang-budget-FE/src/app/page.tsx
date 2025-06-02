@@ -114,16 +114,16 @@ export default function HomePage() {
 
     const pricingPlans: PricingPlan[] = [
         {
-            name: t('home.pricing.basic.title'),
-            price: t('home.pricing.basic.price'),
-            description: t('home.pricing.basic.description'),
-            features: t.raw('home.pricing.basic.features') as string[]
+            name: t('home.pricing.plan1.title'),
+            price: t('home.pricing.plan1.price'),
+            description: t('home.pricing.plan1.description'),
+            features: t.raw('home.pricing.plan1.features') as string[]
         },
         {
-            name: t('home.pricing.premium.title'),
-            price: t('home.pricing.premium.price'),
-            description: t('home.pricing.premium.description'),
-            features: t.raw('home.pricing.premium.features') as string[]
+            name: t('home.pricing.plan2.title'),
+            price: t('home.pricing.plan2.price'),
+            description: t('home.pricing.plan2.description'),
+            features: t.raw('home.pricing.plan2.features') as string[]
         }
     ];
 

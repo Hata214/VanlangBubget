@@ -37,7 +37,7 @@ interface ContentData {
 }
 
 // Các sections thuộc homepage
-const HOMEPAGE_SECTIONS = ['homepage', 'pricing', 'testimonials', 'statistics'];
+const HOMEPAGE_SECTIONS = ['homepage', 'testimonials', 'statistics'];
 
 export default function FullPageContentManager({ user }: FullPageContentManagerProps) {
     // State management
@@ -92,6 +92,19 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     response.data = response.data[currentLanguage];
                     console.log('🔍 Extracted features content for', currentLanguage, ':', response.data);
                 }
+            } else if (basePage === 'roadmap') {
+                // Roadmap cần xử lý đặc biệt
+                response = await siteContentService.getContentByType('roadmap', currentLanguage);
+                console.log('🗺️ Roadmap response:', response);
+                console.log('🗺️ Roadmap response data:', response?.data);
+                console.log('🗺️ Roadmap response data type:', typeof response?.data);
+                console.log('🗺️ Roadmap response data structure:', JSON.stringify(response?.data, null, 2));
+
+                // Extract language specific content for roadmap
+                if (response && response.data && response.data[currentLanguage]) {
+                    response.data = response.data[currentLanguage];
+                    console.log('🗺️ Extracted roadmap content for', currentLanguage, ':', response.data);
+                }
             } else {
                 response = await siteContentService.getContentByType(contentKey, currentLanguage);
             }
@@ -100,7 +113,13 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             console.log('📝 Response data type:', typeof response?.data);
 
             // Extract content from response structure
-            let contentData = response.data?.content || response.data || {};
+            // For roadmap, features, and pricing, after language extraction, data is already the content
+            let contentData;
+            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing') {
+                contentData = response.data || {};
+            } else {
+                contentData = response.data?.content || response.data || {};
+            }
 
             // Nếu đang load một section cụ thể của homepage, extract section đó
             if (HOMEPAGE_SECTIONS.includes(basePage) && basePage !== 'homepage') {
@@ -226,6 +245,22 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     [currentLanguage]: contentToSave
                 };
                 saveResponse = await siteContentService.updateContentByType('features', dataToSave);
+            } else if (basePage === 'roadmap') {
+                // Roadmap cần wrap trong language object giống features
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                console.log('🗺️ Saving roadmap content:', JSON.stringify(dataToSave, null, 2));
+                saveResponse = await siteContentService.updateContentByType('roadmap', dataToSave);
+                console.log('🗺️ Roadmap save response:', saveResponse);
+            } else if (basePage === 'pricing') {
+                // Pricing cần wrap trong language object giống features và roadmap
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                console.log('💰 Saving pricing content:', JSON.stringify(dataToSave, null, 2));
+                saveResponse = await siteContentService.updateContentByType('pricing', dataToSave);
+                console.log('💰 Pricing save response:', saveResponse);
             } else {
                 saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
             }
@@ -264,10 +299,26 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 if (HOMEPAGE_SECTIONS.includes(basePage)) {
                     await siteContentService.initializeHomepageContent(currentLanguage);
                 } else {
-                    await siteContentService.initializeContentByType(basePage, currentLanguage);
+                    // Xử lý đặc biệt cho pricing, features, roadmap
+                    if (['pricing', 'features', 'roadmap'].includes(basePage)) {
+                        console.log(`🔄 Initializing ${basePage} content...`);
+                        await siteContentService.initializeContentByType(basePage, currentLanguage);
+                    } else {
+                        await siteContentService.initializeContentByType(basePage, currentLanguage);
+                    }
                 }
+
                 toast.success(`Đã khôi phục nội dung mặc định cho trang ${getPageTitle(basePage)}`);
+
+                // Reset states để tránh interface bị reset
+                setHasChanges(false);
+                setEditingField(null);
+
+                // Reload content và force re-render
                 await loadContent();
+                setPreviewKey(prev => prev + 1);
+
+                console.log('🔄 Reset to default completed successfully');
             } catch (error) {
                 console.error('Lỗi khi khôi phục nội dung mặc định:', error);
                 toast.error('Không thể khôi phục nội dung mặc định. Vui lòng thử lại sau.');

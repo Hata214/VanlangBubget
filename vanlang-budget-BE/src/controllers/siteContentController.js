@@ -96,9 +96,29 @@ export const getSiteContentByType = async (req, res, next) => {
 
         const siteContent = await SiteContent.findOne({ type });
 
+        if (!siteContent) {
+            return res.status(200).json({
+                status: 'success',
+                data: null
+            });
+        }
+
+        let responseData = siteContent.content;
+
+        // Xử lý đặc biệt cho features, roadmap, và pricing - extract language content
+        if (['features', 'roadmap', 'pricing'].includes(type) && language) {
+            console.log(`🔍 Extracting ${language} content for ${type}`);
+            if (responseData && responseData[language]) {
+                responseData = responseData[language];
+                console.log(`✅ Found ${language} content for ${type}:`, responseData);
+            } else {
+                console.log(`⚠️ No ${language} content found for ${type}, returning full content`);
+            }
+        }
+
         res.status(200).json({
             status: 'success',
-            data: siteContent ? siteContent.content : null
+            data: responseData
         });
     } catch (error) {
         logger.error(`Lỗi khi lấy nội dung loại ${req.params.type}:`, error);
@@ -711,15 +731,63 @@ export const initializeRoadmapContent = async (req, res, next) => {
         const defaultRoadmapContent = {
             vi: {
                 title: "Lộ trình phát triển",
-                subtitle: "Kế hoạch phát triển sản phẩm",
-                description: "Những tính năng và cải tiến sẽ được phát triển trong tương lai",
-                roadmap: []
+                description: "Khám phá kế hoạch phát triển của VanLang Budget và các tính năng sắp ra mắt trong tương lai.",
+                milestones: [
+                    {
+                        date: "Q1 2025",
+                        title: "Nền Tảng Cơ Bản",
+                        description: "Xây dựng các tính năng cơ bản cho việc quản lý tài chính cá nhân và theo dõi chi tiêu hàng ngày.",
+                        completed: true
+                    },
+                    {
+                        date: "Q2 2025",
+                        title: "Quản lý ngân sách",
+                        description: "Phát triển các tính năng quản lý ngân sách nâng cao và báo cáo chi tiết.",
+                        completed: false
+                    },
+                    {
+                        date: "Q3 2025",
+                        title: "Tự động AI thông minh",
+                        description: "Tích hợp AI để phân tích chi tiêu thông minh và đưa ra gợi ý tối ưu ngân sách.",
+                        completed: false
+                    },
+                    {
+                        date: "Q4 2025",
+                        title: "Tích hợp ngân hàng",
+                        description: "Kết nối trực tiếp với các ngân hàng để đồng bộ giao dịch tự động và quản lý toàn diện.",
+                        completed: false
+                    }
+                ]
             },
             en: {
                 title: "Development Roadmap",
-                subtitle: "Product development plan",
-                description: "Features and improvements to be developed in the future",
-                roadmap: []
+                description: "Explore VanLang Budget's development plan and upcoming features to be released in the future.",
+                milestones: [
+                    {
+                        date: "Q1 2025",
+                        title: "Basic Foundation",
+                        description: "Build basic features for personal financial management and daily expense tracking.",
+                        completed: true
+                    },
+                    {
+                        date: "Q2 2025",
+                        title: "Budget Management",
+                        description: "Develop advanced budget management features and detailed reporting.",
+                        completed: false
+                    },
+                    {
+                        date: "Q3 2025",
+                        title: "Smart AI Automation",
+                        description: "Integrate AI for smart spending analysis and optimal budget recommendations.",
+                        completed: false
+                    },
+                    {
+                        date: "Q4 2025",
+                        title: "Banking Integration",
+                        description: "Direct connection with banks for automatic transaction sync and comprehensive management.",
+                        completed: false
+                    }
+                ]
             }
         };
 
@@ -731,7 +799,7 @@ export const initializeRoadmapContent = async (req, res, next) => {
                 { type: 'roadmap' },
                 {
                     content: defaultRoadmapContent,
-                    lastUpdatedBy: req.user._id,
+                    lastUpdatedBy: req.user ? req.user._id : null,
                     status: 'published'
                 },
                 { new: true, upsert: true }
@@ -740,7 +808,7 @@ export const initializeRoadmapContent = async (req, res, next) => {
             result = await SiteContent.create({
                 type: 'roadmap',
                 content: defaultRoadmapContent,
-                lastUpdatedBy: req.user._id,
+                lastUpdatedBy: req.user ? req.user._id : null,
                 status: 'published',
                 version: 1
             });
@@ -772,15 +840,69 @@ export const initializePricingContent = async (req, res, next) => {
         const defaultPricingContent = {
             vi: {
                 title: "Bảng giá",
-                subtitle: "Lựa chọn gói phù hợp với bạn",
-                description: "Các gói dịch vụ với mức giá hợp lý",
-                plans: []
+                subtitle: "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
+                description: "Chúng tôi đang hoàn thiện các gói dịch vụ phù hợp với nhu cầu của bạn. Hiện tại, VanLang Budget hoàn toàn miễn phí!",
+                plans: [
+                    {
+                        name: "Gói 1",
+                        price: "Miễn phí",
+                        description: "Mô tả gói 1",
+                        features: [
+                            "Tính năng 1",
+                            "Tính năng 2",
+                            "Tính năng 3"
+                        ],
+                        buttonText: "Đăng ký ngay",
+                        buttonLink: "/register",
+                        popular: false
+                    },
+                    {
+                        name: "Gói 2",
+                        price: "Miễn phí",
+                        description: "Mô tả gói 2",
+                        features: [
+                            "Tính năng 1",
+                            "Tính năng 2",
+                            "Tính năng 3"
+                        ],
+                        buttonText: "Đăng ký ngay",
+                        buttonLink: "/register",
+                        popular: false
+                    }
+                ]
             },
             en: {
                 title: "Pricing",
                 subtitle: "Choose the plan that suits you",
-                description: "Service packages with reasonable prices",
-                plans: []
+                description: "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
+                plans: [
+                    {
+                        name: "Plan 1",
+                        price: "Free",
+                        description: "Plan 1 description",
+                        features: [
+                            "Feature 1",
+                            "Feature 2",
+                            "Feature 3"
+                        ],
+                        buttonText: "Sign up now",
+                        buttonLink: "/register",
+                        popular: false
+                    },
+                    {
+                        name: "Plan 2",
+                        price: "Free",
+                        description: "Plan 2 description",
+                        features: [
+                            "Feature 1",
+                            "Feature 2",
+                            "Feature 3"
+                        ],
+                        buttonText: "Sign up now",
+                        buttonLink: "/register",
+                        popular: false
+                    }
+                ]
             }
         };
 

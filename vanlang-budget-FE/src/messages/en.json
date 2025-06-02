@@ -74,32 +74,28 @@
             "title": "Simple and transparent",
             "subtitle": "Choose a plan that fits your needs",
             "comingSoon": "Coming Soon",
-            "pageDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
-            "basic": {
-                "title": "Basic",
+            "pageDescription": "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
+            "plan1": {
+                "title": "Plan 1",
                 "price": "Free",
-                "description": "For beginners",
+                "description": "Plan 1 description",
                 "features": [
-                    "Unlimited expense tracking",
-                    "Basic reports",
-                    "Budget management",
-                    "CSV data export"
+                    "Feature 1",
+                    "Feature 2",
+                    "Feature 3"
                 ],
                 "action": "Sign Up Now"
             },
-            "premium": {
-                "title": "Premium",
-                "price": "Coming Soon",
-                "description": "For power users",
+            "plan2": {
+                "title": "Plan 2",
+                "price": "Free",
+                "description": "Plan 2 description",
                 "features": [
-                    "All Basic features",
-                    "Advanced reports",
-                    "Financial forecasting",
-                    "Multi-device sync",
-                    "Priority support",
-                    "Ad-free experience"
+                    "Feature 1",
+                    "Feature 2",
+                    "Feature 3"
                 ],
-                "action": "Coming Soon"
+                "action": "Sign Up Now"
             }
         },
         "faq": {
@@ -859,8 +855,14 @@
     "pricing": {
         "title": "Pricing",
         "subtitle": "VanLang Budget service packages",
-        "description": "We are working to provide you with the best service packages. Please check back later for pricing details.",
-        "comingSoon": "Coming Soon"
+        "description": "Choose the service package that fits your financial needs",
+        "comingSoon": "Coming Soon",
+        "comingSoonDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
+        "cta": {
+            "title": "Ready to get started?",
+            "description": "Join thousands of users who trust VanLang Budget for effective financial management.",
+            "contact": "Contact for consultation"
+        }
     },
     "roadmap": {
         "title": "Development Roadmap",

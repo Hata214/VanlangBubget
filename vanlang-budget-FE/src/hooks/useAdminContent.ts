@@ -19,7 +19,7 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                 console.log(`🔍 Loading ${contentType} content from admin...`)
 
                 // Các sections thuộc homepage - chỉ admin interface sử dụng
-                const HOMEPAGE_SECTIONS = ['homepage', 'pricing', 'testimonials', 'statistics']
+                const HOMEPAGE_SECTIONS = ['homepage', 'testimonials', 'statistics']
 
                 let actualContentType = contentType
                 let extractSection = null
@@ -31,9 +31,9 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                     console.log(`🔍 ${contentType} is homepage section, loading from homepage and extracting ${extractSection}`)
                 }
 
-                // Features được xử lý như content type riêng biệt cho trang công khai
-                if (contentType === 'features') {
-                    console.log(`🔍 Loading features as separate content type`)
+                // Features, Roadmap, và Pricing được xử lý như content type riêng biệt cho trang công khai
+                if (contentType === 'features' || contentType === 'roadmap' || contentType === 'pricing') {
+                    console.log(`🔍 Loading ${contentType} as separate content type`)
                 }
 
                 const response = await siteContentService.getContentByType(actualContentType, language)
@@ -44,14 +44,14 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                 if (response.data) {
                     let finalContent = response.data
 
-                    // Xử lý đặc biệt cho Features - extract language specific content
-                    if (contentType === 'features') {
-                        console.log(`🔍 Processing features content for language: ${language}`)
+                    // Xử lý đặc biệt cho Features, Roadmap, và Pricing - extract language specific content
+                    if (contentType === 'features' || contentType === 'roadmap' || contentType === 'pricing') {
+                        console.log(`🔍 Processing ${contentType} content for language: ${language}`)
                         if (response.data[language]) {
                             finalContent = response.data[language]
-                            console.log(`🔍 Extracted features content for ${language}:`, finalContent)
+                            console.log(`🔍 Extracted ${contentType} content for ${language}:`, finalContent)
                         } else {
-                            console.log(`🔍 No ${language} content found, using full response`)
+                            console.log(`🔍 No ${language} content found for ${contentType}, using full response`)
                             finalContent = response.data
                         }
                     }
