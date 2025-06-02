@@ -170,15 +170,19 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
                     {/* Thông tin liên hệ */}
                     <div>
-                        <h2 className="text-2xl font-bold mb-6">{t('contact.contactInfo.title')}</h2>
+                        <h2 className="text-2xl font-bold mb-6">
+                            {contactContent?.contactInfo?.title || t('contact.contactInfo.title')}
+                        </h2>
                         <Card className="overflow-hidden">
                             <CardContent className="p-6 space-y-6">
                                 <div className="flex items-start">
                                     <Mail className="w-5 h-5 text-indigo-600 mt-1 mr-3" />
                                     <div>
-                                        <p className="font-medium">{t('contact.contactInfo.emailLabel')}</p>
-                                        <a href={`mailto:${t('contact.contactInfo.email')}`} className="text-indigo-600 hover:text-indigo-800">
-                                            {t('contact.contactInfo.email')}
+                                        <p className="font-medium">
+                                            {contactContent?.contactInfo?.emailLabel || t('contact.contactInfo.emailLabel')}
+                                        </p>
+                                        <a href={`mailto:${contactContent?.contactInfo?.email || t('contact.contactInfo.email')}`} className="text-indigo-600 hover:text-indigo-800">
+                                            {contactContent?.contactInfo?.email || t('contact.contactInfo.email')}
                                         </a>
                                     </div>
                                 </div>
@@ -186,9 +190,11 @@ export default function ContactPage() {
                                 <div className="flex items-start">
                                     <Phone className="w-5 h-5 text-indigo-600 mt-1 mr-3" />
                                     <div>
-                                        <p className="font-medium">{t('contact.contactInfo.phoneLabel')}</p>
-                                        <a href={`tel:${t('contact.contactInfo.phone').replace(/\s+/g, '')}`} className="text-indigo-600 hover:text-indigo-800">
-                                            {t('contact.contactInfo.phone')}
+                                        <p className="font-medium">
+                                            {contactContent?.contactInfo?.phoneLabel || t('contact.contactInfo.phoneLabel')}
+                                        </p>
+                                        <a href={`tel:${(contactContent?.contactInfo?.phone || t('contact.contactInfo.phone')).replace(/\s+/g, '')}`} className="text-indigo-600 hover:text-indigo-800">
+                                            {contactContent?.contactInfo?.phone || t('contact.contactInfo.phone')}
                                         </a>
                                     </div>
                                 </div>
@@ -196,16 +202,20 @@ export default function ContactPage() {
                                 <div className="flex items-start">
                                     <MapPin className="w-5 h-5 text-indigo-600 mt-1 mr-3" />
                                     <div>
-                                        <p className="font-medium">{t('contact.contactInfo.addressLabel')}</p>
-                                        <p>{t('contact.contactInfo.address')}</p>
+                                        <p className="font-medium">
+                                            {contactContent?.contactInfo?.addressLabel || t('contact.contactInfo.addressLabel')}
+                                        </p>
+                                        <p>{contactContent?.contactInfo?.address || t('contact.contactInfo.address')}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start">
                                     <Clock className="w-5 h-5 text-indigo-600 mt-1 mr-3" />
                                     <div>
-                                        <p className="font-medium">{t('contact.contactInfo.workingHoursLabel')}</p>
-                                        <p>{t('contact.contactInfo.workingHours')}</p>
+                                        <p className="font-medium">
+                                            {contactContent?.contactInfo?.workingHoursLabel || t('contact.contactInfo.workingHoursLabel')}
+                                        </p>
+                                        <p>{contactContent?.contactInfo?.workingHours || t('contact.contactInfo.workingHours')}</p>
                                     </div>
                                 </div>
 
@@ -234,7 +244,9 @@ export default function ContactPage() {
 
                     {/* Form liên hệ */}
                     <div className="lg:col-span-2">
-                        <h2 className="text-2xl font-bold mb-6">{t('contact.form.title')}</h2>
+                        <h2 className="text-2xl font-bold mb-6">
+                            {contactContent?.contactForm?.title || t('contact.form.title')}
+                        </h2>
                         <Card>
                             <CardContent className="p-6">
                                 {formSubmitted && (

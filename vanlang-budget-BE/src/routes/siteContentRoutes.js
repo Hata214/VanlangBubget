@@ -13,13 +13,19 @@ import {
     initializeHomepageContent,
     initializeFeaturesContent,
     initializeRoadmapContent,
-    initializePricingContent
+    initializePricingContent,
+    initializeContactContent
 } from '../controllers/siteContentController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
 // === Routes công khai ===
+// Lấy nội dung header
+router.get('/header', (req, res, next) => {
+    req.params.type = 'header';
+    getSiteContentByType(req, res, next);
+});
 // Lấy nội dung footer
 router.get('/footer', getFooterContent);
 
@@ -48,11 +54,16 @@ router.get('/pricing', (req, res, next) => {
     req.params.type = 'pricing';
     getSiteContentByType(req, res, next);
 });
+router.get('/contact', (req, res, next) => {
+    req.params.type = 'contact';
+    getSiteContentByType(req, res, next);
+});
 
 // Initialize routes cho các trang riêng biệt (public để test)
 router.post('/features/initialize', initializeFeaturesContent);
 router.post('/roadmap/initialize', initializeRoadmapContent);
 router.post('/pricing/initialize', initializePricingContent);
+router.post('/contact/initialize', initializeContactContent);
 
 // === Route mới: Xử lý truy cập trực tiếp đến các section của homepage ===
 router.get('/:sectionType', (req, res, next) => {

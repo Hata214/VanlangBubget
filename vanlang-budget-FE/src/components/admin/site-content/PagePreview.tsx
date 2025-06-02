@@ -602,64 +602,182 @@ export default function PagePreview({
         );
     };
 
-    const renderContactPage = () => (
-        <div className="min-h-screen bg-white py-20">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('contact.title', content?.contact?.title || 'Liên hệ')}
-                    </h1>
-                    <p className="text-xl text-gray-600">
-                        {renderEditableContent('contact.subtitle', content?.contact?.subtitle || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn')}
-                    </p>
-                </div>
+    const renderContactPage = () => {
+        // Get content for current language - extract từ nested structure
+        let contactData = content || {};
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div>
-                        <h3 className="text-xl font-semibold mb-4">Thông tin liên hệ</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <strong>Email:</strong> {renderEditableContent('contact.email', content?.contact?.email || 'contact@vanlangbudget.com')}
+        // Nếu content có structure {vi: {...}} thì extract language content
+        if (contactData[language]) {
+            contactData = contactData[language];
+        }
+
+        console.log('📞 renderContactPage called');
+        console.log('📞 Current language:', language);
+        console.log('📞 Raw content:', content);
+        console.log('📞 Contact data after extraction:', contactData);
+
+        return (
+            <div className="min-h-screen bg-white py-20">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Header */}
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            {renderEditableContent('title', contactData.title || 'Liên hệ với chúng tôi')}
+                        </h1>
+                        <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                            {renderEditableContent('subtitle', contactData.subtitle || 'Chúng tôi luôn sẵn sàng hỗ trợ bạn')}
+                        </p>
+                    </div>
+
+                    {/* Description */}
+                    <div className="mb-16">
+                        <div className="bg-gray-50 rounded-lg p-8">
+                            <p className="text-lg leading-relaxed text-center">
+                                {renderEditableContent('description', contactData.description || 'Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.')}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-16">
+                        {/* Thông tin liên hệ */}
+                        <div>
+                            <h2 className="text-2xl font-bold mb-6">
+                                {renderEditableContent('contactInfo.title', contactData.contactInfo?.title || 'Thông tin liên hệ')}
+                            </h2>
+                            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm space-y-6">
+                                <div className="flex items-start">
+                                    <div className="w-5 h-5 text-indigo-600 mt-1 mr-3">📧</div>
+                                    <div>
+                                        <p className="font-medium">
+                                            {renderEditableContent('contactInfo.emailLabel', contactData.contactInfo?.emailLabel || 'Email')}
+                                        </p>
+                                        <p className="text-indigo-600">
+                                            {renderEditableContent('contactInfo.email', contactData.contactInfo?.email || 'support@vanlangbudget.com')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className="w-5 h-5 text-indigo-600 mt-1 mr-3">📞</div>
+                                    <div>
+                                        <p className="font-medium">
+                                            {renderEditableContent('contactInfo.phoneLabel', contactData.contactInfo?.phoneLabel || 'Điện thoại')}
+                                        </p>
+                                        <p className="text-gray-600">
+                                            {renderEditableContent('contactInfo.phone', contactData.contactInfo?.phone || '(+84) 123 456 789')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className="w-5 h-5 text-indigo-600 mt-1 mr-3">📍</div>
+                                    <div>
+                                        <p className="font-medium">
+                                            {renderEditableContent('contactInfo.addressLabel', contactData.contactInfo?.addressLabel || 'Địa chỉ')}
+                                        </p>
+                                        <p className="text-gray-600">
+                                            {renderEditableContent('contactInfo.address', contactData.contactInfo?.address || 'Hà Nội, Việt Nam')}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="flex items-start">
+                                    <div className="w-5 h-5 text-indigo-600 mt-1 mr-3">🕒</div>
+                                    <div>
+                                        <p className="font-medium">
+                                            {renderEditableContent('contactInfo.workingHoursLabel', contactData.contactInfo?.workingHoursLabel || 'Giờ làm việc')}
+                                        </p>
+                                        <p className="text-gray-600">
+                                            {renderEditableContent('contactInfo.workingHours', contactData.contactInfo?.workingHours || 'Thứ Hai - Thứ Sáu: 9:00 - 17:00')}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
-                            <div>
-                                <strong>Điện thoại:</strong> {renderEditableContent('contact.phone', content?.contact?.phone || '+84 123 456 789')}
-                            </div>
-                            <div>
-                                <strong>Địa chỉ:</strong> {renderEditableContent('contact.address', content?.contact?.address || 'Hà Nội, Việt Nam')}
+                        </div>
+
+                        {/* Form liên hệ */}
+                        <div className="lg:col-span-2">
+                            <h2 className="text-2xl font-bold mb-6">
+                                {renderEditableContent('contactForm.title', contactData.contactForm?.title || 'Gửi tin nhắn cho chúng tôi')}
+                            </h2>
+                            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                                <form className="space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                {renderEditableContent('contactForm.nameLabel', contactData.contactForm?.nameLabel || 'Họ và tên')}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                placeholder={contactData.contactForm?.namePlaceholder || 'Nhập họ và tên của bạn'}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                {renderEditableContent('contactForm.emailLabel', contactData.contactForm?.emailLabel || 'Email')}
+                                            </label>
+                                            <input
+                                                type="email"
+                                                placeholder={contactData.contactForm?.emailPlaceholder || 'Nhập địa chỉ email của bạn'}
+                                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            {renderEditableContent('contactForm.subjectLabel', contactData.contactForm?.subjectLabel || 'Chủ đề')}
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder={contactData.contactForm?.subjectPlaceholder || 'Nhập chủ đề tin nhắn'}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            {renderEditableContent('contactForm.messageLabel', contactData.contactForm?.messageLabel || 'Tin nhắn')}
+                                        </label>
+                                        <textarea
+                                            rows={6}
+                                            placeholder={contactData.contactForm?.messagePlaceholder || 'Nhập tin nhắn của bạn'}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                                    >
+                                        {renderEditableContent('contactForm.submitButton', contactData.contactForm?.submitButton || 'Gửi tin nhắn')}
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
 
+                    {/* FAQ Section */}
                     <div>
-                        <h3 className="text-xl font-semibold mb-4">Gửi tin nhắn</h3>
-                        <form className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Họ và tên"
-                                className="w-full p-3 border border-gray-300 rounded-lg"
-                            />
-                            <input
-                                type="email"
-                                placeholder="Email"
-                                className="w-full p-3 border border-gray-300 rounded-lg"
-                            />
-                            <textarea
-                                placeholder="Tin nhắn"
-                                rows={4}
-                                className="w-full p-3 border border-gray-300 rounded-lg"
-                            ></textarea>
-                            <button
-                                type="submit"
-                                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors"
-                            >
-                                Gửi tin nhắn
-                            </button>
-                        </form>
+                        <h2 className="text-2xl font-bold mb-8 text-center">
+                            {renderEditableContent('faq.title', contactData.faq?.title || 'Câu hỏi thường gặp')}
+                        </h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {(contactData.faq?.questions || [
+                                { question: "Câu hỏi 1", answer: "Trả lời 1" },
+                                { question: "Câu hỏi 2", answer: "Trả lời 2" },
+                                { question: "Câu hỏi 3", answer: "Trả lời 3" }
+                            ]).map((faq, index) => (
+                                <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                                    <h3 className="text-lg font-semibold mb-3">
+                                        {renderEditableContent(`faq.questions.${index}.question`, faq.question)}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {renderEditableContent(`faq.questions.${index}.answer`, faq.answer)}
+                                    </p>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderHeaderContent = () => (
         <div className="bg-white border-b border-gray-200 p-6">

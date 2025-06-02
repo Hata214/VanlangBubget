@@ -105,6 +105,19 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     response.data = response.data[currentLanguage];
                     console.log('🗺️ Extracted roadmap content for', currentLanguage, ':', response.data);
                 }
+            } else if (basePage === 'contact') {
+                // Contact cần xử lý đặc biệt
+                response = await siteContentService.getContentByType('contact', currentLanguage);
+                console.log('📞 Contact response:', response);
+                console.log('📞 Contact response data:', response?.data);
+                console.log('📞 Contact response data type:', typeof response?.data);
+                console.log('📞 Contact response data structure:', JSON.stringify(response?.data, null, 2));
+
+                // Extract language specific content for contact
+                if (response && response.data && response.data[currentLanguage]) {
+                    response.data = response.data[currentLanguage];
+                    console.log('📞 Extracted contact content for', currentLanguage, ':', response.data);
+                }
             } else {
                 response = await siteContentService.getContentByType(contentKey, currentLanguage);
             }
@@ -113,9 +126,9 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             console.log('📝 Response data type:', typeof response?.data);
 
             // Extract content from response structure
-            // For roadmap, features, and pricing, after language extraction, data is already the content
+            // For roadmap, features, pricing, and contact, after language extraction, data is already the content
             let contentData;
-            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing') {
+            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing' || basePage === 'contact') {
                 contentData = response.data || {};
             } else {
                 contentData = response.data?.content || response.data || {};
@@ -261,6 +274,14 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 console.log('💰 Saving pricing content:', JSON.stringify(dataToSave, null, 2));
                 saveResponse = await siteContentService.updateContentByType('pricing', dataToSave);
                 console.log('💰 Pricing save response:', saveResponse);
+            } else if (basePage === 'contact') {
+                // Contact cần wrap trong language object giống features, roadmap và pricing
+                const dataToSave = {
+                    [currentLanguage]: contentToSave
+                };
+                console.log('📞 Saving contact content:', JSON.stringify(dataToSave, null, 2));
+                saveResponse = await siteContentService.updateContentByType('contact', dataToSave);
+                console.log('📞 Contact save response:', saveResponse);
             } else {
                 saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
             }
@@ -299,8 +320,8 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 if (HOMEPAGE_SECTIONS.includes(basePage)) {
                     await siteContentService.initializeHomepageContent(currentLanguage);
                 } else {
-                    // Xử lý đặc biệt cho pricing, features, roadmap
-                    if (['pricing', 'features', 'roadmap'].includes(basePage)) {
+                    // Xử lý đặc biệt cho pricing, features, roadmap, contact
+                    if (['pricing', 'features', 'roadmap', 'contact'].includes(basePage)) {
                         console.log(`🔄 Initializing ${basePage} content...`);
                         await siteContentService.initializeContentByType(basePage, currentLanguage);
                     } else {

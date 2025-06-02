@@ -64,7 +64,7 @@ export const getSiteContentByType = async (req, res, next) => {
 
         console.log(`getSiteContentByType được gọi với type=${type}, language=${language}`);
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
+        const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -105,8 +105,8 @@ export const getSiteContentByType = async (req, res, next) => {
 
         let responseData = siteContent.content;
 
-        // Xử lý đặc biệt cho features, roadmap, và pricing - extract language content
-        if (['features', 'roadmap', 'pricing'].includes(type) && language) {
+        // Xử lý đặc biệt cho features, roadmap, pricing, contact, header, footer - extract language content
+        if (['features', 'roadmap', 'pricing', 'contact', 'header', 'footer'].includes(type) && language) {
             console.log(`🔍 Extracting ${language} content for ${type}`);
             if (responseData && responseData[language]) {
                 responseData = responseData[language];
@@ -139,7 +139,7 @@ export const updateSiteContentByType = async (req, res, next) => {
         console.log(`🔄 updateSiteContentByType được gọi với type=${type}`);
         console.log(`📝 Content được gửi:`, JSON.stringify(content, null, 2));
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
+        const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -357,7 +357,7 @@ export const getContentHistory = async (req, res, next) => {
     try {
         const { type } = req.params;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
+        const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -384,7 +384,7 @@ export const restoreContentVersion = async (req, res, next) => {
     try {
         const { type, version } = req.params;
 
-        const validTypes = ['footer', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
+        const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing'];
 
         if (!type || !validTypes.includes(type)) {
             return next(new AppError('Loại nội dung không hợp lệ', 400));
@@ -942,5 +942,148 @@ export const initializePricingContent = async (req, res, next) => {
     } catch (error) {
         logger.error('Lỗi khi khởi tạo dữ liệu trang Pricing:', error);
         next(new AppError('Không thể khởi tạo dữ liệu trang Pricing', 500));
+    }
+};
+
+/**
+ * @desc    Khởi tạo dữ liệu mặc định cho trang Contact
+ * @route   POST /api/site-content/contact/initialize
+ * @access  Private (Admin/Superadmin)
+ */
+export const initializeContactContent = async (req, res, next) => {
+    try {
+        const defaultContactContent = {
+            vi: {
+                title: "Liên hệ với chúng tôi",
+                subtitle: "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
+                description: "Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
+                contactInfo: {
+                    title: "Thông tin liên hệ",
+                    emailLabel: "Email",
+                    email: "support@vanlangbudget.com",
+                    phoneLabel: "Điện thoại",
+                    phone: "(+84) 123 456 789",
+                    addressLabel: "Địa chỉ",
+                    address: "Hà Nội, Việt Nam",
+                    workingHoursLabel: "Giờ làm việc",
+                    workingHours: "Thứ Hai - Thứ Sáu: 9:00 - 17:00"
+                },
+                contactForm: {
+                    title: "Gửi tin nhắn cho chúng tôi",
+                    nameLabel: "Họ và tên",
+                    namePlaceholder: "Nhập họ và tên của bạn",
+                    emailLabel: "Email",
+                    emailPlaceholder: "Nhập địa chỉ email của bạn",
+                    subjectLabel: "Chủ đề",
+                    subjectPlaceholder: "Nhập chủ đề tin nhắn",
+                    messageLabel: "Tin nhắn",
+                    messagePlaceholder: "Nhập tin nhắn của bạn",
+                    submitButton: "Gửi tin nhắn",
+                    successMessage: "Cảm ơn bạn đã liên hệ! Chúng tôi sẽ phản hồi sớm nhất có thể.",
+                    errorMessage: "Có lỗi xảy ra. Vui lòng thử lại sau."
+                },
+                faq: {
+                    title: "Câu hỏi thường gặp",
+                    questions: [
+                        {
+                            question: "VanLang Budget có miễn phí không?",
+                            answer: "Có, VanLang Budget hiện tại hoàn toàn miễn phí cho tất cả người dùng."
+                        },
+                        {
+                            question: "Làm thế nào để bắt đầu sử dụng?",
+                            answer: "Bạn chỉ cần đăng ký tài khoản và có thể bắt đầu quản lý tài chính ngay lập tức."
+                        },
+                        {
+                            question: "Dữ liệu của tôi có an toàn không?",
+                            answer: "Chúng tôi sử dụng các biện pháp bảo mật cao nhất để bảo vệ thông tin của bạn."
+                        }
+                    ]
+                }
+            },
+            en: {
+                title: "Contact Us",
+                subtitle: "We're always here to help you",
+                description: "If you have any questions or requests, don't hesitate to contact us. Our support team is always ready to help you.",
+                contactInfo: {
+                    title: "Contact Information",
+                    emailLabel: "Email",
+                    email: "support@vanlangbudget.com",
+                    phoneLabel: "Phone",
+                    phone: "(+84) 123 456 789",
+                    addressLabel: "Address",
+                    address: "Hanoi, Vietnam",
+                    workingHoursLabel: "Working Hours",
+                    workingHours: "Monday - Friday: 9:00 - 17:00"
+                },
+                contactForm: {
+                    title: "Send us a message",
+                    nameLabel: "Full Name",
+                    namePlaceholder: "Enter your full name",
+                    emailLabel: "Email",
+                    emailPlaceholder: "Enter your email address",
+                    subjectLabel: "Subject",
+                    subjectPlaceholder: "Enter message subject",
+                    messageLabel: "Message",
+                    messagePlaceholder: "Enter your message",
+                    submitButton: "Send Message",
+                    successMessage: "Thank you for contacting us! We will respond as soon as possible.",
+                    errorMessage: "An error occurred. Please try again later."
+                },
+                faq: {
+                    title: "Frequently Asked Questions",
+                    questions: [
+                        {
+                            question: "Is VanLang Budget free?",
+                            answer: "Yes, VanLang Budget is currently completely free for all users."
+                        },
+                        {
+                            question: "How do I get started?",
+                            answer: "You just need to register an account and can start managing your finances immediately."
+                        },
+                        {
+                            question: "Is my data safe?",
+                            answer: "We use the highest security measures to protect your information."
+                        }
+                    ]
+                }
+            }
+        };
+
+        const existingContact = await SiteContent.findOne({ type: 'contact' });
+
+        let result;
+        if (existingContact) {
+            result = await SiteContent.findOneAndUpdate(
+                { type: 'contact' },
+                {
+                    content: defaultContactContent,
+                    lastUpdatedBy: req.user._id,
+                    status: 'published'
+                },
+                { new: true, upsert: true }
+            );
+        } else {
+            result = await SiteContent.create({
+                type: 'contact',
+                content: defaultContactContent,
+                lastUpdatedBy: req.user._id,
+                status: 'published',
+                version: 1
+            });
+        }
+
+        res.status(200).json({
+            status: 'success',
+            message: existingContact ? 'Dữ liệu trang Contact đã được cập nhật thành công' : 'Dữ liệu trang Contact đã được tạo thành công',
+            data: {
+                content: result.content,
+                version: result.version,
+                status: result.status,
+                type: result.type
+            }
+        });
+    } catch (error) {
+        logger.error('Lỗi khi khởi tạo dữ liệu trang Contact:', error);
+        next(new AppError('Không thể khởi tạo dữ liệu trang Contact', 500));
     }
 };
