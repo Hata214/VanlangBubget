@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Save,
     RefreshCw,
-    RotateCcw,
     Eye,
     CheckCircle,
     XCircle,
@@ -12,7 +11,8 @@ import {
     Globe,
     Monitor,
     Smartphone,
-    Tablet
+    Tablet,
+    ArrowUp
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import siteContentService from '@/services/siteContentService';
@@ -51,13 +51,28 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     const [isEditMode, setIsEditMode] = useState<boolean>(false);
     const [editingField, setEditingField] = useState<string | null>(null);
     const [previewKey, setPreviewKey] = useState<number>(0);
+    const [showScrollTop, setShowScrollTop] = useState<boolean>(false);
 
+    const previewAreaRef = useRef<HTMLDivElement>(null);
     const isSuperAdmin = user?.role === 'superadmin';
 
     // Load content when page or language changes
     useEffect(() => {
         loadContent();
     }, [selectedPage, currentLanguage]);
+
+    // Handle scroll to show/hide scroll to top button
+    useEffect(() => {
+        const previewArea = previewAreaRef.current;
+        if (!previewArea) return;
+
+        const handleScroll = () => {
+            setShowScrollTop(previewArea.scrollTop > 300);
+        };
+
+        previewArea.addEventListener('scroll', handleScroll);
+        return () => previewArea.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const loadContent = async () => {
         setIsLoading(true);
@@ -473,8 +488,17 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
         toast.success('Đã làm nổi bật các phần tử có thể chỉnh sửa');
     };
 
+    const scrollToTop = () => {
+        if (previewAreaRef.current) {
+            previewAreaRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+    };
+
     return (
-        <div className="flex h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-50">
             {/* Sidebar */}
             <ContentSidebar
                 selectedPage={selectedPage}
@@ -485,7 +509,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             />
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col min-h-screen">
                 {/* Top Toolbar */}
                 <div className="bg-white border-b border-gray-200 px-6 py-4">
                     <div className="flex items-center justify-between">
@@ -550,23 +574,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 </button>
                             )}
 
-                            {/* Hard Refresh Button */}
-                            <button
-                                onClick={() => {
-                                    console.log('🔄 Hard refresh clicked - clearing cache');
-                                    // Clear any potential cache
-                                    localStorage.removeItem(`content-${selectedPage}-${currentLanguage}`);
-                                    // Force reload
-                                    loadContent();
-                                    setPreviewKey(prev => prev + 1);
-                                    toast.success('Đã làm mới nội dung');
-                                }}
-                                className="flex items-center px-3 py-2 bg-orange-100 text-orange-800 rounded-lg hover:bg-orange-200"
-                                title="Làm mới và xóa cache"
-                            >
-                                <RefreshCw className="h-4 w-4 mr-2" />
-                                Hard Refresh
-                            </button>
+
 
                             {/* Refresh Preview Button */}
                             <button
@@ -583,26 +591,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 Làm mới
                             </button>
 
-                            {/* Hard Refresh Button */}
-                            <button
-                                onClick={() => {
-                                    console.log('🔄 Hard refresh clicked - clearing cache');
-                                    // Clear localStorage cache
-                                    const basePage = selectedPage.split('-')[0];
-                                    const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
-                                    localStorage.removeItem(`content_cache_${contentKey}`);
-                                    // Force reload with timestamp
-                                    const timestamp = Date.now();
-                                    setPreviewKey(timestamp);
-                                    loadContent();
-                                }}
-                                disabled={isLoading}
-                                className="flex items-center px-3 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50"
-                                title="Làm mới hoàn toàn (xóa cache)"
-                            >
-                                <RotateCcw className={`h-4 w-4 mr-2`} />
-                                Hard Refresh
-                            </button>
+
 
                             {/* Action Buttons */}
                             <button
@@ -659,7 +648,10 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 </div>
 
                 {/* Preview Area */}
-                <div className="flex-1 overflow-hidden">
+                <div
+                    ref={previewAreaRef}
+                    className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative"
+                >
                     <PagePreview
                         key={`${selectedPage}-${currentLanguage}-${previewKey}`}
                         page={selectedPage}
@@ -672,6 +664,17 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                         onEditField={setEditingField}
                         isLoading={isLoading}
                     />
+
+                    {/* Scroll to Top Button */}
+                    {showScrollTop && (
+                        <button
+                            onClick={scrollToTop}
+                            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+                            title="Cuộn lên đầu trang"
+                        >
+                            <ArrowUp className="h-5 w-5" />
+                        </button>
+                    )}
                 </div>
             </div>
 

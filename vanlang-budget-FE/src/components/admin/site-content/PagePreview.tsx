@@ -2,6 +2,53 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// Dynamic import để tránh lỗi SSR
+const StatisticsPreview = dynamic(() => import('./StatisticsPreview'), {
+    ssr: false,
+    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded"></div>
+});
+
+// Interfaces for content types
+interface StatItem {
+    number: string;
+    label: string;
+    description: string;
+}
+
+interface StatisticsContent {
+    title: string;
+    subtitle: string;
+    stats: StatItem[];
+}
+
+interface FeatureItem {
+    title: string;
+    description: string;
+    icon?: string;
+}
+
+interface MilestoneItem {
+    title: string;
+    description: string;
+    date: string;
+}
+
+interface PlanItem {
+    name: string;
+    description: string;
+    price: string;
+    features: string[];
+    popular?: boolean;
+    popularLabel?: string;
+    buttonText?: string;
+}
+
+interface FAQItem {
+    question: string;
+    answer: string;
+}
 
 interface PagePreviewProps {
     page: string;
@@ -22,7 +69,6 @@ export default function PagePreview({
     viewMode,
     isEditMode,
     editingField,
-    onContentChange,
     onEditField,
     isLoading
 }: PagePreviewProps) {
@@ -169,22 +215,55 @@ export default function PagePreview({
             </section>
 
             {/* Statistics Section */}
-            <section className="py-16 bg-blue-600 text-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                        {[0, 1, 2].map((index) => (
-                            <div key={index}>
-                                <div className="text-4xl md:text-5xl font-bold mb-2">
-                                    {renderEditableContent(`statistics.items.${index}.value`, content?.statistics?.items?.[index]?.value || '--')}
+            {isEditMode ? (
+                <StatisticsPreview
+                    content={content?.statistics as StatisticsContent || {
+                        title: 'Thống kê ấn tượng',
+                        subtitle: 'Những con số nói lên sự tin tưởng',
+                        stats: [
+                            { number: '10,000+', label: 'Người dùng', description: 'Đã tin tưởng sử dụng' },
+                            { number: '500,000+', label: 'Giao dịch', description: 'Được quản lý hàng tháng' },
+                            { number: '25%', label: 'Tiết kiệm', description: 'Trung bình mỗi người dùng' }
+                        ]
+                    }}
+                    onUpdate={() => {
+                        // Trigger content reload
+                        console.log('Statistics updated, triggering reload');
+                        // Force re-render
+                        setRenderKey(prev => prev + 1);
+                    }}
+                />
+            ) : (
+                <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                            {content?.statistics?.title || 'Thống kê ấn tượng'}
+                        </h2>
+                        <p className="text-lg mb-12">
+                            {content?.statistics?.subtitle || 'Những con số nói lên sự tin tưởng'}
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            {(content?.statistics?.stats || [
+                                { number: '10,000+', label: 'Người dùng', description: 'Đã tin tưởng sử dụng' },
+                                { number: '500,000+', label: 'Giao dịch', description: 'Được quản lý hàng tháng' },
+                                { number: '25%', label: 'Tiết kiệm', description: 'Trung bình mỗi người dùng' }
+                            ]).map((stat: StatItem, index: number) => (
+                                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
+                                    <div className="text-4xl md:text-5xl font-bold mb-2">
+                                        {stat.number}
+                                    </div>
+                                    <div className="text-xl font-semibold mb-2">
+                                        {stat.label}
+                                    </div>
+                                    <div className="text-sm opacity-90">
+                                        {stat.description}
+                                    </div>
                                 </div>
-                                <div className="text-lg text-blue-100">
-                                    {renderEditableContent(`statistics.items.${index}.label`, content?.statistics?.items?.[index]?.label || `Thống kê ${index + 1}`)}
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            )}
 
             {/* Features Section */}
             <section className="py-20 bg-gray-50">
@@ -281,7 +360,7 @@ export default function PagePreview({
                                 </div>
                                 <div className="p-6">
                                     <ul className="space-y-3">
-                                        {(content?.pricing?.plans?.[index]?.features || ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).map((feature, featureIndex) => (
+                                        {(content?.pricing?.plans?.[index]?.features || ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).map((feature: string, featureIndex: number) => (
                                             <li key={featureIndex} className="flex items-center">
                                                 <span className="text-green-500 mr-2">✓</span>
                                                 {feature}
@@ -320,60 +399,73 @@ export default function PagePreview({
         </div>
     );
 
-    const renderAboutPage = () => (
-        <div className="min-h-screen bg-white py-20">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                    <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-                        {renderEditableContent('title', content?.title || 'Về Chúng Tôi')}
-                    </h1>
-                    <p className="text-xl text-gray-600">
-                        {renderEditableContent('subtitle', content?.subtitle || 'Hành trình của VanLang Budget')}
-                    </p>
-                </div>
+    const renderAboutPage = () => {
+        // Get content for current language - extract từ nested structure
+        let aboutData = content || {};
 
-                <div className="prose prose-lg mx-auto mb-12">
-                    <div className="text-gray-700 leading-relaxed text-lg">
-                        {renderEditableContent('description', content?.description || 'VanLang Budget được phát triển bởi một nhóm những người đam mê tài chính cá nhân...')}
+        // Nếu content có structure {vi: {...}} thì extract language content
+        if (aboutData[language]) {
+            aboutData = aboutData[language];
+        }
+
+        console.log('📖 renderAboutPage called');
+        console.log('📖 Current language:', language);
+        console.log('📖 Raw content:', content);
+        console.log('📖 About data after extraction:', aboutData);
+
+        return (
+            <div className="min-h-screen bg-white py-20">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+                            {renderEditableContent('title', aboutData?.title || 'Về Chúng Tôi')}
+                        </h1>
+                        <p className="text-xl text-gray-600">
+                            {renderEditableContent('subtitle', aboutData?.subtitle || 'Hành trình của VanLang Budget')}
+                        </p>
                     </div>
-                </div>
 
-                {/* Mission Section */}
-                {content?.mission && (
+                    <div className="prose prose-lg mx-auto mb-12">
+                        <div className="text-gray-700 leading-relaxed text-lg">
+                            {renderEditableContent('description', aboutData?.description || 'VanLang Budget được phát triển bởi một nhóm những người đam mê tài chính cá nhân...')}
+                        </div>
+                    </div>
+
+                    {/* Mission Section */}
                     <div className="mb-12">
                         <div className="bg-blue-50 rounded-lg p-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                {renderEditableContent('mission.title', content.mission.title || 'Sứ Mệnh')}
+                                {renderEditableContent('mission.title', aboutData?.mission?.title || 'Sứ Mệnh')}
                             </h2>
                             <p className="text-gray-700 text-lg">
-                                {renderEditableContent('mission.content', content.mission.content || '')}
+                                {renderEditableContent('mission.content', aboutData?.mission?.content || 'Giúp mọi người đạt được sự tự do tài chính thông qua các công cụ quản lý tài chính thông minh và trực quan.')}
                             </p>
                         </div>
                     </div>
-                )}
 
-                {/* Vision Section */}
-                {content?.vision && (
+                    {/* Vision Section */}
                     <div className="mb-12">
                         <div className="bg-green-50 rounded-lg p-8">
                             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                {renderEditableContent('vision.title', content.vision.title || 'Tầm Nhìn')}
+                                {renderEditableContent('vision.title', aboutData?.vision?.title || 'Tầm Nhìn')}
                             </h2>
                             <p className="text-gray-700 text-lg">
-                                {renderEditableContent('vision.content', content.vision.content || '')}
+                                {renderEditableContent('vision.content', aboutData?.vision?.content || 'Trở thành ứng dụng quản lý tài chính cá nhân hàng đầu tại Việt Nam, giúp hàng triệu người kiểm soát chi tiêu, tiết kiệm hiệu quả và đạt được các mục tiêu tài chính.')}
                             </p>
                         </div>
                     </div>
-                )}
 
-                {/* Values Section */}
-                {content?.values && (
+                    {/* Values Section */}
                     <div className="mb-12">
                         <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-                            {renderEditableContent('values.title', content.values.title || 'Giá Trị Cốt Lõi')}
+                            {renderEditableContent('values.title', aboutData?.values?.title || 'Giá Trị Cốt Lõi')}
                         </h2>
                         <div className="grid md:grid-cols-3 gap-8">
-                            {content.values.items?.map((item: any, index: number) => (
+                            {(aboutData?.values?.items || [
+                                { title: 'Đơn Giản', description: 'Giao diện trực quan, dễ sử dụng cho mọi đối tượng người dùng.' },
+                                { title: 'Bảo Mật', description: 'Bảo vệ thông tin tài chính cá nhân với các tiêu chuẩn bảo mật cao nhất.' },
+                                { title: 'Hiệu Quả', description: 'Cung cấp các công cụ mạnh mẽ giúp quản lý tài chính một cách hiệu quả.' }
+                            ]).map((item: any, index: number) => (
                                 <div key={index} className="bg-gray-50 rounded-lg p-6">
                                     <h3 className="text-xl font-semibold text-gray-900 mb-3">
                                         {renderEditableContent(`values.items.${index}.title`, item.title || '')}
@@ -385,10 +477,10 @@ export default function PagePreview({
                             ))}
                         </div>
                     </div>
-                )}
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const renderFeaturesPage = () => {
         // Get content for current language - sử dụng content trực tiếp
@@ -419,7 +511,7 @@ export default function PagePreview({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {featuresArray.length > 0 ? featuresArray.map((feature, index) => (
+                        {featuresArray.length > 0 ? featuresArray.map((feature: FeatureItem, index: number) => (
                             <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                                 <div className="text-4xl mb-4">
                                     {feature.icon || '🔧'}
@@ -476,7 +568,7 @@ export default function PagePreview({
                     </div>
 
                     <div className="space-y-8">
-                        {milestonesArray.length > 0 ? milestonesArray.map((milestone, index) => (
+                        {milestonesArray.length > 0 ? milestonesArray.map((milestone: MilestoneItem, index: number) => (
                             <div key={index} className="flex items-start">
                                 <div className="flex-shrink-0 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
                                     {index + 1}
@@ -549,7 +641,7 @@ export default function PagePreview({
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {plansArray.length > 0 ? plansArray.map((plan, index) => (
+                        {plansArray.length > 0 ? plansArray.map((plan: PlanItem, index: number) => (
                             <div key={index} className={`bg-white border border-gray-200 rounded-lg p-6 shadow-md ${plan.popular ? 'ring-2 ring-indigo-500' : ''}`}>
                                 {plan.popular && (
                                     <div className="bg-indigo-500 text-white text-xs font-bold uppercase py-1 text-center mb-4 -mx-6 -mt-6">
@@ -566,7 +658,7 @@ export default function PagePreview({
                                     {renderEditableContent(`plans.${index}.description`, plan.description || `Mô tả gói ${index + 1}`)}
                                 </p>
                                 <ul className="space-y-3 mb-6">
-                                    {(plan.features || ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).map((feature, featureIndex) => (
+                                    {(plan.features || ['Tính năng 1', 'Tính năng 2', 'Tính năng 3']).map((feature: string, featureIndex: number) => (
                                         <li key={featureIndex} className="flex items-start">
                                             <span className="text-green-500 mr-2 mt-1">✓</span>
                                             <span>{renderEditableContent(`plans.${index}.features.${featureIndex}`, feature)}</span>
@@ -757,6 +849,29 @@ export default function PagePreview({
                         </div>
                     </div>
 
+                    {/* Social Media Section */}
+                    {contactData.socialMedia && (
+                        <div className="mb-16">
+                            <h2 className="text-2xl font-bold mb-8 text-center">
+                                {renderEditableContent('socialMedia.title', contactData.socialMedia?.title || 'Theo dõi chúng tôi')}
+                            </h2>
+                            <div className="flex justify-center space-x-6">
+                                <a href={contactData.socialMedia.facebook} className="text-blue-600 hover:text-blue-800 text-2xl">
+                                    📘 Facebook
+                                </a>
+                                <a href={contactData.socialMedia.twitter} className="text-blue-400 hover:text-blue-600 text-2xl">
+                                    🐦 Twitter
+                                </a>
+                                <a href={contactData.socialMedia.linkedin} className="text-blue-700 hover:text-blue-900 text-2xl">
+                                    💼 LinkedIn
+                                </a>
+                                <a href={contactData.socialMedia.instagram} className="text-pink-600 hover:text-pink-800 text-2xl">
+                                    📷 Instagram
+                                </a>
+                            </div>
+                        </div>
+                    )}
+
                     {/* FAQ Section */}
                     <div>
                         <h2 className="text-2xl font-bold mb-8 text-center">
@@ -767,7 +882,7 @@ export default function PagePreview({
                                 { question: "Câu hỏi 1", answer: "Trả lời 1" },
                                 { question: "Câu hỏi 2", answer: "Trả lời 2" },
                                 { question: "Câu hỏi 3", answer: "Trả lời 3" }
-                            ]).map((faq, index) => (
+                            ]).map((faq: FAQItem, index: number) => (
                                 <div key={index} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
                                     <h3 className="text-lg font-semibold mb-3">
                                         {renderEditableContent(`faq.questions.${index}.question`, faq.question)}
@@ -801,7 +916,7 @@ export default function PagePreview({
                             </div>
                         </div>
                         <nav className="hidden md:flex space-x-8">
-                            {['nav1', 'nav2', 'nav3', 'nav4'].map((navKey, index) => {
+                            {['nav1', 'nav2', 'nav3', 'nav4'].map((navKey: string, index: number) => {
                                 const defaultValues = ['Về chúng tôi', 'Tính năng', 'Bảng giá', 'Liên hệ'];
                                 return (
                                     <a key={index} href="#" className="text-gray-700 hover:text-blue-600">
@@ -922,7 +1037,7 @@ export default function PagePreview({
     }
 
     return (
-        <div className="flex-1 bg-gray-100 p-4 overflow-auto">
+        <div className="w-full h-full bg-gray-100 p-4">
             <div
                 key={renderKey} // Force re-render when content changes
                 className="mx-auto bg-white shadow-lg rounded-lg overflow-hidden"

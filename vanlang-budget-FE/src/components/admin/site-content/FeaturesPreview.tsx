@@ -285,6 +285,46 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
         );
     };
 
+    // Hàm thêm Coming Soon feature mới
+    const addComingSoonFeature = () => {
+        const newFeature = {
+            id: `coming-soon-${Date.now()}`,
+            icon: '🚀',
+            title: 'Tính năng mới',
+            description: 'Mô tả về tính năng sắp ra mắt',
+            eta: 'Q1 2025'
+        };
+
+        setUpdatedContent((prev: any) => ({
+            ...prev,
+            comingSoon: [...(prev.comingSoon || []), newFeature]
+        }));
+
+        // Đánh dấu là đã thay đổi
+        const newFieldKey = `comingSoon.${(updatedContent?.comingSoon || []).length}`;
+        setChangedFields([...changedFields, `${newFieldKey}.title`, `${newFieldKey}.description`, `${newFieldKey}.eta`, `${newFieldKey}.icon`]);
+
+        toast.success('Đã thêm tính năng sắp ra mắt mới!');
+    };
+
+    // Hàm xóa Coming Soon feature
+    const removeComingSoonFeature = (index: number) => {
+        if (window.confirm('Bạn có chắc chắn muốn xóa tính năng này?')) {
+            setUpdatedContent((prev: any) => ({
+                ...prev,
+                comingSoon: (prev.comingSoon || []).filter((_: any, i: number) => i !== index)
+            }));
+
+            // Cập nhật changed fields để loại bỏ các field của feature đã xóa
+            const fieldsToRemove = changedFields.filter(field =>
+                !field.startsWith(`comingSoon.${index}.`)
+            );
+            setChangedFields(fieldsToRemove);
+
+            toast.success('Đã xóa tính năng sắp ra mắt!');
+        }
+    };
+
     // Hàm lấy icon tương ứng
     const getFeatureIcon = (iconName: string) => {
         const iconClass = "h-6 w-6 text-indigo-600";
@@ -428,31 +468,69 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
 
                 {/* Coming Soon Features */}
                 <div className="bg-gray-50 p-8 rounded-lg mb-16">
-                    <h2 className="text-2xl font-bold mb-6 text-center group">
-                        {renderEditableField('comingSoonTitle', updatedContent?.comingSoonTitle || 'Sắp ra mắt', 'text-2xl font-bold')}
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {[0, 1].map((index) => {
-                            const feature = updatedContent?.comingSoonFeatures?.[index] || {
-                                title: `Tính năng sắp ra mắt ${index + 1}`,
-                                description: `Mô tả về tính năng sắp ra mắt ${index + 1}`,
-                                eta: `Quý ${index + 1}/2025`
-                            };
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold group">
+                            {renderEditableField('comingSoonTitle', updatedContent?.comingSoonTitle || 'Sắp ra mắt', 'text-2xl font-bold')}
+                        </h2>
+                        <button
+                            onClick={addComingSoonFeature}
+                            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors flex items-center gap-2"
+                        >
+                            <span>+</span>
+                            Thêm tính năng
+                        </button>
+                    </div>
 
-                            return (
-                                <div key={index} className="bg-white p-5 rounded-md shadow-sm">
-                                    <h3 className="text-lg font-semibold mb-2 group">
-                                        {renderEditableField(`comingSoonFeatures.${index}.title`, feature.title, 'text-lg font-semibold')}
-                                    </h3>
-                                    <p className="text-gray-600 mb-3 text-sm group">
-                                        {renderEditableField(`comingSoonFeatures.${index}.description`, feature.description, 'text-gray-600 text-sm')}
-                                    </p>
-                                    <div className="text-indigo-600 text-sm font-medium group">
-                                        {renderEditableField(`comingSoonFeatures.${index}.eta`, feature.eta, 'text-indigo-600 text-sm font-medium')}
-                                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {(updatedContent?.comingSoon || []).map((feature, index) => (
+                            <div key={feature.id || index} className="bg-white p-5 rounded-md shadow-sm border-2 border-dashed border-indigo-200 relative">
+                                {/* Delete button */}
+                                <button
+                                    onClick={() => removeComingSoonFeature(index)}
+                                    className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
+                                    title="Xóa tính năng"
+                                >
+                                    ✕
+                                </button>
+
+                                {/* Icon field */}
+                                <div className="mb-3 group">
+                                    <label className="block text-xs text-gray-500 mb-1">Icon (emoji):</label>
+                                    {renderEditableField(`comingSoon.${index}.icon`, feature.icon || '🚀', 'text-2xl')}
                                 </div>
-                            );
-                        })}
+
+                                {/* Title field */}
+                                <h3 className="text-lg font-semibold mb-2 group">
+                                    {renderEditableField(`comingSoon.${index}.title`, feature.title || 'Tính năng mới', 'text-lg font-semibold')}
+                                </h3>
+
+                                {/* Description field */}
+                                <p className="text-gray-600 mb-3 text-sm group">
+                                    {renderEditableField(`comingSoon.${index}.description`, feature.description || 'Mô tả tính năng', 'text-gray-600 text-sm')}
+                                </p>
+
+                                {/* ETA field */}
+                                <div className="text-indigo-600 text-sm font-medium group">
+                                    <label className="block text-xs text-gray-500 mb-1">Thời gian dự kiến:</label>
+                                    {renderEditableField(`comingSoon.${index}.eta`, feature.eta || 'Q1 2025', 'text-indigo-600 text-sm font-medium')}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Add new feature placeholder */}
+                        {(!updatedContent?.comingSoon || updatedContent.comingSoon.length === 0) && (
+                            <div className="bg-white p-5 rounded-md shadow-sm border-2 border-dashed border-gray-300 flex items-center justify-center min-h-[200px]">
+                                <div className="text-center text-gray-500">
+                                    <p className="mb-2">Chưa có tính năng sắp ra mắt</p>
+                                    <button
+                                        onClick={addComingSoonFeature}
+                                        className="text-indigo-600 hover:text-indigo-800"
+                                    >
+                                        Thêm tính năng đầu tiên
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

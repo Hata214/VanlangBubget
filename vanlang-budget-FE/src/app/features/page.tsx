@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { ChevronLeft, CheckCircle, Timer } from 'lucide-react'
 import PublicLayout from '@/components/layout/PublicLayout'
 import { Card, CardContent } from '@/components/ui/Card'
@@ -12,16 +12,23 @@ import useAdminContent from '@/hooks/useAdminContent'
 
 export default function FeaturesPage() {
     const t = useTranslations()
-    const { content: featuresContent, isLoading } = useAdminContent('features', 'vi')
+    const locale = useLocale()
+    const { content: featuresContent, isLoading } = useAdminContent('features', locale)
 
     // Debug logs
     console.log('🔍 FeaturesPage - featuresContent:', featuresContent)
     console.log('🔍 FeaturesPage - isLoading:', isLoading)
 
-    // Render dynamic icon based on iconName
+    // Render dynamic icon based on iconName or emoji
     const renderIcon = (iconName: string, className: string = "h-6 w-6") => {
+        // If it's an emoji, return it directly
+        if (iconName && iconName.length <= 2 && /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(iconName)) {
+            return <span className="text-2xl">{iconName}</span>
+        }
+
+        // Otherwise try to find the icon component
         const IconComponent = (Icons as any)[iconName]
-        return IconComponent ? <IconComponent className={className} /> : null
+        return IconComponent ? <IconComponent className={className} /> : <Icons.BarChart3 className={className} />
     }
 
     if (isLoading) {
@@ -112,19 +119,34 @@ export default function FeaturesPage() {
         }
     ];
 
-    // Tính năng sắp ra mắt
-    const comingSoonFeatures = [
+    // Tính năng sắp ra mắt - ưu tiên từ API, fallback nếu không có
+    const defaultComingSoonFeatures = [
         {
             title: t('features.comingSoon.aiAdvisor.title') || "Smart AI Advisor",
             description: t('features.comingSoon.aiAdvisor.description') || "Analyze and provide personalized financial advice based on spending behavior",
-            eta: t('features.comingSoon.aiAdvisor.eta') || "Q2 2025"
+            eta: t('features.comingSoon.aiAdvisor.eta') || "Q2 2025",
+            icon: "🤖"
         },
         {
             title: t('features.comingSoon.groupExpense.title') || "Group Expenses",
             description: t('features.comingSoon.groupExpense.description') || "Share and manage expenses with friends, family, or colleagues",
-            eta: t('features.comingSoon.groupExpense.eta') || "Q4 2025"
+            eta: t('features.comingSoon.groupExpense.eta') || "Q3 2025",
+            icon: "👥"
+        },
+        {
+            title: "Bank Synchronization",
+            description: "Integrate directly with bank accounts to automatically update transactions",
+            eta: "Q4 2025",
+            icon: "🏦"
         }
     ];
+
+    // Sử dụng Coming Soon features từ API nếu có, nếu không dùng default
+    // Kiểm tra cả cấu trúc cũ và mới của API
+    const apiComingSoonFeatures = featuresContent?.comingSoon;
+    const comingSoonFeatures = (apiComingSoonFeatures && apiComingSoonFeatures.length > 0)
+        ? apiComingSoonFeatures
+        : defaultComingSoonFeatures;
 
     return (
         <PublicLayout>
@@ -156,31 +178,50 @@ export default function FeaturesPage() {
                 {/* Tính năng chính */}
                 <div className="mb-20">
                     <h2 className="text-3xl font-bold mb-10 text-center">{t('features.mainFeatures.title')}</h2>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                        {mainFeatures.map((feature) => (
-                            <Card key={feature.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-                                <CardContent className="p-8">
-                                    <div className="flex items-center mb-4">
-                                        <div className="bg-indigo-100 p-3 rounded-lg text-indigo-600 mr-4">
-                                            {renderIcon(feature.iconName, "w-8 h-8")}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                        {/* Hiển thị features từ API nếu có, nếu không dùng fallback */}
+                        {(featuresContent?.features || mainFeatures).map((feature: any, index: number) => {
+                            // Nếu là dữ liệu từ API, sử dụng cấu trúc mới
+                            const featureData = featuresContent?.features ? {
+                                id: feature.id || `feature-${index}`,
+                                title: feature.title,
+                                description: feature.description,
+                                icon: feature.icon,
+                                benefits: [] // API data doesn't have benefits, we'll use a simple card
+                            } : feature;
+
+                            return (
+                                <Card key={featureData.id || index} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
+                                    <CardContent className="p-6">
+                                        <div className="flex items-center mb-4">
+                                            <div className="bg-indigo-100 p-3 rounded-lg text-indigo-600 mr-4 dark:bg-indigo-900 dark:text-indigo-300">
+                                                {featuresContent?.features ?
+                                                    renderIcon(featureData.icon, "w-8 h-8") :
+                                                    renderIcon(featureData.iconName, "w-8 h-8")
+                                                }
+                                            </div>
+                                            <h3 className="text-xl font-bold">{featureData.title}</h3>
                                         </div>
-                                        <h3 className="text-2xl font-bold">{feature.title}</h3>
-                                    </div>
-                                    <p className="text-gray-700 dark:text-gray-300 mb-6">{feature.description}</p>
-                                    <div className="space-y-2">
-                                        <p className="font-semibold text-gray-900 dark:text-white">{t('features.benefits')}:</p>
-                                        <ul className="space-y-2">
-                                            {feature.benefits.map((benefit: string, index: number) => (
-                                                <li key={index} className="flex items-start">
-                                                    <CheckCircle className="h-5 w-5 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
-                                                    <span>{benefit}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                                        <p className="text-gray-700 dark:text-gray-300 mb-4">{featureData.description}</p>
+
+                                        {/* Chỉ hiển thị benefits nếu có (fallback data) */}
+                                        {featureData.benefits && featureData.benefits.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="font-semibold text-gray-900 dark:text-white">{t('features.benefits')}:</p>
+                                                <ul className="space-y-2">
+                                                    {featureData.benefits.map((benefit: string, benefitIndex: number) => (
+                                                        <li key={benefitIndex} className="flex items-start">
+                                                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" />
+                                                            <span className="text-sm">{benefit}</span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -192,13 +233,22 @@ export default function FeaturesPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {comingSoonFeatures.map((feature, index) => (
-                            <Card key={index} className="border-dashed border-2 border-indigo-200 bg-indigo-50 dark:bg-indigo-900/10">
+                            <Card key={feature.id || index} className="border-dashed border-2 border-indigo-200 bg-indigo-50 dark:bg-indigo-900/10">
                                 <CardContent className="p-6">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <h3 className="text-xl font-bold text-indigo-700 dark:text-indigo-400">{feature.title}</h3>
-                                        <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded dark:bg-indigo-800 dark:text-indigo-200">
-                                            {feature.eta}
-                                        </span>
+                                    <div className="flex items-center mb-4">
+                                        {feature.icon && (
+                                            <div className="text-2xl mr-3">
+                                                {feature.icon}
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="text-xl font-bold text-indigo-700 dark:text-indigo-400">{feature.title}</h3>
+                                                <span className="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded dark:bg-indigo-800 dark:text-indigo-200 ml-2">
+                                                    {feature.eta}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <p className="text-gray-700 dark:text-gray-300">{feature.description}</p>
                                 </CardContent>
