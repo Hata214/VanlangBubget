@@ -23,21 +23,31 @@
     "home": {
         "hero": {
             "title": "Smart personal finance management",
-            "description": "VanLang Budget helps you track expenses, manage budgets, and achieve your financial goals with ease.",
-            "getStarted": "Get Started",
-            "learnMore": "Learn More"
+            "subtitle": "Comprehensive financial management solution for Vietnamese",
+            "description": "VanLang Budget helps you track expenses, plan finances, and achieve savings goals easily and effectively.",
+            "getStarted": "Sign up for free",
+            "learnMore": "Learn more",
+            "image": "/images/VLB-Photoroom.png",
+            "imageAlt": "VanLang Budget - Smart financial management app"
         },
         "stats": {
             "monthlyUsers": "Monthly Users",
             "transactionsManaged": "Transactions Managed",
             "savingsIncrease": "Savings Increase"
         },
+        "screenshots": {
+            "title": "Intuitive, easy-to-use interface",
+            "subtitle": "Modern, user-friendly design helps you manage your finances easily",
+            "financialOverview": "Financial Overview",
+            "incomeAnalysis": "Income Analysis",
+            "expenseManagement": "Expense Management"
+        },
         "features": {
-            "title": "Key Features",
+            "title": "Outstanding Features",
             "subtitle": "VanLang Budget provides all the tools you need to manage your finances effectively",
             "expenseTracking": {
-                "title": "Expense Tracking",
-                "description": "Record all your income and expenses easily and quickly."
+                "title": "Income & Expense Tracking",
+                "description": "Record and categorize all your daily income and expenses easily and quickly."
             },
             "budgetManagement": {
                 "title": "Budget Management",
@@ -49,7 +59,7 @@
             },
             "futurePlanning": {
                 "title": "Future Planning",
-                "description": "Set financial goals and track your progress."
+                "description": "Set financial goals and track your progress towards achieving them."
             },
             "loanManagement": {
                 "title": "Loan Management",
@@ -60,42 +70,63 @@
                 "description": "Your data is encrypted and protected securely with the highest security standards."
             }
         },
-        "screenshots": {
-            "title": "Intuitive, easy-to-use interface",
-            "subtitle": "Modern, user-friendly design helps you manage your finances easily",
-            "financialOverview": "Financial Overview",
-            "incomeAnalysis": "Income Analysis",
-            "expenseManagement": "Expense Management"
-        },
         "testimonials": {
-            "title": "What users say about us"
+            "title": "What users say about us",
+            "subtitle": "Thousands of users trust VanLang Budget for their personal finance management",
+            "testimonial1": {
+                "name": "Nguyen Minh Anh",
+                "position": "Office Worker",
+                "content": "VanLang Budget has helped me control my spending better. Simple interface, easy to use and very effective.",
+                "avatar": "/images/avatar-placeholder.png"
+            },
+            "testimonial2": {
+                "name": "Tran Van Hung",
+                "position": "University Student",
+                "content": "Great app for students like me. It helps me manage my pocket money and save more.",
+                "avatar": "/images/avatar-placeholder.png"
+            },
+            "testimonial3": {
+                "name": "Le Thi Mai",
+                "position": "Small Business Owner",
+                "content": "The loan management feature is very useful. I can track all debts and plan debt repayment effectively.",
+                "avatar": "/images/avatar-placeholder.png"
+            }
         },
         "pricing": {
-            "title": "Simple and transparent",
+            "title": "Simple and transparent pricing",
             "subtitle": "Choose a plan that fits your needs",
             "comingSoon": "Coming Soon",
             "pageDescription": "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
             "plan1": {
-                "title": "Plan 1",
+                "title": "Free Plan",
                 "price": "Free",
-                "description": "Plan 1 description",
+                "description": "Basic features to get started with financial management.",
                 "features": [
-                    "Feature 1",
-                    "Feature 2",
-                    "Feature 3"
+                    "Unlimited expense tracking",
+                    "Basic budgeting",
+                    "Overview reports",
+                    "Email support"
                 ],
                 "action": "Sign Up Now"
             },
             "plan2": {
-                "title": "Plan 2",
-                "price": "Free",
-                "description": "Plan 2 description",
+                "title": "Premium Plan",
+                "price": "$4.99/month",
+                "description": "Unlock advanced features and detailed analysis.",
                 "features": [
-                    "Feature 1",
-                    "Feature 2",
-                    "Feature 3"
+                    "All Free Plan features",
+                    "Loan management",
+                    "Detailed financial analysis",
+                    "Priority support",
+                    "PDF report export"
                 ],
+                "action": "Upgrade Now"
+            },
+            "basic": {
                 "action": "Sign Up Now"
+            },
+            "premium": {
+                "action": "Upgrade Now"
             }
         },
         "faq": {
@@ -123,7 +154,7 @@
         "cta": {
             "title": "Ready to take control of your finances?",
             "description": "Sign up today and start your journey to financial freedom.",
-            "getStarted": "Start for free",
+            "getStarted": "Get started for free",
             "contact": "Contact us"
         }
     },
@@ -837,7 +868,8 @@
             "aboutUs": "About Us",
             "features": "Features",
             "pricing": "Pricing",
-            "contact": "Contact"
+            "contact": "Contact",
+            "roadmap": "Roadmap"
         },
         "legal": {
             "title": "Legal",

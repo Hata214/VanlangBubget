@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import siteContentService from '@/services/siteContentService';
 import { localFallbackData } from '@/content/fallbacks';
 
+
 // Định nghĩa kiểu dữ liệu cho context
 interface SiteContentContextType {
     content: Record<string, any>;
@@ -33,10 +34,23 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
 }) => {
     const [content, setContent] = useState<Record<string, any>>(initialContent);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [language, setLanguage] = useState<'vi' | 'en'>(initialLanguage);
     const [error, setError] = useState<Error | null>(null);
+    const [language, setLanguage] = useState<'vi' | 'en'>(initialLanguage);
 
     const pathname = usePathname();
+
+    // Lắng nghe thay đổi ngôn ngữ từ URL hoặc cookie
+    useEffect(() => {
+        // Xác định ngôn ngữ từ pathname
+        const pathSegments = pathname.split('/').filter(Boolean);
+        const localeFromPath = pathSegments[0] === 'vi' || pathSegments[0] === 'en'
+            ? pathSegments[0] as 'vi' | 'en'
+            : 'vi';
+
+        if (localeFromPath !== language) {
+            setLanguage(localeFromPath);
+        }
+    }, [pathname, language]);
 
     // Xác định loại trang hiện tại từ pathname
     const getContentTypeFromPath = (path: string): string => {

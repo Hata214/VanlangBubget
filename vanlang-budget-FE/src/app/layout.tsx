@@ -27,24 +27,25 @@ export const metadata: Metadata = {
 
 // Server component root layout
 export default function RootLayout({
-    children,
-    params
+    children
 }: {
-    children: React.ReactNode,
-    params: { locale: string }
+    children: React.ReactNode
 }) {
+    // Sử dụng ngôn ngữ mặc định vì không còn URL prefix
+    const defaultLanguage = 'vi';
+
     return (
-        <html lang={params.locale} suppressHydrationWarning>
+        <html lang={defaultLanguage} suppressHydrationWarning>
             <head>
                 {/* ...existing head content... */}
             </head>
             <body className={inter.className}>
                 <Providers>
-                    <SiteContentProvider initialLanguage={params.locale as 'vi' | 'en'}>
-                        <ClientWrapper>
+                    <ClientWrapper>
+                        <SiteContentProvider initialLanguage={defaultLanguage}>
                             {children}
-                        </ClientWrapper>
-                    </SiteContentProvider>
+                        </SiteContentProvider>
+                    </ClientWrapper>
                 </Providers>
                 <Toaster />
             </body>

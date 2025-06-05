@@ -38,7 +38,8 @@ export default function HomePage() {
 
     console.log('[HOMEPAGE DEBUG] useSiteContent result:', { content, isLoading })
 
-    // Lấy content cho homepage-vi
+    // Lấy content cho homepage theo ngôn ngữ hiện tại
+    // Ưu tiên content từ database, fallback về translation files
     const homepageData = content?.['homepage-vi'] || {}
     const homepageContent = homepageData?.content || {}
     console.log('[HOMEPAGE DEBUG] Homepage data:', homepageData)
@@ -79,27 +80,37 @@ export default function HomePage() {
     ];
 
     // Sử dụng features từ database nếu có, nếu không dùng default
-    const features = homepageContent?.features?.items?.map((feature, index) => ({
+    const features = homepageContent?.features?.items?.map((feature: { title: string; description: string }, index: number) => ({
         icon: defaultFeatures[index]?.icon || <BarChart3 className="h-8 w-8 text-primary" />,
         title: feature.title || defaultFeatures[index]?.title || '',
         description: feature.description || defaultFeatures[index]?.description || ''
     })) || defaultFeatures;
 
-    const testimonials = [
+    // Testimonials từ translation files
+    interface Testimonial {
+        content: string;
+        author: string;
+        role: string;
+        rating: number;
+    }
+    const testimonials: Testimonial[] = [
         {
-            content: "",
-            author: "",
-            role: ""
+            content: t('home.testimonials.testimonial1.content'),
+            author: t('home.testimonials.testimonial1.name'),
+            role: t('home.testimonials.testimonial1.position'),
+            rating: 5
         },
         {
-            content: "",
-            author: "",
-            role: ""
+            content: t('home.testimonials.testimonial2.content'),
+            author: t('home.testimonials.testimonial2.name'),
+            role: t('home.testimonials.testimonial2.position'),
+            rating: 5
         },
         {
-            content: "",
-            author: "",
-            role: ""
+            content: t('home.testimonials.testimonial3.content'),
+            author: t('home.testimonials.testimonial3.name'),
+            role: t('home.testimonials.testimonial3.position'),
+            rating: 5
         }
     ];
 
@@ -136,24 +147,27 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                             <div className="space-y-8">
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground">
-                                    {homepageContent?.hero?.title || t('home.hero.title')}
+                                    {t('home.hero.title')}
                                 </h1>
                                 <p className="text-lg text-muted-foreground">
-                                    {homepageContent?.hero?.subtitle || t('home.hero.description')}
+                                    {t('home.hero.subtitle')}
+                                </p>
+                                <p className="text-base text-muted-foreground">
+                                    {t('home.hero.description')}
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     <Link
                                         href={homepageContent?.hero?.buttonLink || (isAuthenticated ? "/dashboard" : "/register")}
                                         className="inline-flex items-center justify-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                                     >
-                                        {homepageContent?.hero?.buttonText || t('home.hero.getStarted')}
+                                        {t('home.hero.getStarted')}
                                         <ChevronRight className="ml-2 -mr-1 h-4 w-4" />
                                     </Link>
                                     <Link
                                         href="/contact"
                                         className="inline-flex items-center justify-center px-6 py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                                     >
-                                        {t('home.cta.contact')}
+                                        {t('home.hero.learnMore')}
                                     </Link>
                                 </div>
                             </div>
@@ -213,14 +227,14 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {homepageContent?.features?.title || t('home.features.title')}
+                                {t('home.features.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                                {homepageContent?.features?.description || t('home.features.subtitle')}
+                                {t('home.features.subtitle')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {features.map((feature, index) => (
+                            {features.map((feature: { icon: JSX.Element; title: string; description: string }, index: number) => (
                                 <div key={index} className="p-6 bg-card rounded-lg shadow-md border border-border hover:shadow-lg transition-shadow duration-300">
                                     <div className="mb-4">{feature.icon}</div>
                                     <h3 className="text-xl font-semibold text-primary mb-2">{feature.title}</h3>
@@ -270,14 +284,14 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {homepageContent?.testimonials?.title || t('home.testimonials.title')}
+                                {t('home.testimonials.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                                {homepageContent?.testimonials?.description || ''}
+                                {t('home.testimonials.subtitle')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {(homepageContent?.testimonials?.items || testimonials).map((testimonial, index) => (
+                            {testimonials.map((testimonial: Testimonial, index: number) => (
                                 <div key={index} className="bg-card p-8 rounded-lg shadow-md border border-border">
                                     <div className="flex mb-4">
                                         {[1, 2, 3, 4, 5].map((star) => (
@@ -285,11 +299,11 @@ export default function HomePage() {
                                         ))}
                                     </div>
                                     <p className="text-foreground mb-6">
-                                        {testimonial.content || testimonial.quote ? `"${testimonial.content || testimonial.quote}"` : ""}
+                                        {testimonial.content ? `"${testimonial.content}"` : ""}
                                     </p>
                                     <div>
-                                        <p className="font-semibold text-primary">{testimonial.author || testimonial.name}</p>
-                                        <p className="text-sm text-muted-foreground">{testimonial.title || testimonial.position || testimonial.role}</p>
+                                        <p className="font-semibold text-primary">{testimonial.author}</p>
+                                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                                     </div>
                                 </div>
                             ))}
@@ -302,14 +316,14 @@ export default function HomePage() {
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="text-center max-w-3xl mx-auto mb-16">
                             <h2 className="text-3xl md:text-4xl font-bold text-foreground">
-                                {homepageContent?.pricing?.title || t('home.pricing.title')}
+                                {t('home.pricing.title')}
                             </h2>
                             <p className="mt-4 text-lg text-muted-foreground">
-                                {homepageContent?.pricing?.description || t('home.pricing.subtitle')}
+                                {t('home.pricing.subtitle')}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                            {(homepageContent?.pricing?.plans || pricingPlans).map((plan, index) => (
+                            {(homepageContent?.pricing?.plans || pricingPlans).map((plan: PricingPlan, index: number) => (
                                 <div key={index} className={`bg-card rounded-lg shadow-md overflow-hidden border ${index === 1 ? 'border-primary' : 'border-border'}`}>
                                     <div className={`p-6 ${index === 1 ? 'bg-primary' : 'bg-muted dark:bg-muted/60'}`}>
                                         <h3 className={`text-xl font-bold ${index === 1 ? 'text-primary-foreground' : 'text-foreground'}`}>{plan.name}</h3>
@@ -318,7 +332,7 @@ export default function HomePage() {
                                     </div>
                                     <div className="p-6">
                                         <ul className="space-y-4">
-                                            {plan.features.map((feature, featureIndex) => (
+                                            {plan.features.map((feature: string, featureIndex: number) => (
                                                 <li key={featureIndex} className="flex items-start">
                                                     <Check className={`h-5 w-5 mr-2 ${index === 1 ? 'text-primary' : 'text-green-500 dark:text-green-400'}`} />
                                                     <span className="text-foreground">{feature}</span>
@@ -369,21 +383,23 @@ export default function HomePage() {
                 <section className="py-16 md:py-24 bg-card">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                         <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
-                            {homepageContent?.cta?.title || t('home.cta.title')}
+                            {t('home.cta.title')}
                         </h2>
                         <p className="text-lg text-muted-foreground mb-8">
-                            {homepageContent?.cta?.description || ''}
+                            {t('home.cta.description')}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <Link href={homepageContent?.cta?.primaryButtonLink || (isAuthenticated ? "/dashboard" : "/register")}>
-                                <button className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    {homepageContent?.cta?.primaryButtonText || t('home.cta.getStarted')} <ChevronRight className="ml-2 h-4 w-4" />
-                                </button>
+                            <Link
+                                href={isAuthenticated ? "/dashboard" : "/register"}
+                                className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                            >
+                                {t('home.cta.getStarted')} <ChevronRight className="ml-2 h-4 w-4" />
                             </Link>
-                            <Link href={homepageContent?.cta?.secondaryButtonLink || "/contact"}>
-                                <button className="inline-flex items-center px-6 py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    {homepageContent?.cta?.secondaryButtonText || t('home.cta.contact')} <ChevronRight className="ml-2 h-4 w-4" />
-                                </button>
+                            <Link
+                                href="/contact"
+                                className="inline-flex items-center px-6 py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                            >
+                                {t('home.cta.contact')} <ChevronRight className="ml-2 h-4 w-4" />
                             </Link>
                         </div>
                     </div>
@@ -437,4 +453,4 @@ export default function HomePage() {
             `}</style>
         </PublicLayout>
     )
-} 
+}

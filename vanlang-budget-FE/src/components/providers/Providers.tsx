@@ -4,6 +4,7 @@ import React from 'react';
 import { ThemeProvider } from 'next-themes';
 import { Provider as ReduxProvider } from 'react-redux';
 import { store } from '@/redux/store';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 
 interface ProvidersProps {
     children: React.ReactNode;
@@ -12,13 +13,15 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
     return (
         <ReduxProvider store={store}>
-            <ThemeProvider
-                attribute="class"
-                defaultTheme="system"
-                enableSystem
-            >
-                {children}
-            </ThemeProvider>
+            <LanguageProvider initialLocale="vi">
+                <ThemeProvider
+                    attribute="class"
+                    defaultTheme="system"
+                    enableSystem
+                >
+                    {children}
+                </ThemeProvider>
+            </LanguageProvider>
         </ReduxProvider>
     );
 }

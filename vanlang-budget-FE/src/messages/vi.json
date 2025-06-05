@@ -22,10 +22,13 @@
     },
     "home": {
         "hero": {
-            "title": "Quản lý tài chính cá nhân một cách thông minh",
-            "description": "VanLang Budget giúp bạn theo dõi thu chi, quản lý ngân sách và đạt được mục tiêu tài chính một cách dễ dàng.",
-            "getStarted": "Bắt đầu ngay",
-            "learnMore": "Tìm hiểu thêm"
+            "title": "Quản lý tài chính cá nhân thông minh",
+            "subtitle": "Giải pháp quản lý tài chính toàn diện dành cho người Việt",
+            "description": "VanLang Budget giúp bạn theo dõi thu chi, lập kế hoạch tài chính và đạt được mục tiêu tiết kiệm một cách dễ dàng và hiệu quả.",
+            "getStarted": "Đăng ký miễn phí",
+            "learnMore": "Tìm hiểu thêm",
+            "image": "/images/VLB-Photoroom.png",
+            "imageAlt": "VanLang Budget - Ứng dụng quản lý tài chính thông minh"
         },
         "stats": {
             "monthlyUsers": "Người dùng hàng tháng",
@@ -40,11 +43,11 @@
             "expenseManagement": "Quản lý chi tiêu"
         },
         "features": {
-            "title": "Tính năng chính",
-            "subtitle": "VanLang Budget cung cấp tất cả các công cụ bạn cần để quản lý tài chính hiệu quả",
+            "title": "Tính năng nổi bật",
+            "subtitle": "VanLang Budget cung cấp tất cả công cụ bạn cần để quản lý tài chính hiệu quả",
             "expenseTracking": {
-                "title": "Theo dõi chi tiêu",
-                "description": "Ghi lại tất cả thu nhập và chi tiêu của bạn một cách dễ dàng và nhanh chóng."
+                "title": "Theo dõi thu chi",
+                "description": "Ghi lại và phân loại tất cả thu nhập, chi tiêu hàng ngày một cách dễ dàng và nhanh chóng."
             },
             "budgetManagement": {
                 "title": "Quản lý ngân sách",
@@ -52,50 +55,78 @@
             },
             "financialAnalysis": {
                 "title": "Phân tích tài chính",
-                "description": "Xem báo cáo chi tiết và biểu đồ về tình hình tài chính của bạn theo thời gian thực."
+                "description": "Xem báo cáo và biểu đồ chi tiết về tình hình tài chính của bạn theo thời gian thực."
             },
             "futurePlanning": {
                 "title": "Lập kế hoạch tương lai",
-                "description": "Đặt mục tiêu tài chính và theo dõi tiến độ của bạn."
+                "description": "Đặt mục tiêu tài chính và theo dõi tiến độ đạt được các mục tiêu của bạn."
             },
             "loanManagement": {
                 "title": "Quản lý khoản vay",
-                "description": "Theo dõi các khoản vay, tính lãi suất và lập lịch trả nợ."
+                "description": "Theo dõi các khoản vay, tính lãi suất và lịch trả nợ một cách dễ dàng."
             },
             "dataSecurity": {
                 "title": "Bảo mật dữ liệu",
-                "description": "Bảo vệ thông tin tài chính của bạn với công nghệ mã hóa tiên tiến."
+                "description": "Dữ liệu của bạn được mã hóa và bảo vệ an toàn với tiêu chuẩn bảo mật cao nhất."
             }
         },
         "testimonials": {
-            "title": "Người dùng nói gì về chúng tôi"
+            "title": "Người dùng nói gì về chúng tôi",
+            "subtitle": "Hàng nghìn người dùng đã tin tưởng VanLang Budget để quản lý tài chính cá nhân",
+            "testimonial1": {
+                "name": "Nguyễn Minh Anh",
+                "position": "Nhân viên văn phòng",
+                "content": "VanLang Budget đã giúp tôi kiểm soát chi tiêu tốt hơn. Giao diện đơn giản, dễ sử dụng và rất hiệu quả.",
+                "avatar": "/images/avatar-placeholder.png"
+            },
+            "testimonial2": {
+                "name": "Trần Văn Hùng",
+                "position": "Sinh viên đại học",
+                "content": "Ứng dụng tuyệt vời cho sinh viên như tôi. Giúp tôi quản lý tiền tiêu vặt và tiết kiệm được nhiều hơn.",
+                "avatar": "/images/avatar-placeholder.png"
+            },
+            "testimonial3": {
+                "name": "Lê Thị Mai",
+                "position": "Chủ doanh nghiệp nhỏ",
+                "content": "Tính năng quản lý khoản vay rất hữu ích. Tôi có thể theo dõi tất cả các khoản nợ và lập kế hoạch trả nợ hiệu quả.",
+                "avatar": "/images/avatar-placeholder.png"
+            }
         },
         "pricing": {
-            "title": "Đơn giản và minh bạch",
+            "title": "Bảng giá đơn giản và minh bạch",
             "subtitle": "Chọn gói phù hợp với nhu cầu của bạn",
-            "comingSoon": "Sắp ra mắt",
+            "comingSoon": "Sắp Ra Mắt",
             "pageDescription": "Chúng tôi đang hoàn thiện các gói dịch vụ phù hợp với nhu cầu của bạn. Hiện tại, VanLang Budget hoàn toàn miễn phí!",
             "plan1": {
-                "title": "Gói 1",
+                "title": "Gói Miễn Phí",
                 "price": "Miễn phí",
-                "description": "Mô tả gói 1",
+                "description": "Các tính năng cơ bản để bắt đầu quản lý tài chính.",
                 "features": [
-                    "Tính năng 1",
-                    "Tính năng 2",
-                    "Tính năng 3"
+                    "Theo dõi thu chi không giới hạn",
+                    "Quản lý ngân sách cơ bản",
+                    "Báo cáo tổng quan",
+                    "Hỗ trợ qua email"
                 ],
                 "action": "Đăng ký ngay"
             },
             "plan2": {
-                "title": "Gói 2",
-                "price": "Miễn phí",
-                "description": "Mô tả gói 2",
+                "title": "Gói Cao Cấp",
+                "price": "99.000đ/tháng",
+                "description": "Mở khóa các tính năng nâng cao và phân tích chi tiết.",
                 "features": [
-                    "Tính năng 1",
-                    "Tính năng 2",
-                    "Tính năng 3"
+                    "Tất cả tính năng gói Miễn Phí",
+                    "Quản lý khoản vay",
+                    "Phân tích tài chính chi tiết",
+                    "Hỗ trợ ưu tiên",
+                    "Xuất báo cáo PDF"
                 ],
+                "action": "Nâng cấp ngay"
+            },
+            "basic": {
                 "action": "Đăng ký ngay"
+            },
+            "premium": {
+                "action": "Nâng cấp ngay"
             }
         },
         "faq": {
@@ -572,9 +603,7 @@
         "manualAddressOnly": "Chỉ địa chỉ thủ công",
         "geocodeAddress": "Tìm vị trí từ địa chỉ",
         "geocodingAddress": "Đang tìm vị trí trên bản đồ...",
-        "geocodingError": "Không thể tìm vị trí trên bản đồ",
         "addressNotFound": "Không tìm thấy địa chỉ phù hợp",
-        "enterLocation": "Nhập địa chỉ hoặc vị trí",
         "unableToShowOnMap": "Không thể hiển thị trên bản đồ",
         "category": {
             "food": "Ăn uống",
