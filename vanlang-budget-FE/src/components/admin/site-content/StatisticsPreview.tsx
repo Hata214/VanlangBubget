@@ -26,7 +26,26 @@ interface StatisticsPreviewProps {
 export default function StatisticsPreview({ content, onUpdate }: StatisticsPreviewProps) {
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editValue, setEditValue] = useState<string>('');
-    const [updatedContent, setUpdatedContent] = useState<StatisticsContent>(content);
+
+    // Khởi tạo với dữ liệu mặc định để tránh lỗi undefined
+    const defaultContent: StatisticsContent = {
+        title: 'Thống kê ấn tượng',
+        subtitle: 'Những con số nói lên sự tin tưởng',
+        stats: [
+            { number: '10,000+', label: 'Người dùng', description: 'Đã tin tưởng sử dụng' },
+            { number: '500,000+', label: 'Giao dịch', description: 'Được quản lý hàng tháng' },
+            { number: '25%', label: 'Tiết kiệm', description: 'Trung bình mỗi người dùng' }
+        ]
+    };
+
+    // Đảm bảo content luôn có cấu trúc đúng
+    const safeContent = {
+        title: content?.title || defaultContent.title,
+        subtitle: content?.subtitle || defaultContent.subtitle,
+        stats: Array.isArray(content?.stats) ? content.stats : defaultContent.stats
+    };
+
+    const [updatedContent, setUpdatedContent] = useState<StatisticsContent>(safeContent);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [changedFields, setChangedFields] = useState<string[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -34,7 +53,13 @@ export default function StatisticsPreview({ content, onUpdate }: StatisticsPrevi
     const isSuperAdmin = user?.role === 'superadmin';
 
     useEffect(() => {
-        setUpdatedContent(content);
+        // Đảm bảo content được cập nhật an toàn
+        const newSafeContent = {
+            title: content?.title || defaultContent.title,
+            subtitle: content?.subtitle || defaultContent.subtitle,
+            stats: Array.isArray(content?.stats) ? content.stats : defaultContent.stats
+        };
+        setUpdatedContent(newSafeContent);
     }, [content]);
 
     // Hàm bắt đầu chỉnh sửa một trường
@@ -76,6 +101,11 @@ export default function StatisticsPreview({ content, onUpdate }: StatisticsPrevi
                 const statIndex = parseInt(keys[1]);
                 const statField = lastKey;
 
+                // Đảm bảo stats array tồn tại
+                if (!newContent.stats) {
+                    newContent.stats = [];
+                }
+
                 if (newContent.stats[statIndex] && statField) {
                     newContent.stats[statIndex] = {
                         ...newContent.stats[statIndex],
@@ -112,7 +142,7 @@ export default function StatisticsPreview({ content, onUpdate }: StatisticsPrevi
 
         setUpdatedContent(prev => ({
             ...prev,
-            stats: [...prev.stats, newStat]
+            stats: [...(prev.stats || []), newStat]
         }));
 
         setChangedFields(prev => [...prev, 'stats']);
@@ -121,14 +151,15 @@ export default function StatisticsPreview({ content, onUpdate }: StatisticsPrevi
 
     // Hàm xóa stat
     const removeStat = (index: number) => {
-        if (updatedContent.stats.length <= 1) {
+        const currentStats = updatedContent.stats || [];
+        if (currentStats.length <= 1) {
             toast.error('Phải có ít nhất một thống kê');
             return;
         }
 
         setUpdatedContent(prev => ({
             ...prev,
-            stats: prev.stats.filter((_, i) => i !== index)
+            stats: (prev.stats || []).filter((_, i) => i !== index)
         }));
 
         setChangedFields(prev => [...prev, 'stats']);
@@ -243,10 +274,10 @@ export default function StatisticsPreview({ content, onUpdate }: StatisticsPrevi
                     </p>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {updatedContent.stats.map((stat, index) => (
+                        {(updatedContent.stats || []).map((stat, index) => (
                             <div key={index} className="relative bg-white/10 backdrop-blur-sm rounded-lg p-6 group">
                                 {/* Delete button */}
-                                {updatedContent.stats.length > 1 && (
+                                {(updatedContent.stats || []).length > 1 && (
                                     <button
                                         onClick={() => removeStat(index)}
                                         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-300 hover:text-red-100"

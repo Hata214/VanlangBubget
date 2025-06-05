@@ -30,11 +30,6 @@
             "image": "/images/VLB-Photoroom.png",
             "imageAlt": "VanLang Budget - Smart financial management app"
         },
-        "stats": {
-            "monthlyUsers": "Monthly Users",
-            "transactionsManaged": "Transactions Managed",
-            "savingsIncrease": "Savings Increase"
-        },
         "screenshots": {
             "title": "Intuitive, easy-to-use interface",
             "subtitle": "Modern, user-friendly design helps you manage your finances easily",
@@ -156,6 +151,11 @@
             "description": "Sign up today and start your journey to financial freedom.",
             "getStarted": "Get started for free",
             "contact": "Contact us"
+        },
+        "stats": {
+            "monthlyUsers": "Monthly Users",
+            "transactionsManaged": "Transactions Managed",
+            "savingsIncrease": "Average Savings Increase"
         }
     },
     "navigation": {

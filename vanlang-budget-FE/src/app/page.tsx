@@ -123,6 +123,13 @@ export default function HomePage() {
         features: string[];
     }
 
+    interface Testimonial {
+        content: string;
+        author: string;
+        role: string;
+        rating: number;
+    }
+
     const pricingPlans: PricingPlan[] = [
         {
             name: t('home.pricing.plan1.title'),
@@ -196,7 +203,7 @@ export default function HomePage() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="text-center">
                                 <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[0]?.value || '--'}
+                                    {homepageContent?.statistics?.items?.[0]?.value || '10,000+'}
                                 </p>
                                 <p className="mt-2 text-lg text-primary-foreground/80">
                                     {homepageContent?.statistics?.items?.[0]?.label || t('home.stats.monthlyUsers')}
@@ -204,7 +211,7 @@ export default function HomePage() {
                             </div>
                             <div className="text-center">
                                 <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[1]?.value || '--'}
+                                    {homepageContent?.statistics?.items?.[1]?.value || '500,000+'}
                                 </p>
                                 <p className="mt-2 text-lg text-primary-foreground/80">
                                     {homepageContent?.statistics?.items?.[1]?.label || t('home.stats.transactionsManaged')}
@@ -212,7 +219,7 @@ export default function HomePage() {
                             </div>
                             <div className="text-center">
                                 <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[2]?.value || '--'}
+                                    {homepageContent?.statistics?.items?.[2]?.value || '25%'}
                                 </p>
                                 <p className="mt-2 text-lg text-primary-foreground/80">
                                     {homepageContent?.statistics?.items?.[2]?.label || t('home.stats.savingsIncrease')}
