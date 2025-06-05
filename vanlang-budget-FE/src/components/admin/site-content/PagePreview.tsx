@@ -3,25 +3,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useTranslations } from 'next-intl'; // Thêm import này
 
-// Dynamic import để tránh lỗi SSR
-const StatisticsPreview = dynamic(() => import('./StatisticsPreview'), {
-    ssr: false,
-    loading: () => <div className="animate-pulse bg-gray-200 h-64 rounded"></div>
-});
+
 
 // Interfaces for content types
-interface StatItem {
-    number: string;
-    label: string;
-    description: string;
-}
-
-interface StatisticsContent {
-    title: string;
-    subtitle: string;
-    stats: StatItem[];
-}
 
 interface FeatureItem {
     title: string;
@@ -72,6 +58,7 @@ export default function PagePreview({
     onEditField,
     isLoading
 }: PagePreviewProps) {
+    const t = useTranslations(); // Di chuyển lên đây
     const previewRef = useRef<HTMLDivElement>(null);
     const [renderKey, setRenderKey] = useState(0);
 
@@ -214,56 +201,7 @@ export default function PagePreview({
                 </div>
             </section>
 
-            {/* Statistics Section */}
-            {isEditMode ? (
-                <StatisticsPreview
-                    content={content?.statistics as StatisticsContent || {
-                        title: 'Thống kê ấn tượng',
-                        subtitle: 'Những con số nói lên sự tin tưởng',
-                        stats: [
-                            { number: '10,000+', label: 'Người dùng', description: 'Đã tin tưởng sử dụng' },
-                            { number: '500,000+', label: 'Giao dịch', description: 'Được quản lý hàng tháng' },
-                            { number: '25%', label: 'Tiết kiệm', description: 'Trung bình mỗi người dùng' }
-                        ]
-                    }}
-                    onUpdate={() => {
-                        // Trigger content reload
-                        console.log('Statistics updated, triggering reload');
-                        // Force re-render
-                        setRenderKey(prev => prev + 1);
-                    }}
-                />
-            ) : (
-                <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                        <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                            {content?.statistics?.title || 'Thống kê ấn tượng'}
-                        </h2>
-                        <p className="text-lg mb-12">
-                            {content?.statistics?.subtitle || 'Những con số nói lên sự tin tưởng'}
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {(content?.statistics?.stats || [
-                                { number: '10,000+', label: 'Người dùng', description: 'Đã tin tưởng sử dụng' },
-                                { number: '500,000+', label: 'Giao dịch', description: 'Được quản lý hàng tháng' },
-                                { number: '25%', label: 'Tiết kiệm', description: 'Trung bình mỗi người dùng' }
-                            ]).map((stat: StatItem, index: number) => (
-                                <div key={index} className="bg-white/10 backdrop-blur-sm rounded-lg p-6">
-                                    <div className="text-4xl md:text-5xl font-bold mb-2">
-                                        {stat.number}
-                                    </div>
-                                    <div className="text-xl font-semibold mb-2">
-                                        {stat.label}
-                                    </div>
-                                    <div className="text-sm opacity-90">
-                                        {stat.description}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+
 
             {/* Features Section */}
             <section className="py-20 bg-gray-50">
@@ -940,6 +878,7 @@ export default function PagePreview({
     };
 
     const renderFooterContent = () => {
+        // const t = useTranslations(); // Xóa dòng này vì đã di chuyển lên trên
         console.log('🔻 Rendering footer content with:', content);
         console.log('🔻 Content keys:', content ? Object.keys(content) : 'No content');
 
@@ -956,30 +895,30 @@ export default function PagePreview({
                             </p>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Sản phẩm</h4>
+                            <h4 className="font-semibold mb-4">{t('footer.links.title')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li>{renderEditableContent('product1', content?.product1 || 'Quản lý chi tiêu')}</li>
-                                <li>{renderEditableContent('product2', content?.product2 || 'Lập ngân sách')}</li>
-                                <li>{renderEditableContent('product3', content?.product3 || 'Báo cáo tài chính')}</li>
-                                <li>{renderEditableContent('product4', content?.product4 || 'Mục tiêu tiết kiệm')}</li>
+                                <li>{renderEditableContent('product1', content?.product1 || t('footer.links.features'))}</li> {/* Giả sử product1 là features */}
+                                <li>{renderEditableContent('product2', content?.product2 || t('footer.links.roadmap'))}</li> {/* Giả sử product2 là roadmap */}
+                                <li>{renderEditableContent('product3', content?.product3 || t('footer.links.pricing'))}</li> {/* Giả sử product3 là pricing */}
+                                <li>{renderEditableContent('product4', content?.product4 || 'Mục tiêu tiết kiệm')}</li> {/* Cần key cụ thể nếu có */}
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Công ty</h4>
+                            <h4 className="font-semibold mb-4">{t('footer.legal.title')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li>{renderEditableContent('company1', content?.company1 || 'Về chúng tôi')}</li>
-                                <li>{renderEditableContent('company2', content?.company2 || 'Liên hệ')}</li>
-                                <li>{renderEditableContent('company3', content?.company3 || 'Tuyển dụng')}</li>
-                                <li>{renderEditableContent('company4', content?.company4 || 'Tin tức')}</li>
+                                <li>{renderEditableContent('company1', content?.company1 || t('footer.links.aboutUs'))}</li> {/* Giả sử company1 là aboutUs */}
+                                <li>{renderEditableContent('company2', content?.company2 || t('footer.links.contact'))}</li> {/* Giả sử company2 là contact */}
+                                <li>{renderEditableContent('company3', content?.company3 || 'Tuyển dụng')}</li> {/* Cần key cụ thể nếu có */}
+                                <li>{renderEditableContent('company4', content?.company4 || 'Tin tức')}</li> {/* Cần key cụ thể nếu có */}
                             </ul>
                         </div>
                         <div>
-                            <h4 className="font-semibold mb-4">Hỗ trợ</h4>
+                            <h4 className="font-semibold mb-4">{t('footer.app.title')}</h4>
                             <ul className="space-y-2 text-gray-400">
-                                <li>{renderEditableContent('support1', content?.support1 || 'Trung tâm hỗ trợ')}</li>
-                                <li>{renderEditableContent('support2', content?.support2 || 'Hướng dẫn sử dụng')}</li>
-                                <li>{renderEditableContent('support3', content?.support3 || 'FAQ')}</li>
-                                <li>{renderEditableContent('support4', content?.support4 || 'Báo lỗi')}</li>
+                                <li>{renderEditableContent('support1', content?.support1 || 'Trung tâm hỗ trợ')}</li> {/* Cần key cụ thể nếu có */}
+                                <li>{renderEditableContent('support2', content?.support2 || 'Hướng dẫn sử dụng')}</li> {/* Cần key cụ thể nếu có */}
+                                <li>{renderEditableContent('support3', content?.support3 || 'FAQ')}</li> {/* Cần key cụ thể nếu có */}
+                                <li>{renderEditableContent('support4', content?.support4 || 'Báo lỗi')}</li> {/* Cần key cụ thể nếu có */}
                             </ul>
                         </div>
                     </div>

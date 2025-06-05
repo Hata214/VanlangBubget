@@ -864,7 +864,7 @@
         "about": "About VanLang Budget",
         "aboutDescription": "A smart personal finance management application to help you control your spending and achieve financial freedom.",
         "links": {
-            "title": "Links",
+            "title": "Product",
             "aboutUs": "About Us",
             "features": "Features",
             "pricing": "Pricing",
@@ -872,13 +872,13 @@
             "roadmap": "Roadmap"
         },
         "legal": {
-            "title": "Legal",
+            "title": "Company",
             "terms": "Terms of Use",
             "privacy": "Privacy Policy",
             "cookies": "Cookie Policy"
         },
         "app": {
-            "title": "Download App",
+            "title": "Support",
             "description": "Coming soon on iOS and Android",
             "followUs": "Follow Us"
         },
@@ -1307,5 +1307,34 @@
         "backToPortfolio": "Back to Portfolio",
         "marketChart": "Market Chart",
         "stockList": "Stock List"
+    },
+    "PricingPage": {
+        "title": "Pricing",
+        "description": "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
+        "comingSoon": "Coming Soon",
+        "comingSoonDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
+        "planBasic": {
+            "name": "Basic Plan",
+            "price": "Free",
+            "description": "Get started with essential financial management tools.",
+            "feature1": "Unlimited transaction recording",
+            "feature2": "Basic budget planning",
+            "feature3": "Overview reports"
+        },
+        "planPremium": {
+            "name": "Premium Plan",
+            "price": "$4.99/month",
+            "description": "Unlock advanced features for comprehensive financial control.",
+            "feature1": "All Basic features",
+            "feature2": "Advanced budgeting tools",
+            "feature3": "Detailed financial analytics",
+            "feature4": "Priority support"
+        },
+        "choosePlanButton": "Choose Plan",
+        "cta": {
+            "title": "Ready to get started?",
+            "description": "Join thousands of users who trust VanLang Budget for effective financial management.",
+            "contact": "Contact for consultation"
+        }
     }
 }

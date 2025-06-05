@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import siteContentService from '@/services/siteContentService';
+import { NextIntlClientProvider } from 'next-intl'; // Thêm import
+import messagesEn from '@/messages/en.json';      // Thêm import
+import messagesVi from '@/messages/vi.json';      // Thêm import
 import ContentSidebar from './ContentSidebar';
 import PagePreview from './PagePreview';
 import InlineEditor from './InlineEditor';
@@ -37,7 +40,7 @@ interface ContentData {
 }
 
 // Các sections thuộc homepage
-const HOMEPAGE_SECTIONS = ['homepage', 'testimonials', 'statistics'];
+const HOMEPAGE_SECTIONS = ['homepage', 'testimonials'];
 
 export default function FullPageContentManager({ user }: FullPageContentManagerProps) {
     // State management
@@ -652,18 +655,23 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     ref={previewAreaRef}
                     className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative"
                 >
-                    <PagePreview
-                        key={`${selectedPage}-${currentLanguage}-${previewKey}`}
-                        page={selectedPage}
-                        language={currentLanguage}
-                        content={content}
-                        viewMode={viewMode}
-                        isEditMode={isEditMode}
-                        editingField={editingField}
-                        onContentChange={handleContentChange}
-                        onEditField={setEditingField}
-                        isLoading={isLoading}
-                    />
+                    <NextIntlClientProvider
+                        locale={currentLanguage}
+                        messages={currentLanguage === 'en' ? messagesEn : messagesVi}
+                    >
+                        <PagePreview
+                            key={`${selectedPage}-${currentLanguage}-${previewKey}`}
+                            page={selectedPage}
+                            language={currentLanguage}
+                            content={content}
+                            viewMode={viewMode}
+                            isEditMode={isEditMode}
+                            editingField={editingField}
+                            onContentChange={handleContentChange}
+                            onEditField={setEditingField}
+                            isLoading={isLoading}
+                        />
+                    </NextIntlClientProvider>
 
                     {/* Scroll to Top Button */}
                     {showScrollTop && (

@@ -197,37 +197,7 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                {/* Stats Section */}
-                <section className="bg-primary">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[0]?.value || '10,000+'}
-                                </p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">
-                                    {homepageContent?.statistics?.items?.[0]?.label || t('home.stats.monthlyUsers')}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[1]?.value || '500,000+'}
-                                </p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">
-                                    {homepageContent?.statistics?.items?.[1]?.label || t('home.stats.transactionsManaged')}
-                                </p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-4xl md:text-5xl font-bold text-primary-foreground">
-                                    {homepageContent?.statistics?.items?.[2]?.value || '25%'}
-                                </p>
-                                <p className="mt-2 text-lg text-primary-foreground/80">
-                                    {homepageContent?.statistics?.items?.[2]?.label || t('home.stats.savingsIncrease')}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+
 
                 {/* Features Section */}
                 <section className="py-16 md:py-24 bg-background">

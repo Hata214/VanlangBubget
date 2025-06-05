@@ -45,7 +45,7 @@ export default function ContentSidebar({
             title: 'Trang chủ',
             icon: <Home className="h-5 w-5" />,
             description: 'Trang chủ chính của website',
-            sections: ['hero', 'statistics', 'features', 'testimonials', 'pricing', 'cta']
+            sections: ['hero', 'features', 'testimonials', 'pricing', 'cta']
         },
         {
             id: 'about',

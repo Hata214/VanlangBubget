@@ -47,24 +47,7 @@ export const defaultHomepageContent = {
             }
         ]
     },
-    statistics: {
-        title: 'Thống kê ấn tượng',
-        description: 'Những con số chứng minh hiệu quả của VanLang Budget',
-        items: [
-            {
-                value: '10,000+',
-                label: 'Người dùng hàng tháng'
-            },
-            {
-                value: '500,000+',
-                label: 'Giao dịch được quản lý'
-            },
-            {
-                value: '25%',
-                label: 'Tăng tiết kiệm trung bình'
-            }
-        ]
-    },
+
     testimonials: {
         title: 'Người dùng nói gì về chúng tôi',
         description: 'Hàng nghìn người dùng đã tin tưởng VanLang Budget để quản lý tài chính cá nhân',
