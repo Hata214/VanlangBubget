@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
     Table,
     TableBody,
@@ -18,6 +18,13 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/Card';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/Select';
 import {
     Dialog,
     DialogContent,
@@ -51,16 +58,19 @@ import {
     Ban,
     CheckCircle,
     AlertTriangle,
-    UserPlus
+    UserPlus,
+    Filter,
+    X
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { adminService } from '@/services/adminService';
 
-interface AdminUser {
+interface User {
     id: string;
     email: string;
     firstName: string;
     lastName: string;
-    role: string;
+    role: 'user' | 'admin' | 'superadmin';
     active: boolean;
     createdAt: string;
     lastLogin?: string;
@@ -68,19 +78,23 @@ interface AdminUser {
 
 export default function ManageAdminsPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const t = useTranslations();
-    const [admins, setAdmins] = useState<AdminUser[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentUser, setCurrentUser] = useState<any>(null);
-    const [showAddAdminDialog, setShowAddAdminDialog] = useState(false);
-    const [newAdminEmail, setNewAdminEmail] = useState('');
-    const [newAdminName, setNewAdminName] = useState('');
     const [processingUser, setProcessingUser] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [selectedAdminId, setSelectedAdminId] = useState<string | null>(null);
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
+    // Filter states - Initialize from URL params
+    const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || 'all');
+    const [dateFilter, setDateFilter] = useState(searchParams.get('dateRange') || 'all');
+    const [activeFiltersCount, setActiveFiltersCount] = useState(0);
 
     useEffect(() => {
         // Kiểm tra xem người dùng hiện tại có phải là SuperAdmin không
@@ -98,151 +112,167 @@ export default function ManageAdminsPage() {
             role: userRole
         });
 
-        // Tải danh sách admin
-        fetchAdmins();
-    }, [router, currentPage, searchTerm]);
+        // Tải danh sách người dùng
+        fetchUsers();
+    }, [currentPage, debouncedSearchTerm, roleFilter, dateFilter]); // Include filters
 
-    const fetchAdmins = async () => {
+    // Debounce search term
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Calculate active filters count
+    useEffect(() => {
+        let count = 0;
+        if (roleFilter !== 'all') count++;
+        if (dateFilter !== 'all') count++;
+        setActiveFiltersCount(count);
+    }, [roleFilter, dateFilter]);
+
+    const fetchUsers = async () => {
         try {
             setLoading(true);
 
-            // Trong môi trường thực tế, bạn sẽ gọi API để lấy danh sách admin
-            // Ví dụ: const response = await fetch('/api/admin/manage-admins?page=${currentPage}&search=${searchTerm}');
+            // Prepare filter parameters
+            const filterParams: any = {
+                page: currentPage,
+                limit: 10,
+                search: debouncedSearchTerm
+            };
 
-            // Giả lập dữ liệu cho mục đích demo
-            setTimeout(() => {
-                const mockAdmins = [
-                    {
-                        id: '1',
-                        email: 'superadmin@control.vn',
-                        firstName: 'Super',
-                        lastName: 'Admin',
-                        role: 'superadmin',
-                        active: true,
-                        createdAt: '2023-01-01T00:00:00.000Z',
-                        lastLogin: '2023-05-15T10:30:00.000Z'
-                    },
-                    {
-                        id: '2',
-                        email: 'admin1@example.com',
-                        firstName: 'Admin',
-                        lastName: 'One',
-                        role: 'admin',
-                        active: true,
-                        createdAt: '2023-02-15T00:00:00.000Z',
-                        lastLogin: '2023-05-14T14:20:00.000Z'
-                    },
-                    {
-                        id: '3',
-                        email: 'admin2@example.com',
-                        firstName: 'Admin',
-                        lastName: 'Two',
-                        role: 'admin',
-                        active: true,
-                        createdAt: '2023-03-10T00:00:00.000Z',
-                        lastLogin: '2023-05-10T09:15:00.000Z'
-                    }
-                ];
+            // Add role filter
+            if (roleFilter !== 'all') {
+                filterParams.role = roleFilter;
+            }
 
-                // Lọc theo searchTerm nếu có
-                const filteredAdmins = searchTerm
-                    ? mockAdmins.filter(admin =>
-                        admin.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        `${admin.firstName} ${admin.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
-                    )
-                    : mockAdmins;
+            // Add date filter
+            if (dateFilter !== 'all') {
+                filterParams.dateRange = dateFilter;
+            }
 
-                setAdmins(filteredAdmins);
-                setTotalPages(1); // Giả sử chỉ có 1 trang
-                setLoading(false);
-            }, 800);
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách admin:', error);
-            toast.error('Không thể tải danh sách quản trị viên');
+            // Gọi API thực để lấy danh sách tất cả người dùng từ MongoDB
+            const response = await adminService.getAllUsers(filterParams);
+
+            if (response.status === 'success' && response.data) {
+                setUsers(response.data.users);
+                setTotalPages(response.pagination?.totalPages || 1);
+                console.log('Đã tải danh sách người dùng từ database:', response.data.users);
+                toast.success(`Tải thành công ${response.data.users.length} người dùng`);
+            } else {
+                throw new Error('Invalid response format');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi tải danh sách người dùng:', error);
+            toast.error(error.response?.data?.message || 'Không thể tải danh sách người dùng từ database');
+            setUsers([]);
+        } finally {
             setLoading(false);
         }
     };
 
-    const handleAddAdmin = async () => {
+    const handlePromoteToAdmin = async (userId: string) => {
         try {
-            if (!newAdminEmail || !newAdminName) {
-                toast.error('Vui lòng nhập đầy đủ thông tin');
+            setProcessingUser(userId);
+
+            // Kiểm tra số lượng admin hiện tại
+            const adminCount = users.filter(user => user.role === 'admin').length;
+            if (adminCount >= 3) {
+                toast.error('Đã đạt giới hạn tối đa 3 quản trị viên trong hệ thống');
                 return;
             }
 
-            // Giả lập việc thêm admin
-            toast.success(`Đã thêm ${newAdminName} (${newAdminEmail}) làm quản trị viên`);
-            setShowAddAdminDialog(false);
-            setNewAdminEmail('');
-            setNewAdminName('');
+            // Gọi API để thăng cấp user lên admin
+            const response = await adminService.updateUserRole(userId, 'admin');
 
-            // Fetch lại danh sách sau khi thêm
-            fetchAdmins();
-        } catch (error) {
-            console.error('Lỗi khi thêm admin:', error);
-            toast.error('Không thể thêm quản trị viên');
+            if (response.success || response.status === 'success') {
+                toast.success('Đã thăng cấp người dùng lên quản trị viên');
+                fetchUsers(); // Fetch lại danh sách sau khi cập nhật
+            } else {
+                throw new Error('Failed to promote user');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi thăng cấp user:', error);
+            toast.error(error.response?.data?.message || 'Không thể thăng cấp người dùng');
+        } finally {
+            setProcessingUser(null);
         }
     };
 
-    const handleDemoteAdmin = async (adminId: string) => {
+    const handleDemoteToUser = async (userId: string) => {
         try {
-            setProcessingUser(adminId);
+            setProcessingUser(userId);
 
-            // Giả lập việc hạ cấp admin
-            setTimeout(() => {
+            // Gọi API để hạ cấp admin xuống user
+            const response = await adminService.updateUserRole(userId, 'user');
+
+            if (response.success || response.status === 'success') {
                 toast.success('Đã hạ cấp quản trị viên xuống người dùng thường');
-                fetchAdmins();
-                setProcessingUser(null);
-            }, 800);
-        } catch (error) {
+                fetchUsers();
+            } else {
+                throw new Error('Failed to demote admin');
+            }
+        } catch (error: any) {
             console.error('Lỗi khi hạ cấp admin:', error);
-            toast.error('Không thể hạ cấp quản trị viên');
+            toast.error(error.response?.data?.message || 'Không thể hạ cấp quản trị viên');
+        } finally {
             setProcessingUser(null);
         }
     };
 
-    const handleToggleActive = async (adminId: string, isActive: boolean) => {
+    const handleToggleActive = async (userId: string, isActive: boolean) => {
         try {
-            setProcessingUser(adminId);
+            setProcessingUser(userId);
 
-            // Giả lập việc vô hiệu hóa/kích hoạt admin
-            setTimeout(() => {
+            // Gọi API thực để toggle trạng thái user
+            const response = await adminService.toggleAdminStatus(userId);
+
+            if (response.success || response.status === 'success') {
                 toast.success(isActive
-                    ? 'Đã vô hiệu hóa tài khoản quản trị viên'
-                    : 'Đã kích hoạt tài khoản quản trị viên'
+                    ? 'Đã vô hiệu hóa tài khoản người dùng'
+                    : 'Đã kích hoạt tài khoản người dùng'
                 );
-                fetchAdmins();
-                setProcessingUser(null);
-            }, 800);
-        } catch (error) {
-            console.error('Lỗi khi thay đổi trạng thái admin:', error);
-            toast.error(`Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản quản trị viên`);
+                fetchUsers();
+            } else {
+                throw new Error('Failed to toggle user status');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi thay đổi trạng thái user:', error);
+            toast.error(error.response?.data?.message || `Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản người dùng`);
+        } finally {
             setProcessingUser(null);
         }
     };
 
-    const confirmDeleteAdmin = (adminId: string) => {
-        setSelectedAdminId(adminId);
+    const confirmDeleteUser = (userId: string) => {
+        setSelectedUserId(userId);
         setShowDeleteConfirm(true);
     };
 
-    const handleDeleteAdmin = async () => {
-        if (!selectedAdminId) return;
+    const handleDeleteUser = async () => {
+        if (!selectedUserId) return;
 
         try {
-            setProcessingUser(selectedAdminId);
+            setProcessingUser(selectedUserId);
 
-            // Giả lập việc xóa admin
-            setTimeout(() => {
-                toast.success('Đã xóa quản trị viên thành công');
-                fetchAdmins();
-                setProcessingUser(null);
+            // Gọi API thực để xóa user
+            const response = await adminService.deleteAdmin(selectedUserId);
+
+            if (response.success || response.status === 'success') {
+                toast.success('Đã xóa người dùng thành công');
+                fetchUsers();
                 setShowDeleteConfirm(false);
-                setSelectedAdminId(null);
-            }, 800);
-        } catch (error) {
-            console.error('Lỗi khi xóa admin:', error);
-            toast.error('Không thể xóa quản trị viên');
+                setSelectedUserId(null);
+            } else {
+                throw new Error('Failed to delete user');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi xóa user:', error);
+            toast.error(error.response?.data?.message || 'Không thể xóa người dùng');
+        } finally {
             setProcessingUser(null);
         }
     };
@@ -250,7 +280,31 @@ export default function ManageAdminsPage() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         setCurrentPage(1); // Reset về trang đầu tiên khi tìm kiếm
-        fetchAdmins();
+        fetchUsers();
+    };
+
+    const updateURLParams = (filters: { role?: string; dateRange?: string; search?: string; page?: number }) => {
+        const params = new URLSearchParams(searchParams);
+
+        Object.entries(filters).forEach(([key, value]) => {
+            if (value && value !== 'all' && value !== '') {
+                params.set(key, value);
+            } else {
+                params.delete(key);
+            }
+        });
+
+        router.push(`?${params.toString()}`, { scroll: false });
+    };
+
+    const handleResetFilters = () => {
+        setRoleFilter('all');
+        setDateFilter('all');
+        setSearchTerm('');
+        setCurrentPage(1);
+
+        // Clear URL params
+        router.push(window.location.pathname, { scroll: false });
     };
 
     const formatDate = (dateString: string) => {
@@ -264,8 +318,23 @@ export default function ManageAdminsPage() {
                 return 'destructive';
             case 'admin':
                 return 'default';
-            default:
+            case 'user':
                 return 'secondary';
+            default:
+                return 'outline';
+        }
+    };
+
+    const getRoleDisplayName = (role: string) => {
+        switch (role) {
+            case 'superadmin':
+                return 'Super Admin';
+            case 'admin':
+                return 'Admin';
+            case 'user':
+                return 'User';
+            default:
+                return role;
         }
     };
 
@@ -273,40 +342,121 @@ export default function ManageAdminsPage() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Quản lý Admin</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">Quản lý Quyền Người dùng</h1>
                     <p className="text-muted-foreground mt-2">
-                        Quản lý tài khoản quản trị viên hệ thống
+                        Thăng/hạ cấp quyền người dùng - Dữ liệu thời gian thực từ MongoDB Database
                     </p>
                 </div>
-                <Button
-                    onClick={() => setShowAddAdminDialog(true)}
-                    className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Thêm Quản trị viên
-                </Button>
             </div>
+
+            {/* Database connection status */}
+            {!loading && users.length > 0 && (
+                <Card className="border-green-200 bg-green-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 text-green-800">
+                            <CheckCircle className="h-4 w-4" />
+                            <span>Kết nối thành công với MongoDB Database - Hiển thị dữ liệu thực</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Danh sách Quản trị viên</CardTitle>
+                    <CardTitle>Danh sách Người dùng</CardTitle>
                     <CardDescription>
-                        Quản lý và giám sát các tài khoản quản trị viên trong hệ thống
+                        Quản lý quyền và vai trò của tất cả người dùng trong hệ thống
                     </CardDescription>
 
-                    <form onSubmit={handleSearch} className="mt-4 flex w-full max-w-sm items-center space-x-2">
-                        <Input
-                            type="text"
-                            placeholder="Tìm kiếm theo tên hoặc email..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1"
-                        />
-                        <Button type="submit" size="icon">
-                            <Search className="h-4 w-4" />
-                            <span className="sr-only">Tìm kiếm</span>
-                        </Button>
-                    </form>
+                    {/* Filter Controls */}
+                    <div className="mt-4 space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                            <div className="flex items-center gap-2">
+                                <Filter className="h-4 w-4 text-muted-foreground" />
+                                <span className="text-sm font-medium">Bộ lọc:</span>
+                                {activeFiltersCount > 0 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                        {activeFiltersCount} đang áp dụng
+                                    </Badge>
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-3">
+                                {/* Role Filter */}
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-muted-foreground">Vai trò</label>
+                                    <Select value={roleFilter} onValueChange={(value) => {
+                                        setRoleFilter(value);
+                                        setCurrentPage(1);
+                                        updateURLParams({ role: value, page: 1 });
+                                    }}>
+                                        <SelectTrigger className="w-[120px] h-8">
+                                            <SelectValue placeholder="Vai trò" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Tất cả</SelectItem>
+                                            <SelectItem value="user">User</SelectItem>
+                                            <SelectItem value="admin">Admin</SelectItem>
+                                            <SelectItem value="superadmin">Super Admin</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+
+
+                                {/* Date Filter */}
+                                <div className="flex flex-col gap-1">
+                                    <label className="text-xs text-muted-foreground">Thời gian tạo</label>
+                                    <Select value={dateFilter} onValueChange={(value) => {
+                                        setDateFilter(value);
+                                        setCurrentPage(1);
+                                        updateURLParams({ dateRange: value, page: 1 });
+                                    }}>
+                                        <SelectTrigger className="w-[140px] h-8">
+                                            <SelectValue placeholder="Thời gian" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Tất cả thời gian</SelectItem>
+                                            <SelectItem value="7days">7 ngày qua</SelectItem>
+                                            <SelectItem value="30days">30 ngày qua</SelectItem>
+                                            <SelectItem value="90days">90 ngày qua</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Reset Filters Button */}
+                                {activeFiltersCount > 0 && (
+                                    <div className="flex flex-col gap-1">
+                                        <label className="text-xs text-transparent">Reset</label>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={handleResetFilters}
+                                            className="h-8 px-2"
+                                        >
+                                            <X className="h-3 w-3 mr-1" />
+                                            Reset
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Search Bar */}
+                        <form onSubmit={handleSearch} className="flex w-full max-w-sm items-center space-x-2">
+                            <Input
+                                type="text"
+                                placeholder="Tìm kiếm theo tên hoặc email..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1"
+                            />
+                            <Button type="submit" size="icon">
+                                <Search className="h-4 w-4" />
+                                <span className="sr-only">Tìm kiếm</span>
+                            </Button>
+                        </form>
+                    </div>
                 </CardHeader>
                 <CardContent>
                     <div className="rounded-md border">
@@ -333,26 +483,26 @@ export default function ManageAdminsPage() {
                                             ))}
                                         </TableRow>
                                     ))
-                                ) : admins.length === 0 ? (
+                                ) : users.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={6} className="text-center py-8">
-                                            Không tìm thấy quản trị viên nào
+                                            Không tìm thấy người dùng nào
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    admins.map((admin) => (
-                                        <TableRow key={admin.id}>
+                                    users.map((user) => (
+                                        <TableRow key={user.id}>
                                             <TableCell className="font-medium">
-                                                {admin.firstName} {admin.lastName}
+                                                {user.firstName} {user.lastName}
                                             </TableCell>
-                                            <TableCell>{admin.email}</TableCell>
+                                            <TableCell>{user.email}</TableCell>
                                             <TableCell>
-                                                <Badge variant={getRoleBadgeVariant(admin.role)}>
-                                                    {admin.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                                <Badge variant={getRoleBadgeVariant(user.role)}>
+                                                    {getRoleDisplayName(user.role)}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {admin.active ? (
+                                                {user.active ? (
                                                     <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                                                         Kích hoạt
                                                     </Badge>
@@ -363,7 +513,7 @@ export default function ManageAdminsPage() {
                                                 )}
                                             </TableCell>
                                             <TableCell>
-                                                {formatDate(admin.createdAt)}
+                                                {formatDate(user.createdAt)}
                                             </TableCell>
                                             <TableCell>
                                                 <DropdownMenu>
@@ -374,51 +524,63 @@ export default function ManageAdminsPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuLabel>Hành động</DropdownMenuLabel>
+                                                        <DropdownMenuLabel>Quản lý Quyền</DropdownMenuLabel>
                                                         <DropdownMenuSeparator />
 
-                                                        {/* Không hiển thị tùy chọn hạ cấp cho SuperAdmin */}
-                                                        {admin.role === 'admin' && (
+                                                        {/* Thăng cấp User lên Admin */}
+                                                        {user.role === 'user' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleDemoteAdmin(admin.id)}
-                                                                disabled={processingUser === admin.id}
-                                                                className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
+                                                                onClick={() => handlePromoteToAdmin(user.id)}
+                                                                disabled={processingUser === user.id}
+                                                                className="text-green-600 focus:text-green-600 focus:bg-green-50"
                                                             >
-                                                                <UserMinus className="mr-2 h-4 w-4" />
-                                                                {processingUser === admin.id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
+                                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Thăng cấp lên Admin'}
                                                             </DropdownMenuItem>
                                                         )}
 
-                                                        {/* Không hiển thị tùy chọn kích hoạt/vô hiệu hóa cho chính mình hoặc SuperAdmin khác */}
-                                                        {(admin.role !== 'superadmin' || admin.id === currentUser?.id) && (
+                                                        {/* Hạ cấp Admin xuống User */}
+                                                        {user.role === 'admin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleToggleActive(admin.id, admin.active)}
-                                                                disabled={processingUser === admin.id}
-                                                                className={admin.active ? "text-red-600 focus:text-red-600 focus:bg-red-50" : "text-green-600 focus:text-green-600 focus:bg-green-50"}
+                                                                onClick={() => handleDemoteToUser(user.id)}
+                                                                disabled={processingUser === user.id}
+                                                                className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
                                                             >
-                                                                {admin.active ? (
+                                                                <UserMinus className="mr-2 h-4 w-4" />
+                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
+                                                            </DropdownMenuItem>
+                                                        )}
+
+                                                        {/* Kích hoạt/Vô hiệu hóa tài khoản - Không áp dụng cho SuperAdmin */}
+                                                        {user.role !== 'superadmin' && (
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleToggleActive(user.id, user.active)}
+                                                                disabled={processingUser === user.id}
+                                                                className={user.active ? "text-red-600 focus:text-red-600 focus:bg-red-50" : "text-green-600 focus:text-green-600 focus:bg-green-50"}
+                                                            >
+                                                                {user.active ? (
                                                                     <>
                                                                         <Ban className="mr-2 h-4 w-4" />
-                                                                        {processingUser === admin.id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
                                                                     </>
                                                                 ) : (
                                                                     <>
                                                                         <CheckCircle className="mr-2 h-4 w-4" />
-                                                                        {processingUser === admin.id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
+                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
                                                                     </>
                                                                 )}
                                                             </DropdownMenuItem>
                                                         )}
 
-                                                        {/* Không hiển thị tùy chọn xóa cho SuperAdmin */}
-                                                        {admin.role !== 'superadmin' && (
+                                                        {/* Xóa người dùng - Không áp dụng cho SuperAdmin */}
+                                                        {user.role !== 'superadmin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => confirmDeleteAdmin(admin.id)}
-                                                                disabled={processingUser === admin.id}
+                                                                onClick={() => confirmDeleteUser(user.id)}
+                                                                disabled={processingUser === user.id}
                                                                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                                             >
                                                                 <AlertTriangle className="mr-2 h-4 w-4" />
-                                                                {processingUser === admin.id ? 'Đang xử lý...' : 'Xóa quản trị viên'}
+                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Xóa người dùng'}
                                                             </DropdownMenuItem>
                                                         )}
                                                     </DropdownMenuContent>
@@ -432,7 +594,7 @@ export default function ManageAdminsPage() {
                     </div>
 
                     {/* Pagination */}
-                    {admins.length > 0 && (
+                    {users.length > 0 && (
                         <div className="flex items-center justify-end space-x-2 py-4">
                             <Button
                                 variant="outline"
@@ -460,60 +622,13 @@ export default function ManageAdminsPage() {
                 </CardContent>
             </Card>
 
-            {/* Dialog Thêm admin mới */}
-            <Dialog open={showAddAdminDialog} onOpenChange={setShowAddAdminDialog}>
-                <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                        <DialogTitle>Thêm Quản trị viên mới</DialogTitle>
-                        <DialogDescription>
-                            Nhập thông tin để thêm người dùng mới với vai trò Quản trị viên
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="name" className="text-right font-medium">
-                                Họ tên
-                            </label>
-                            <Input
-                                id="name"
-                                value={newAdminName}
-                                onChange={(e) => setNewAdminName(e.target.value)}
-                                className="col-span-3"
-                                placeholder="Nguyễn Văn A"
-                            />
-                        </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <label htmlFor="email" className="text-right font-medium">
-                                Email
-                            </label>
-                            <Input
-                                id="email"
-                                type="email"
-                                value={newAdminEmail}
-                                onChange={(e) => setNewAdminEmail(e.target.value)}
-                                className="col-span-3"
-                                placeholder="admin@example.com"
-                            />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowAddAdminDialog(false)}>
-                            Hủy
-                        </Button>
-                        <Button onClick={handleAddAdmin} className="bg-red-600 hover:bg-red-700 text-white">
-                            Thêm Quản trị viên
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            {/* Dialog Xác nhận xóa admin */}
+            {/* Dialog Xác nhận xóa người dùng */}
             <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Xác nhận xóa quản trị viên</DialogTitle>
+                        <DialogTitle>Xác nhận xóa người dùng</DialogTitle>
                         <DialogDescription>
-                            Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa quản trị viên này không?
+                            Hành động này không thể hoàn tác. Bạn có chắc chắn muốn xóa người dùng này không?
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -521,17 +636,17 @@ export default function ManageAdminsPage() {
                             variant="outline"
                             onClick={() => {
                                 setShowDeleteConfirm(false);
-                                setSelectedAdminId(null);
+                                setSelectedUserId(null);
                             }}
                         >
                             Hủy
                         </Button>
                         <Button
-                            onClick={handleDeleteAdmin}
+                            onClick={handleDeleteUser}
                             className="bg-red-600 hover:bg-red-700 text-white"
-                            disabled={processingUser === selectedAdminId}
+                            disabled={processingUser === selectedUserId}
                         >
-                            {processingUser === selectedAdminId ? 'Đang xử lý...' : 'Xác nhận xóa'}
+                            {processingUser === selectedUserId ? 'Đang xử lý...' : 'Xác nhận xóa'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

@@ -19,11 +19,13 @@ import {
     getAdminList,
     getAdminActivityLogs,
     getAllAdmins,
+    getAllUsers,
     createAdmin,
     updateAdmin,
     deleteAdmin,
     toggleAdminStatus,
-    resetAdminPassword
+    resetAdminPassword,
+    updateUserRole
 } from '../controllers/adminManagementController.js';
 import {
     getActivityLogs,
@@ -208,6 +210,17 @@ router.patch('/manage/admins/:id/toggle-status', toggleAdminStatus);
  * Reset mật khẩu admin
  */
 router.post('/manage/admins/:id/reset-password', resetAdminPassword);
+
+// === User Management Routes (SuperAdmin only) ===
+/**
+ * Lấy danh sách tất cả người dùng (user, admin, superadmin)
+ */
+router.get('/manage/users', getAllUsers);
+
+/**
+ * Cập nhật role của user
+ */
+router.put('/manage/users/:id', updateUserRole);
 
 // === System Settings Routes ===
 /**

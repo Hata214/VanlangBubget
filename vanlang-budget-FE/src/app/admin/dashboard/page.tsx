@@ -20,9 +20,16 @@ import {
     TrendingUp,
     Database,
     Users,
-    FileText
+    FileText,
+    RefreshCw,
+    AlertTriangle,
+    CheckCircle,
+    Clock,
+    Eye
 } from 'lucide-react'
-import adminService from '@/services/adminService'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
+import { adminService } from '@/services/adminService'
 import { toast } from 'react-hot-toast'
 
 interface DashboardData {
@@ -51,12 +58,118 @@ interface UserInfo {
     role: string;
 }
 
+interface RecentUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    active: boolean;
+    createdAt: string;
+    lastLogin?: string;
+}
+
+interface RecentTransaction {
+    id: string;
+    type: 'income' | 'expense' | 'loan' | 'investment';
+    amount: number;
+    description: string;
+    category: string;
+    date: string;
+    userName: string;
+    userEmail: string;
+    createdAt: string;
+}
+
 export default function AdminDashboardPage() {
     const t = useTranslations()
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+    const [recentUsers, setRecentUsers] = useState<RecentUser[]>([])
+    const [recentTransactions, setRecentTransactions] = useState<RecentTransaction[]>([])
     const [loading, setLoading] = useState(true)
+    const [loadingUsers, setLoadingUsers] = useState(false)
+    const [loadingTransactions, setLoadingTransactions] = useState(false)
     const [user, setUser] = useState<UserInfo | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [autoRefresh, setAutoRefresh] = useState(false)
+    const [lastRefresh, setLastRefresh] = useState<Date | null>(null)
+
+    // Load dashboard data from backend
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const response = await adminService.getDashboardData()
+
+            if (response.status === 'success' && response.data) {
+                setDashboardData(response.data)
+                setLastRefresh(new Date())
+                toast.success('Tải dữ liệu dashboard thành công')
+            } else {
+                throw new Error('Invalid response format')
+            }
+        } catch (err: any) {
+            console.error('Lỗi khi tải dữ liệu dashboard:', err)
+            setError('Không thể tải dữ liệu dashboard từ server')
+            toast.error(err.response?.data?.message || 'Không thể kết nối với backend')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    // Load recent users from backend
+    const fetchRecentUsers = async () => {
+        try {
+            setLoadingUsers(true)
+            const response = await adminService.getUsers({
+                page: 1,
+                limit: 5,
+                sortBy: 'createdAt',
+                sortDirection: 'desc'
+            })
+
+            if (response.status === 'success' && response.data) {
+                setRecentUsers(response.data)
+            }
+        } catch (err: any) {
+            console.error('Lỗi khi tải danh sách người dùng:', err)
+            toast.error('Không thể tải danh sách người dùng gần đây')
+        } finally {
+            setLoadingUsers(false)
+        }
+    }
+
+    // Load recent transactions from backend
+    const fetchRecentTransactions = async () => {
+        try {
+            setLoadingTransactions(true)
+            const response = await adminService.getAllTransactions({
+                page: 1,
+                limit: 5,
+                sortBy: 'createdAt',
+                sortOrder: 'desc'
+            })
+
+            if (response.status === 'success' && response.data) {
+                setRecentTransactions(response.data.transactions)
+            }
+        } catch (err: any) {
+            console.error('Lỗi khi tải danh sách giao dịch:', err)
+            toast.error('Không thể tải danh sách giao dịch gần đây')
+        } finally {
+            setLoadingTransactions(false)
+        }
+    }
+
+    // Refresh all data
+    const refreshAllData = async () => {
+        await Promise.all([
+            fetchDashboardData(),
+            fetchRecentUsers(),
+            fetchRecentTransactions()
+        ])
+    }
 
     useEffect(() => {
         // Lấy thông tin người dùng từ localStorage
@@ -71,59 +184,23 @@ export default function AdminDashboardPage() {
                     email: userEmail,
                     role: userRole
                 });
-                console.log('Đã tải thông tin người dùng từ localStorage:', userName, userEmail, userRole);
             }
         }
 
-        const fetchDashboardData = async () => {
-            try {
-                setLoading(true)
-                setError(null)
-
-                const response = await adminService.getDashboardData()
-
-                if (response.status === 'success' && response.data) {
-                    setDashboardData(response.data)
-                } else {
-                    throw new Error('Invalid response format')
-                }
-            } catch (err: any) {
-                console.error('Lỗi khi tải dữ liệu dashboard:', err)
-                setError('Không thể tải dữ liệu dashboard')
-
-                // Fallback data for development
-                setDashboardData({
-                    users: {
-                        total: 1250,
-                        new: 45,
-                        active: 843,
-                        admin: 3,
-                        byRole: [
-                            { _id: 'user', count: 1244 },
-                            { _id: 'admin', count: 5 },
-                            { _id: 'superadmin', count: 1 }
-                        ]
-                    },
-                    financialData: {
-                        incomes: 2847,
-                        expenses: 3921,
-                        loans: 156,
-                        budgets: 89
-                    },
-                    adminActivity: {
-                        recent: [],
-                        period: '7 ngày qua'
-                    }
-                })
-
-                toast.error('Sử dụng dữ liệu mẫu do không thể kết nối backend')
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchDashboardData()
+        // Load initial data
+        refreshAllData()
     }, [])
+
+    // Auto-refresh functionality
+    useEffect(() => {
+        if (!autoRefresh) return
+
+        const interval = setInterval(() => {
+            refreshAllData()
+        }, 30000) // Refresh every 30 seconds
+
+        return () => clearInterval(interval)
+    }, [autoRefresh])
 
     const stats_cards = dashboardData ? [
         {
@@ -184,13 +261,58 @@ export default function AdminDashboardPage() {
         }
     ] : []
 
+    // Show error state if failed to load data
+    if (!loading && error && !dashboardData) {
+        return (
+            <div className="space-y-6 p-6">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                        <p className="text-muted-foreground mt-2">
+                            Không thể kết nối với backend database
+                        </p>
+                    </div>
+                    <Button onClick={refreshAllData} variant="outline" size="sm">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Thử lại
+                    </Button>
+                </div>
+
+                <Card className="border-red-200 bg-red-50">
+                    <CardContent className="pt-6">
+                        <div className="flex items-center gap-2 text-red-800">
+                            <AlertTriangle className="h-4 w-4" />
+                            <span>{error}. Vui lòng kiểm tra kết nối backend và thử lại.</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6 p-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.dashboard')}</h1>
-                <p className="text-muted-foreground mt-2">
-                    {t('admin.dashboardDescription')}
-                </p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                    <p className="text-muted-foreground mt-2">
+                        Dữ liệu thời gian thực từ MongoDB Database
+                    </p>
+                </div>
+                <div className="flex gap-2">
+                    <Button
+                        onClick={() => setAutoRefresh(!autoRefresh)}
+                        variant={autoRefresh ? "default" : "outline"}
+                        size="sm"
+                    >
+                        <Activity className={`h-4 w-4 mr-2 ${autoRefresh ? 'animate-pulse' : ''}`} />
+                        {autoRefresh ? 'Tự động làm mới' : 'Bật tự động làm mới'}
+                    </Button>
+                    <Button onClick={refreshAllData} variant="outline" size="sm" disabled={loading}>
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                        {loading ? 'Đang tải...' : 'Làm mới'}
+                    </Button>
+                </div>
             </div>
 
             {/* Thêm thông tin người dùng đăng nhập */}
@@ -223,17 +345,40 @@ export default function AdminDashboardPage() {
                 </Card>
             )}
 
-            {/* Error Display */}
-            {error && (
-                <Card className="border-red-200 bg-red-50">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center space-x-2 text-red-600">
-                            <Activity className="h-4 w-4" />
-                            <span className="text-sm font-medium">{error}</span>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Status indicators */}
+            <div className="space-y-4">
+                {/* Backend connection status */}
+                {!error && dashboardData && (
+                    <Card className="border-green-200 bg-green-50">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-green-800">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>Kết nối thành công với MongoDB Database - Dữ liệu thời gian thực</span>
+                                </div>
+                                {lastRefresh && (
+                                    <div className="flex items-center gap-1 text-green-600 text-sm">
+                                        <Clock className="h-3 w-3" />
+                                        <span>Cập nhật: {lastRefresh.toLocaleTimeString()}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
+                {/* Error Display */}
+                {error && dashboardData && (
+                    <Card className="border-orange-200 bg-orange-50">
+                        <CardContent className="pt-6">
+                            <div className="flex items-center space-x-2 text-orange-800">
+                                <AlertTriangle className="h-4 w-4" />
+                                <span className="text-sm font-medium">Một số dữ liệu có thể không cập nhật: {error}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
 
             {/* Statistics Cards */}
             <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -374,6 +519,162 @@ export default function AdminDashboardPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Recent Data Tables */}
+            <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
+                {/* Recent Users */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Người dùng gần đây</CardTitle>
+                                <CardDescription>
+                                    5 người dùng đăng ký mới nhất
+                                </CardDescription>
+                            </div>
+                            <Button
+                                onClick={fetchRecentUsers}
+                                variant="outline"
+                                size="sm"
+                                disabled={loadingUsers}
+                            >
+                                <RefreshCw className={`h-4 w-4 ${loadingUsers ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {loadingUsers ? (
+                            <div className="space-y-3">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 border rounded">
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-32 bg-muted animate-pulse rounded"></div>
+                                            <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
+                                        </div>
+                                        <div className="h-6 w-16 bg-muted animate-pulse rounded"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : recentUsers.length > 0 ? (
+                            <div className="space-y-3">
+                                {recentUsers.map((user) => (
+                                    <div key={user.id} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">
+                                                    {user.firstName} {user.lastName}
+                                                </span>
+                                                <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
+                                                    {user.role}
+                                                </Badge>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {user.email}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                Đăng ký: {new Date(user.createdAt).toLocaleDateString('vi-VN')}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Badge variant={user.active ? 'default' : 'destructive'}>
+                                                {user.active ? 'Hoạt động' : 'Không hoạt động'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                <p className="text-muted-foreground text-sm">
+                                    Chưa có người dùng nào
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* Recent Transactions */}
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Giao dịch gần đây</CardTitle>
+                                <CardDescription>
+                                    5 giao dịch mới nhất trong hệ thống
+                                </CardDescription>
+                            </div>
+                            <Button
+                                onClick={fetchRecentTransactions}
+                                variant="outline"
+                                size="sm"
+                                disabled={loadingTransactions}
+                            >
+                                <RefreshCw className={`h-4 w-4 ${loadingTransactions ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {loadingTransactions ? (
+                            <div className="space-y-3">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between p-3 border rounded">
+                                        <div className="space-y-2">
+                                            <div className="h-4 w-32 bg-muted animate-pulse rounded"></div>
+                                            <div className="h-3 w-24 bg-muted animate-pulse rounded"></div>
+                                        </div>
+                                        <div className="h-6 w-20 bg-muted animate-pulse rounded"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : recentTransactions.length > 0 ? (
+                            <div className="space-y-3">
+                                {recentTransactions.map((transaction) => (
+                                    <div key={transaction.id} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                                        <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-medium">
+                                                    {transaction.description}
+                                                </span>
+                                                <Badge variant={
+                                                    transaction.type === 'income' ? 'default' :
+                                                        transaction.type === 'expense' ? 'destructive' :
+                                                            transaction.type === 'loan' ? 'secondary' : 'outline'
+                                                }>
+                                                    {transaction.type === 'income' ? 'Thu nhập' :
+                                                        transaction.type === 'expense' ? 'Chi tiêu' :
+                                                            transaction.type === 'loan' ? 'Khoản vay' : 'Đầu tư'}
+                                                </Badge>
+                                            </div>
+                                            <div className="text-sm text-muted-foreground">
+                                                {transaction.userName} • {transaction.category}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {new Date(transaction.date).toLocaleDateString('vi-VN')}
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <div className={`font-bold ${transaction.type === 'income' ? 'text-green-600' :
+                                                    transaction.type === 'expense' ? 'text-red-600' :
+                                                        'text-blue-600'
+                                                }`}>
+                                                {transaction.amount.toLocaleString('vi-VN')} ₫
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-8">
+                                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+                                <p className="text-muted-foreground text-sm">
+                                    Chưa có giao dịch nào
+                                </p>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
-} 
+}

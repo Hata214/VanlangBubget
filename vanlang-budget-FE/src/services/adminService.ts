@@ -99,46 +99,22 @@ export const adminService = {
         return response.data;
     },
 
+
+
     /**
-     * Tạo admin mới (SuperAdmin only)
+     * Lấy danh sách người dùng với phân trang và filter
      */
-    async createAdmin(adminData: {
-        email: string;
-        password: string;
-        firstName: string;
-        lastName: string;
-        phoneNumber?: string;
+    async getUsers(options?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        role?: string;
+        status?: string;
+        sortBy?: string;
+        sortDirection?: string;
     }) {
-        const response = await api.post('/api/admin/manage/create', adminData);
-        return response.data;
-    },
-
-    /**
-     * Cập nhật thông tin admin (SuperAdmin only)
-     */
-    async updateAdmin(adminId: string, adminData: {
-        firstName?: string;
-        lastName?: string;
-        phoneNumber?: string;
-        email?: string;
-    }) {
-        const response = await api.put(`/api/admin/manage/update/${adminId}`, adminData);
-        return response.data;
-    },
-
-    /**
-     * Xóa admin (SuperAdmin only)
-     */
-    async deleteAdmin(adminId: string) {
-        const response = await api.delete(`/api/admin/manage/delete/${adminId}`);
-        return response.data;
-    },
-
-    /**
-     * Kích hoạt/vô hiệu hóa admin (SuperAdmin only)
-     */
-    async toggleAdminStatus(adminId: string) {
-        const response = await api.patch(`/api/admin/manage/toggle-status/${adminId}`);
+        const params = options || {};
+        const response = await api.get('/api/admin/users', { params });
         return response.data;
     },
 
@@ -288,10 +264,13 @@ export const adminService = {
         lastName: string;
         email: string;
         password: string;
-        role: 'admin' | 'superadmin';
-        status: 'active' | 'inactive' | 'suspended';
+        role?: 'admin' | 'superadmin';
+        phoneNumber?: string;
     }) {
-        const response = await api.post('/api/admin/manage/admins', adminData);
+        const response = await api.post('/api/admin/manage/admins', {
+            ...adminData,
+            role: adminData.role || 'admin'
+        });
         return response.data;
     },
 
@@ -311,10 +290,51 @@ export const adminService = {
     },
 
     /**
+     * Xóa admin
+     */
+    async deleteAdmin(adminId: string) {
+        const response = await api.delete(`/api/admin/manage/admins/${adminId}`);
+        return response.data;
+    },
+
+    /**
+     * Toggle trạng thái admin
+     */
+    async toggleAdminStatus(adminId: string) {
+        const response = await api.patch(`/api/admin/manage/admins/${adminId}/toggle-status`);
+        return response.data;
+    },
+
+    /**
      * Reset mật khẩu admin
      */
     async resetAdminPassword(adminId: string) {
         const response = await api.post(`/api/admin/manage/admins/${adminId}/reset-password`);
+        return response.data;
+    },
+
+    /**
+     * Lấy danh sách tất cả người dùng (bao gồm user, admin, superadmin)
+     */
+    async getAllUsers(options?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        role?: string;
+        dateRange?: string;
+        sortBy?: string;
+        sortOrder?: string;
+    }) {
+        const params = options || {};
+        const response = await api.get('/api/admin/manage/users', { params });
+        return response.data;
+    },
+
+    /**
+     * Cập nhật role của user
+     */
+    async updateUserRole(userId: string, role: 'user' | 'admin' | 'superadmin') {
+        const response = await api.put(`/api/admin/manage/users/${userId}`, { role });
         return response.data;
     },
 

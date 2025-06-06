@@ -489,3 +489,200 @@ export const resetAdminPassword = catchAsync(async (req, res, next) => {
         }
     });
 });
+
+/**
+ * Lấy danh sách tất cả người dùng (SuperAdmin only) - New function
+ */
+export const getAllUsers = catchAsync(async (req, res, next) => {
+    // Kiểm tra quyền SuperAdmin
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền truy cập', 403));
+    }
+
+    const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+        dateRange,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build filter - Lấy tất cả users (user, admin, superadmin)
+    let filter = {};
+
+    if (search) {
+        filter.$or = [
+            { firstName: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    if (role && role !== 'all') {
+        filter.role = role;
+    }
+
+    // Add date range filter
+    if (dateRange && dateRange !== 'all') {
+        const now = new Date();
+        let startDate;
+
+        switch (dateRange) {
+            case '7days':
+                startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+                break;
+            case '30days':
+                startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+                break;
+            case '90days':
+                startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+                break;
+            default:
+                startDate = null;
+        }
+
+        if (startDate) {
+            filter.createdAt = { $gte: startDate };
+        }
+    }
+
+    // Get users with pagination
+    const users = await User
+        .find(filter)
+        .select('-password -passwordResetToken -passwordResetExpires')
+        .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+    const totalUsers = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalUsers / limitNum);
+
+    // Calculate stats
+    const stats = {
+        totalUsers: await User.countDocuments({}),
+        activeUsers: await User.countDocuments({ active: true, suspended: { $ne: true } }),
+        admins: await User.countDocuments({ role: 'admin' }),
+        superAdmins: await User.countDocuments({ role: 'superadmin' }),
+        regularUsers: await User.countDocuments({ role: 'user' })
+    };
+
+    // Format user data
+    const formattedUsers = users.map(user => ({
+        id: user._id.toString(),
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        active: user.active !== false, // Default to true if not set
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+        loginCount: user.loginCount || 0
+    }));
+
+    // Log admin activity
+    await AdminActivityLogger.logSystemAction(
+        req.user.id,
+        'USER_LIST_VIEW',
+        {
+            filters: { search, role, dateRange },
+            page: pageNum,
+            limit: limitNum,
+            totalResults: totalUsers
+        },
+        'SUCCESS',
+        req
+    );
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            users: formattedUsers,
+            stats
+        },
+        pagination: {
+            page: pageNum,
+            totalPages,
+            total: totalUsers,
+            hasNext: pageNum < totalPages,
+            hasPrev: pageNum > 1
+        }
+    });
+});
+
+/**
+ * Cập nhật role của user (SuperAdmin only) - New function
+ */
+export const updateUserRole = catchAsync(async (req, res, next) => {
+    // Kiểm tra quyền SuperAdmin
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền thay đổi role', 403));
+    }
+
+    const { id } = req.params;
+    const { role } = req.body;
+
+    // Validate role
+    if (!['user', 'admin', 'superadmin'].includes(role)) {
+        return next(new AppError('Role không hợp lệ', 400));
+    }
+
+    // Tìm user cần cập nhật
+    const user = await User.findById(id);
+    if (!user) {
+        return next(new AppError('Không tìm thấy người dùng', 404));
+    }
+
+    // Không cho phép thay đổi role của SuperAdmin
+    if (user.role === 'superadmin') {
+        return next(new AppError('Không thể thay đổi role của SuperAdmin', 403));
+    }
+
+    // Kiểm tra giới hạn admin nếu thăng cấp lên admin
+    if (role === 'admin' && user.role !== 'admin') {
+        const adminCount = await User.countDocuments({ role: 'admin' });
+        if (adminCount >= 3) {
+            return next(new AppError('Đã đạt giới hạn tối đa 3 admin trong hệ thống', 400));
+        }
+    }
+
+    // Lưu thông tin cũ để ghi log
+    const oldRole = user.role;
+
+    // Cập nhật role
+    user.role = role;
+    await user.save();
+
+    logger.info(`Đã cập nhật role của user ${user.email} từ ${oldRole} thành ${role}`);
+
+    // Log admin activity
+    await AdminActivityLogger.logSystemAction(
+        req.user.id,
+        'USER_ROLE_UPDATE',
+        {
+            targetUserId: id,
+            targetUserEmail: user.email,
+            oldRole,
+            newRole: role
+        },
+        'SUCCESS',
+        req
+    );
+
+    res.status(200).json({
+        status: 'success',
+        message: `Đã cập nhật role thành công từ ${oldRole} thành ${role}`,
+        data: {
+            id: user._id,
+            email: user.email,
+            role: user.role
+        }
+    });
+});
