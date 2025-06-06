@@ -24,15 +24,6 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
     const filterAdminId = req.user.role === 'admin' ? req.user.id : adminId;
 
     try {
-        console.log('🔍 Activity logs query params:', {
-            adminId: filterAdminId,
-            actionType,
-            targetType,
-            startDate,
-            endDate,
-            page: parseInt(page),
-            limit: parseInt(limit)
-        });
 
         const result = await AdminActivityLogger.getLogs({
             adminId: filterAdminId,
@@ -44,12 +35,7 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
             limit: parseInt(limit)
         });
 
-        console.log('📊 Activity logs result:', {
-            totalLogs: result.total,
-            logsCount: result.logs?.length,
-            page: result.page,
-            totalPages: result.totalPages
-        });
+
 
         // Log việc xem activity logs
         await AdminActivityLogger.logSystemAction(
@@ -73,7 +59,6 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
         });
     } catch (error) {
         logger.error('Error fetching activity logs:', error);
-        console.error('❌ Activity logs error details:', error);
         return next(new AppError('Không thể lấy danh sách hoạt động', 500));
     }
 });

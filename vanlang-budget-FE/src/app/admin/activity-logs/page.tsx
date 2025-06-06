@@ -156,17 +156,10 @@ export default function ActivityLogsPage() {
             // Gọi adminService để lấy lịch sử hoạt động
             const response = await adminService.getActivityLogs(options);
 
-            console.log('📊 Activity logs response:', response);
-
             if (response.status === 'success') {
                 setActivityLogs(response.data || []);
                 setTotalPages(response.pagination?.totalPages || 1);
-                console.log('✅ Activity logs loaded:', response.data?.length, 'logs');
-                console.log('🔍 First log sample:', response.data?.[0]);
-                console.log('🔍 Action field:', response.data?.[0]?.action || response.data?.[0]?.actionType);
-                console.log('🔍 Admin field:', response.data?.[0]?.adminId);
             } else {
-                console.error('Lỗi khi lấy lịch sử hoạt động:', response.message);
                 toast.error('Không thể tải lịch sử hoạt động');
             }
         } catch (error: any) {

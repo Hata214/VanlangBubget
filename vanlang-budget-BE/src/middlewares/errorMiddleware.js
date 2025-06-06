@@ -190,26 +190,15 @@ export const errorHandler = (err, req, res, next) => {
 
     // Giảm thiểu log cho các yêu cầu API
     if (!isApiRequest) {
-        console.log('Error handler triggered, error:', err.message);
+        logger.debug('Error handler triggered:', err.message);
     }
 
     err.statusCode = err.statusCode || 500;
 
     // Phân biệt môi trường để xử lý lỗi phù hợp
     if (process.env.NODE_ENV === 'development') {
-        // Trong môi trường development, chỉ log lỗi chi tiết cho các request không phải API
-        if (!isApiRequest) {
-            console.error('Detailed error:', {
-                message: err.message,
-                stack: err.stack?.split('\n').slice(0, 3).join('\n'),
-                name: err.name,
-                code: err.code
-            });
-        }
-
         // Xử lý lỗi CORS trong development mode
         if (err.message && err.message.includes('CORS')) {
-            // console.log('CORS error in development mode, allowing the request to proceed');
             if (next) return next();
         }
 

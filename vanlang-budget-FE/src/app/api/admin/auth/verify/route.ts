@@ -35,11 +35,8 @@ export async function GET(request: NextRequest) {
 
         // Xử lý token giả lập
         if (token.startsWith('mock_')) {
-            console.log('Processing mock token:', token);
-
             // Kiểm tra token giả lập có hợp lệ không
             if (token.includes('superadmin')) {
-                console.log('SUCCESS: Verified mock token with superadmin role');
                 return NextResponse.json({
                     success: true,
                     user: {
@@ -50,7 +47,6 @@ export async function GET(request: NextRequest) {
                     }
                 });
             } else if (token.includes('admin')) {
-                console.log('SUCCESS: Verified mock token with admin role');
                 return NextResponse.json({
                     success: true,
                     user: {
@@ -61,7 +57,6 @@ export async function GET(request: NextRequest) {
                     }
                 });
             } else {
-                console.log('ERROR: Invalid mock token role');
                 return NextResponse.json({
                     success: false,
                     error: 'Token không hợp lệ'

@@ -17,11 +17,13 @@ import logger from '../utils/logger.js';
 import { adminDashboard } from '../controllers/adminController.js';
 import {
     getAdminList,
+    getAdminActivityLogs,
+    getAllAdmins,
     createAdmin,
     updateAdmin,
     deleteAdmin,
     toggleAdminStatus,
-    getAdminActivityLogs
+    resetAdminPassword
 } from '../controllers/adminManagementController.js';
 import {
     getActivityLogs,
@@ -29,8 +31,38 @@ import {
     getLogsByAction,
     getLogsByDateRange
 } from '../controllers/activityLogController.js';
+import {
+    getAllTransactions,
+    getTransactionById,
+    updateTransaction,
+    deleteTransaction,
+    exportTransactions
+} from '../controllers/adminTransactionController.js';
+import {
+    getSystemSettings,
+    updateSystemSettings,
+    testEmailConfig,
+    createBackup,
+    restoreFromBackup
+} from '../controllers/systemSettingsController.js';
+import multer from 'multer';
 
 const router = express.Router();
+
+// Configure multer for file uploads
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'application/json') {
+            cb(null, true);
+        } else {
+            cb(new Error('Only JSON files are allowed'), false);
+        }
+    }
+});
 
 console.log('AdminRoutes được tạo ✅');
 
@@ -120,6 +152,89 @@ router.get('/activity-logs/:adminId', getAdminActivityLogs);
 // === Dashboard Route ===
 router.get('/dashboard', adminDashboard);
 
+// === Transaction Management Routes ===
+/**
+ * Lấy danh sách tất cả giao dịch với phân trang và filter
+ */
+router.get('/transactions', getAllTransactions);
+
+/**
+ * Xuất dữ liệu giao dịch ra CSV
+ */
+router.get('/transactions/export', exportTransactions);
+
+/**
+ * Lấy chi tiết một giao dịch
+ */
+router.get('/transactions/:id', getTransactionById);
+
+/**
+ * Cập nhật giao dịch
+ */
+router.put('/transactions/:id', updateTransaction);
+
+/**
+ * Xóa giao dịch
+ */
+router.delete('/transactions/:id', deleteTransaction);
+
+// === Admin Management Routes (SuperAdmin only) ===
+/**
+ * Lấy danh sách tất cả admin users
+ */
+router.get('/manage/admins', getAllAdmins);
+
+/**
+ * Tạo admin mới
+ */
+router.post('/manage/admins', createAdmin);
+
+/**
+ * Cập nhật thông tin admin
+ */
+router.put('/manage/admins/:id', updateAdmin);
+
+/**
+ * Xóa admin
+ */
+router.delete('/manage/admins/:id', deleteAdmin);
+
+/**
+ * Toggle trạng thái admin
+ */
+router.patch('/manage/admins/:id/toggle-status', toggleAdminStatus);
+
+/**
+ * Reset mật khẩu admin
+ */
+router.post('/manage/admins/:id/reset-password', resetAdminPassword);
+
+// === System Settings Routes ===
+/**
+ * Lấy cài đặt hệ thống
+ */
+router.get('/settings', getSystemSettings);
+
+/**
+ * Cập nhật cài đặt hệ thống
+ */
+router.put('/settings', updateSystemSettings);
+
+/**
+ * Kiểm tra cấu hình email
+ */
+router.post('/settings/test-email', testEmailConfig);
+
+/**
+ * Tạo backup hệ thống
+ */
+router.post('/settings/backup', createBackup);
+
+/**
+ * Khôi phục từ backup
+ */
+router.post('/settings/restore', upload.single('backup'), restoreFromBackup);
+
 // === Test Route ===
 router.get('/test-logs', async (req, res) => {
     try {
@@ -159,7 +274,6 @@ router.get('/test-logs', async (req, res) => {
                 }
 
                 await AdminActivityLog.insertMany(sampleLogs);
-                console.log(`✅ Created ${sampleLogs.length} sample logs`);
             }
         }
 
@@ -177,7 +291,7 @@ router.get('/test-logs', async (req, res) => {
             sampleLogs: logs
         });
     } catch (error) {
-        console.error('❌ Test logs error:', error);
+        logger.error('Test logs error:', error);
         res.status(500).json({
             success: false,
             error: error.message

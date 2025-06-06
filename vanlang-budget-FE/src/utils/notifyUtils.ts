@@ -315,7 +315,6 @@ export const getNotificationTypeIcon = (type: NotificationType): string => {
  * @returns Socket đã kết nối
  */
 export const connectSocket = (token?: string): Socket => {
-    console.warn('connectSocket() đã bị deprecated, vui lòng sử dụng initializeSocket() thay thế');
     return initializeSocket();
 };
 
@@ -324,6 +323,5 @@ export const connectSocket = (token?: string): Socket => {
  * Hàm này chỉ được giữ lại để tương thích ngược với mã cũ
  */
 export const disconnectSocket = (): void => {
-    console.warn('disconnectSocket() đã bị deprecated, vui lòng sử dụng closeSocket() thay thế');
     closeSocket();
-}; 
+};

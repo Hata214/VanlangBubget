@@ -1296,6 +1296,46 @@
             "created": "Created Date",
             "createNew": "Create New",
             "actions": "Actions"
+        },
+        "transactions": {
+            "title": "Transaction Management",
+            "description": "Manage all user transactions in the system",
+            "totalIncome": "Total Income",
+            "totalExpense": "Total Expense",
+            "totalLoans": "Total Loans",
+            "totalInvestments": "Total Investments",
+            "transactionCount": "Transaction Count",
+            "filters": "Filters",
+            "search": "Search",
+            "type": "Transaction Type",
+            "dateRange": "Date Range",
+            "amount": "Amount",
+            "user": "User",
+            "export": "Export Data",
+            "refresh": "Refresh"
+        },
+        "settings": {
+            "title": "System Settings",
+            "description": "Manage system configuration and settings",
+            "general": "General",
+            "security": "Security",
+            "email": "Email",
+            "notifications": "Notifications",
+            "backup": "Backup",
+            "save": "Save Changes",
+            "test": "Test Configuration",
+            "createBackup": "Create Backup Now",
+            "restoreBackup": "Restore Backup"
+        },
+        "manageAdmins": {
+            "title": "Admin Management",
+            "description": "Manage admin accounts and system permissions",
+            "addAdmin": "Add Admin",
+            "editAdmin": "Edit Admin",
+            "deleteAdmin": "Delete Admin",
+            "resetPassword": "Reset Password",
+            "toggleStatus": "Toggle Status",
+            "viewActivity": "View Activity"
         }
     },
     "StockMarketPage": {

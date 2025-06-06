@@ -899,6 +899,46 @@
             "created": "Ngày tạo",
             "createNew": "Tạo mới",
             "actions": "Thao tác"
+        },
+        "transactions": {
+            "title": "Quản lý Giao dịch",
+            "description": "Quản lý tất cả giao dịch của người dùng trong hệ thống",
+            "totalIncome": "Tổng thu nhập",
+            "totalExpense": "Tổng chi tiêu",
+            "totalLoans": "Tổng khoản vay",
+            "totalInvestments": "Tổng đầu tư",
+            "transactionCount": "Số giao dịch",
+            "filters": "Bộ lọc",
+            "search": "Tìm kiếm",
+            "type": "Loại giao dịch",
+            "dateRange": "Thời gian",
+            "amount": "Số tiền",
+            "user": "Người dùng",
+            "export": "Xuất dữ liệu",
+            "refresh": "Làm mới"
+        },
+        "settings": {
+            "title": "Cài đặt Hệ thống",
+            "description": "Quản lý cấu hình và thiết lập hệ thống",
+            "general": "Chung",
+            "security": "Bảo mật",
+            "email": "Email",
+            "notifications": "Thông báo",
+            "backup": "Backup",
+            "save": "Lưu thay đổi",
+            "test": "Kiểm tra cấu hình",
+            "createBackup": "Tạo backup ngay",
+            "restoreBackup": "Khôi phục backup"
+        },
+        "manageAdmins": {
+            "title": "Quản lý Admin",
+            "description": "Quản lý tài khoản admin và phân quyền hệ thống",
+            "addAdmin": "Thêm Admin",
+            "editAdmin": "Chỉnh sửa Admin",
+            "deleteAdmin": "Xóa Admin",
+            "resetPassword": "Reset mật khẩu",
+            "toggleStatus": "Thay đổi trạng thái",
+            "viewActivity": "Xem hoạt động"
         }
     },
     "footer": {

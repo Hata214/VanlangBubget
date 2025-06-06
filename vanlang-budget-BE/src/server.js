@@ -84,42 +84,9 @@ app.options('*', cors(corsOptions)); // Xử lý OPTIONS trước
 
 app.use(cors(corsOptions)); // Áp dụng CORS cho các request khác
 
-// Log mọi request đến server (sau CORS)
-app.use((req, res, next) => {
-    console.log(`Incoming Request (@server.js): ${req.method} ${req.originalUrl}`);
-    next();
-});
-
-// Debug middleware for agent requests (BEFORE body parser)
-app.use('/api/agent', (req, res, next) => {
-    console.log('🔍 Agent Request Debug (BEFORE Body Parser):', {
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-        rawBody: req.body,
-        contentType: req.headers['content-type'],
-        contentLength: req.headers['content-length']
-    });
-    next();
-});
-
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
-// Debug middleware for agent requests (AFTER body parser)
-app.use('/api/agent', (req, res, next) => {
-    console.log('🔍 Agent Request Debug (After Body Parser):', {
-        method: req.method,
-        url: req.url,
-        headers: req.headers,
-        parsedBody: req.body,
-        bodyKeys: Object.keys(req.body || {}),
-        contentType: req.headers['content-type'],
-        contentLength: req.headers['content-length']
-    });
-    next();
-});
 
 // Socket middleware cho real-time communication
 app.use(socketMiddleware);

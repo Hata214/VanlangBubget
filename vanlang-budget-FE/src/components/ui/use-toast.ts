@@ -5,10 +5,10 @@ export interface ToastProps {
     duration?: number;
 }
 
-// Simple toast function that logs to console
+// Simple toast function
 export const toast = {
     // Show a toast with description
     description(description: string, duration = 2000) {
-        console.log(`TOAST: ${description} (Duration: ${duration}ms)`);
+        // Toast implementation would go here
     }
-}; 
+};

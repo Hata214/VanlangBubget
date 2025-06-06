@@ -1879,7 +1879,7 @@ router.post('/enhanced', chatbotRateLimit, authenticateToken, async (req, res) =
 
     } catch (error) {
         const responseTime = Date.now() - startTime;
-        console.error('Enhanced Chatbot Error:', error);
+        logger.error('Enhanced Chatbot Error:', error);
 
         let errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại sau.';
 
@@ -2086,7 +2086,7 @@ router.post('/chatbot', authenticateToken, async (req, res) => {
 
         const fullResponse = await result.response;
         if (fullResponse.promptFeedback && fullResponse.promptFeedback.blockReason) {
-            console.warn('Legacy Chatbot API: Prompt was blocked by Gemini.', {
+            logger.warn('Legacy Chatbot API: Prompt was blocked by Gemini.', {
                 reason: fullResponse.promptFeedback.blockReason,
                 ratings: fullResponse.promptFeedback.safetyRatings,
             });

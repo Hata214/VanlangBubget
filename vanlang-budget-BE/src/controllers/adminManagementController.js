@@ -1,9 +1,10 @@
 import User from '../models/userModel.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
-import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
 import logger from '../utils/logger.js';
+import AdminActivityLogger from '../utils/adminActivityLogger.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import ActivityLog from '../models/activityLogModel.js';
 
 /**
@@ -323,4 +324,168 @@ export const getAdminActivityLogs = catchAsync(async (req, res, next) => {
         limit,
         data: logs,
     });
-}); 
+});
+
+/**
+ * Lấy danh sách tất cả admin users (SuperAdmin only) - New function
+ */
+export const getAllAdmins = catchAsync(async (req, res, next) => {
+    // Kiểm tra quyền SuperAdmin
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền truy cập', 403));
+    }
+
+    const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+        status,
+        sortBy = 'createdAt',
+        sortOrder = 'desc'
+    } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build filter
+    let filter = {
+        role: { $in: ['admin', 'superadmin'] }
+    };
+
+    if (search) {
+        filter.$or = [
+            { firstName: { $regex: search, $options: 'i' } },
+            { lastName: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    if (role && role !== 'all') {
+        filter.role = role;
+    }
+
+    if (status && status !== 'all') {
+        const statusMap = {
+            active: { active: true, suspended: { $ne: true } },
+            inactive: { active: false },
+            suspended: { suspended: true }
+        };
+        filter = { ...filter, ...statusMap[status] };
+    }
+
+    // Get admins with pagination
+    const admins = await User
+        .find(filter)
+        .select('-password -passwordResetToken -passwordResetExpires')
+        .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+    const totalAdmins = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalAdmins / limitNum);
+
+    // Calculate stats
+    const stats = {
+        totalAdmins: await User.countDocuments({ role: { $in: ['admin', 'superadmin'] } }),
+        activeAdmins: await User.countDocuments({
+            role: { $in: ['admin', 'superadmin'] },
+            active: true,
+            suspended: { $ne: true }
+        }),
+        superAdmins: await User.countDocuments({ role: 'superadmin' }),
+        recentLogins: await User.countDocuments({
+            role: { $in: ['admin', 'superadmin'] },
+            lastLogin: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        })
+    };
+
+    // Format admin data
+    const formattedAdmins = admins.map(admin => ({
+        id: admin._id.toString(),
+        firstName: admin.firstName,
+        lastName: admin.lastName,
+        email: admin.email,
+        role: admin.role,
+        status: admin.suspended ? 'suspended' : (admin.active ? 'active' : 'inactive'),
+        lastLogin: admin.lastLogin,
+        createdAt: admin.createdAt,
+        updatedAt: admin.updatedAt,
+        loginCount: admin.loginCount || 0,
+        permissions: admin.permissions || []
+    }));
+
+    // Log admin activity
+    await AdminActivityLogger.logSystemAction(
+        req.user.id,
+        'ADMIN_LIST_VIEW',
+        {
+            filters: { search, role, status },
+            page: pageNum,
+            limit: limitNum
+        },
+        'SUCCESS',
+        req
+    );
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            admins: formattedAdmins,
+            stats
+        },
+        pagination: {
+            page: pageNum,
+            totalPages,
+            total: totalAdmins,
+            hasNext: pageNum < totalPages,
+            hasPrev: pageNum > 1
+        }
+    });
+});
+
+/**
+ * Reset mật khẩu admin (SuperAdmin only) - New function
+ */
+export const resetAdminPassword = catchAsync(async (req, res, next) => {
+    // Kiểm tra quyền SuperAdmin
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có quyền reset mật khẩu admin', 403));
+    }
+
+    const { id } = req.params;
+
+    const admin = await User.findById(id);
+    if (!admin || !['admin', 'superadmin'].includes(admin.role)) {
+        return next(new AppError('Không tìm thấy admin', 404));
+    }
+
+    // Generate new password
+    const newPassword = crypto.randomBytes(8).toString('hex');
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    admin.password = hashedPassword;
+    admin.passwordChangedAt = new Date();
+    await admin.save();
+
+    // Log admin activity
+    await AdminActivityLogger.logSystemAction(
+        req.user.id,
+        'ADMIN_PASSWORD_RESET',
+        {
+            targetAdminId: id,
+            targetAdminEmail: admin.email
+        },
+        'SUCCESS',
+        req
+    );
+
+    res.status(200).json({
+        status: 'success',
+        data: {
+            newPassword
+        }
+    });
+});

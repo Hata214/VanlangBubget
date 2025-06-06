@@ -148,11 +148,8 @@ const adminLimiter = rateLimit({
 // API version
 const API_VERSION = '1.0.0';
 
-// Log mọi request đến server
+// Add API version header to response
 app.use((req, res, next) => {
-    console.log(`Incoming Request: ${req.method} ${req.originalUrl}`);
-
-    // Thêm header API version vào response
     res.setHeader('X-API-Version', API_VERSION);
 
     // Ghi log chi tiết hơn cho các request đến khu vực admin
@@ -164,7 +161,6 @@ app.use((req, res, next) => {
 });
 
 // API routes
-console.log('Đăng ký các routes API...');
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/budgets', budgetRoutes);
@@ -176,11 +172,9 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/loan-payments', loanPaymentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/investments', investmentRoutes);
-console.log('Route investments đã đăng ký ✅');
 
 // Áp dụng giới hạn tốc độ nghiêm ngặt hơn cho khu vực admin
 app.use('/api/admin', adminLimiter, adminRoutes);
-console.log('Route admin đã đăng ký với bảo mật tăng cường ✅');
 
 // import statsRoutes from './routes/statsRoutes.js';
 // app.use('/api/stats', statsRoutes);
@@ -234,8 +228,7 @@ app.get('/api/health', (req, res) => {
 
 // Catch-all middleware ở cấp độ app
 app.use((req, res, next) => {
-    console.log('App-level catch-all middleware matched:', req.method, req.originalUrl);
-    res.status(404).send('Not Found - App Catch-all');
+    res.status(404).send('Not Found');
 });
 
 // Error handler middleware

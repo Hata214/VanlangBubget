@@ -46,7 +46,7 @@ export async function getAllStocks() {
 
         return await response.json();
     } catch (error) {
-        console.error('Lỗi khi lấy danh sách cổ phiếu:', error);
+        // Silent error handling
 
         // Trả về danh sách mặc định nếu API không hoạt động
         return {

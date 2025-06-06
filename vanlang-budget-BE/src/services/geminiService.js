@@ -162,14 +162,14 @@ REFUSE to answer questions about: politics, religion, sports, news, weather, hea
                 },
             });
 
-            console.log(`🤖 GeminiService: Generating response with model ${this.defaultModel}`);
-            console.log(`📝 Prompt length: ${prompt.length} characters`);
+            logger.debug(`GeminiService: Generating response with model ${this.defaultModel}`);
+            logger.debug(`Prompt length: ${prompt.length} characters`);
 
             const result = await model.generateContent(prompt);
             const response = await result.response;
 
             if (response.promptFeedback && response.promptFeedback.blockReason) {
-                console.warn('🚫 GeminiService: Prompt was blocked', {
+                logger.warn('GeminiService: Prompt was blocked', {
                     reason: response.promptFeedback.blockReason,
                     ratings: response.promptFeedback.safetyRatings,
                 });

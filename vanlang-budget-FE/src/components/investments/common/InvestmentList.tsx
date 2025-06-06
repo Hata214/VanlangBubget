@@ -154,13 +154,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
 
     const allInvestments = investments;
 
-    // Debug log investments
-    console.log('InvestmentList render với:', {
-        investmentsCount: investments.length,
-        firstInvestment: investments.length > 0 ? investments[0] : null,
-        keys: investments.length > 0 ? Object.keys(investments[0]) : [],
-        hasId: investments.length > 0 ? Boolean(investments[0].id || investments[0]._id) : false
-    });
+
 
     const handleDelete = async () => {
         if (!selectedInvestment) return;
@@ -169,13 +163,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
             // Xác định ID chính xác, ưu tiên _id trước id vì có thể là MongoDB ObjectId
             const investmentId = selectedInvestment._id || selectedInvestment.id;
 
-            // Logging chi tiết để debug
-            console.log('Xóa khoản đầu tư với:', {
-                investmentData: selectedInvestment,
-                selectedId: investmentId,
-                hasId: Boolean(selectedInvestment.id),
-                has_id: Boolean(selectedInvestment._id)
-            });
+
 
             if (!investmentId) {
                 console.error('Không tìm thấy ID hợp lệ cho khoản đầu tư');
@@ -191,8 +179,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
             // Gọi API xóa
             const result = await deleteInvestment(investmentId);
 
-            // Thêm logging để kiểm tra kết quả
-            console.log('Kết quả xóa khoản đầu tư:', result);
+
 
             toast({
                 title: t('deleteSuccess'),
@@ -459,7 +446,6 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end">
                                             <DropdownMenuItem onClick={() => {
-                                                console.log('Mở chi tiết cho investment:', investment);
                                                 setSelectedInvestment(investment);
                                                 if (investment.type === 'savings') {
                                                     setIsSavingsDetailsOpen(true);
@@ -471,7 +457,6 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
                                                 {t('viewDetails')}
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onClick={() => {
-                                                console.log('Thêm giao dịch cho investment:', investment);
                                                 setSelectedInvestment(investment);
                                                 setIsAddTransactionOpen(true);
                                             }}>

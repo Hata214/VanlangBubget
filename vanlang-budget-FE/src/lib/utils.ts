@@ -8,7 +8,6 @@ export function cn(...inputs: ClassValue[]) {
 export function formatCurrency(amount: number): string {
     // Kiểm tra đầu vào trước khi định dạng
     if (amount === null || amount === undefined || isNaN(amount)) {
-        console.warn('Invalid amount value for formatCurrency:', amount);
         return "0 đ"; // Trả về 0 đồng nếu giá trị không hợp lệ
     }
 

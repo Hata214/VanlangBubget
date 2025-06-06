@@ -37,12 +37,10 @@ const NotificationBell: React.FC = () => {
     // Force re-fetch khi component mount và mỗi 15 giây
     useEffect(() => {
         // Fetch lần đầu ngay lập tức
-        console.log('Component mounted, fetching notifications...');
         fetchNotifications();
 
         // Thiết lập interval ngắn hơn (15 giây) để kiểm tra thường xuyên
         const interval = setInterval(() => {
-            console.log('Interval triggered, fetching notifications...');
             fetchNotifications();
         }, 15000);
 
@@ -51,12 +49,10 @@ const NotificationBell: React.FC = () => {
 
     // Khởi tạo socket connection
     useEffect(() => {
-        console.log('Initializing socket...');
         initializeSocket();
 
         return () => {
             if (socket) {
-                console.log('Disconnecting socket...');
                 socket.disconnect();
             }
         };
@@ -71,9 +67,7 @@ const NotificationBell: React.FC = () => {
                 return notRead;
             }).length;
 
-            console.log(`Tính toán lại số thông báo chưa đọc: ${count} từ ${items.length} thông báo`);
             if (count !== unreadCount) {
-                console.log('Cập nhật số thông báo chưa đọc:', count);
                 setUnreadCount(count);
             }
         }
@@ -90,9 +84,7 @@ const NotificationBell: React.FC = () => {
                 lastFetchTime: startTime.toLocaleTimeString()
             }));
 
-            console.log('Đang lấy thông báo từ server...');
             const response = await notificationService.getNotifications();
-            console.log('Kết quả từ API:', response);
 
             // Lưu response để debug
             setDebugInfo(prev => ({
@@ -112,15 +104,12 @@ const NotificationBell: React.FC = () => {
                     createdAt: item.createdAt || new Date().toISOString()
                 }));
 
-                console.log('Đã xử lý dữ liệu:', mappedItems.length, 'thông báo');
                 setItems(mappedItems);
 
                 // Đếm số thông báo chưa đọc
                 const unread = mappedItems.filter(item => {
                     return item.isRead === false || item.read === false;
                 }).length;
-
-                console.log('Số thông báo chưa đọc:', unread, '/', mappedItems.length);
                 setUnreadCount(unread);
                 setLastFetched(new Date());
             } else {
@@ -140,7 +129,6 @@ const NotificationBell: React.FC = () => {
     const initializeSocket = () => {
         try {
             const token = getToken();
-            console.log('Khởi tạo socket với token:', token ? 'Có token' : 'Không có token');
 
             const newSocket = io(API_URL, {
                 auth: { token },
@@ -148,7 +136,6 @@ const NotificationBell: React.FC = () => {
             });
 
             newSocket.on('connect', () => {
-                console.log('Socket đã kết nối thành công');
                 setDebugInfo(prev => ({
                     ...prev,
                     socketConnected: true
@@ -156,7 +143,6 @@ const NotificationBell: React.FC = () => {
             });
 
             newSocket.on('disconnect', () => {
-                console.log('Socket đã ngắt kết nối');
                 setDebugInfo(prev => ({
                     ...prev,
                     socketConnected: false
@@ -164,7 +150,6 @@ const NotificationBell: React.FC = () => {
             });
 
             newSocket.on('newNotification', (notification: Notification) => {
-                console.log('Nhận thông báo mới qua socket:', notification);
                 // Thêm vào đầu danh sách và đánh dấu là chưa đọc
                 const newNotification = {
                     ...notification,
@@ -187,12 +172,10 @@ const NotificationBell: React.FC = () => {
 
             // Lắng nghe các sự kiện khác
             newSocket.on('incomeAdded', () => {
-                console.log('Nhận sự kiện thêm thu nhập mới, đang làm mới thông báo...');
                 fetchNotifications();
             });
 
             newSocket.on('expenseAdded', () => {
-                console.log('Nhận sự kiện thêm chi tiêu mới, đang làm mới thông báo...');
                 fetchNotifications();
             });
 

@@ -197,6 +197,175 @@ export const adminService = {
         window.URL.revokeObjectURL(url);
 
         return { success: true, message: 'Xuất dữ liệu thành công' };
+    },
+
+    // === Transaction Management ===
+    /**
+     * Lấy danh sách tất cả giao dịch
+     */
+    async getAllTransactions(options?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        type?: string;
+        dateRange?: string;
+        userId?: string;
+        amountRange?: string;
+        sortBy?: string;
+        sortOrder?: string;
+    }) {
+        const params = options || {};
+        const response = await api.get('/api/admin/transactions', { params });
+        return response.data;
+    },
+
+    /**
+     * Lấy chi tiết một giao dịch
+     */
+    async getTransactionById(transactionId: string, type?: string) {
+        const params = type ? { type } : {};
+        const response = await api.get(`/api/admin/transactions/${transactionId}`, { params });
+        return response.data;
+    },
+
+    /**
+     * Cập nhật giao dịch
+     */
+    async updateTransaction(transactionId: string, type: string, updateData: any) {
+        const response = await api.put(`/api/admin/transactions/${transactionId}?type=${type}`, updateData);
+        return response.data;
+    },
+
+    /**
+     * Xóa giao dịch
+     */
+    async deleteTransaction(transactionId: string, type: string) {
+        const response = await api.delete(`/api/admin/transactions/${transactionId}?type=${type}`);
+        return response.data;
+    },
+
+    /**
+     * Xuất dữ liệu giao dịch
+     */
+    async exportTransactions(options?: {
+        search?: string;
+        type?: string;
+        dateRange?: string;
+        userId?: string;
+        amountRange?: string;
+    }) {
+        const params = options || {};
+        const response = await api.get('/api/admin/transactions/export', {
+            params,
+            responseType: 'blob'
+        });
+        return response;
+    },
+
+    // === Admin Management (SuperAdmin only) ===
+    /**
+     * Lấy danh sách tất cả admin users
+     */
+    async getAllAdmins(options?: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        role?: string;
+        status?: string;
+        sortBy?: string;
+        sortOrder?: string;
+    }) {
+        const params = options || {};
+        const response = await api.get('/api/admin/manage/admins', { params });
+        return response.data;
+    },
+
+    /**
+     * Tạo admin mới
+     */
+    async createAdmin(adminData: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        password: string;
+        role: 'admin' | 'superadmin';
+        status: 'active' | 'inactive' | 'suspended';
+    }) {
+        const response = await api.post('/api/admin/manage/admins', adminData);
+        return response.data;
+    },
+
+    /**
+     * Cập nhật thông tin admin
+     */
+    async updateAdmin(adminId: string, updateData: {
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        password?: string;
+        role?: 'admin' | 'superadmin';
+        status?: 'active' | 'inactive' | 'suspended';
+    }) {
+        const response = await api.put(`/api/admin/manage/admins/${adminId}`, updateData);
+        return response.data;
+    },
+
+    /**
+     * Reset mật khẩu admin
+     */
+    async resetAdminPassword(adminId: string) {
+        const response = await api.post(`/api/admin/manage/admins/${adminId}/reset-password`);
+        return response.data;
+    },
+
+    // === System Settings ===
+    /**
+     * Lấy cài đặt hệ thống
+     */
+    async getSystemSettings() {
+        const response = await api.get('/api/admin/settings');
+        return response.data;
+    },
+
+    /**
+     * Cập nhật cài đặt hệ thống
+     */
+    async updateSystemSettings(settings: any) {
+        const response = await api.put('/api/admin/settings', { settings });
+        return response.data;
+    },
+
+    /**
+     * Kiểm tra cấu hình email
+     */
+    async testEmailConfig(emailConfig: any) {
+        const response = await api.post('/api/admin/settings/test-email', { emailConfig });
+        return response.data;
+    },
+
+    /**
+     * Tạo backup hệ thống
+     */
+    async createBackup() {
+        const response = await api.post('/api/admin/settings/backup', {}, {
+            responseType: 'blob'
+        });
+        return response;
+    },
+
+    /**
+     * Khôi phục từ backup
+     */
+    async restoreFromBackup(file: File) {
+        const formData = new FormData();
+        formData.append('backup', file);
+
+        const response = await api.post('/api/admin/settings/restore', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
     }
 };
 

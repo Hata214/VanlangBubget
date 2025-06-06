@@ -268,22 +268,16 @@ class CacheService {
      */
     cleanup() {
         try {
-            const beforeKeys = this.memoryCache.getStats().keys;
-
             // node-cache tự động xóa expired entries, chúng ta chỉ cần kiểm tra stats
             // Hoặc có thể flush một số entries cũ nếu cần
             const stats = this.memoryCache.getStats();
 
             // Log thông tin cache hiện tại
             if (stats.keys > 1000) { // Nếu có quá nhiều keys
-                console.log(`CacheService: Cache has ${stats.keys} keys, consider manual cleanup`);
                 // Có thể thêm logic cleanup thủ công ở đây nếu cần
             }
-
-            const afterKeys = this.memoryCache.getStats().keys;
-            console.log(`CacheService: Cache stats - Keys: ${afterKeys}, Hits: ${stats.hits}, Misses: ${stats.misses}`);
         } catch (error) {
-            console.error('CacheService: Cleanup error:', error);
+            // Silent error handling for cache cleanup
         }
     }
 
@@ -294,12 +288,10 @@ class CacheService {
         try {
             if (this.redisClient) {
                 await this.redisClient.quit();
-                console.log('CacheService: Redis connection closed');
             }
             this.memoryCache.close();
-            console.log('CacheService: Memory cache closed');
         } catch (error) {
-            console.error('CacheService: Shutdown error:', error);
+            // Silent error handling for cache shutdown
         }
     }
 }

@@ -119,10 +119,6 @@ router.post('/:type/restore/:version', superAdminOnly, restoreContentVersion);
 // Cập nhật nội dung theo loại (bao gồm homepage)
 router.put('/:type', updateSiteContentByType);
 
-// Catch-all route để debug
-router.get('*', (req, res) => {
-    console.log('Catch-all route matched:', req.originalUrl);
-    res.status(404).send('Not Found - Catch-all');
-});
+
 
 export default router;

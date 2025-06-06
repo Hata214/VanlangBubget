@@ -81,8 +81,6 @@ export async function createInvestment(investment: Omit<Investment, 'id'>): Prom
         // Tạo ID ngẫu nhiên
         const id = Math.random().toString(36).substring(2, 15);
 
-        console.log('Đã tạo đầu tư mới:', { ...investment, id });
-
         // Giả lập độ trễ mạng
         await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -92,7 +90,7 @@ export async function createInvestment(investment: Omit<Investment, 'id'>): Prom
             id
         };
     } catch (error) {
-        console.error('Lỗi khi tạo đầu tư:', error);
+        // Silent error handling
         throw new Error('Không thể tạo đầu tư. Vui lòng thử lại sau.');
     }
 }

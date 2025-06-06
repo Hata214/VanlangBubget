@@ -11,9 +11,7 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix",
-    "test:chatbot": "node test-enhanced-chatbot.js",
-    "test:agent": "node src/agent/test-agent.js"
+    "lint:fix": "eslint src/ --fix"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
