@@ -3424,8 +3424,14 @@ Giao dịch đã được thêm vào hệ thống.`;
         const summary = financialData.summary || {};
         const balance = (summary.totalIncomes || 0) - (summary.totalExpenses || 0);
 
+        // Get current date and time
+        const currentDateTime = this.getCurrentDateTime();
+
         const prompt = `
 Bạn là VanLang Agent trong AI Mode - một trợ lý AI thông minh có thể trả lời MỌI câu hỏi. Người dùng đã bật AI Mode và hỏi: "${aiQuery}"
+
+**THÔNG TIN THỜI GIAN HIỆN TẠI:**
+${currentDateTime}
 
 **Thông tin tài chính của người dùng (để tham khảo khi cần):**
 - Tổng thu nhập: ${(summary.totalIncomes || 0).toLocaleString('vi-VN')} VND

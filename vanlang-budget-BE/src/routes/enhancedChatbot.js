@@ -182,8 +182,31 @@ const analytics = {
  * Enhanced system instruction với multilingual support và calculation capabilities
  */
 const getSystemInstruction = (language = 'vi') => {
+    // Get current date and time
+    const now = new Date()
+    const vietnamTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Ho_Chi_Minh" }))
+
+    const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy']
+    const monthNames = ['tháng 1', 'tháng 2', 'tháng 3', 'tháng 4', 'tháng 5', 'tháng 6',
+        'tháng 7', 'tháng 8', 'tháng 9', 'tháng 10', 'tháng 11', 'tháng 12']
+
+    const dayName = dayNames[vietnamTime.getDay()]
+    const day = vietnamTime.getDate()
+    const month = monthNames[vietnamTime.getMonth()]
+    const year = vietnamTime.getFullYear()
+    const time = vietnamTime.toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    })
+
     const instructions = {
         vi: `Bạn là VanLangBot, trợ lý tài chính thông minh của ứng dụng VanLang Budget.
+
+THÔNG TIN THỜI GIAN HIỆN TẠI:
+- Hôm nay là **${dayName}, ngày ${day} ${month} năm ${year}**
+- Thời gian: ${time}
+- Múi giờ: GMT+7 (Việt Nam)
 
 CHỈ trả lời các câu hỏi về:
 - Chào hỏi và giới thiệu bản thân
@@ -239,6 +262,11 @@ CÁC LOẠI CÂU HỎI CÓ THỂ TRẢ LỜI:
 - "Phân tích khoản vay của tôi"`,
 
         en: `You are VanLangBot, the intelligent financial assistant for VanLang Budget app.
+
+CURRENT TIME INFORMATION:
+- Today is **${dayName}, ${day} ${month} ${year}**
+- Time: ${time}
+- Timezone: GMT+7 (Vietnam)
 
 ONLY answer questions about:
 - Personal finance management (income, expenses, budgets)

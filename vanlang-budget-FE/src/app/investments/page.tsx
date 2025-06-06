@@ -38,7 +38,7 @@ export default function InvestmentsPage() {
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [error, setError] = useState<Error | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
-    const [showDebug, setShowDebug] = useState(false); // Debug mode - tắt mặc định
+
     const [authChecked, setAuthChecked] = useState(false);
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
@@ -176,26 +176,7 @@ export default function InvestmentsPage() {
         });
     };
 
-    // Debug component để hiển thị raw data
-    const DebugInvestments = ({ data }: { data: any[] }) => {
-        if (!showDebug) return null;
 
-        return (
-            <div className="mt-4 p-4 bg-gray-100 rounded-md">
-                <div className="flex justify-between mb-2">
-                    <h3 className="font-bold">{t('debug.title')} ({data.length} {t('debug.items')})</h3>
-                    <Button size="sm" onClick={() => setShowDebug(false)}>{t('debug.close')}</Button>
-                </div>
-                {data.length === 0 ? (
-                    <p className="text-red-500">{t('debug.noData')}</p>
-                ) : (
-                    <pre className="text-xs overflow-auto max-h-40 bg-gray-900 text-white p-2 rounded">
-                        {JSON.stringify(data, null, 2)}
-                    </pre>
-                )}
-            </div>
-        );
-    };
 
     // Hàm lọc các khoản đầu tư theo loại
     const getFilteredInvestments = () => {

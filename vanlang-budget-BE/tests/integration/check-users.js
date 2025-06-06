@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: './vanlang-budget-BE/.env' });
+dotenv.config({ path: '../../.env' });
 
 // Import models
 const userSchema = new mongoose.Schema({}, { strict: false });
@@ -31,15 +31,15 @@ async function checkUsers() {
         for (const user of users) {
             const incomes = await Income.find({ userId: user._id });
             const expenses = await Expense.find({ userId: user._id });
-            
+
             const totalIncome = incomes.reduce((sum, inc) => sum + (inc.amount || 0), 0);
             const totalExpense = expenses.reduce((sum, exp) => sum + (exp.amount || 0), 0);
-            
+
             console.log(`\n👤 ${user.email}:`);
             console.log(`  - Incomes: ${incomes.length} records, Total: ${totalIncome.toLocaleString('vi-VN')} VND`);
             console.log(`  - Expenses: ${expenses.length} records, Total: ${totalExpense.toLocaleString('vi-VN')} VND`);
             console.log(`  - Net: ${(totalIncome - totalExpense).toLocaleString('vi-VN')} VND`);
-            
+
             if (incomes.length > 0) {
                 console.log(`  - Sample income:`, incomes[0]);
             }
