@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { useAppSelector } from '@/redux/hooks'
 import api from '@/services/api'
@@ -65,7 +65,8 @@ import {
     Ban,
     CheckCircle,
     RefreshCw,
-    FileUp
+    FileUp,
+    X
 } from 'lucide-react'
 import { format } from 'date-fns'
 import userService from '@/services/userService'
@@ -78,6 +79,7 @@ interface UserData {
     lastName: string
     role: string
     active: boolean
+    isEmailVerified: boolean
     createdAt: string
     lastLogin?: string
 }
@@ -114,11 +116,15 @@ export default function AdminUsersPage() {
         role: 'user'
     })
 
+    // Ref để maintain focus trên search input
+    const searchInputRef = useRef<HTMLInputElement>(null)
+
     const isSuperAdmin = currentUser?.role === 'superadmin'
 
+    // Load users khi component mount và khi pagination/sorting thay đổi
     useEffect(() => {
-        fetchUsers()
-    }, [currentPage, searchTerm, roleFilter, statusFilter, sortBy, sortDirection])
+        fetchUsersWithParams(currentPage, searchTerm, roleFilter, statusFilter, sortBy, sortDirection)
+    }, [currentPage, sortBy, sortDirection]) // Không include fetchUsersWithParams để tránh infinite loop
 
     useEffect(() => {
         const currentUserRole = localStorage.getItem('user_role');
@@ -127,36 +133,57 @@ export default function AdminUsersPage() {
         console.log('Is SuperAdmin:', isSuperAdminUser);
     }, []);
 
-    const fetchUsers = async () => {
+    // Function để fetch users với parameters cụ thể (tránh dependency issues)
+    const fetchUsersWithParams = useCallback(async (
+        page = currentPage,
+        search = searchTerm,
+        role = roleFilter,
+        status = statusFilter,
+        sort = sortBy,
+        direction = sortDirection
+    ) => {
         try {
             setLoading(true)
             const response = await userService.getUsers({
-                page: currentPage,
+                page,
                 limit: 10,
-                search: searchTerm,
-                role: roleFilter,
-                status: statusFilter,
-                sortBy,
-                sortDirection
+                search: search.trim(),
+                role,
+                status,
+                sortBy: sort,
+                sortDirection: direction
             })
 
             // Handle response format from backend
             if (response.success && response.data) {
-                setUsers(response.data.map((user: any) => ({
+                const mappedUsers = response.data.map((user: any) => ({
                     id: user._id,
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     role: user.role,
-                    active: user.active,
+                    active: user.active !== undefined ? user.active : true, // Default to true if undefined
+                    isEmailVerified: user.isEmailVerified || false,
                     createdAt: user.createdAt,
                     lastLogin: user.lastLogin
-                })))
+                }))
+                setUsers(mappedUsers)
                 setTotalUsers(response.total || response.data.length)
                 setTotalPages(response.totalPages || Math.ceil((response.total || response.data.length) / 10))
             } else {
                 // Fallback for different response format
-                setUsers(response.data || [])
+                const mappedUsers = (response.data || []).map((user: any) => ({
+                    id: user._id || user.id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    role: user.role,
+                    active: user.active !== undefined ? user.active : true, // Default to true if undefined
+                    isEmailVerified: user.isEmailVerified || false,
+                    createdAt: user.createdAt,
+                    lastLogin: user.lastLogin
+                }))
+                setUsers(mappedUsers)
                 setTotalUsers(response.totalCount || response.total || response.data?.length || 0)
                 setTotalPages(Math.ceil((response.totalCount || response.total || response.data?.length || 0) / 10))
             }
@@ -167,14 +194,67 @@ export default function AdminUsersPage() {
             toast.error(errorMessage)
         } finally {
             setLoading(false)
+            // Maintain focus trên search input sau khi API call hoàn thành
+            if (searchInputRef.current && document.activeElement !== searchInputRef.current) {
+                // Chỉ restore focus nếu user đang focus vào search input trước đó
+                const wasSearchFocused = document.activeElement?.getAttribute('data-search-input') === 'true'
+                if (wasSearchFocused) {
+                    setTimeout(() => {
+                        searchInputRef.current?.focus()
+                    }, 0)
+                }
+            }
         }
+    }, []) // Empty dependencies vì chúng ta truyền tất cả params vào function
+
+    // Wrapper function để giữ tương thích với code hiện tại
+    const fetchUsers = () => {
+        fetchUsersWithParams(currentPage, searchTerm, roleFilter, statusFilter, sortBy, sortDirection)
     }
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault()
         setCurrentPage(1)  // Reset về trang đầu tiên khi tìm kiếm
-        fetchUsers()
+        fetchUsersWithParams(1, searchTerm, roleFilter, statusFilter, sortBy, sortDirection)
     }
+
+    // Function để clear search term
+    const handleClearSearch = () => {
+        setSearchTerm('')
+        setCurrentPage(1)
+        fetchUsersWithParams(1, '', roleFilter, statusFilter, sortBy, sortDirection)
+        // Focus lại vào search input sau khi clear
+        setTimeout(() => {
+            searchInputRef.current?.focus()
+        }, 0)
+    }
+
+    // Debounced search để tự động tìm kiếm khi người dùng nhập (3 giây)
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            // Lưu trạng thái focus trước khi gọi API
+            const wasSearchFocused = document.activeElement === searchInputRef.current
+
+            if (searchTerm.trim() !== '') {
+                setCurrentPage(1)
+                // Gọi fetchUsers với parameters hiện tại
+                fetchUsersWithParams(1, searchTerm.trim(), roleFilter, statusFilter, sortBy, sortDirection)
+            } else if (searchTerm === '') {
+                // Nếu search term rỗng, load lại tất cả users
+                setCurrentPage(1)
+                fetchUsersWithParams(1, '', roleFilter, statusFilter, sortBy, sortDirection)
+            }
+
+            // Restore focus sau khi API call hoàn thành
+            if (wasSearchFocused) {
+                setTimeout(() => {
+                    searchInputRef.current?.focus()
+                }, 100)
+            }
+        }, 1000) // 1000ms (1giây)
+
+        return () => clearTimeout(timeoutId)
+    }, [searchTerm]) // Chỉ depend vào searchTerm để tránh infinite loop
 
     const handleUpdateRole = async () => {
         if (!selectedUser || !selectedUser.role) return
@@ -300,11 +380,18 @@ export default function AdminUsersPage() {
             return
         }
 
+        // Kiểm tra số lượng admin hiện tại
+        const currentAdminCount = users.filter(user => user.role === 'admin').length
+        if (currentAdminCount >= 3) {
+            toast.error('Đã đạt giới hạn tối đa số lượng admin (3)')
+            return
+        }
+
         try {
             setProcessingUser(userId)
             await userService.promoteToAdmin(userId)
             toast.success('Đã thăng cấp người dùng thành Admin')
-            fetchUsers()
+            await fetchUsers() // Refresh data
         } catch (err: any) {
             console.error('Error promoting user:', err)
             const errorMessage = err?.response?.data?.message || 'Không thể thăng cấp người dùng'
@@ -324,7 +411,7 @@ export default function AdminUsersPage() {
             setProcessingUser(userId)
             await userService.demoteFromAdmin(userId)
             toast.success('Đã hạ cấp Admin xuống người dùng thường')
-            fetchUsers()
+            await fetchUsers() // Refresh data
         } catch (err: any) {
             console.error('Error demoting admin:', err)
             const errorMessage = err?.response?.data?.message || 'Không thể hạ cấp Admin'
@@ -337,6 +424,7 @@ export default function AdminUsersPage() {
     const handleToggleUserStatus = async (userId: string, isActive: boolean) => {
         try {
             setProcessingUser(userId)
+
             if (isActive) {
                 await userService.deactivateUser(userId)
                 toast.success('Đã vô hiệu hóa tài khoản người dùng')
@@ -344,7 +432,8 @@ export default function AdminUsersPage() {
                 await userService.activateUser(userId)
                 toast.success('Đã kích hoạt tài khoản người dùng')
             }
-            fetchUsers()
+
+            await fetchUsers() // Refresh data
         } catch (err: any) {
             console.error('Error toggling user status:', err)
             const errorMessage = err?.response?.data?.message || `Không thể ${isActive ? 'vô hiệu hóa' : 'kích hoạt'} tài khoản người dùng`
@@ -356,6 +445,21 @@ export default function AdminUsersPage() {
 
     const handleCreateUser = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        // Validation
+        if (!newUserData.email || !newUserData.firstName || !newUserData.lastName || !newUserData.password) {
+            toast.error('Vui lòng điền đầy đủ thông tin')
+            return
+        }
+
+        // Kiểm tra số lượng admin nếu tạo admin
+        if (newUserData.role === 'admin') {
+            const currentAdminCount = users.filter(user => user.role === 'admin').length
+            if (currentAdminCount >= 3) {
+                toast.error('Đã đạt giới hạn tối đa số lượng admin (3)')
+                return
+            }
+        }
 
         try {
             setLoading(true)
@@ -369,7 +473,7 @@ export default function AdminUsersPage() {
                 password: '',
                 role: 'user'
             })
-            fetchUsers()
+            await fetchUsers() // Refresh data
         } catch (error: any) {
             console.error('Lỗi khi tạo người dùng:', error)
             const errorMessage = error?.response?.data?.message || 'Không thể tạo người dùng mới'
@@ -387,12 +491,13 @@ export default function AdminUsersPage() {
     const handleExportCSV = () => {
         try {
             // Tạo dữ liệu CSV
-            const headers = ['Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Ngày tạo']
+            const headers = ['Họ tên', 'Email', 'Vai trò', 'Trạng thái', 'Xác thực email', 'Ngày tạo']
             const data = users.map(user => [
                 `${user.firstName} ${user.lastName}`,
                 user.email,
                 user.role,
-                user.active ? 'Hoạt động' : 'Vô hiệu',
+                user.active ? 'Hoạt động' : 'Vô hiệu hóa',
+                user.isEmailVerified ? 'Đã xác thực' : 'Chưa xác thực',
                 formatDate(user.createdAt)
             ])
 
@@ -433,14 +538,16 @@ export default function AdminUsersPage() {
                         variant="outline"
                         size="sm"
                         onClick={handleRefresh}
+                        disabled={loading}
                     >
-                        <RefreshCw className="h-4 w-4 mr-2" />
+                        <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                         Làm mới
                     </Button>
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={handleExportCSV}
+                        disabled={loading || users.length === 0}
                     >
                         <Download className="h-4 w-4 mr-2" />
                         Xuất CSV
@@ -449,6 +556,7 @@ export default function AdminUsersPage() {
                         variant="default"
                         size="sm"
                         onClick={() => setShowCreateUserModal(true)}
+                        disabled={loading}
                     >
                         <UserPlus className="h-4 w-4 mr-2" />
                         Tạo người dùng
@@ -462,21 +570,60 @@ export default function AdminUsersPage() {
                         <div>
                             <CardTitle>{t('admin.users.userList')}</CardTitle>
                             <CardDescription>
-                                {t('admin.users.userListDescription')}
+                                {loading ? (
+                                    'Đang tải...'
+                                ) : (
+                                    <>
+                                        {`Tổng cộng ${totalUsers} người dùng`}
+                                        {(searchTerm || roleFilter || statusFilter) && (
+                                            <span className="text-blue-600 dark:text-blue-400">
+                                                {' '}(đã lọc
+                                                {searchTerm && ` theo "${searchTerm}"`}
+                                                {roleFilter && ` vai trò: ${roleFilter}`}
+                                                {statusFilter && ` trạng thái: ${statusFilter === 'active' ? 'hoạt động' : 'vô hiệu hóa'}`}
+                                                )
+                                            </span>
+                                        )}
+                                    </>
+                                )}
                             </CardDescription>
                         </div>
                     </div>
 
                     <div className="flex flex-col md:flex-row gap-4 mt-4">
                         <form onSubmit={handleSearch} className="flex flex-1 max-w-sm items-center space-x-2">
-                            <Input
-                                type="text"
-                                placeholder={t('admin.users.searchPlaceholder')}
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="flex-1"
-                            />
-                            <Button type="submit" size="icon">
+                            <div className="relative flex-1">
+                                <Input
+                                    ref={searchInputRef}
+                                    type="text"
+                                    placeholder={t('admin.users.searchPlaceholder')}
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="pr-8"
+                                    disabled={loading}
+                                    data-search-input="true"
+                                />
+                                {/* Clear icon - chỉ hiển thị khi có text với smooth animation */}
+                                <div className={`absolute right-2 top-1/2 -translate-y-1/2 transition-all duration-200 ${searchTerm ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
+                                    }`}>
+                                    <button
+                                        type="button"
+                                        onClick={handleClearSearch}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault()
+                                                handleClearSearch()
+                                            }
+                                        }}
+                                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                                        aria-label="Xóa tìm kiếm"
+                                        tabIndex={searchTerm ? 0 : -1}
+                                    >
+                                        <X className="h-3 w-3 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300" />
+                                    </button>
+                                </div>
+                            </div>
+                            <Button type="submit" size="icon" disabled={loading}>
                                 <Search className="h-4 w-4" />
                                 <span className="sr-only">{t('common.search')}</span>
                             </Button>
@@ -486,11 +633,13 @@ export default function AdminUsersPage() {
                             <select
                                 value={roleFilter}
                                 onChange={(e) => {
-                                    setRoleFilter(e.target.value)
+                                    const newRole = e.target.value
+                                    setRoleFilter(newRole)
                                     setCurrentPage(1)
-                                    fetchUsers()
+                                    fetchUsersWithParams(1, searchTerm, newRole, statusFilter, sortBy, sortDirection)
                                 }}
                                 className="h-10 w-full md:w-40 rounded-md border border-input bg-background px-3 py-2"
+                                disabled={loading}
                             >
                                 <option value="">Tất cả vai trò</option>
                                 <option value="user">Người dùng</option>
@@ -501,16 +650,36 @@ export default function AdminUsersPage() {
                             <select
                                 value={statusFilter}
                                 onChange={(e) => {
-                                    setStatusFilter(e.target.value)
+                                    const newStatus = e.target.value
+                                    setStatusFilter(newStatus)
                                     setCurrentPage(1)
-                                    fetchUsers()
+                                    fetchUsersWithParams(1, searchTerm, roleFilter, newStatus, sortBy, sortDirection)
                                 }}
                                 className="h-10 w-full md:w-40 rounded-md border border-input bg-background px-3 py-2"
+                                disabled={loading}
                             >
                                 <option value="">Tất cả trạng thái</option>
                                 <option value="active">Hoạt động</option>
                                 <option value="inactive">Vô hiệu hóa</option>
                             </select>
+
+                            {/* Reset filters button - chỉ cho role và status filters */}
+                            {(roleFilter || statusFilter) && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                        setRoleFilter('')
+                                        setStatusFilter('')
+                                        setCurrentPage(1)
+                                        fetchUsersWithParams(1, searchTerm, '', '', sortBy, sortDirection)
+                                    }}
+                                    disabled={loading}
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    Xóa bộ lọc
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </CardHeader>
@@ -522,7 +691,8 @@ export default function AdminUsersPage() {
                                     <TableHead>{t('admin.users.name')}</TableHead>
                                     <TableHead>{t('admin.users.email')}</TableHead>
                                     <TableHead>{t('admin.users.role')}</TableHead>
-                                    <TableHead>{t('admin.users.verified')}</TableHead>
+                                    <TableHead>Trạng thái</TableHead>
+                                    <TableHead>Xác thực email</TableHead>
                                     <TableHead>{t('admin.users.created')}</TableHead>
                                     <TableHead>{t('admin.users.actions')}</TableHead>
                                 </TableRow>
@@ -532,7 +702,7 @@ export default function AdminUsersPage() {
                                     // Loading skeleton
                                     [...Array(5)].map((_, index) => (
                                         <TableRow key={index}>
-                                            {[...Array(6)].map((_, cellIndex) => (
+                                            {[...Array(7)].map((_, cellIndex) => (
                                                 <TableCell key={cellIndex}>
                                                     <div className="h-4 bg-muted animate-pulse rounded"></div>
                                                 </TableCell>
@@ -541,8 +711,35 @@ export default function AdminUsersPage() {
                                     ))
                                 ) : users.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8">
-                                            {t('admin.users.noUsersFound')}
+                                        <TableCell colSpan={7} className="text-center py-8">
+                                            <div className="flex flex-col items-center space-y-2">
+                                                <UserIcon className="h-8 w-8 text-muted-foreground" />
+                                                <p className="text-muted-foreground">
+                                                    {searchTerm || roleFilter || statusFilter
+                                                        ? 'Không tìm thấy người dùng phù hợp với bộ lọc'
+                                                        : 'Chưa có người dùng nào'
+                                                    }
+                                                </p>
+                                                {(searchTerm || roleFilter || statusFilter) && (
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            setSearchTerm('')
+                                                            setRoleFilter('')
+                                                            setStatusFilter('')
+                                                            setCurrentPage(1)
+                                                            fetchUsersWithParams(1, '', '', '', sortBy, sortDirection)
+                                                            // Focus lại vào search input
+                                                            setTimeout(() => {
+                                                                searchInputRef.current?.focus()
+                                                            }, 0)
+                                                        }}
+                                                    >
+                                                        Xóa tất cả bộ lọc
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -558,7 +755,26 @@ export default function AdminUsersPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {user.active ? t('common.yes') : t('common.no')}
+                                                {user.active ? (
+                                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                                        Hoạt động
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                                        Vô hiệu hóa
+                                                    </Badge>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user.isEmailVerified ? (
+                                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                                        Đã xác thực
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                                                        Chưa xác thực
+                                                    </Badge>
+                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {new Date(user.createdAt).toLocaleDateString()}
@@ -579,9 +795,10 @@ export default function AdminUsersPage() {
                                                             {t('admin.users.viewDetails')}
                                                         </DropdownMenuItem>
 
+                                                        {/* Chỉ SuperAdmin mới có quyền thăng/hạ cấp */}
                                                         {isSuperAdmin && user.role !== 'superadmin' && (
                                                             <>
-                                                                {user.role === 'user' ? (
+                                                                {user.role === 'user' && (
                                                                     <DropdownMenuItem
                                                                         onClick={() => handlePromoteUser(user.id)}
                                                                         disabled={processingUser === user.id}
@@ -589,7 +806,8 @@ export default function AdminUsersPage() {
                                                                         <UserCheck className="mr-2 h-4 w-4" />
                                                                         {processingUser === user.id ? 'Đang xử lý...' : 'Nâng cấp lên Admin'}
                                                                     </DropdownMenuItem>
-                                                                ) : user.role === 'admin' && (
+                                                                )}
+                                                                {user.role === 'admin' && (
                                                                     <DropdownMenuItem
                                                                         onClick={() => handleDemoteAdmin(user.id)}
                                                                         disabled={processingUser === user.id}
@@ -601,10 +819,11 @@ export default function AdminUsersPage() {
                                                             </>
                                                         )}
 
-                                                        {(isSuperAdmin || (user.role !== 'admin' && user.role !== 'superadmin')) && (
+                                                        {/* Kích hoạt/Vô hiệu hóa tài khoản - không áp dụng cho SuperAdmin */}
+                                                        {user.role !== 'superadmin' && (
                                                             <DropdownMenuItem
                                                                 onClick={() => handleToggleUserStatus(user.id, user.active)}
-                                                                disabled={processingUser === user.id || user.role === 'superadmin'}
+                                                                disabled={processingUser === user.id}
                                                             >
                                                                 {user.active ? (
                                                                     <>
@@ -630,34 +849,40 @@ export default function AdminUsersPage() {
                     </div>
 
                     {/* Pagination */}
-                    <div className="flex items-center justify-between space-x-2 py-4">
-                        <div>
-                            Hiển thị {users.length} trên tổng số {totalUsers} người dùng
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                                disabled={currentPage <= 1}
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                <span className="sr-only">{t('common.previous')}</span>
-                            </Button>
-                            <div>
-                                {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+                    {(users.length > 0 || totalPages > 1) && (
+                        <div className="flex items-center justify-between py-4">
+                            <div className="text-sm text-muted-foreground">
+                                {loading ? (
+                                    'Đang tải...'
+                                ) : (
+                                    `Hiển thị ${((currentPage - 1) * 10) + 1}-${Math.min(currentPage * 10, totalUsers)} trong tổng số ${totalUsers} người dùng`
+                                )}
                             </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                                disabled={currentPage >= totalPages}
-                            >
-                                <ChevronRight className="h-4 w-4" />
-                                <span className="sr-only">{t('common.next')}</span>
-                            </Button>
+                            <div className="flex items-center space-x-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                    disabled={currentPage <= 1 || loading}
+                                >
+                                    <ChevronLeft className="h-4 w-4" />
+                                    <span className="sr-only">Trang trước</span>
+                                </Button>
+                                <div className="text-sm">
+                                    Trang {currentPage} / {totalPages}
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                    disabled={currentPage >= totalPages || loading}
+                                >
+                                    <ChevronRight className="h-4 w-4" />
+                                    <span className="sr-only">Trang sau</span>
+                                </Button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -685,22 +910,44 @@ export default function AdminUsersPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <div className="text-right font-medium">{t('admin.users.verified')}:</div>
+                                <div className="text-right font-medium">Xác thực email:</div>
                                 <div className="col-span-3">
-                                    {selectedUser.active ? t('common.yes') : t('common.no')}
+                                    {selectedUser.isEmailVerified ? (
+                                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                            Đã xác thực
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                            Chưa xác thực
+                                        </Badge>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <div className="text-right font-medium">Trạng thái tài khoản:</div>
+                                <div className="col-span-3">
+                                    {selectedUser.active ? (
+                                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                            Hoạt động
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                                            Vô hiệu hóa
+                                        </Badge>
+                                    )}
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <div className="text-right font-medium">{t('admin.users.created')}:</div>
                                 <div className="col-span-3">
-                                    {new Date(selectedUser.createdAt).toLocaleDateString()}
+                                    {formatDate(selectedUser.createdAt)}
                                 </div>
                             </div>
                             {selectedUser.lastLogin && (
                                 <div className="grid grid-cols-4 items-center gap-4">
                                     <div className="text-right font-medium">{t('admin.users.lastLogin')}:</div>
                                     <div className="col-span-3">
-                                        {new Date(selectedUser.lastLogin).toLocaleDateString()}
+                                        {formatDate(selectedUser.lastLogin)}
                                     </div>
                                 </div>
                             )}
@@ -792,6 +1039,8 @@ export default function AdminUsersPage() {
                                         value={newUserData.email}
                                         onChange={(e) => setNewUserData({ ...newUserData, email: e.target.value })}
                                         className="w-full"
+                                        placeholder="example@email.com"
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -804,6 +1053,8 @@ export default function AdminUsersPage() {
                                         value={newUserData.firstName}
                                         onChange={(e) => setNewUserData({ ...newUserData, firstName: e.target.value })}
                                         className="w-full"
+                                        placeholder="Nguyễn Văn"
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -816,6 +1067,8 @@ export default function AdminUsersPage() {
                                         value={newUserData.lastName}
                                         onChange={(e) => setNewUserData({ ...newUserData, lastName: e.target.value })}
                                         className="w-full"
+                                        placeholder="An"
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -828,6 +1081,9 @@ export default function AdminUsersPage() {
                                         value={newUserData.password}
                                         onChange={(e) => setNewUserData({ ...newUserData, password: e.target.value })}
                                         className="w-full"
+                                        placeholder="Tối thiểu 6 ký tự"
+                                        minLength={6}
+                                        disabled={loading}
                                         required
                                     />
                                 </div>
@@ -840,10 +1096,10 @@ export default function AdminUsersPage() {
                                         onChange={(e) => setNewUserData({ ...newUserData, role: e.target.value })}
                                         className="w-full rounded-md border border-input bg-background px-3 py-2"
                                         required
+                                        disabled={loading}
                                     >
                                         <option value="user">Người dùng</option>
                                         {isSuperAdmin && <option value="admin">Admin</option>}
-                                        {isSuperAdmin && <option value="superadmin">SuperAdmin</option>}
                                     </select>
                                 </div>
                             </div>

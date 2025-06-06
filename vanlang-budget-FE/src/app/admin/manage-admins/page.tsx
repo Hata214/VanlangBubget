@@ -466,7 +466,6 @@ export default function ManageAdminsPage() {
                                     <TableHead>Tên</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Vai trò</TableHead>
-                                    <TableHead>Trạng thái</TableHead>
                                     <TableHead>Ngày tạo</TableHead>
                                     <TableHead>Hành động</TableHead>
                                 </TableRow>
@@ -476,7 +475,7 @@ export default function ManageAdminsPage() {
                                     // Loading skeleton
                                     [...Array(3)].map((_, index) => (
                                         <TableRow key={index}>
-                                            {[...Array(6)].map((_, cellIndex) => (
+                                            {[...Array(5)].map((_, cellIndex) => (
                                                 <TableCell key={cellIndex}>
                                                     <div className="h-4 bg-muted animate-pulse rounded"></div>
                                                 </TableCell>
@@ -500,17 +499,6 @@ export default function ManageAdminsPage() {
                                                 <Badge variant={getRoleBadgeVariant(user.role)}>
                                                     {getRoleDisplayName(user.role)}
                                                 </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {user.active ? (
-                                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                                                        Kích hoạt
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
-                                                        Vô hiệu hóa
-                                                    </Badge>
-                                                )}
                                             </TableCell>
                                             <TableCell>
                                                 {formatDate(user.createdAt)}

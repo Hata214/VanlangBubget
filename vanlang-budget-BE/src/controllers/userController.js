@@ -282,8 +282,12 @@ export const getAdminUserList = catchAsync(async (req, res, next) => {
         filter.active = false;
     }
 
-    // Đếm tổng số bản ghi theo bộ lọc
-    const total = await User.countDocuments(filter);
+    // Đếm tổng số bản ghi theo bộ lọc - Sử dụng aggregate để bypass middleware
+    const totalResult = await User.aggregate([
+        { $match: filter },
+        { $count: "total" }
+    ]);
+    const total = totalResult.length > 0 ? totalResult[0].total : 0;
 
     // Xây dựng bộ sắp xếp
     const sort = {};
@@ -292,9 +296,9 @@ export const getAdminUserList = catchAsync(async (req, res, next) => {
     // Tính toán phân trang
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Lấy danh sách người dùng
+    // Lấy danh sách người dùng - THÊM +active để bypass middleware filter
     const users = await User.find(filter)
-        .select('-password -refreshToken')
+        .select('-password -refreshToken +active')
         .sort(sort)
         .skip(skip)
         .limit(parseInt(limit));
@@ -638,7 +642,7 @@ export const activateUser = catchAsync(async (req, res, next) => {
         return next(new AppError('ID người dùng không hợp lệ', 400));
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+active');
 
     if (!user) {
         return next(new AppError('Không tìm thấy người dùng', 404));
@@ -680,7 +684,7 @@ export const deactivateUser = catchAsync(async (req, res, next) => {
         return next(new AppError('ID người dùng không hợp lệ', 400));
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select('+active');
 
     if (!user) {
         return next(new AppError('Không tìm thấy người dùng', 404));
