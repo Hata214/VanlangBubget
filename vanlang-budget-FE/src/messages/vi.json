@@ -1266,8 +1266,6 @@
         "addInvestment": "Thêm đầu tư mới",
         "addInvestmentDescription": "Thêm khoản đầu tư mới vào danh sách đầu tư của bạn",
         "closeForm": "Đóng form",
-        "toggleDebugOpen": "Hiện debug",
-        "toggleDebugClose": "Ẩn debug",
         "priceAlerts": "Cảnh báo giá",
         "priceAlertsDescription": "Nhận thông báo khi giá đạt đến ngưỡng mục tiêu",
         "portfolioSummary": "Tổng quan danh mục đầu tư",

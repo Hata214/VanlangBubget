@@ -947,8 +947,6 @@
         "addInvestment": "Add New Investment",
         "addInvestmentDescription": "Add a new investment to your investment list",
         "closeForm": "Close Form",
-        "toggleDebugOpen": "Show Debug",
-        "toggleDebugClose": "Hide Debug",
         "investmentAnalytics": "Investment Analytics",
         "analyticsDescription": "View overview and analysis of your investment portfolio",
         "loading": "Loading...",

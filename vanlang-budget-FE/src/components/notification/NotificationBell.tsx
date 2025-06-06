@@ -206,30 +206,11 @@ const NotificationBell: React.FC = () => {
         }
     };
 
-    // Debug info hiển thị trong console
-    useEffect(() => {
-        console.log('=== DEBUG INFO ===');
-        console.log('Socket connected:', debugInfo.socketConnected);
-        console.log('Last fetch time:', debugInfo.lastFetchTime);
-        console.log('Unread count:', unreadCount);
-        console.log('Total notifications:', items.length);
-        console.log('Last error:', debugInfo.lastError || 'None');
-    }, [debugInfo, unreadCount, items.length]);
 
-    // Force manual refresh button (chỉ hiển thị trong development)
-    const debugButton = process.env.NODE_ENV === 'development' && (
-        <button
-            onClick={fetchNotifications}
-            className="absolute right-0 top-0 text-xs bg-gray-200 px-1 rounded text-gray-600"
-            title="Làm mới thông báo"
-        >
-            ↻
-        </button>
-    );
 
     return (
         <div className="relative group">
-            {debugButton}
+
             <div className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200 relative">
                 <div className="flex items-center">
                     <div className="relative">

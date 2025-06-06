@@ -259,9 +259,7 @@ export default function InvestmentsPage() {
                         <Plus className="h-4 w-4 mr-1" />
                         {showAddForm ? t('closeForm') : t('addInvestment')}
                     </Button>
-                    <Button variant="outline" onClick={() => setShowDebug(!showDebug)}>
-                        {showDebug ? t('toggleDebugClose') : t('toggleDebugOpen')}
-                    </Button>
+
                 </div>
             </div>
 
@@ -330,7 +328,7 @@ export default function InvestmentsPage() {
                 </Card>
             )}
 
-            <DebugInvestments data={processedInvestments} />
+
 
         </div>
     );
