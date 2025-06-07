@@ -474,39 +474,46 @@ export function ExpenseList({ expenses, isLoading, onEdit, onDelete, onRowClick 
                 // Kiểm tra nếu category là undefined hoặc null
                 if (!expense.category) {
                     console.warn('Expense category is undefined or null for expense:', expense);
-                    return t('expense.category.other'); // Trả về loại "Khác" nếu không có category
+                    return t('expense.category.other'); // Mặc định về Khác
                 }
 
-                // Kiểm tra xem category có phải là key chuẩn không (tiếng Anh)
-                const categoryKey = expense.category.toLowerCase();
-                const standardCategories: Record<string, string> = {
-                    'food': 'expense.category.food',
-                    'transport': 'expense.category.transport',
-                    'shopping': 'expense.category.shopping',
-                    'entertainment': 'expense.category.entertainment',
-                    'bills': 'expense.category.bills',
-                    'health': 'expense.category.health',
-                    'education': 'expense.category.education',
-                    'other': 'expense.category.other'
-                };
-
-                // Nếu là key chuẩn, trả về bản dịch tương ứng
-                if (categoryKey in standardCategories) {
-                    return t(standardCategories[categoryKey]);
+                // Ưu tiên kiểm tra các giá trị có thể được lưu trữ (bao gồm cả tiếng Việt)
+                // và ánh xạ chúng tới khóa dịch thuật chuẩn.
+                const categoryKey = expense.category?.toLowerCase();
+                switch (categoryKey) {
+                    case 'food':
+                    case 'ăn uống':
+                        return t('expense.category.food');
+                    case 'transport':
+                    case 'di chuyển':
+                        return t('expense.category.transport');
+                    case 'shopping':
+                    case 'mua sắm':
+                        return t('expense.category.shopping');
+                    case 'entertainment':
+                    case 'giải trí':
+                        return t('expense.category.entertainment');
+                    case 'bills':
+                    case 'hóa đơn':
+                        return t('expense.category.bills');
+                    case 'health':
+                    case 'sức khỏe':
+                        return t('expense.category.health');
+                    case 'education':
+                    case 'giáo dục':
+                        return t('expense.category.education');
+                    case 'other':
+                    case 'khác':
+                        return t('expense.category.other');
+                    default:
+                        // Nếu không khớp, thử tìm một khóa dịch khớp với giá trị gốc
+                        // Điều này hữu ích nếu có danh mục tùy chỉnh đã được dịch
+                        if (expense.category && t(`expense.category.${expense.category.toLowerCase()}`) !== `expense.category.${expense.category.toLowerCase()}`) {
+                            return t(`expense.category.${expense.category.toLowerCase()}`);
+                        }
+                        // Nếu vẫn không tìm thấy, trả về giá trị gốc hoặc một giá trị mặc định
+                        return expense.category || t('expense.category.other');
                 }
-
-                // Kiểm tra các trường hợp đặc biệt (viết hoa)
-                if (expense.category === 'FOOD') return t('expense.category.food');
-                if (expense.category === 'TRANSPORT') return t('expense.category.transport');
-                if (expense.category === 'SHOPPING') return t('expense.category.shopping');
-                if (expense.category === 'ENTERTAINMENT') return t('expense.category.entertainment');
-                if (expense.category === 'BILLS') return t('expense.category.bills');
-                if (expense.category === 'HEALTH') return t('expense.category.health');
-                if (expense.category === 'EDUCATION') return t('expense.category.education');
-                if (expense.category === 'OTHER') return t('expense.category.other');
-
-                // Nếu không phải key chuẩn, trả về giá trị gốc
-                return expense.category;
             },
             className: 'w-32',
             sortable: true,
@@ -685,4 +692,4 @@ export function ExpenseList({ expenses, isLoading, onEdit, onDelete, onRowClick 
             </Modal>
         </div>
     )
-} 
+}
