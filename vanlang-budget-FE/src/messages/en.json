@@ -331,7 +331,7 @@
         "enterDescription": "Enter description",
         "selectCategory": "Select category",
         "enterCustomCategory": "Enter custom category name",
-        "categories": {
+        "category": {
             "salary": "Salary",
             "bonus": "Bonus",
             "investment": "Investment",
