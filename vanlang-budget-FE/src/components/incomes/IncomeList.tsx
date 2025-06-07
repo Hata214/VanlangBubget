@@ -323,22 +323,36 @@ export function IncomeList({ incomes, isLoading, onEdit, onDelete, onRowClick }:
                 }
 
                 // Kiểm tra xem có phải danh mục tiếng Anh không để chuyển đổi
-                switch (income.category) {
-                    case 'SALARY':
+                // Ưu tiên kiểm tra các giá trị có thể được lưu trữ (bao gồm cả tiếng Việt)
+                // và ánh xạ chúng tới khóa dịch thuật chuẩn.
+                const categoryKey = income.category?.toLowerCase();
+                switch (categoryKey) {
+                    case 'salary':
+                    case 'lương':
                         return t('income.category.salary');
-                    case 'BONUS':
+                    case 'bonus':
+                    case 'thưởng':
                         return t('income.category.bonus');
-                    case 'INVESTMENT':
+                    case 'investment':
+                    case 'đầu tư':
                         return t('income.category.investment');
-                    case 'BUSINESS':
+                    case 'business':
+                    case 'kinh doanh':
                         return t('income.category.business');
-                    case 'SAVINGS':
+                    case 'savings':
+                    case 'tiền tiết kiệm':
                         return t('income.category.savings');
-                    case 'OTHER':
-                    case 'Khác':
+                    case 'other':
+                    case 'khác':
                         return t('income.category.other');
                     default:
-                        return income.category;
+                        // Nếu không khớp, thử tìm một khóa dịch khớp với giá trị gốc
+                        // Điều này hữu ích nếu có danh mục tùy chỉnh đã được dịch
+                        if (income.category && t(`income.category.${income.category.toLowerCase()}`) !== `income.category.${income.category.toLowerCase()}`) {
+                            return t(`income.category.${income.category.toLowerCase()}`);
+                        }
+                        // Nếu vẫn không tìm thấy, trả về giá trị gốc hoặc một giá trị mặc định
+                        return income.category || t('income.category.other');
                 }
             },
             className: 'w-32',
@@ -478,4 +492,4 @@ export function IncomeList({ incomes, isLoading, onEdit, onDelete, onRowClick }:
             </Modal>
         </div>
     )
-} 
+}
