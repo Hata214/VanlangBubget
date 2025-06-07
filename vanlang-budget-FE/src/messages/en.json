@@ -264,6 +264,7 @@
         "date": "Date",
         "type": "Type",
         "categoryCommon": "Category",
+        "category": "Category",
         "description": "Description",
         "amount": "Amount",
         "actions": "Actions",
@@ -401,6 +402,16 @@
         "unableToShowOnMap": "Unable to show location on map",
         "findOnMap": "Find on map",
         "expenseCategories": {
+            "food": "Food",
+            "transport": "Transport",
+            "shopping": "Shopping",
+            "entertainment": "Entertainment",
+            "bills": "Bills",
+            "health": "Health",
+            "education": "Education",
+            "other": "Other"
+        },
+        "category": {
             "food": "Food",
             "transport": "Transport",
             "shopping": "Shopping",
