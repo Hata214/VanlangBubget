@@ -11,11 +11,37 @@ import { Button } from '@/components/ui/Button'
 import * as Icons from 'lucide-react'
 import useAdminContent from '@/hooks/useAdminContent'
 
+interface FeatureItem {
+    id?: string;
+    title?: string;
+    description?: string;
+    icon?: string;
+    iconName?: string;
+    benefits?: string[];
+}
+
+interface ComingSoonFeature {
+    id?: string;
+    title?: string;
+    description?: string;
+    eta?: string;
+    icon?: string;
+}
+
+interface FeaturesContent {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    items?: FeatureItem[];
+    features?: FeatureItem[];
+    comingSoon?: ComingSoonFeature[];
+}
+
 export default function FeaturesPage() {
     const t = useTranslations()
     const locale = useLocale()
     const router = useRouter()
-    const { content: featuresContent, isLoading } = useAdminContent('features', locale)
+    const { content: featuresContent, isLoading } = useAdminContent<FeaturesContent>('features', locale)
 
     // Language switcher handler
     const handleLanguageChange = (newLocale: 'vi' | 'en') => {
@@ -151,38 +177,13 @@ export default function FeaturesPage() {
     // Sử dụng Coming Soon features từ API nếu có, nếu không dùng default
     // Kiểm tra cả cấu trúc cũ và mới của API
     const apiComingSoonFeatures = featuresContent?.comingSoon;
-    const comingSoonFeatures = (apiComingSoonFeatures && apiComingSoonFeatures.length > 0)
+    const comingSoonFeatures: ComingSoonFeature[] = (apiComingSoonFeatures && apiComingSoonFeatures.length > 0)
         ? apiComingSoonFeatures
         : defaultComingSoonFeatures;
 
     return (
         <PublicLayout>
             <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                {/* Language Switcher */}
-                <div className="flex justify-end mb-6">
-                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
-                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
-                        <button
-                            onClick={() => handleLanguageChange('vi')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            Tiếng Việt
-                        </button>
-                        <button
-                            onClick={() => handleLanguageChange('en')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            English
-                        </button>
-                    </div>
-                </div>
-
                 <div className="mb-12">
                     <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
                         <ChevronLeft className="w-5 h-5 mr-1" />
@@ -212,14 +213,16 @@ export default function FeaturesPage() {
                     <h2 className="text-3xl font-bold mb-10 text-center">{t('features.mainFeatures.title')}</h2>
                     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
                         {/* Hiển thị features từ API nếu có, nếu không dùng fallback */}
-                        {(featuresContent?.items || featuresContent?.features || mainFeatures).map((feature: any, index: number) => {
+                        {(featuresContent?.items || featuresContent?.features || mainFeatures).map((feature: FeatureItem, index: number) => {
                             // Xử lý dữ liệu từ API hoặc fallback
-                            const featureData = (featuresContent?.items || featuresContent?.features) ? {
+                            // Đảm bảo featureData có kiểu FeatureItem
+                            const featureData: FeatureItem = (featuresContent?.items || featuresContent?.features) ? {
                                 id: feature.id || `feature-${index}`,
                                 title: feature.title,
                                 description: feature.description,
                                 icon: feature.icon,
-                                benefits: feature.benefits || [] // API data might not have benefits
+                                iconName: feature.iconName,
+                                benefits: feature.benefits || []
                             } : feature;
 
                             return (
@@ -227,10 +230,8 @@ export default function FeaturesPage() {
                                     <CardContent className="p-6">
                                         <div className="flex items-center mb-4">
                                             <div className="bg-indigo-100 p-3 rounded-lg text-indigo-600 mr-4 dark:bg-indigo-900 dark:text-indigo-300">
-                                                {(featuresContent?.items || featuresContent?.features) ?
-                                                    renderIcon(featureData.icon, "w-8 h-8") :
-                                                    renderIcon(featureData.iconName, "w-8 h-8")
-                                                }
+                                                {/* Ưu tiên icon, sau đó đến iconName */}
+                                                {renderIcon(featureData.icon || featureData.iconName || 'BarChart3', "w-8 h-8")}
                                             </div>
                                             <h3 className="text-xl font-bold">{featureData.title}</h3>
                                         </div>
@@ -264,13 +265,13 @@ export default function FeaturesPage() {
                         <h2 className="text-3xl font-bold">{t('features.comingSoon.title')}</h2>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {comingSoonFeatures.map((feature, index) => (
+                        {comingSoonFeatures.map((feature: ComingSoonFeature, index: number) => (
                             <Card key={feature.id || index} className="border-dashed border-2 border-indigo-200 bg-indigo-50 dark:bg-indigo-900/10">
                                 <CardContent className="p-6">
                                     <div className="flex items-center mb-4">
                                         {feature.icon && (
                                             <div className="text-2xl mr-3">
-                                                {feature.icon}
+                                                {renderIcon(feature.icon)}
                                             </div>
                                         )}
                                         <div className="flex-1">

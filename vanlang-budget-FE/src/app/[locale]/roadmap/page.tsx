@@ -13,14 +13,24 @@ interface RoadmapItem {
     title: string;
     description: string;
     status: 'completed' | 'in-progress' | 'planned';
-    icon?: React.ReactNode;
+    icon?: React.ReactNode; // API có thể trả về tên icon dạng string thay vì ReactNode
+    iconName?: string; // Thêm để hỗ trợ tên icon từ API
+    completed?: boolean; // API có thể dùng 'completed' thay cho 'status'
+    date?: string; // API có thể dùng 'date' thay cho 'quarter'
+}
+
+interface RoadmapContent {
+    title?: string;
+    description?: string;
+    milestones?: RoadmapItem[];
+    items?: RoadmapItem[];
 }
 
 export default function RoadmapPage() {
     const t = useTranslations();
     const locale = useLocale()
     const router = useRouter()
-    const { content: roadmapContent, isLoading } = useAdminContent('roadmap', locale)
+    const { content: roadmapContent, isLoading } = useAdminContent<RoadmapContent>('roadmap', locale)
 
     // Language switcher handler
     const handleLanguageChange = (newLocale: 'vi' | 'en') => {
@@ -80,31 +90,6 @@ export default function RoadmapPage() {
     return (
         <PublicLayout>
             <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                {/* Language Switcher */}
-                <div className="flex justify-end mb-6">
-                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
-                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
-                        <button
-                            onClick={() => handleLanguageChange('vi')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            Tiếng Việt
-                        </button>
-                        <button
-                            onClick={() => handleLanguageChange('en')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            English
-                        </button>
-                    </div>
-                </div>
-
                 <div className="mb-12">
                     <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
                         <ChevronLeft className="w-5 h-5 mr-1" />
@@ -119,7 +104,7 @@ export default function RoadmapPage() {
                 </div>
                 <div className="space-y-8">
                     {/* Sử dụng roadmap items từ admin content nếu có, nếu không dùng fallback */}
-                    {(roadmapContent?.milestones || roadmapContent?.items || roadmapItems).map((item: any, index: number) => (
+                    {(roadmapContent?.milestones || roadmapContent?.items || roadmapItems).map((item: RoadmapItem, index: number) => (
                         <div
                             key={item.id || index}
                             className={`bg-card p-6 rounded-lg shadow-md border-l-4 ${getStatusColor(item.status || (item.completed ? 'completed' : 'planned'))}`}
@@ -131,7 +116,14 @@ export default function RoadmapPage() {
                                 </span>
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground mb-3">
-                                {item.icon && <div className="mr-2">{item.icon}</div>}
+                                {item.iconName ? (
+                                    // Render icon từ iconName nếu có (từ API)
+                                    // Giả sử bạn có một hàm renderIcon tương tự như trang Features
+                                    // Nếu không, bạn cần tạo hoặc điều chỉnh hàm getStatusColor/icon logic
+                                    <Zap className="h-5 w-5 mr-2" /> // Placeholder, thay thế bằng logic render icon thực tế
+                                ) : item.icon ? (
+                                    <div className="mr-2">{item.icon}</div> // Fallback cho icon ReactNode từ dữ liệu mẫu
+                                ) : null}
                                 <span>
                                     {(item.status === 'completed' || item.completed) ? (locale === 'vi' ? 'Hoàn thành' : 'Completed') :
                                         item.status === 'in-progress' ? (locale === 'vi' ? 'Đang thực hiện' : 'In Progress') :

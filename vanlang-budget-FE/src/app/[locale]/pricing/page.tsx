@@ -19,11 +19,19 @@ interface PricingPlan {
     isFeatured?: boolean; // Gói nổi bật
 }
 
+interface PricingContent {
+    title?: string;
+    description?: string;
+    comingSoonTitle?: string;
+    comingSoonDescription?: string;
+    plans?: PricingPlan[];
+}
+
 export default function PricingPage() {
     const t = useTranslations()
     const locale = useLocale()
     const router = useRouter()
-    const { content: pricingContent, isLoading } = useAdminContent('pricing', locale)
+    const { content: pricingContent, isLoading } = useAdminContent<PricingContent>('pricing', locale)
 
     // Language switcher handler
     const handleLanguageChange = (newLocale: 'vi' | 'en') => {
@@ -49,31 +57,6 @@ export default function PricingPage() {
     return (
         <PublicLayout>
             <div className="container mx-auto py-12">
-                {/* Language Switcher */}
-                <div className="flex justify-end mb-6">
-                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
-                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
-                        <button
-                            onClick={() => handleLanguageChange('vi')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            Tiếng Việt
-                        </button>
-                        <button
-                            onClick={() => handleLanguageChange('en')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            English
-                        </button>
-                    </div>
-                </div>
-
                 {/* Back to Home Link */}
                 <div className="mb-8">
                     <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
