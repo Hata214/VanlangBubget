@@ -10,11 +10,32 @@ import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import useAdminContent from '@/hooks/useAdminContent'
 
+interface AboutContent {
+    title?: string;
+    subtitle?: string;
+    description?: string;
+    mission?: {
+        title?: string;
+        content?: string;
+    };
+    vision?: {
+        title?: string;
+        content?: string;
+    };
+    values?: {
+        title?: string;
+        items?: Array<{
+            title?: string;
+            description?: string;
+        }>;
+    };
+}
+
 export default function AboutPage() {
     const t = useTranslations()
     const locale = useLocale()
     const router = useRouter()
-    const { content: aboutContent, isLoading } = useAdminContent('about', locale)
+    const { content: aboutContent, isLoading } = useAdminContent<AboutContent>('about', locale)
 
     // Language switcher handler
     const handleLanguageChange = (newLocale: 'vi' | 'en') => {
@@ -36,31 +57,6 @@ export default function AboutPage() {
     return (
         <PublicLayout>
             <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                {/* Language Switcher */}
-                <div className="flex justify-end mb-6">
-                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
-                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
-                        <button
-                            onClick={() => handleLanguageChange('vi')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            Tiếng Việt
-                        </button>
-                        <button
-                            onClick={() => handleLanguageChange('en')}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            English
-                        </button>
-                    </div>
-                </div>
-
                 <div className="mb-8">
                     <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
                         <ChevronLeft className="w-5 h-5 mr-1" />

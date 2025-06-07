@@ -8,10 +8,10 @@ import siteContentService from '@/services/siteContentService'
  * @param contentType - Loại content (about, features, roadmap, pricing, contact)
  * @param language - Ngôn ngữ (vi, en)
  */
-export function useAdminContent(contentType: string, language: string = 'vi') {
-    const [content, setContent] = useState(null)
+export function useAdminContent<T = any>(contentType: string, language: string = 'vi') {
+    const [content, setContent] = useState<T | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [error, setError] = useState(null)
+    const [error, setError] = useState<Error | null>(null)
 
     useEffect(() => {
         const loadContent = async () => {
@@ -94,7 +94,7 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                 }
             } catch (err) {
                 console.error(`Error loading ${contentType} content:`, err)
-                setError(err)
+                setError(err as Error)
                 // Fallback to translation if admin content fails
             } finally {
                 setIsLoading(false)
