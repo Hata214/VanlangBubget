@@ -7,8 +7,8 @@ export default {
             en: 'Smart Personal Finance Management'
         },
         subtitle: {
-            vi: 'Giải pháp quản lý tài chính toàn diện dành cho người Việt',
-            en: 'Comprehensive financial management solution for Vietnamese'
+            vi: '',
+            en: ''
         },
         description: {
             vi: 'VanLang Budget giúp bạn theo dõi thu chi, lập kế hoạch tài chính và đạt được mục tiêu tiết kiệm một cách dễ dàng và hiệu quả.',

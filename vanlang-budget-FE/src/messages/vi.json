@@ -23,7 +23,7 @@
     "home": {
         "hero": {
             "title": "Quản lý tài chính cá nhân thông minh",
-            "subtitle": "Giải pháp quản lý tài chính toàn diện dành cho người Việt",
+            "subtitle": "",
             "description": "VanLang Budget giúp bạn theo dõi thu chi, lập kế hoạch tài chính và đạt được mục tiêu tiết kiệm một cách dễ dàng và hiệu quả.",
             "getStarted": "Đăng ký miễn phí",
             "learnMore": "Tìm hiểu thêm",
@@ -1017,18 +1017,18 @@
         }
     },
     "contact": {
-        "title": "Liên Hệ",
+        "title": "Liên hệ với chúng tôi",
         "subtitle": "Chúng tôi luôn sẵn sàng hỗ trợ bạn",
-        "description": "Nếu bạn có bất kỳ câu hỏi gì về VanLang Budget hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
+        "description": "Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào, đừng ngần ngại liên hệ với chúng tôi. Đội ngũ hỗ trợ của chúng tôi luôn sẵn sàng giúp đỡ bạn.",
         "contactInfo": {
-            "title": "Thông Tin Liên Hệ",
+            "title": "Thông tin liên hệ",
             "emailLabel": "Email",
             "phoneLabel": "Điện thoại",
             "addressLabel": "Địa chỉ",
             "workingHoursLabel": "Giờ làm việc",
             "email": "support@vanlangbudget.com",
-            "phone": "+84 28 1234 5678",
-            "address": "Trường Đại học Văn Lang Cơ sở 3",
+            "phone": "(+84) 123 456 789",
+            "address": "Hà Nội, Việt Nam",
             "workingHours": "Thứ Hai - Thứ Sáu: 9:00 - 17:00"
         },
         "supportCategories": {
@@ -1051,23 +1051,23 @@
         },
         "faq": {
             "title": "Câu Hỏi Thường Gặp",
-            "questions": [
-                {
+            "questions": {
+                "0": {
                     "question": "Làm thế nào để nhận hỗ trợ nhanh nhất?",
                     "answer": "Cách nhanh nhất để nhận hỗ trợ là gửi email đến support@vanlangbudget.com với mô tả chi tiết về vấn đề của bạn. Chúng tôi sẽ phản hồi trong vòng 24 giờ làm việc."
                 },
-                {
+                "1": {
                     "question": "Tôi có thể đề xuất tính năng mới không?",
                     "answer": "Tất nhiên! Chúng tôi luôn hoan nghênh ý tưởng từ người dùng. Gửi đề xuất của bạn đến feedback@vanlangbudget.com hoặc sử dụng biểu mẫu phản hồi trên trang này."
                 },
-                {
+                "2": {
                     "question": "VanLang Budget có hỗ trợ qua điện thoại không?",
                     "answer": "Có, bạn có thể liên hệ với chúng tôi qua số điện thoại +84 28 1234 5678 trong giờ làm việc từ 9:00 đến 17:00, Thứ Hai đến Thứ Sáu."
                 }
-            ]
+            }
         },
         "form": {
-            "title": "Gửi Tin Nhắn",
+            "title": "Gửi tin nhắn cho chúng tôi",
             "fields": {
                 "name": "Họ và tên",
                 "email": "Email",
@@ -1088,6 +1088,7 @@
             "errorMessage": "Đã xảy ra lỗi khi gửi tin nhắn của bạn. Vui lòng thử lại."
         },
         "socialMedia": {
+            "title": "Theo dõi chúng tôi",
             "facebook": {
                 "name": "Facebook",
                 "url": "https://facebook.com/vanlangbudget"
@@ -1112,6 +1113,26 @@
         "description": "Chọn gói dịch vụ phù hợp với nhu cầu tài chính của bạn",
         "comingSoon": "Sắp Ra Mắt",
         "comingSoonDescription": "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá.",
+        "planBasic": {
+            "name": "Gói Cơ Bản",
+            "price": "Miễn phí",
+            "description": "Bắt đầu với các công cụ quản lý tài chính thiết yếu.",
+            "feature1": "Ghi nhận giao dịch không giới hạn",
+            "feature2": "Lập kế hoạch ngân sách cơ bản",
+            "feature3": "Báo cáo tổng quan"
+        },
+        "planPremium": {
+            "name": "Gói Cao Cấp",
+            "price": "99.000đ/tháng",
+            "description": "Mở khóa các tính năng nâng cao để kiểm soát tài chính toàn diện.",
+            "feature1": "Tất cả tính năng Gói Cơ Bản",
+            "feature2": "Công cụ lập ngân sách nâng cao",
+            "feature3": "Phân tích tài chính chi tiết",
+            "feature4": "Hỗ trợ ưu tiên"
+        },
+        "choosePlanButton": "Chọn Gói",
+        "popularBadge": "Phổ biến",
+        "defaultButtonText": "Chọn gói này",
         "cta": {
             "title": "Sẵn sàng bắt đầu?",
             "description": "Tham gia cùng hàng nghìn người dùng đã tin tưởng VanLang Budget để quản lý tài chính hiệu quả.",
@@ -1387,34 +1408,5 @@
         "backToPortfolio": "Quay lại Danh mục đầu tư",
         "marketChart": "Biểu đồ thị trường",
         "stockList": "Danh sách cổ phiếu"
-    },
-    "PricingPage": {
-        "title": "Bảng Giá",
-        "description": "Chúng tôi đang hoàn thiện các gói dịch vụ phù hợp với nhu cầu của bạn. Hiện tại, VanLang Budget hoàn toàn miễn phí!",
-        "comingSoon": "Sắp Ra Mắt",
-        "comingSoonDescription": "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá.",
-        "planBasic": {
-            "name": "Gói Cơ Bản",
-            "price": "Miễn phí",
-            "description": "Bắt đầu với các công cụ quản lý tài chính thiết yếu.",
-            "feature1": "Ghi nhận giao dịch không giới hạn",
-            "feature2": "Lập kế hoạch ngân sách cơ bản",
-            "feature3": "Báo cáo tổng quan"
-        },
-        "planPremium": {
-            "name": "Gói Cao Cấp",
-            "price": "99.000đ/tháng",
-            "description": "Mở khóa các tính năng nâng cao để kiểm soát tài chính toàn diện.",
-            "feature1": "Tất cả tính năng Gói Cơ Bản",
-            "feature2": "Công cụ lập ngân sách nâng cao",
-            "feature3": "Phân tích tài chính chi tiết",
-            "feature4": "Hỗ trợ ưu tiên"
-        },
-        "choosePlanButton": "Chọn Gói",
-        "cta": {
-            "title": "Sẵn sàng bắt đầu?",
-            "description": "Tham gia cùng hàng nghìn người dùng đã tin tưởng VanLang Budget để quản lý tài chính hiệu quả.",
-            "contact": "Liên hệ tư vấn"
-        }
     }
 }

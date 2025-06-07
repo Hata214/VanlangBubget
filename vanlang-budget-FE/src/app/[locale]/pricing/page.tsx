@@ -1,9 +1,14 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import PublicLayout from '@/components/layout/PublicLayout'; // Giả sử bạn muốn sử dụng layout chung
+import React from 'react'
+import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
+import PublicLayout from '@/components/layout/PublicLayout';
 import { Button } from '@/components/ui/Button';
-import { Check } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import useAdminContent from '@/hooks/useAdminContent'
+import { Check, Star, Globe, ChevronLeft } from 'lucide-react';
 
 interface PricingPlan {
     id: string;
@@ -15,70 +20,96 @@ interface PricingPlan {
 }
 
 export default function PricingPage() {
-    const t = useTranslations('PricingPage'); // Namespace cho translations
+    const t = useTranslations()
+    const locale = useLocale()
+    const router = useRouter()
+    const { content: pricingContent, isLoading } = useAdminContent('pricing', locale)
 
-    // Dữ liệu mẫu cho các gói giá - bạn có thể lấy từ API hoặc file JSON
-    const pricingPlans: PricingPlan[] = [
-        {
-            id: 'basic',
-            name: t('planBasic.name'),
-            price: t('planBasic.price'),
-            description: t('planBasic.description'),
-            features: [
-                t('planBasic.feature1'),
-                t('planBasic.feature2'),
-                t('planBasic.feature3'),
-            ],
-        },
-        {
-            id: 'premium',
-            name: t('planPremium.name'),
-            price: t('planPremium.price'),
-            description: t('planPremium.description'),
-            features: [
-                t('planPremium.feature1'),
-                t('planPremium.feature2'),
-                t('planPremium.feature3'),
-                t('planPremium.feature4'),
-            ],
-            isFeatured: true,
-        },
-        // Thêm các gói giá khác nếu cần
-    ];
+    // Language switcher handler
+    const handleLanguageChange = (newLocale: 'vi' | 'en') => {
+        router.push(`/${newLocale}/pricing`)
+    }
+
+    if (isLoading) {
+        return (
+            <PublicLayout>
+                <div className="container mx-auto py-12">
+                    <div className="flex justify-center items-center min-h-[50vh]">
+                        <div className="animate-pulse text-xl">{t('common.loading')}</div>
+                    </div>
+                </div>
+            </PublicLayout>
+        )
+    }
+
+    // Luôn hiển thị layout "Coming Soon" thay vì pricing plans
+    // Admin có thể chỉnh sửa title và description thông qua site-content
+    const shouldShowComingSoon = true;
 
     return (
         <PublicLayout>
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6 text-center">{t('title')}</h1>
-                <p className="text-lg text-muted-foreground mb-10 text-center max-w-2xl mx-auto">
-                    {t('description')}
-                </p>
-                <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    {pricingPlans.map((plan) => (
-                        <div
-                            key={plan.id}
-                            className={`bg-card p-8 rounded-lg shadow-lg border ${plan.isFeatured ? 'border-primary ring-2 ring-primary' : 'border-border'}`}
+            <div className="container mx-auto py-12">
+                {/* Language Switcher */}
+                <div className="flex justify-end mb-6">
+                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
+                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
+                        <button
+                            onClick={() => handleLanguageChange('vi')}
+                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:text-foreground'
+                                }`}
                         >
-                            <h2 className="text-2xl font-semibold text-primary mb-2">{plan.name}</h2>
-                            <p className="text-3xl font-bold text-foreground mb-1">{plan.price}</p>
-                            <p className="text-sm text-muted-foreground mb-6">{plan.description}</p>
+                            Tiếng Việt
+                        </button>
+                        <button
+                            onClick={() => handleLanguageChange('en')}
+                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            English
+                        </button>
+                    </div>
+                </div>
 
-                            <ul className="space-y-3 mb-8">
-                                {plan.features.map((feature, index) => (
-                                    <li key={index} className="flex items-center">
-                                        <Check className={`h-5 w-5 mr-2 ${plan.isFeatured ? 'text-primary' : 'text-green-500'}`} />
-                                        <span className="text-foreground">{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <Button
-                                className={`w-full ${plan.isFeatured ? '' : 'bg-primary/10 text-primary hover:bg-primary/20 dark:text-primary-foreground'}`}
-                                variant={plan.isFeatured ? 'default' : 'outline'}
-                            >
-                                {t('choosePlanButton')}
-                            </Button>
-                        </div>
-                    ))}
+                {/* Back to Home Link */}
+                <div className="mb-8">
+                    <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
+                        <ChevronLeft className="w-5 h-5 mr-1" />
+                        <span>{t('common.backToHome')}</span>
+                    </Link>
+                </div>
+
+                <div className="text-center mb-12">
+                    <h1 className="text-4xl font-bold text-foreground mb-4">
+                        {pricingContent?.title || t('pricing.title')}
+                    </h1>
+                    <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                        {pricingContent?.description || t('pricing.description')}
+                    </p>
+                </div>
+
+                <div className="max-w-4xl mx-auto">
+                    {/* Coming Soon Layout */}
+                    <div className="flex flex-col items-center justify-center min-h-[50vh]">
+                        <Card className="w-full max-w-md">
+                            <CardHeader className="text-center">
+                                <CardTitle className="text-2xl">
+                                    {pricingContent?.comingSoonTitle || t('pricing.comingSoon')}
+                                </CardTitle>
+                                <CardDescription>
+                                    {pricingContent?.comingSoonDescription || t('pricing.comingSoonDescription')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex justify-center">
+                                <Link href="/">
+                                    <Button>{t('common.backToHome')}</Button>
+                                </Link>
+                            </CardContent>
+                        </Card>
+                    </div>
                 </div>
             </div>
         </PublicLayout>

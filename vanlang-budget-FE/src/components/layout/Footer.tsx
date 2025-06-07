@@ -47,34 +47,34 @@ export function Footer() {
                         <h3 className="text-lg font-semibold mb-6 text-white">{t('footer.links.title')}</h3>
                         <ul className="space-y-3">
                             <li>
-                                <a href="/about" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/about" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <InfoIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.company1 || t('footer.links.aboutUs')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/features" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/features" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <TagIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product1 || t('footer.links.features')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/roadmap" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/roadmap" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <ExternalLinkIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product2 || t('footer.links.roadmap')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/pricing" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/pricing" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <TagIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product3 || t('footer.links.pricing')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/contact" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/contact" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <MailIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.company2 || t('footer.links.contact')}</span>
-                                </a>
+                                </Link>
                             </li>
                         </ul>
                     </div>

@@ -38,21 +38,27 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
 
                 const response = await siteContentService.getContentByType(actualContentType, language)
                 console.log(`🔍 ${contentType} content response:`, response)
-                console.log(`🔍 ${contentType} response.data:`, response.data)
-                console.log(`🔍 ${contentType} response.data type:`, typeof response.data)
 
-                if (response.data) {
+                if (response && response.data) {
                     let finalContent = response.data
 
-                    // Xử lý đặc biệt cho Features, Roadmap, và Pricing - extract language specific content
-                    if (contentType === 'features' || contentType === 'roadmap' || contentType === 'pricing') {
+                    // Xử lý đặc biệt cho các content types - extract language specific content
+                    if (['about', 'features', 'roadmap', 'pricing', 'contact'].includes(contentType)) {
                         console.log(`🔍 Processing ${contentType} content for language: ${language}`)
-                        if (response.data[language]) {
-                            finalContent = response.data[language]
+                        console.log(`🔍 Raw API response data:`, finalContent)
+
+                        // Kiểm tra cấu trúc API response có multilingual không: { vi: {...}, en: {...} }
+                        if (finalContent[language]) {
+                            // Cấu trúc multilingual - extract language specific content
+                            finalContent = finalContent[language]
                             console.log(`🔍 Extracted ${contentType} content for ${language}:`, finalContent)
+                        } else if (finalContent.title || finalContent.description) {
+                            // Cấu trúc single language - sử dụng trực tiếp
+                            console.log(`🔍 Using direct ${contentType} content (single language):`, finalContent)
+                            // finalContent giữ nguyên
                         } else {
-                            console.log(`🔍 No ${language} content found for ${contentType}, using full response`)
-                            finalContent = response.data
+                            console.log(`🔍 No valid content structure found for ${contentType}, using fallback`)
+                            finalContent = null // Sẽ fallback về translation
                         }
                     }
                     // Nếu cần extract section từ homepage content
@@ -83,7 +89,8 @@ export function useAdminContent(contentType: string, language: string = 'vi') {
                     console.log(`🔍 Setting content for ${contentType}:`, finalContent)
                     setContent(finalContent)
                 } else {
-                    console.log(`🔍 No data in response for ${contentType}`)
+                    console.log(`🔍 No data in response for ${contentType}, using fallback`)
+                    setContent(null) // Fallback to translation
                 }
             } catch (err) {
                 console.error(`Error loading ${contentType} content:`, err)

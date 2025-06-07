@@ -1,18 +1,237 @@
-'use client';
+'use client'
 
-import { useTranslations } from 'next-intl';
-import PublicLayout from '@/components/layout/PublicLayout'; // Giả sử bạn muốn sử dụng layout chung
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useTranslations, useLocale } from 'next-intl'
+import { useRouter } from 'next/navigation'
+import { ChevronLeft, Users, Target, Star, Clock, Globe } from 'lucide-react'
+import PublicLayout from '@/components/layout/PublicLayout'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import useAdminContent from '@/hooks/useAdminContent'
 
 export default function AboutPage() {
-    const t = useTranslations('AboutPage'); // Namespace cho translations
+    const t = useTranslations()
+    const locale = useLocale()
+    const router = useRouter()
+    const { content: aboutContent, isLoading } = useAdminContent('about', locale)
+
+    // Language switcher handler
+    const handleLanguageChange = (newLocale: 'vi' | 'en') => {
+        router.push(`/${newLocale}/about`)
+    }
+
+    if (isLoading) {
+        return (
+            <PublicLayout>
+                <div className="container mx-auto py-12">
+                    <div className="flex justify-center items-center min-h-[50vh]">
+                        <div className="animate-pulse text-xl">{t('common.loading')}</div>
+                    </div>
+                </div>
+            </PublicLayout>
+        )
+    }
 
     return (
         <PublicLayout>
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-4">{t('title')}</h1>
-                <p>{t('description')}</p>
-                {/* Thêm nội dung trang About ở đây */}
+            <div className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                {/* Language Switcher */}
+                <div className="flex justify-end mb-6">
+                    <div className="flex items-center space-x-2 bg-card border border-border rounded-lg p-1">
+                        <Globe className="h-4 w-4 text-muted-foreground ml-2" />
+                        <button
+                            onClick={() => handleLanguageChange('vi')}
+                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'vi'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            Tiếng Việt
+                        </button>
+                        <button
+                            onClick={() => handleLanguageChange('en')}
+                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${locale === 'en'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                        >
+                            English
+                        </button>
+                    </div>
+                </div>
+
+                <div className="mb-8">
+                    <Link href="/" className="flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
+                        <ChevronLeft className="w-5 h-5 mr-1" />
+                        <span>{t('common.backToHome')}</span>
+                    </Link>
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+                        {aboutContent?.title || t('about.title')}
+                    </h1>
+                    <p className="text-xl text-gray-600 dark:text-gray-300">
+                        {aboutContent?.subtitle || t('about.subtitle')}
+                    </p>
+                </div>
+
+                {/* Giới thiệu */}
+                <div className="mb-16">
+                    <Card>
+                        <CardContent className="p-8">
+                            <p className="text-lg leading-relaxed">
+                                {aboutContent?.description || t('about.description')}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Sứ mệnh & Tầm nhìn */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                    <Card>
+                        <CardContent className="p-8">
+                            <div className="flex items-center mb-4">
+                                <Target className="h-8 w-8 text-indigo-600 mr-3" />
+                                <h2 className="text-2xl font-bold">
+                                    {aboutContent?.mission?.title || t('about.mission.title')}
+                                </h2>
+                            </div>
+                            <p className="text-lg leading-relaxed">
+                                {aboutContent?.mission?.content || t('about.mission.content')}
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-8">
+                            <div className="flex items-center mb-4">
+                                <Star className="h-8 w-8 text-indigo-600 mr-3" />
+                                <h2 className="text-2xl font-bold">
+                                    {aboutContent?.vision?.title || t('about.vision.title')}
+                                </h2>
+                            </div>
+                            <p className="text-lg leading-relaxed">
+                                {aboutContent?.vision?.content || t('about.vision.content')}
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Giá trị cốt lõi */}
+                <div className="mb-16">
+                    <h2 className="text-3xl font-bold mb-8 text-center">
+                        {aboutContent?.values?.title || t('about.values.title')}
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {aboutContent?.values?.items ? (
+                            // Render admin content values
+                            aboutContent.values.items.map((item: any, index: number) => (
+                                <Card key={index}>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{item.title}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{item.description}</p>
+                                    </CardContent>
+                                </Card>
+                            ))
+                        ) : (
+                            // Fallback to translation values
+                            <>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.simplicity.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.simplicity.content')}</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.transparency.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.transparency.content')}</p>
+                                    </CardContent>
+                                </Card>
+                                <Card>
+                                    <CardContent className="p-6">
+                                        <h3 className="text-xl font-bold mb-4 text-indigo-600">{t('about.values.support.title')}</h3>
+                                        <p className="text-gray-700 dark:text-gray-300">{t('about.values.support.content')}</p>
+                                    </CardContent>
+                                </Card>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Đội ngũ */}
+                <div className="mb-16">
+                    <div className="flex items-center mb-8">
+                        <Users className="h-8 w-8 text-indigo-600 mr-3" />
+                        <h2 className="text-3xl font-bold">{t('about.team.title')}</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <Card className="overflow-hidden">
+                            <CardContent className="p-6">
+                                <div className="w-20 h-20 bg-indigo-100 rounded-full mb-4 flex items-center justify-center text-indigo-600 text-2xl font-bold">
+                                    NT
+                                </div>
+                                <h3 className="text-xl font-bold">{t('about.team.members.ceo.name')}</h3>
+                                <p className="text-indigo-600 mb-4">{t('about.team.members.ceo.role')}</p>
+                                <p className="text-gray-700 dark:text-gray-300">{t('about.team.members.ceo.bio')}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="overflow-hidden">
+                            <CardContent className="p-6">
+                                <div className="w-20 h-20 bg-indigo-100 rounded-full mb-4 flex items-center justify-center text-indigo-600 text-2xl font-bold">
+                                    HL
+                                </div>
+                                <h3 className="text-xl font-bold">{t('about.team.members.cto.name')}</h3>
+                                <p className="text-indigo-600 mb-4">{t('about.team.members.cto.role')}</p>
+                                <p className="text-gray-700 dark:text-gray-300">{t('about.team.members.cto.bio')}</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </div>
+
+                {/* Lịch sử */}
+                <div>
+                    <div className="flex items-center mb-8">
+                        <Clock className="h-8 w-8 text-indigo-600 mr-3" />
+                        <h2 className="text-3xl font-bold">{t('about.history.title')}</h2>
+                    </div>
+                    <Card>
+                        <CardContent className="p-8">
+                            <div className="space-y-8">
+                                <div className="flex">
+                                    <div className="mr-6">
+                                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 font-bold">
+                                            2023
+                                        </div>
+                                    </div>
+                                    <div className="pt-2">
+                                        <p className="text-lg">{t('about.history.milestones.founding')}</p>
+                                    </div>
+                                </div>
+                                <div className="flex">
+                                    <div className="mr-6">
+                                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 font-bold">
+                                            2024
+                                        </div>
+                                    </div>
+                                    <div className="pt-2">
+                                        <p className="text-lg">{t('about.history.milestones.launch')}</p>
+                                    </div>
+                                </div>
+                                <div className="flex">
+                                    <div className="mr-6">
+                                        <div className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 font-bold">
+                                            2025
+                                        </div>
+                                    </div>
+                                    <div className="pt-2">
+                                        <p className="text-lg">{t('about.history.milestones.expansion')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </PublicLayout>
-    );
+    )
 }

@@ -7,8 +7,8 @@ export default {
             vi: 'Quản lý tài chính cá nhân thông minh'
         },
         subtitle: {
-            en: 'Comprehensive financial management solution for Vietnamese',
-            vi: 'Giải pháp quản lý tài chính toàn diện dành cho người Việt'
+            en: '',
+            vi: ''
         },
         description: {
             en: 'VanLang Budget helps you track expenses, plan finances, and achieve savings goals easily and effectively.',

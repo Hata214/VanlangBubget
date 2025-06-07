@@ -3,12 +3,11 @@
 import { ReactNode } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { usePathname } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
-import { ThemeToggle } from '@/components/ui/ThemeToggle'
-import { LanguageToggle } from '@/components/ui/LanguageToggle'
+import { SettingsToggle } from '@/components/ui/SettingsToggle'
 import { Button } from '@/components/ui/Button'
 import { Footer } from '@/components/layout/Footer'
 import {
@@ -29,6 +28,7 @@ interface PublicLayoutProps {
 
 export default function PublicLayout({ children }: PublicLayoutProps) {
     const t = useTranslations()
+    const locale = useLocale()
     const pathname = usePathname()
     const dispatch = useAppDispatch()
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
@@ -38,12 +38,13 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     console.log('🏠 PublicLayout - headerContent:', headerContent);
     console.log('🏠 PublicLayout - headerLoading:', headerLoading);
 
-    // Các trang trong thanh điều hướng - sử dụng admin content
+    // Các trang trong thanh điều hướng - sử dụng admin content với locale
     const navLinks = [
-        { href: '/about', label: headerContent?.nav1 || t('header.links.aboutUs') },
-        { href: '/features', label: headerContent?.nav2 || t('header.links.features') },
-        { href: '/pricing', label: headerContent?.nav3 || t('header.links.pricing') },
-        { href: '/contact', label: headerContent?.nav4 || t('header.links.contact') }
+        { href: `/${locale}/about`, label: headerContent?.nav1 || t('header.links.aboutUs') },
+        { href: `/${locale}/features`, label: headerContent?.nav2 || t('header.links.features') },
+        { href: `/${locale}/roadmap`, label: headerContent?.nav5 || t('header.links.roadmap') },
+        { href: `/${locale}/pricing`, label: headerContent?.nav3 || t('header.links.pricing') },
+        { href: `/${locale}/contact`, label: headerContent?.nav4 || t('header.links.contact') }
     ]
 
     console.log('🔗 PublicLayout - navLinks:', navLinks);
@@ -98,7 +99,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                                 </Button>
                             </Link>
                             <ThemeToggle />
-                            <LanguageToggle variant="icon" />
 
                             {isAuthenticated ? (
                                 <DropdownMenu>

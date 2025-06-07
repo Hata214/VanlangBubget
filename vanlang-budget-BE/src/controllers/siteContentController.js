@@ -839,70 +839,18 @@ export const initializePricingContent = async (req, res, next) => {
     try {
         const defaultPricingContent = {
             vi: {
-                title: "Bảng giá",
-                subtitle: "Chọn gói dịch vụ phù hợp với nhu cầu của bạn",
-                description: "Chúng tôi đang hoàn thiện các gói dịch vụ phù hợp với nhu cầu của bạn. Hiện tại, VanLang Budget hoàn toàn miễn phí!",
-                plans: [
-                    {
-                        name: "Gói 1",
-                        price: "Miễn phí",
-                        description: "Mô tả gói 1",
-                        features: [
-                            "Tính năng 1",
-                            "Tính năng 2",
-                            "Tính năng 3"
-                        ],
-                        buttonText: "Đăng ký ngay",
-                        buttonLink: "/register",
-                        popular: false
-                    },
-                    {
-                        name: "Gói 2",
-                        price: "Miễn phí",
-                        description: "Mô tả gói 2",
-                        features: [
-                            "Tính năng 1",
-                            "Tính năng 2",
-                            "Tính năng 3"
-                        ],
-                        buttonText: "Đăng ký ngay",
-                        buttonLink: "/register",
-                        popular: false
-                    }
-                ]
+                title: "Bảng Giá",
+                subtitle: "Các gói dịch vụ VanLang Budget",
+                description: "Chọn gói dịch vụ phù hợp với nhu cầu tài chính của bạn",
+                comingSoonTitle: "Sắp Ra Mắt",
+                comingSoonDescription: "Chúng tôi đang nỗ lực để cung cấp cho bạn những gói dịch vụ tốt nhất. Vui lòng quay lại sau để xem thông tin chi tiết về giá."
             },
             en: {
                 title: "Pricing",
-                subtitle: "Choose the plan that suits you",
-                description: "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
-                plans: [
-                    {
-                        name: "Plan 1",
-                        price: "Free",
-                        description: "Plan 1 description",
-                        features: [
-                            "Feature 1",
-                            "Feature 2",
-                            "Feature 3"
-                        ],
-                        buttonText: "Sign up now",
-                        buttonLink: "/register",
-                        popular: false
-                    },
-                    {
-                        name: "Plan 2",
-                        price: "Free",
-                        description: "Plan 2 description",
-                        features: [
-                            "Feature 1",
-                            "Feature 2",
-                            "Feature 3"
-                        ],
-                        buttonText: "Sign up now",
-                        buttonLink: "/register",
-                        popular: false
-                    }
-                ]
+                subtitle: "VanLang Budget service packages",
+                description: "Choose the service package that fits your financial needs",
+                comingSoonTitle: "Coming Soon",
+                comingSoonDescription: "We are working to provide you with the best service packages. Please check back later for pricing details."
             }
         };
 

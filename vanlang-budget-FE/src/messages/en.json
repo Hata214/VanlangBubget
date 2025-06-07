@@ -23,7 +23,7 @@
     "home": {
         "hero": {
             "title": "Smart personal finance management",
-            "subtitle": "Comprehensive financial management solution for Vietnamese",
+            "subtitle": "",
             "description": "VanLang Budget helps you track expenses, plan finances, and achieve savings goals easily and effectively.",
             "getStarted": "Sign up for free",
             "learnMore": "Learn more",
@@ -772,8 +772,8 @@
     },
     "contact": {
         "title": "Contact Us",
-        "subtitle": "We're here to help you",
-        "description": "If you have any questions about VanLang Budget or need assistance, don't hesitate to contact us. Our support team is always ready to help you.",
+        "subtitle": "We're always here to help you",
+        "description": "If you have any questions or requests, don't hesitate to contact us. Our support team is always ready to help you.",
         "contactInfo": {
             "title": "Contact Information",
             "emailLabel": "Email",
@@ -781,8 +781,8 @@
             "addressLabel": "Address",
             "workingHoursLabel": "Working Hours",
             "email": "support@vanlangbudget.com",
-            "phone": "+84 28 1234 5678",
-            "address": "Van Lang University Campus 3",
+            "phone": "(+84) 123 456 789",
+            "address": "Hanoi, Vietnam",
             "workingHours": "Monday - Friday: 9:00 - 17:00"
         },
         "supportCategories": {
@@ -805,23 +805,23 @@
         },
         "faq": {
             "title": "Frequently Asked Questions",
-            "questions": [
-                {
+            "questions": {
+                "0": {
                     "question": "How can I get support most quickly?",
                     "answer": "The fastest way to get support is to email support@vanlangbudget.com with a detailed description of your issue. We will respond within 24 business hours."
                 },
-                {
+                "1": {
                     "question": "Can I suggest a new feature?",
                     "answer": "Absolutely! We always welcome ideas from our users. Send your suggestions to feedback@vanlangbudget.com or use the feedback form on this page."
                 },
-                {
+                "2": {
                     "question": "Does VanLang Budget offer phone support?",
                     "answer": "Yes, you can contact us by phone at +84 28 1234 5678 during our working hours from 9:00 to 17:00, Monday to Friday."
                 }
-            ]
+            }
         },
         "form": {
-            "title": "Send Us a Message",
+            "title": "Send us a message",
             "fields": {
                 "name": "Full Name",
                 "email": "Email",
@@ -842,6 +842,7 @@
             "errorMessage": "An error occurred while sending your message. Please try again."
         },
         "socialMedia": {
+            "title": "Follow Us",
             "facebook": {
                 "name": "Facebook",
                 "url": "https://facebook.com/vanlangbudget"
@@ -890,6 +891,26 @@
         "description": "Choose the service package that fits your financial needs",
         "comingSoon": "Coming Soon",
         "comingSoonDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
+        "planBasic": {
+            "name": "Basic Plan",
+            "price": "Free",
+            "description": "Get started with essential financial management tools.",
+            "feature1": "Unlimited transaction recording",
+            "feature2": "Basic budget planning",
+            "feature3": "Overview reports"
+        },
+        "planPremium": {
+            "name": "Premium Plan",
+            "price": "$4.99/month",
+            "description": "Unlock advanced features for comprehensive financial control.",
+            "feature1": "All Basic features",
+            "feature2": "Advanced budgeting tools",
+            "feature3": "Detailed financial analytics",
+            "feature4": "Priority support"
+        },
+        "choosePlanButton": "Choose Plan",
+        "popularBadge": "Popular",
+        "defaultButtonText": "Choose this plan",
         "cta": {
             "title": "Ready to get started?",
             "description": "Join thousands of users who trust VanLang Budget for effective financial management.",
@@ -1345,34 +1366,5 @@
         "backToPortfolio": "Back to Portfolio",
         "marketChart": "Market Chart",
         "stockList": "Stock List"
-    },
-    "PricingPage": {
-        "title": "Pricing",
-        "description": "We are perfecting service packages that suit your needs. Currently, VanLang Budget is completely free!",
-        "comingSoon": "Coming Soon",
-        "comingSoonDescription": "We are working to provide you with the best service packages. Please check back later for pricing details.",
-        "planBasic": {
-            "name": "Basic Plan",
-            "price": "Free",
-            "description": "Get started with essential financial management tools.",
-            "feature1": "Unlimited transaction recording",
-            "feature2": "Basic budget planning",
-            "feature3": "Overview reports"
-        },
-        "planPremium": {
-            "name": "Premium Plan",
-            "price": "$4.99/month",
-            "description": "Unlock advanced features for comprehensive financial control.",
-            "feature1": "All Basic features",
-            "feature2": "Advanced budgeting tools",
-            "feature3": "Detailed financial analytics",
-            "feature4": "Priority support"
-        },
-        "choosePlanButton": "Choose Plan",
-        "cta": {
-            "title": "Ready to get started?",
-            "description": "Join thousands of users who trust VanLang Budget for effective financial management.",
-            "contact": "Contact for consultation"
-        }
     }
 }

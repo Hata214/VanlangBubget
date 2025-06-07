@@ -5,7 +5,7 @@
 export const defaultHomepageContent = {
     hero: {
         title: 'Quản lý tài chính cá nhân thông minh',
-        subtitle: 'Giải pháp quản lý tài chính toàn diện dành cho người Việt',
+        subtitle: '',
         description: 'VanLang Budget giúp bạn theo dõi thu chi, lập kế hoạch tài chính và đạt được mục tiêu tiết kiệm một cách dễ dàng và hiệu quả.',
         imageUrl: '/images/VLB-Photoroom.png',
         buttonText: 'Đăng ký miễn phí',
