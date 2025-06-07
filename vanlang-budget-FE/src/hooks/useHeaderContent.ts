@@ -7,6 +7,7 @@ interface HeaderContent {
     nav2: string;
     nav3: string;
     nav4: string;
+    nav5: string; // Thêm nav5
     loginButton: string;
     signupButton: string;
     userMenuProfile: string;
@@ -56,6 +57,7 @@ export const useHeaderContent = () => {
                     nav2: locale === 'en' ? 'Features' : 'Tính năng',
                     nav3: locale === 'en' ? 'Pricing' : 'Bảng giá',
                     nav4: locale === 'en' ? 'Contact' : 'Liên hệ',
+                    nav5: locale === 'en' ? 'Roadmap' : 'Lộ trình', // Thêm nav5 vào fallback
                     loginButton: locale === 'en' ? 'Login' : 'Đăng nhập',
                     signupButton: locale === 'en' ? 'Sign Up' : 'Đăng ký',
                     userMenuProfile: locale === 'en' ? 'Profile' : 'Hồ sơ',

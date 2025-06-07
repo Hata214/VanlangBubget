@@ -8,6 +8,8 @@ import { usePathname } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/redux/store'
 import { SettingsToggle } from '@/components/ui/SettingsToggle'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
+// import { LanguageToggle } from '@/components/ui/LanguageToggle' // Xóa import LanguageToggle
 import { Button } from '@/components/ui/Button'
 import { Footer } from '@/components/layout/Footer'
 import {
@@ -99,6 +101,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                                 </Button>
                             </Link>
                             <ThemeToggle />
+                            {/* <LanguageToggle /> */} {/* Xóa LanguageToggle ở đây */}
 
                             {isAuthenticated ? (
                                 <DropdownMenu>
