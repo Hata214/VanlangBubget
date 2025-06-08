@@ -9,7 +9,7 @@ import { locales, defaultLocale } from './src/i18n';
 const intlMiddleware = createIntlMiddleware({
     locales,
     defaultLocale,
-    localePrefix: 'as-needed'
+    localePrefix: 'never'
 });
 
 /**

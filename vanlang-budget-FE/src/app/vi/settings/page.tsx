@@ -47,7 +47,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">Quản lý thông tin cá nhân và mật khẩu tài khoản của bạn</p>
-                            <Link href="/vi/profile">
+                            <Link href="/profile">
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     Quản lý tài khoản
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -83,7 +83,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">Thay đổi mật khẩu và thiết lập bảo mật tài khoản</p>
-                            <Link href="/vi/profile">
+                            <Link href="/profile">
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     Đổi mật khẩu
                                     <ArrowRightIcon className="h-4 w-4" />
