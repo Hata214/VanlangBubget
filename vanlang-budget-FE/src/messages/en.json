@@ -288,7 +288,9 @@
         "saving": "Saving...",
         "add": "Add",
         "filterMinAmountPlaceholder": "Min Amount",
-        "filterMaxAmountPlaceholder": "Max Amount"
+        "filterMaxAmountPlaceholder": "Max Amount",
+        "filterDateFromPlaceholder": "From date",
+        "filterDateToPlaceholder": "To date"
     },
     "dashboard": {
         "financialOverview": "Financial Overview",
@@ -337,6 +339,9 @@
             "investment": "Investment",
             "business": "Business",
             "savings": "Savings",
+            "sales": "Sales",
+            "freelance": "Freelance",
+            "luckyMoney": "Lucky Money",
             "other": "Other"
         },
         "addSuccess": "Income added successfully",

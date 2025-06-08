@@ -111,34 +111,67 @@ export function SearchFilter({ categories, onSearch, onFilter, onReset, category
                     </Select>
 
                     {/* Date Range Filter - From Date */}
-                    <div className="relative">
-                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <Input
-                            type="date"
-                            value={filters.dateRange?.from ? filters.dateRange.from.toISOString().split('T')[0] : ''}
-                            onChange={(e) => {
-                                const newDate = e.target.value ? new Date(e.target.value) : undefined;
-                                handleDateRangeChange({ ...filters.dateRange, from: newDate });
-                            }}
-                            placeholder="dd/mm/yyyy"
-                            className="pl-10"
-                        />
-                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                                <Input
+                                    type="text"
+                                    readOnly
+                                    value={filters.dateRange?.from ? formatDate(filters.dateRange.from) : ''}
+                                    placeholder={t('common.filterDateFromPlaceholder', { defaultMessage: 'Từ ngày (dd/mm/yyyy)' })}
+                                    className="pl-10 cursor-pointer"
+                                />
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={filters.dateRange?.from}
+                                onSelect={(selectedDate) => {
+                                    const newRange: DateRange = {
+                                        from: selectedDate ?? undefined,
+                                        to: filters.dateRange?.to,
+                                    };
+                                    handleDateRangeChange(newRange);
+                                }}
+                                initialFocus
+                            />
+                        </PopoverContent>
+                    </Popover>
 
                     {/* Date Range Filter - To Date */}
-                    <div className="relative">
-                        <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                        <Input
-                            type="date"
-                            value={filters.dateRange?.to ? filters.dateRange.to.toISOString().split('T')[0] : ''}
-                            onChange={(e) => {
-                                const newDate = e.target.value ? new Date(e.target.value) : undefined;
-                                handleDateRangeChange({ ...filters.dateRange, to: newDate });
-                            }}
-                            placeholder="dd/mm/yyyy"
-                            className="pl-10"
-                        />
-                    </div>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <div className="relative">
+                                <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                                <Input
+                                    type="text"
+                                    readOnly
+                                    value={filters.dateRange?.to ? formatDate(filters.dateRange.to) : ''}
+                                    placeholder={t('common.filterDateToPlaceholder', { defaultMessage: 'Đến ngày (dd/mm/yyyy)' })}
+                                    className="pl-10 cursor-pointer"
+                                    disabled={!filters.dateRange?.from} // Disable 'to' date if 'from' is not selected
+                                />
+                            </div>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={filters.dateRange?.to}
+                                onSelect={(selectedDate) => {
+                                    const newRange: DateRange = {
+                                        from: filters.dateRange?.from,
+                                        to: selectedDate ?? undefined,
+                                    };
+                                    handleDateRangeChange(newRange);
+                                }}
+                                initialFocus
+                                fromDate={filters.dateRange?.from} // Prevent selecting 'to' date before 'from' date
+                                disabled={!filters.dateRange?.from}
+                            />
+                        </PopoverContent>
+                    </Popover>
 
                     {/* Min Amount Filter */}
                     <Input

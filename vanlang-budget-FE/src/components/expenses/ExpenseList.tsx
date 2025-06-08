@@ -185,7 +185,7 @@ function LocationMap({ location }: { location: Location | undefined }) {
 export function ExpenseList({ expenses, isLoading, onEdit, onDelete, onRowClick }: ExpenseListProps) {
     const t = useTranslations();
     const searchParams = useSearchParams()
-    const { categories } = useAppSelector((state) => state.expense);
+    const { categories } = useAppSelector((state) => state.expense); // categories từ Redux, hiện tại không dùng để tạo danh sách cho bộ lọc
 
     // Khởi tạo giá trị trang từ URL nếu có
     const initialPage = (() => {
@@ -215,28 +215,21 @@ export function ExpenseList({ expenses, isLoading, onEdit, onDelete, onRowClick 
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<SortDirection>(null);
 
-    // Danh sách danh mục từ Redux hoặc sử dụng danh mục từ bản dịch
+    // Danh sách danh mục cho bộ lọc, chỉ bao gồm các danh mục chuẩn đã được dịch
     const expenseCategories = useMemo(() => {
-        // Tạo danh sách danh mục từ translations
-        const defaultCategories = [
-            t('expense.category.food'),
-            t('expense.category.transport'),
-            t('expense.category.shopping'),
-            t('expense.category.entertainment'),
-            t('expense.category.bills'),
-            t('expense.category.health'),
-            t('expense.category.education'),
-            t('expense.category.other')
+        const standardCategoryKeys = [
+            'food', 'transport', 'shopping', 'entertainment', 'bills', 'health', 'education', 'other'
         ];
 
-        // Kết hợp với danh mục từ redux nếu có
-        if (categories && categories.length > 0) {
-            return [...defaultCategories, ...categories.filter((cat: string) =>
-                !defaultCategories.includes(cat) && cat !== t('expense.category.other')
-            )];
-        }
-        return defaultCategories;
-    }, [categories, t]);
+        return standardCategoryKeys
+            .map(key => {
+                const translation = t(`expense.category.${key}`);
+                // Chỉ trả về bản dịch nếu nó khác với key (tức là có bản dịch thực sự) và không rỗng
+                return (translation && translation !== `expense.category.${key}`) ? translation : null;
+            })
+            .filter(Boolean) // Lọc bỏ các giá trị null (nếu không có bản dịch hoặc key không tồn tại)
+            .sort((a, b) => (a as string).localeCompare(b as string)) as string[];
+    }, [t]);
 
     // Lọc và tìm kiếm
     const filteredExpenses = useMemo(() => {

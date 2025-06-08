@@ -61,27 +61,21 @@ export function IncomeList({ incomes, isLoading, onEdit, onDelete, onRowClick }:
         prevPageRef.current = currentPage;
     }, [currentPage]);
 
-    // Danh sách danh mục từ Redux hoặc sử dụng danh mục từ bản dịch
+    // Danh sách danh mục cho bộ lọc, chỉ bao gồm các danh mục chuẩn đã được dịch
     const incomeCategories = useMemo(() => {
-        // Tạo danh sách danh mục từ translations - chỉ bao gồm danh mục tiếng Việt
-        const defaultCategories = [
-            'Lương',
-            'Thưởng',
-            'Đầu tư',
-            'Kinh doanh',
-            'Tiền tiết kiệm',
-            'Khác'
+        const standardCategoryKeys = [
+            'salary', 'bonus', 'investment', 'business', 'savings', 'sales', 'freelance', 'luckyMoney', 'other'
         ];
 
-        // Kết hợp với danh mục từ redux nếu có
-        if (categories && categories.length > 0) {
-            return [...defaultCategories, ...categories.filter((cat: string) =>
-                !defaultCategories.includes(cat) &&
-                !['BONUS', 'INVESTMENT', 'SALARY', 'Khác', 'income.category.other'].includes(cat)
-            )];
-        }
-        return defaultCategories;
-    }, [categories, t]);
+        return standardCategoryKeys
+            .map(key => {
+                const translation = t(`income.category.${key}`);
+                // Chỉ trả về bản dịch nếu nó khác với key (tức là có bản dịch thực sự) và không rỗng
+                return (translation && translation !== `income.category.${key}`) ? translation : null;
+            })
+            .filter(Boolean) // Lọc bỏ các giá trị null (nếu không có bản dịch hoặc key không tồn tại)
+            .sort((a, b) => (a as string).localeCompare(b as string)) as string[];
+    }, [t]);
 
     const filteredIncomes = useMemo(() => {
         if (!Array.isArray(incomes)) {

@@ -417,7 +417,9 @@
         "saving": "Đang lưu...",
         "add": "Thêm",
         "filterMinAmountPlaceholder": "Số tiền tối thiểu",
-        "filterMaxAmountPlaceholder": "Số tiền tối đa"
+        "filterMaxAmountPlaceholder": "Số tiền tối đa",
+        "filterDateFromPlaceholder": "Từ ngày",
+        "filterDateToPlaceholder": "Đến ngày"
     },
     "notifications": {
         "title": "Thông báo",
@@ -523,6 +525,9 @@
             "investment": "Đầu tư",
             "business": "Kinh doanh",
             "savings": "Tiền tiết kiệm",
+            "sales": "Bán hàng",
+            "freelance": "Freelance",
+            "luckyMoney": "Tiền may mắn",
             "other": "Khác"
         },
         "categories": {
@@ -531,6 +536,9 @@
             "investment": "Đầu tư",
             "business": "Kinh doanh",
             "savings": "Tiền tiết kiệm",
+            "sales": "Bán hàng",
+            "freelance": "Freelance",
+            "luckyMoney": "Tiền may mắn",
             "other": "Khác"
         },
         "addSuccess": "Thêm thu nhập thành công",
