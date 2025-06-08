@@ -256,24 +256,35 @@ export function ExpenseList({ expenses, isLoading, onEdit, onDelete, onRowClick 
                 return false
             }
 
-            // Lọc theo khoảng thời gian
-            if (filters.filterDate) {
-                const filterDate = new Date(filters.filterDate);
+            // Lọc theo khoảng thời gian (dateRange)
+            if (filters.dateRange) {
                 const expenseDate = new Date(expense.date);
-                // So sánh theo ngày tháng năm (bỏ qua giờ phút giây)
-                if (filterDate.getDate() !== expenseDate.getDate() ||
-                    filterDate.getMonth() !== expenseDate.getMonth() ||
-                    filterDate.getFullYear() !== expenseDate.getFullYear()) {
-                    return false;
+                expenseDate.setHours(0, 0, 0, 0); // Chuẩn hóa về đầu ngày để so sánh
+
+                if (filters.dateRange.from) {
+                    const fromDate = new Date(filters.dateRange.from);
+                    fromDate.setHours(0, 0, 0, 0);
+                    if (expenseDate < fromDate) {
+                        return false;
+                    }
+                }
+                if (filters.dateRange.to) {
+                    const toDate = new Date(filters.dateRange.to);
+                    toDate.setHours(23, 59, 59, 999); // Chuẩn hóa về cuối ngày để so sánh
+                    if (expenseDate > toDate) {
+                        return false;
+                    }
                 }
             }
 
-            // Lọc theo khoảng tiền
-            if (filters.minAmount && expense.amount < filters.minAmount) {
-                return false
-            }
-            if (filters.maxAmount && expense.amount > filters.maxAmount) {
-                return false
+            // Lọc theo khoảng tiền (amountRange)
+            if (filters.amountRange) {
+                if (filters.amountRange.min !== undefined && expense.amount < filters.amountRange.min) {
+                    return false;
+                }
+                if (filters.amountRange.max !== undefined && expense.amount > filters.amountRange.max) {
+                    return false;
+                }
             }
 
             return true

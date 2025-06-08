@@ -100,25 +100,35 @@ export function LoanList({ loans, isLoading, onEdit, onDelete, onRowClick }: Loa
                 return false
             }
 
-            // Lọc theo khoảng thời gian
-            if (filters.filterDate) {
-                const filterDate = new Date(filters.filterDate);
+            // Lọc theo khoảng thời gian (dateRange) - áp dụng cho startDate của khoản vay
+            if (filters.dateRange) {
                 const loanStartDate = new Date(loan.startDate);
+                loanStartDate.setHours(0, 0, 0, 0); // Chuẩn hóa về đầu ngày
 
-                // So sánh theo ngày tháng năm (bỏ qua giờ phút giây)
-                if (filterDate.getDate() !== loanStartDate.getDate() ||
-                    filterDate.getMonth() !== loanStartDate.getMonth() ||
-                    filterDate.getFullYear() !== loanStartDate.getFullYear()) {
-                    return false;
+                if (filters.dateRange.from) {
+                    const fromDate = new Date(filters.dateRange.from);
+                    fromDate.setHours(0, 0, 0, 0);
+                    if (loanStartDate < fromDate) {
+                        return false;
+                    }
+                }
+                if (filters.dateRange.to) {
+                    const toDate = new Date(filters.dateRange.to);
+                    toDate.setHours(23, 59, 59, 999); // Chuẩn hóa về cuối ngày
+                    if (loanStartDate > toDate) {
+                        return false;
+                    }
                 }
             }
 
-            // Lọc theo khoảng tiền
-            if (filters.minAmount && loan.amount < filters.minAmount) {
-                return false
-            }
-            if (filters.maxAmount && loan.amount > filters.maxAmount) {
-                return false
+            // Lọc theo khoảng tiền (amountRange)
+            if (filters.amountRange) {
+                if (filters.amountRange.min !== undefined && loan.amount < filters.amountRange.min) {
+                    return false;
+                }
+                if (filters.amountRange.max !== undefined && loan.amount > filters.amountRange.max) {
+                    return false;
+                }
             }
 
             return true
