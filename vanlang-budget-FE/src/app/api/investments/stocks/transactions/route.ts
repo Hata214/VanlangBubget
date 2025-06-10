@@ -13,7 +13,7 @@ const stockTransactionSchema = z.object({
 });
 
 // Mảng lưu trữ tạm thời các giao dịch cổ phiếu
-export const stockTransactions = [
+const stockTransactions = [
     {
         id: "1",
         symbol: "VCB",
@@ -78,7 +78,10 @@ export async function POST(request: Request) {
         // Tạo giao dịch mới với ID
         const newTransaction = {
             id: Date.now().toString(),
-            ...result.data
+            ...result.data,
+            fee: result.data.fee ?? 0, // Nếu fee là undefined, dùng 0
+            broker: result.data.broker ?? '', // Nếu broker là undefined, dùng chuỗi rỗng
+            notes: result.data.notes ?? '', // Nếu notes là undefined, dùng chuỗi rỗng
         };
 
         // Thêm vào mảng giao dịch
@@ -96,4 +99,4 @@ export async function POST(request: Request) {
             { status: 500 }
         );
     }
-} 
+}

@@ -38,6 +38,39 @@ export async function GET(
     }
 }
 
+// Placeholder definitions - bạn cần thay thế bằng mock data và type thật của mình
+export interface Transaction {
+    id: string;
+    type: 'buy' | 'sell'; // Thêm các type khác nếu cần
+    quantity: number;
+    price: number;
+    date: string;
+    // Thêm các thuộc tính khác cho Transaction nếu cần
+}
+
+export interface Investment {
+    id: string;
+    name: string;
+    quantity: number;
+    currentPrice: number;
+    initialInvestment: number;
+    currentValue: number;
+    profitLoss: number;
+    roi: number;
+    transactions?: Transaction[];
+    updatedAt?: string;
+    // Thêm các thuộc tính khác cho Investment nếu cần
+}
+
+export const mockInvestments: Investment[] = [
+    // Ví dụ:
+    // { 
+    //   id: '1', name: 'Sample Stock', quantity: 10, currentPrice: 100, 
+    //   initialInvestment: 900, currentValue: 1000, profitLoss: 100, roi: 11.11,
+    //   transactions: [{ id: 't1', type: 'buy', quantity: 10, price: 90, date: new Date().toISOString() }]
+    // }
+];
+
 export async function DELETE(
     request: NextRequest,
     { params }: { params: { id: string } }
