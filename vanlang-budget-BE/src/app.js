@@ -194,14 +194,20 @@ try {
     const AgentController = (await import('./controllers/agentController.js')).default;
 
     // Create instances with Gemini API key
-    const geminiApiKey = process.env.GEMINI_API_KEY || 'AIzaSyCgyvcGoItpgZMF9HDlScSwmY1PqO4aGlg';
-    const agentService = new AgentService(geminiApiKey);
-    const agentController = new AgentController(agentService);
+    const geminiApiKey = process.env.GEMINI_API_KEY;
 
-    // Initialize and register agent routes
-    const agentRoutes = initializeAgentRoutes(agentController);
-    app.use('/api/agent', agentRoutes);
-    console.log('Route agent v2 đã đăng ký tại /api/agent ✅');
+    if (!geminiApiKey) {
+        console.error('LỖI NGHIÊM TRỌNG: Biến môi trường GEMINI_API_KEY chưa được đặt. Agent Service sẽ không được khởi tạo.');
+        // Tùy chọn: throw new Error('GEMINI_API_KEY is not set'); để dừng hẳn ứng dụng nếu đây là critical feature
+    } else {
+        const agentService = new AgentService(geminiApiKey);
+        const agentController = new AgentController(agentService);
+
+        // Initialize and register agent routes
+        const agentRoutes = initializeAgentRoutes(agentController);
+        app.use('/api/agent', agentRoutes);
+        console.log('Route agent v2 đã đăng ký tại /api/agent ✅');
+    }
 } catch (error) {
     console.error('Lỗi khi đăng ký agent routes:', error);
 }
