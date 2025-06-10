@@ -2,14 +2,18 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useDispatch } from 'react-redux';
+import { useAppDispatch } from '@/redux/hooks';
 import { useTranslation } from 'react-i18next';
-import { updateLoan } from '@/redux/loans/loansSlice';
-import { showToast } from '@/components/ui/use-toast';
+import { updateLoan } from '@/redux/features/loanSlice';
+import toast from 'react-hot-toast';
 
-const LoanEditPage: React.FC = () => {
+interface LoanEditPageProps {
+    params: { id: string };
+}
+
+const LoanEditPage: React.FC<LoanEditPageProps> = ({ params }) => {
     const router = useRouter();
-    const dispatch = useDispatch();
+    const dispatch = useAppDispatch();
     const { t } = useTranslation();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -28,21 +32,13 @@ const LoanEditPage: React.FC = () => {
 
             await dispatch(updateLoan({ id: String(params.id), data })).unwrap();
 
-            showToast({
-                title: t('loan.updateSuccess'),
-                description: t('loan.updateSuccessDetail'),
-                variant: 'success',
-            });
+            toast.success(t('loan.updateSuccessDetail'));
 
             router.push('/loans');
         } catch (error: any) {
             console.error('Error updating loan:', error);
 
-            showToast({
-                title: t('loan.updateError'),
-                description: error.message || t('loan.updateErrorDetail'),
-                variant: 'destructive',
-            });
+            toast.error(error.message || t('loan.updateErrorDetail'));
         } finally {
             setIsSubmitting(false);
         }
@@ -55,4 +51,4 @@ const LoanEditPage: React.FC = () => {
     );
 };
 
-export default LoanEditPage; 
+export default LoanEditPage;
