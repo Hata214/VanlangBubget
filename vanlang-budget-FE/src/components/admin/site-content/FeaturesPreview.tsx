@@ -11,6 +11,14 @@ import siteContentService from '@/services/siteContentService';
 import { useAppSelector } from '@/redux/hooks';
 import { useSiteContent } from '@/components/SiteContentProvider';
 
+interface ComingSoonFeature {
+    id?: string;
+    icon: string;
+    title: string;
+    description: string;
+    eta: string;
+}
+
 interface FeaturesPreviewProps {
     content: any;
     onUpdate: () => void;
@@ -158,7 +166,7 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
     // Hàm lưu tất cả thay đổi
     const saveAllChanges = async () => {
         if (changedFields.length === 0) {
-            toast.info('Không có thay đổi để lưu');
+            toast('Không có thay đổi để lưu');
             return;
         }
 
@@ -451,7 +459,7 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
                                 <div className="space-y-2">
                                     <p className="font-medium mb-2">Lợi ích:</p>
                                     <ul className="space-y-2">
-                                        {(feature.benefits || []).map((benefit, benefitIndex) => (
+                                        {(feature.benefits || []).map((benefit: string, benefitIndex: number) => (
                                             <li key={benefitIndex} className="flex items-start">
                                                 <span className="text-green-500 mr-2">✓</span>
                                                 <span className="text-gray-600 group">
@@ -482,7 +490,7 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {(updatedContent?.comingSoon || []).map((feature, index) => (
+                        {(updatedContent?.comingSoon || []).map((feature: ComingSoonFeature, index: number) => (
                             <div key={feature.id || index} className="bg-white p-5 rounded-md shadow-sm border-2 border-dashed border-indigo-200 relative">
                                 {/* Delete button */}
                                 <button
@@ -569,7 +577,7 @@ export default function FeaturesPreview({ content, onUpdate }: FeaturesPreviewPr
                                         <span className="text-gray-500">{plan.price === '0' ? '' : ' VNĐ/tháng'}</span>
                                     </div>
                                     <ul className="space-y-3 mb-6">
-                                        {(plan.features || []).map((feature, featureIndex) => (
+                                        {(plan.features || []).map((feature: string, featureIndex: number) => (
                                             <li key={featureIndex} className="flex items-start">
                                                 <span className="text-green-500 mr-2">✓</span>
                                                 <span className="text-gray-600 group">

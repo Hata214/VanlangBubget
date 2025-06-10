@@ -102,12 +102,9 @@ export default function SectionTabs({
     // Tạo tab chính
     const mainTabs = sections.map(section => ({
         id: section.id,
-        label: (
-            <div className="flex items-center space-x-2">
-                {section.icon}
-                <span>{section.label}</span>
-            </div>
-        ),
+        label: section.label, // Thay đổi label thành string
+        // Icon sẽ không được hiển thị trực tiếp trong label nữa
+        // Nếu cần icon, ContentTabs cần hỗ trợ prop riêng cho icon hoặc renderLabel tùy chỉnh
         content: section.subsections.length > 0 ? (
             <div className="space-y-4">
                 <h3 className="text-lg font-medium mb-4">
@@ -175,15 +172,15 @@ export default function SectionTabs({
             className={className}
             withLanguageToggle={true}
             currentLanguage={currentLanguage}
-            onLanguageChange={(newLanguage) => {
+            onLanguageChange={(newLanguage: 'vi' | 'en') => { // Thêm kiểu rõ ràng ở đây
                 onLanguageChange(newLanguage);
+                console.log('Language changed to:', newLanguage); // Thêm log để kiểm tra
 
                 // Hiển thị thông báo
-                toast.success(
-                    newLanguage === 'vi'
-                        ? 'Đã chuyển sang tiếng Việt'
-                        : 'Switched to English'
-                );
+                const message = newLanguage === 'vi'
+                    ? 'Đã chuyển sang tiếng Việt'
+                    : 'Switched to English';
+                toast.success(message);
             }}
         />
     );

@@ -19,15 +19,53 @@ const RegisterForm: React.FC = () => {
     const dispatch = useDispatch();
 
     const onSubmit = async (data: RegisterFormInputs) => {
+        dispatch(setLoading(true));
         try {
-            dispatch(setLoading(true));
             const { confirmPassword, ...registerData } = data;
-            const response = await authService.register(registerData);
-            dispatch(setCredentials(response));
-            dispatch(setLoading(false));
+            const responseFromService = await authService.register(registerData);
+
+            const apiUser = responseFromService.user;
+            const formInputName = data.name; // Full name from form input
+            let firstName = '';
+            let lastName = '';
+
+            // Prioritize backend-provided firstName/lastName if available
+            if (apiUser.firstName && apiUser.lastName) {
+                firstName = apiUser.firstName;
+                lastName = apiUser.lastName;
+            } else if (apiUser.name) { // Fallback to backend-provided 'name'
+                const nameParts = apiUser.name.split(' ');
+                firstName = nameParts[0] || '';
+                lastName = nameParts.slice(1).join(' ') || '';
+            } else if (formInputName) { // Fallback to form input 'name'
+                const nameParts = formInputName.split(' ');
+                firstName = nameParts[0] || '';
+                lastName = nameParts.slice(1).join(' ') || '';
+            }
+
+            const transformedUser = {
+                _id: apiUser.id, // Map id to _id
+                email: apiUser.email,
+                firstName: firstName,
+                lastName: lastName,
+                role: 'user', // Default role after registration
+                isEmailVerified: false, // Default verification status
+                // phoneNumber and fullName are optional in authSlice's User type
+            };
+
+            const credentialsToSet = {
+                user: transformedUser,
+                token: responseFromService.token,
+                message: responseFromService.message,
+            };
+
+            dispatch(setCredentials(credentialsToSet));
+            dispatch(setError(null)); // Clear any previous errors
             router.push('/');
         } catch (error: any) {
-            dispatch(setError(error.response?.data?.message || 'Đăng ký thất bại'));
+            const errorMessage = error.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.';
+            dispatch(setError(errorMessage));
+        } finally {
             dispatch(setLoading(false));
         }
     };
@@ -114,4 +152,4 @@ const RegisterForm: React.FC = () => {
     );
 };
 
-export default RegisterForm; 
+export default RegisterForm;

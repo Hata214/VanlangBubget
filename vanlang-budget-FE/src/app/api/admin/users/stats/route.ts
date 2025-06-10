@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic'; // Mark the route as dynamic
+
 /**
  * API endpoint để lấy thống kê người dùng
  * @route GET /api/admin/users/stats
@@ -41,4 +43,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
-} 
+}

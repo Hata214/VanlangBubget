@@ -58,7 +58,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
         frontWidth: z.coerce.number().min(0, "Mặt tiền phải là số dương").optional(),
         depth: z.coerce.number().min(0, "Chiều sâu phải là số dương").optional(),
         purchasePrice: z.coerce.number().min(0, "Giá mua phải là số dương").max(100000000000, 'Giá mua tối đa là 100 tỷ'),
-        additionalFees: z.coerce.number().min(0, "Phí phát sinh phải là số dương").max(100000000000, 'Phí tối đa là 100 tỷ').optional().default(0),
+        additionalFees: z.coerce.number().min(0, "Phí phát sinh phải là số dương").max(100000000000, 'Phí tối đa là 100 tỷ').optional(),
         purchaseDate: z.string().min(1, "Ngày mua là bắt buộc"),
         ownershipType: z.string().min(1, "Hình thức sở hữu là bắt buộc"),
         otherOwnershipType: z.string().optional(),
@@ -503,7 +503,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                             <CurrencyInput
                                                 placeholder="0"
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 disabled={isLoading}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
@@ -528,7 +528,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                             <CurrencyInput
                                                 placeholder="0"
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 disabled={isLoading}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"

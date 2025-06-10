@@ -129,7 +129,18 @@ export default function LoanDetailPage() {
         };
     }, [loan]);
 
-    const handleUpdateLoan = async (data: Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    const handleUpdateLoan = async (data: {
+        amount: number;
+        lender: string;
+        interestRate: number;
+        startDate: string;
+        dueDate: string;
+        description: string; // Theo thông báo lỗi, form yêu cầu trường này
+        status?: "ACTIVE" | "PAID" | "OVERDUE";
+        interestRateType?: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
+        prepaymentAmount?: number; // Cũng có trong dữ liệu form theo lỗi
+        // lenderType không có ở đây vì LoanForm không gửi nó
+    }) => {
         if (!loan || !loanId) return;
         setIsSubmitting(true);
         try {
@@ -484,9 +495,12 @@ export default function LoanDetailPage() {
                     initialData={{
                         amount: loan.amount,
                         lender: loan.lender,
+                        // lenderType: loan.lenderType, // Đã xóa vì LoanForm không chấp nhận và loan.lenderType không tồn tại
                         interestRate: loan.interestRate,
+                        interestRateType: loan.interestRateType, // Giữ lại, giả sử LoanForm chấp nhận và loan.interestRateType tồn tại
                         startDate: loan.startDate,
                         dueDate: loan.dueDate,
+                        status: loan.status, // Giữ lại, giả sử LoanForm chấp nhận và loan.status tồn tại
                         description: loan.description,
                     }}
                     onSubmit={handleUpdateLoan}
@@ -533,4 +547,4 @@ export default function LoanDetailPage() {
 `}</style>
         </div>
     )
-} 
+}

@@ -8,19 +8,20 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-    const { isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+    const { isAuthenticated, isLoading } = useSelector((state: RootState) => state.auth); // Sử dụng đúng isLoading
     const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
         // Nếu không đang loading và chưa xác thực
-        if (!loading && !isAuthenticated) {
-            router.push(`/login?returnUrl=${encodeURIComponent(pathname)}`);
+        if (!isLoading && !isAuthenticated) {
+            const loginUrl = `/login?returnUrl=${encodeURIComponent(pathname)}`;
+            router.push(loginUrl);
         }
-    }, [loading, isAuthenticated, router, pathname]);
+    }, [isLoading, isAuthenticated, router, pathname]);
 
     // Hiển thị loading state
-    if (loading) {
+    if (isLoading) { // Sử dụng đúng isLoading
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -37,4 +38,4 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <>{children}</>;
 };
 
-export default ProtectedRoute; 
+export default ProtectedRoute;

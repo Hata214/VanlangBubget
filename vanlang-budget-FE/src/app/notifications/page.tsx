@@ -139,7 +139,7 @@ export default function NotificationsPage() {
             return;
         }
 
-        dispatch(fetchNotifications(1));
+        dispatch(fetchNotifications({ page: 1, sort: 'desc' }));
     }, [dispatch]);
 
     useEffect(() => {
@@ -211,7 +211,7 @@ export default function NotificationsPage() {
             console.log('Deleting notification:', id);
             await notificationService.delete(id);
             // Tải lại thông báo từ server sau khi xóa
-            dispatch(fetchNotifications(1));
+            dispatch(fetchNotifications({ page: 1, sort: 'desc' }));
             success('Đã xóa', 'Thông báo đã được xóa');
         } catch (err: any) {
             console.error('Error deleting notification:', err);
@@ -228,7 +228,7 @@ export default function NotificationsPage() {
             await notificationService.deleteAll();
             console.log('Successfully deleted all read notifications');
             // Tải lại thông báo từ server sau khi xóa
-            dispatch(fetchNotifications(1));
+            dispatch(fetchNotifications({ page: 1, sort: 'desc' }));
             success('Hoàn tất', 'Đã xóa tất cả thông báo đã đọc');
         } catch (err: any) {
             console.error('Error in handleDeleteAll:', err);

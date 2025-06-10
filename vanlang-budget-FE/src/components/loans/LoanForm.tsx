@@ -30,14 +30,14 @@ import type { Loan } from '@/types'
 
 const loanSchema = z.object({
     amount: z.number().min(1000, 'Số tiền phải lớn hơn 1,000đ').max(100000000000, 'Số tiền tối đa là 100 tỷ'),
-    prepaymentAmount: z.number().min(0, 'Số tiền trả trước không được âm').max(100000000000, 'Số tiền tối đa là 100 tỷ').default(0),
+    prepaymentAmount: z.number().min(0, 'Số tiền trả trước không được âm').max(100000000000, 'Số tiền tối đa là 100 tỷ').optional(),
     description: z.string().min(1, 'Mô tả là bắt buộc'),
     lender: z.string().min(1, 'Người cho vay là bắt buộc'),
     interestRate: z.number().min(0, 'Lãi suất không được âm').max(100, 'Lãi suất không được vượt quá 100%'),
-    interestRateType: z.enum(['DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']).default('YEAR'),
+    interestRateType: z.enum(['DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']).optional(),
     startDate: z.string().min(1, 'Ngày bắt đầu là bắt buộc'),
     dueDate: z.string().min(1, 'Ngày đáo hạn là bắt buộc'),
-    status: z.enum(['ACTIVE', 'PAID', 'OVERDUE']).default('ACTIVE'),
+    status: z.enum(['ACTIVE', 'PAID', 'OVERDUE']).optional(),
 }).refine((data) => {
     const startDate = new Date(data.startDate);
     const dueDate = new Date(data.dueDate);
@@ -126,14 +126,14 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
         resolver: zodResolver(loanSchema),
         defaultValues: {
             amount: initialData?.amount || 0,
-            prepaymentAmount: initialData?.prepaymentAmount || 0,
+            prepaymentAmount: initialData?.prepaymentAmount ?? 0,
             description: initialData?.description || '',
             lender: initialData?.lender || '',
             interestRate: initialData?.interestRate || 0,
-            interestRateType: initialData?.interestRateType || 'YEAR',
+            interestRateType: initialData?.interestRateType ?? 'YEAR',
             startDate: initialData?.startDate || new Date().toISOString().split('T')[0],
             dueDate: initialData?.dueDate || new Date().toISOString().split('T')[0],
-            status: (initialData?.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE') || 'ACTIVE',
+            status: (initialData?.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE') ?? 'ACTIVE',
         },
     });
 
@@ -158,11 +158,14 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                 form.setValue('status', 'OVERDUE');
                 setCurrentStatus('OVERDUE');
             } else {
-                form.setValue('status', 'ACTIVE');
-                setCurrentStatus('ACTIVE');
+                // Chỉ đặt lại thành ACTIVE nếu trạng thái hiện tại không phải là PAID
+                if (form.getValues('status') !== 'PAID') {
+                    form.setValue('status', 'ACTIVE');
+                    setCurrentStatus('ACTIVE');
+                }
             }
         }
-    }, [form.watch('dueDate'), autoUpdateStatus, form]);
+    }, [form.watch('dueDate'), autoUpdateStatus, form, form.getValues('status')]);
 
     // Thêm effect để tự động cập nhật trạng thái khi người cho vay thay đổi
     useEffect(() => {
@@ -173,13 +176,14 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
             // Reset form với giá trị mới
             form.reset({
                 amount: initialData.amount || 0,
+                prepaymentAmount: initialData.prepaymentAmount ?? 0,
                 description: initialData.description || '',
                 lender: initialData.lender || '',
                 interestRate: initialData.interestRate || 0,
-                interestRateType: initialData.interestRateType || 'YEAR',
+                interestRateType: initialData.interestRateType ?? 'YEAR',
                 startDate: initialData.startDate || new Date().toISOString().split('T')[0],
                 dueDate: initialData.dueDate || new Date().toISOString().split('T')[0],
-                status: initialData.status || 'ACTIVE',
+                status: (initialData.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE') ?? 'ACTIVE',
             });
 
             // Cập nhật selectedLenderType và customLender
@@ -207,9 +211,9 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
     // Tính số tiền lãi dựa vào số tiền, lãi suất, loại thời gian và mô hình khoản vay (người cho vay)
     useEffect(() => {
         const amount = form.watch('amount') || 0;
-        const prepayment = form.watch('prepaymentAmount') || 0;
+        const prepayment = form.watch('prepaymentAmount') ?? 0;
         const rate = form.watch('interestRate') || 0;
-        const rateType = form.watch('interestRateType');
+        const rateType = form.watch('interestRateType') ?? 'YEAR';
         const startDate = form.watch('startDate');
         const dueDate = form.watch('dueDate');
         const lenderType = selectedLenderType;
@@ -403,15 +407,12 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
             // Tạo một bản sao của dữ liệu để tránh mutate trực tiếp
             const formData = { ...data };
 
-            // Chuẩn hóa trạng thái thành chữ hoa nếu có
-            if (formData.status) {
-                formData.status = formData.status.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE';
-                console.log('Form submit - normalized status:', formData.status);
-            } else {
-                // Nếu không có trạng thái, đặt giá trị mặc định
-                formData.status = 'ACTIVE';
-                console.log('Form submit - set default status: ACTIVE');
-            }
+            // Cung cấp giá trị mặc định cho các trường optional nếu chúng là undefined
+            formData.prepaymentAmount = formData.prepaymentAmount ?? 0;
+            formData.interestRateType = formData.interestRateType ?? 'YEAR';
+            formData.status = (formData.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE') ?? 'ACTIVE';
+            console.log('Form submit - normalized status:', formData.status);
+
 
             // Xử lý chuyển đổi lender dựa trên selectedLenderType
             let completeData = { ...formData };
@@ -461,8 +462,8 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                             <FormControl>
                                 <CurrencyInput
                                     placeholder={t('loan.enterAmount')}
-                                    value={field.value}
-                                    onValueChange={field.onChange}
+                                    value={field.value ?? 0}
+                                    onChange={field.onChange}
                                     onBlur={field.onBlur}
                                     className="text-right"
                                 />
@@ -483,8 +484,8 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                                 <FormControl>
                                     <CurrencyInput
                                         placeholder={t('loan.enterPrepaymentAmount')}
-                                        value={field.value}
-                                        onValueChange={field.onChange}
+                                        value={field.value ?? 0}
+                                        onChange={field.onChange}
                                         onBlur={field.onBlur}
                                         className="text-right"
                                     />
@@ -577,8 +578,9 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                         name="interestRateType"
                         render={({ field }) => {
                             // Lấy label phù hợp với giá trị hiện tại
-                            const getInterestRateLabel = (value: string) => {
-                                const type = INTEREST_RATE_TYPES.find(type => type.value === value);
+                            const getInterestRateLabel = (value: string | undefined) => {
+                                const currentVal = value ?? 'YEAR';
+                                const type = INTEREST_RATE_TYPES.find(type => type.value === currentVal);
                                 return type ? type.label : t('common.type');
                             };
 
@@ -586,13 +588,13 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                                 <FormItem>
                                     <FormLabel>{t('common.type')}</FormLabel>
                                     <Select
-                                        value={field.value}
+                                        value={field.value ?? 'YEAR'}
                                         onValueChange={field.onChange}
                                     >
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue>
-                                                    {getInterestRateLabel(field.value)}
+                                                    {getInterestRateLabel(field.value ?? 'YEAR')}
                                                 </SelectValue>
                                             </SelectTrigger>
                                         </FormControl>
@@ -681,15 +683,13 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                             control={form.control}
                             name="status"
                             render={({ field }) => {
-                                const getStatusLabel = (value: string) => {
-                                    // Chuẩn hóa value thành chữ hoa để tìm trong LOAN_STATUSES
-                                    const upperValue = value?.toUpperCase() || 'ACTIVE';
-                                    const status = LOAN_STATUSES.find(status => status.value === upperValue);
+                                const getStatusLabel = (value: string | undefined) => {
+                                    const currentVal = value?.toUpperCase() ?? 'ACTIVE';
+                                    const status = LOAN_STATUSES.find(s => s.value === currentVal);
                                     return status ? status.label : t('loan.status');
                                 };
 
-                                // Đảm bảo luôn có giá trị status
-                                const currentValue = field.value || 'ACTIVE';
+                                const currentValue = field.value?.toUpperCase() ?? 'ACTIVE';
 
                                 return (
                                     <FormItem>
@@ -698,12 +698,10 @@ export function LoanForm({ initialData, onSubmit, isSubmitting, mode }: LoanForm
                                             value={currentValue}
                                             onValueChange={(value) => {
                                                 console.log('Status selected:', value);
-                                                // Chuẩn hóa thành chữ hoa và cập nhật form
-                                                const upperValue = value.toUpperCase();
+                                                const upperValue = value.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE';
                                                 field.onChange(upperValue);
                                                 setCurrentStatus(upperValue);
 
-                                                // Nếu người dùng thay đổi trạng thái thủ công, tắt tự động cập nhật
                                                 if (autoUpdateStatus) {
                                                     setAutoUpdateStatus(false);
                                                 }

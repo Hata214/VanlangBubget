@@ -2,9 +2,10 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryStreamedHydration } from '@tanstack/react-query-next-experimental';
-import React, { useState } from 'react';
+import React, { useState, ReactNode } from 'react'; // Import ReactNode
 
-function QueryProvider({ children }: { children: React.ReactNode }) {
+// Đổi thành const arrow function
+const QueryProvider = ({ children }: { children: ReactNode }) => { // Sử dụng ReactNode đã import
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
@@ -20,6 +21,6 @@ function QueryProvider({ children }: { children: React.ReactNode }) {
             </ReactQueryStreamedHydration>
         </QueryClientProvider>
     );
-}
+};
 
 export default QueryProvider;

@@ -460,45 +460,56 @@ export function LoanList({ loans, isLoading, onEdit, onDelete, onRowClick }: Loa
         setSortDirection(direction);
     };
 
-    const handleEditSubmit = async (data: Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    // Cập nhật kiểu của dataFromForm để khớp với những gì LoanForm có thể gửi
+    const handleEditSubmit = async (dataFromForm: {
+        amount: number;
+        description: string;
+        lender: string;
+        interestRate: number;
+        startDate: string;
+        dueDate: string;
+        interestRateType?: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR"; // Cho phép undefined
+        status?: "ACTIVE" | "PAID" | "OVERDUE"; // Cho phép undefined
+        prepaymentAmount?: number; // Thêm nếu LoanForm có thể gửi
+    }) => {
         if (!selectedLoan) return;
         setIsSubmitting(true);
         try {
-            console.log('Editing loan with data:', data);
+            console.log('Editing loan with data from form:', dataFromForm);
 
-            // Đảm bảo trạng thái được chuẩn hóa
-            const newStatus = data.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE';
-            const oldStatus = selectedLoan.status?.toUpperCase() as 'ACTIVE' | 'PAID' | 'OVERDUE';
+            // Xử lý giá trị mặc định cho status và interestRateType nếu chúng là undefined từ form
+            const currentStatus = selectedLoan.status || 'ACTIVE';
+            const currentInterestRateType = selectedLoan.interestRateType || 'YEAR';
 
-            if (!data.status) {
-                // Nếu không có trạng thái, sử dụng trạng thái hiện tại của khoản vay
-                data.status = oldStatus || 'ACTIVE';
-            } else {
-                data.status = newStatus;
-            }
+            const statusToUpdate = dataFromForm.status?.toUpperCase() as Loan['status'] || currentStatus;
+            const interestRateTypeToUpdate = dataFromForm.interestRateType || currentInterestRateType;
+
 
             // Kiểm tra nếu có thay đổi trạng thái
-            const hasStatusChange = oldStatus !== data.status;
+            const oldStatus = selectedLoan.status?.toUpperCase();
+            const hasStatusChange = oldStatus !== statusToUpdate;
             if (hasStatusChange) {
-                console.log(`Status changing from ${oldStatus} to ${data.status}`);
+                console.log(`Status changing from ${oldStatus} to ${statusToUpdate}`);
             }
 
-            // Tạo đầy đủ dữ liệu cho khoản vay
-            const completeData: Partial<Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>> = {
-                amount: data.amount,
-                description: data.description,
-                lender: data.lender,
-                interestRate: data.interestRate,
-                interestRateType: data.interestRateType,
-                startDate: data.startDate,
-                dueDate: data.dueDate,
-                status: data.status
+            // Tạo payload cho onEdit, đảm bảo các trường bắt buộc có giá trị
+            const completeData: Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+                amount: dataFromForm.amount,
+                description: dataFromForm.description,
+                lender: dataFromForm.lender,
+                interestRate: dataFromForm.interestRate,
+                interestRateType: interestRateTypeToUpdate, // Sử dụng giá trị đã xử lý
+                startDate: dataFromForm.startDate,
+                dueDate: dataFromForm.dueDate,
+                status: statusToUpdate, // Sử dụng giá trị đã xử lý
+                // Thêm các trường khác từ Loan nếu cần, ví dụ: lenderType
+                // lenderType: dataFromForm.lenderType || selectedLoan.lenderType, // Ví dụ
             };
 
             console.log('Sending complete data for edit:', completeData);
 
             // Gọi hàm cập nhật và đợi kết quả
-            await onEdit(selectedLoan.id, completeData as any);
+            await onEdit(selectedLoan.id, completeData);
 
             // Đóng modal
             setShowEditModal(false);
@@ -614,7 +625,7 @@ export function LoanList({ loans, isLoading, onEdit, onDelete, onRowClick }: Loa
                             description: selectedLoan.description,
                             lender: selectedLoan.lender,
                             interestRate: selectedLoan.interestRate,
-                            interestRateType: selectedLoan.interestRateType || 'YEAR',
+                            interestRateType: selectedLoan.interestRateType, // Loại bỏ || 'YEAR'
                             startDate: new Date(selectedLoan.startDate).toISOString().split('T')[0],
                             dueDate: new Date(selectedLoan.dueDate).toISOString().split('T')[0],
                             status: selectedLoan.status

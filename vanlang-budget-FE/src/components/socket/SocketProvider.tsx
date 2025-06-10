@@ -26,9 +26,9 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // Tự động tham gia room của user sau khi kết nối thành công
     useEffect(() => {
-        if (isConnected && auth.user && auth.user._id) {
+        if (isConnected && auth.user && auth.user.id) {
             // Gửi ID người dùng để tham gia room tương ứng
-            const userId = String(auth.user._id);
+            const userId = String(auth.user.id);
             console.log('Attempting to join room for user:', userId);
             socketService.emit('join', userId)
             console.log('Joined user room:', userId)
@@ -87,4 +87,4 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             {children}
         </SocketContext.Provider>
     )
-} 
+}

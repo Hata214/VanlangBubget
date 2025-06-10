@@ -91,7 +91,7 @@ export function LoanPaymentForm({
                     id="amount"
                     placeholder={t('loan.enterPaymentAmount')}
                     value={amount}
-                    onValueChange={(value) => {
+                    onChange={(value: number | undefined) => {
                         if (value !== undefined && value > remainingAmount) {
                             setAmount(remainingAmount);
                         } else {

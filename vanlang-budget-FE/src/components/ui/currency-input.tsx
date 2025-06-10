@@ -133,7 +133,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       if (isNaN(baseNumber) || baseNumber === 0) return []
 
       // Generate suggestions with different multipliers based on digit count
-      let multipliers = []
+      let multipliers: number[] = []
 
       if (inputDigits.length === 1) {
         // For 1 digit: 2 → 2k, 20k, 200k, 2M, 20M, 200M

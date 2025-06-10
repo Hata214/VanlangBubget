@@ -65,9 +65,7 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
         quantity: z.coerce.number()
             .min(0, t('quantityPositive')),
         fee: z.coerce.number()
-            .min(0, t('feePositive'))
-            .optional()
-            .default(0),
+            .min(0, t('feePositive')), // Made fee a required number
         notes: z.string().max(500, t('notesTooLong')).optional(),
         purchaseDate: z.string().min(1, t('purchaseDateRequired')),
         // Trường bổ sung cho từng loại đầu tư
@@ -80,7 +78,7 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            type: undefined,
+            type: 'stock',
             assetName: '',
             symbol: '',
             currentPrice: 0,
@@ -550,4 +548,4 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
             </form>
         </Form>
     );
-} 
+}

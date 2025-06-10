@@ -55,6 +55,9 @@ export default function NotificationSettingsPage() {
             income: true,
             budget: true,
             system: true,
+            'account-balance': true, // Thêm dòng này
+            'loan-due': true,        // Thêm dòng này
+            'loan-overdue': true,    // Thêm dòng này
         },
     })
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -134,7 +137,10 @@ export default function NotificationSettingsPage() {
                     expense: settings.notificationTypes.expense,
                     income: settings.notificationTypes.income,
                     budget: settings.notificationTypes.budget,
-                    system: settings.notificationTypes.system
+                    system: settings.notificationTypes.system,
+                    'account-balance': settings.notificationTypes['account-balance'], // Thêm dòng này
+                    'loan-due': settings.notificationTypes['loan-due'],                // Thêm dòng này
+                    'loan-overdue': settings.notificationTypes['loan-overdue'],        // Thêm dòng này
                 }
             }
 
@@ -336,4 +342,4 @@ export default function NotificationSettingsPage() {
             </div>
         </MainLayout>
     )
-} 
+}

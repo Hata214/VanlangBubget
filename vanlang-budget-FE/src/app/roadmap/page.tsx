@@ -7,6 +7,14 @@ import { ArrowLeft, Lightbulb, Share, BrainCircuit, Calendar, CheckCircle, BarCh
 import { Button } from '@/components/ui/Button'
 import useAdminContent from '@/hooks/useAdminContent'
 
+interface Milestone {
+    date: string;
+    title: string;
+    description: string;
+    completed: boolean;
+    // Các trường tiềm năng khác nếu có
+}
+
 export default function RoadmapPage() {
     const t = useTranslations()
     const { content: roadmapContent, isLoading } = useAdminContent('roadmap', 'vi')
@@ -91,7 +99,7 @@ export default function RoadmapPage() {
                             <div className="space-y-12">
                                 {/* Render milestones from admin content */}
                                 {roadmapContent?.milestones?.length > 0 ? (
-                                    roadmapContent.milestones.map((milestone, index) => (
+                                    roadmapContent.milestones.map((milestone: Milestone, index: number) => (
                                         <div key={index} className="relative">
                                             <div className="absolute left-1/2 transform -translate-x-1/2 -top-4">
                                                 <div className={`w-8 h-8 rounded-full ${milestone.completed ? 'bg-green-600' : 'bg-indigo-600'} flex items-center justify-center`}>

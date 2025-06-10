@@ -2,8 +2,20 @@ import instance from './api';
 import { NotificationSettings } from '@/types';
 import { getToken } from './api';
 
+// Định nghĩa kiểu Notification (tương tự như trong NotificationCenter.tsx)
+interface Notification {
+    _id: string;
+    title: string;
+    message: string;
+    type: string;
+    read: boolean;
+    link: string;
+    createdAt: string;
+    data?: any;
+}
+
 const notificationService = {
-    async getNotifications(page = 1, sort = 'desc') {
+    async getNotifications(page = 1, sort = 'desc'): Promise<Notification[]> {
         try {
             // Log token hiện tại để debug
             const token = getToken();
@@ -109,4 +121,4 @@ const notificationService = {
     }
 };
 
-export default notificationService; 
+export default notificationService;

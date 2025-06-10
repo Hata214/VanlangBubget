@@ -145,9 +145,9 @@ export function IncomeForm({ initialData, onSubmit, isSubmitting }: IncomeFormPr
                             <FormLabel>{t('income.amount')}</FormLabel>
                             <FormControl>
                                 <CurrencyInput
-                                    placeholder={t('income.enterAmount')}
+                                    placeholder="0"
                                     value={field.value}
-                                    onValueChange={field.onChange}
+                                    onChange={field.onChange}
                                     onBlur={field.onBlur}
                                 />
                             </FormControl>
@@ -252,4 +252,4 @@ export function IncomeForm({ initialData, onSubmit, isSubmitting }: IncomeFormPr
             </form>
         </Form>
     )
-} 
+}

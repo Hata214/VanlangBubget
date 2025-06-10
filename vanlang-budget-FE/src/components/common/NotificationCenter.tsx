@@ -33,7 +33,7 @@ export function NotificationCenter() {
     const loadNotifications = async () => {
         try {
             setIsLoading(true);
-            const data = await notificationService.getAll();
+            const data = await notificationService.getNotifications();
             setNotifications(data);
             setUnreadCount(data.filter(notification => !notification.read).length);
         } catch (error) {
@@ -84,11 +84,20 @@ export function NotificationCenter() {
                 console.log('Connected to notification socket');
             });
 
-            socket.on('connect_error', (err) => {
+            socket.on('connect_error', (err: Error) => {
                 console.error('Socket connection error:', err.message);
             });
 
-            socket.on('notification', (data) => {
+            // Define a more specific type for the notification data if possible
+            // For now, using a general structure based on usage
+            interface SocketNotificationData {
+                notification?: {
+                    title: string;
+                    message: string;
+                };
+                // Add other properties if known
+            }
+            socket.on('notification', (data: SocketNotificationData) => {
                 console.log('Received notification:', data);
                 loadNotifications(); // Tải lại thông báo khi có thông báo mới
 
@@ -131,11 +140,11 @@ export function NotificationCenter() {
                 loadNotifications();
             });
 
-            socket.on('error', (err) => {
+            socket.on('error', (err: Error) => {
                 console.error('Socket error:', err);
             });
 
-            socket.on('disconnect', (reason) => {
+            socket.on('disconnect', (reason: string) => {
                 console.log('Disconnected from notification socket:', reason);
             });
 
@@ -273,4 +282,4 @@ export function NotificationCenter() {
             )}
         </div>
     );
-} 
+}

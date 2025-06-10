@@ -37,7 +37,7 @@ export const siteContentService = {
             const fallbackData = this.getFallbackContent(`${actualType}-${actualLanguage || 'vi'}`);
 
             try {
-                const params = actualLanguage ? { language: actualLanguage } : {};
+                let params: any = actualLanguage ? { language: actualLanguage } : {};
                 // Add timestamp to prevent caching
                 params._t = Date.now();
                 console.log(`[FRONTEND SERVICE DEBUG] Calling API: ${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, params);

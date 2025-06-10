@@ -90,15 +90,15 @@ export default function AddTransactionDialog({
             : z.enum(['buy', 'sell'], { required_error: t('typeRequired') }),
         amount: isSavings
             ? z.coerce.number().min(0.01, t('pricePositive')).max(100000000000, 'Số tiền tối đa là 100 tỷ')
-            : z.optional(z.coerce.number().max(100000000000, 'Số tiền tối đa là 100 tỷ')),
+            : z.coerce.number().max(100000000000, 'Số tiền tối đa là 100 tỷ').optional(), // amount is optional if not savings
         price: !isSavings
-            ? z.coerce.number().min(0, t('pricePositive')).max(100000000000, 'Giá tối đa là 100 tỷ').default(investment.currentPrice)
-            : z.optional(z.coerce.number().max(100000000000, 'Giá tối đa là 100 tỷ')),
+            ? z.coerce.number().min(0, t('pricePositive')).max(100000000000, 'Giá tối đa là 100 tỷ').optional() // price is optional
+            : z.coerce.number().max(100000000000, 'Giá tối đa là 100 tỷ').optional(), // price is optional
         quantity: !isSavings
-            ? z.coerce.number().min(0, t('quantityPositive')).max(10000000000, 'Số lượng tối đa là 10 tỷ') // Giả sử quantity cũng có giới hạn lớn, nhưng có thể khác amount/price
-            : z.optional(z.coerce.number().max(10000000000, 'Số lượng tối đa là 10 tỷ')),
-        fee: z.coerce.number().min(0, t('feePositive')).max(100000000000, 'Phí tối đa là 100 tỷ').default(0),
-        date: z.date().default(() => new Date()),
+            ? z.coerce.number().min(0, t('quantityPositive')).max(10000000000, 'Số lượng tối đa là 10 tỷ').optional() // quantity is optional
+            : z.coerce.number().max(10000000000, 'Số lượng tối đa là 10 tỷ').optional(), // quantity is optional
+        fee: z.coerce.number().min(0, t('feePositive')).max(100000000000, 'Phí tối đa là 100 tỷ').optional(), // fee is optional
+        date: z.date().optional(), // date is optional
         notes: z.string().max(500, t('notesTooLong')).optional(),
     });
 
@@ -122,42 +122,55 @@ export default function AddTransactionDialog({
 
     // Cập nhật tính toán phí khi giá trị thay đổi
     useEffect(() => {
-        if (!isSavings && autoCalculateFee && price && quantity) {
+        const currentPrice = price ?? 0;
+        const currentQuantity = quantity ?? 0;
+
+        if (!isSavings && autoCalculateFee && currentPrice > 0 && currentQuantity > 0) {
             const { total, fee, totalWithFee } = calculateTransactionCost({
-                price,
-                quantity,
+                price: currentPrice,
+                quantity: currentQuantity,
                 feeRatePercent: feeRate
             });
 
             setCalculationResult({ total, fee, totalWithFee });
             form.setValue('fee', Math.round(fee));
+        } else if (!isSavings && !autoCalculateFee) {
+            // Nếu không tự động tính phí, cập nhật total dựa trên price và quantity
+            // và fee sẽ được lấy từ form.watch('fee') hoặc giá trị mặc định
+            const currentFee = form.getValues('fee') ?? 0;
+            const calculatedTotal = currentPrice * currentQuantity;
+            setCalculationResult({
+                total: calculatedTotal,
+                fee: currentFee,
+                totalWithFee: calculatedTotal + currentFee
+            });
         }
-    }, [price, quantity, feeRate, autoCalculateFee, form]);
+    }, [price, quantity, feeRate, autoCalculateFee, form, isSavings]);
 
     // Xử lý submit form
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
 
         try {
-            let transactionPayload: any = {
-                ...values,
-                date: format(values.date, 'yyyy-MM-dd'),
-            };
+            const transactionDate = values.date ?? new Date(); // Default to now if undefined
+            let transactionPayload: any;
 
             if (isSavings) {
-                // Đối với tiết kiệm, chúng ta chỉ quan tâm đến type, amount, date, notes, fee
                 transactionPayload = {
                     type: values.type,
-                    amount: values.amount,
-                    date: format(values.date, 'yyyy-MM-dd'),
+                    amount: values.amount ?? 0, // Default amount if undefined
+                    date: format(transactionDate, 'yyyy-MM-dd'),
                     notes: values.notes,
-                    fee: values.fee, // Giữ lại fee nếu có
+                    fee: values.fee ?? 0, // Default fee if undefined
                 };
             } else {
-                // Đối với các loại khác, giữ nguyên payload hiện tại (price, quantity, fee, etc.)
                 transactionPayload = {
-                    ...values,
-                    date: format(values.date, 'yyyy-MM-dd'),
+                    type: values.type, // type is always defined based on schema logic
+                    price: values.price ?? 0, // Default price if undefined
+                    quantity: values.quantity ?? 0, // Default quantity if undefined
+                    fee: values.fee ?? 0, // Default fee if undefined
+                    date: format(transactionDate, 'yyyy-MM-dd'),
+                    notes: values.notes,
                 };
             }
 
@@ -235,8 +248,8 @@ export default function AddTransactionDialog({
                                     <FormControl>
                                         <CurrencyInput
                                             placeholder="0"
-                                            value={field.value}
-                                            onValueChange={field.onChange}
+                                            value={field.value ?? 0}
+                                            onChange={field.onChange}
                                             onBlur={field.onBlur}
                                             disabled={isLoading}
                                         />
@@ -256,8 +269,8 @@ export default function AddTransactionDialog({
                                         <FormControl>
                                             <CurrencyInput
                                                 placeholder="0"
-                                                value={field.value}
-                                                onValueChange={field.onChange}
+                                                value={field.value ?? investment.currentPrice}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 disabled={isLoading}
                                             />
@@ -276,8 +289,8 @@ export default function AddTransactionDialog({
                                         <FormControl>
                                             <CurrencyInput
                                                 placeholder="0"
-                                                value={field.value}
-                                                onValueChange={field.onChange}
+                                                value={field.value ?? 0}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 disabled={isLoading}
                                             />
@@ -348,8 +361,8 @@ export default function AddTransactionDialog({
                                                 <FormControl>
                                                     <CurrencyInput
                                                         placeholder="0"
-                                                        value={field.value}
-                                                        onValueChange={field.onChange}
+                                                        value={field.value ?? 0}
+                                                        onChange={field.onChange}
                                                         onBlur={field.onBlur}
                                                         disabled={isLoading || (autoCalculateFee && !isSavings)}
                                                         className={(autoCalculateFee && !isSavings) ? "bg-muted text-right" : "text-right"}
@@ -366,7 +379,7 @@ export default function AddTransactionDialog({
                             <div className="flex items-center justify-between pt-2 border-t">
                                 <span className="font-medium">{t('totalWithFee')}</span>
                                 <span className="font-medium text-lg">
-                                    {formatCurrency(autoCalculateFee ? calculationResult.totalWithFee : calculationResult.total + form.watch('fee'))}
+                                    {formatCurrency(autoCalculateFee ? calculationResult.totalWithFee : calculationResult.total + (form.watch('fee') ?? 0))}
                                 </span>
                             </div>
                         </div>
@@ -382,12 +395,16 @@ export default function AddTransactionDialog({
                                     <Input
                                         type="date"
                                         {...field}
-                                        value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                                        value={field.value ? format(field.value, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd')}
                                         onChange={(e) => {
-                                            const date = e.target.value
-                                                ? new Date(e.target.value)
-                                                : new Date();
-                                            field.onChange(date);
+                                            const dateValue = e.target.value ? new Date(e.target.value) : new Date();
+                                            // Đảm bảo rằng chúng ta đang truyền một đối tượng Date hợp lệ
+                                            if (!isNaN(dateValue.getTime())) {
+                                                field.onChange(dateValue);
+                                            } else {
+                                                // Xử lý trường hợp ngày không hợp lệ, ví dụ: đặt lại về ngày hiện tại
+                                                field.onChange(new Date());
+                                            }
                                         }}
                                         disabled={isLoading}
                                     />
@@ -407,6 +424,7 @@ export default function AddTransactionDialog({
                                     <Textarea
                                         placeholder={t('notesPlaceholder')}
                                         {...field}
+                                        value={field.value ?? ''}
                                         disabled={isLoading}
                                         rows={3}
                                     />
@@ -433,4 +451,4 @@ export default function AddTransactionDialog({
             </Form>
         </Modal>
     );
-} 
+}

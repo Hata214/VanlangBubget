@@ -66,15 +66,14 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         fee: z.coerce.number()
             .min(0, t('feePositive'))
             .max(100000000000, 'Phí tối đa là 100 tỷ')
-            .optional()
-            .default(0),
+            .optional(), // Bỏ .default(0)
         notes: z.string().max(500, t('notesTooLong')).optional(),
         purchaseDate: z.string().min(1, t('purchaseDateRequired')),
         purity: z.string().optional(),
         otherPurity: z.string().optional(),
         brand: z.string().optional(),
         otherBrand: z.string().optional(),
-        weightUnit: z.string().default('gram'),
+        weightUnit: z.string(), // Made weightUnit a required string
     }).refine(data => {
         if (data.brand === 'Khác' && (!data.otherBrand || data.otherBrand.trim() === '')) {
             return false;
@@ -163,7 +162,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                     type: 'buy',
                     price: Number(values.currentPrice),
                     quantity: Number(values.quantity),
-                    fee: Number(values.fee || 0),
+                    fee: Number(values.fee ?? 0), // Sử dụng ?? 0
                     date: new Date(values.purchaseDate).toISOString(),
                     notes: `Mua vàng ${actualBrand || 'SJC'} ${actualPurity || '9999'}`
                 }
@@ -502,7 +501,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             <CurrencyInput
                                                 placeholder="Nhập số lượng"
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
@@ -557,7 +556,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             <CurrencyInput
                                                 placeholder="Nhập giá mua"
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
@@ -579,8 +578,8 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                         <FormControl>
                                             <CurrencyInput
                                                 placeholder="Nhập phí giao dịch"
-                                                value={field.value}
-                                                onValueChange={field.onChange}
+                                                value={field.value ?? 0}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />

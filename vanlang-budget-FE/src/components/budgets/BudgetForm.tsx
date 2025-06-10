@@ -91,9 +91,9 @@ export function BudgetForm({ initialData, onSubmit, onCancel, isSubmitting, cate
                             <FormLabel>{t('budget.amount')}</FormLabel>
                             <FormControl>
                                 <CurrencyInput
-                                    placeholder={t('budget.enterAmount')}
+                                    placeholder={t('amountPlaceholder')}
                                     value={field.value}
-                                    onValueChange={field.onChange}
+                                    onChange={field.onChange}
                                     onBlur={field.onBlur}
                                 />
                             </FormControl>

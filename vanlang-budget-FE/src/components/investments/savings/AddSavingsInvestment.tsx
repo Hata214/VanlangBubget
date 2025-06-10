@@ -56,8 +56,8 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
         term: z.string().min(1, 'Vui lòng chọn kỳ hạn gửi'),
         interestRate: z.coerce.number().min(0, 'Lãi suất không được âm'),
         interestPaymentType: z.string().min(1, 'Vui lòng chọn hình thức nhận lãi'),
-        interestCalculationType: z.enum(['simple', 'compound']).default('simple'),
-        autoRenewal: z.boolean().default(false),
+        interestCalculationType: z.enum(['simple', 'compound']),
+        autoRenewal: z.boolean(),
         depositMethod: z.string().min(1, 'Vui lòng chọn hình thức gửi'),
         notes: z.string().max(500, 'Ghi chú không được vượt quá 500 ký tự').optional(),
     }).refine(data => {
@@ -383,7 +383,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             <CurrencyInput
                                                 placeholder="Nhập số tiền gửi"
                                                 value={field.value}
-                                                onValueChange={field.onChange}
+                                                onChange={field.onChange}
                                                 onBlur={field.onBlur}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />

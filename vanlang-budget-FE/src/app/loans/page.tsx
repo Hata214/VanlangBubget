@@ -55,10 +55,33 @@ export default function LoansPage() {
     // Đảm bảo loans luôn là một mảng
     const safeLoans = Array.isArray(loans) ? loans : [];
 
-    const handleAdd = async (data: Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'>) => {
+    const handleAdd = async (dataFromForm: {
+        amount: number;
+        lender: string;
+        interestRate: number;
+        startDate: string;
+        dueDate: string;
+        description?: string;
+        status?: "ACTIVE" | "PAID" | "OVERDUE";
+        interestRateType?: "DAY" | "WEEK" | "MONTH" | "QUARTER" | "YEAR";
+        lenderType?: string; // Giả sử LoanForm có thể bao gồm trường này
+    }) => {
         setIsSubmitting(true)
         try {
-            const newLoan = await dispatch(addLoan(data)).unwrap()
+            // Chuẩn bị payload cho Redux action, đảm bảo các trường bắt buộc có giá trị
+            const payload: Omit<Loan, 'id' | 'userId' | 'createdAt' | 'updatedAt'> = {
+                amount: dataFromForm.amount,
+                lender: dataFromForm.lender,
+                interestRate: dataFromForm.interestRate,
+                startDate: dataFromForm.startDate,
+                dueDate: dataFromForm.dueDate,
+                description: dataFromForm.description || '', // Mặc định nếu undefined
+                status: dataFromForm.status || 'ACTIVE',       // Mặc định là ACTIVE
+                interestRateType: dataFromForm.interestRateType || 'YEAR', // Mặc định là YEAR
+                // Giả sử lenderType là tùy chọn hoặc có giá trị mặc định nếu Loan type yêu cầu
+                ...(dataFromForm.lenderType && { lenderType: dataFromForm.lenderType }),
+            };
+            const newLoan = await dispatch(addLoan(payload)).unwrap()
             setIsAddModalOpen(false)
             await dispatch(fetchLoans()).unwrap()
             success(t('loan.addSuccess'), t('loan.addSuccessDetail'))
@@ -221,11 +244,21 @@ export default function LoansPage() {
                     <LoanForm
                         onSubmit={handleAdd}
                         isSubmitting={isSubmitting}
-                        initialData={{ interestRateType: 'YEAR' }}
+                        initialData={{
+                            amount: 0,
+                            lender: '',
+                            interestRate: 0,
+                            startDate: new Date().toISOString().split('T')[0], // Ngày hiện tại
+                            dueDate: '',
+                            description: '',
+                            status: 'ACTIVE', // Trạng thái mặc định
+                            interestRateType: 'YEAR', // Loại lãi suất mặc định
+                            // lenderType: 'INDIVIDUAL', // Đã xóa vì LoanForm không chấp nhận
+                        }}
                         mode="add"
                     />
                 </Modal>
             </div>
         </MainLayout>
     )
-} 
+}

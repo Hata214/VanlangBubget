@@ -122,7 +122,7 @@ export default function AboutPreview({ content, onUpdate }: AboutPreviewProps) {
     // Hàm lưu tất cả thay đổi
     const saveAllChanges = async () => {
         if (changedFields.length === 0) {
-            toast.info('Không có thay đổi để lưu');
+            toast('Không có thay đổi để lưu');
             return;
         }
 

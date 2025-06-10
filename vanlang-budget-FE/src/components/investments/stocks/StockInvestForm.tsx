@@ -63,25 +63,29 @@ const formSchema = z.object({
     fee: z.coerce.number()
         .min(0, 'Phí không được âm')
         .max(100000000000, 'Phí tối đa là 100 tỷ')
-        .default(0),
-    broker: z.string().default(BROKERS[0].id),
+        .optional(),
+    broker: z.string().optional(),
     otherBrokerName: z.string().optional(),
     otherBrokerFeePercent: z.coerce.number().min(0).max(100).optional(),
     otherBrokerMinFee: z.coerce.number().min(0).max(100000000000, 'Phí tối đa là 100 tỷ').optional(),
-    autoFee: z.boolean().default(true),
+    autoFee: z.boolean().optional(), // Thay đổi: autoFee cũng là optional
     notes: z.string().max(500, 'Ghi chú không quá 500 ký tự').optional(),
 }).refine(data => {
     if (data.broker === 'other') {
-        if (!data.otherBrokerName || data.otherBrokerName.trim() === '') return false;
-        if (data.autoFee) {
+        if (!data.otherBrokerName || data.otherBrokerName.trim() === '') {
+            return false;
+        }
+        if (data.autoFee ?? true) { // Sử dụng ?? true vì autoFee giờ là optional
+            // Nếu tự động tính phí và là broker 'Khác', các trường phí phải được cung cấp
             if (data.otherBrokerFeePercent === undefined || data.otherBrokerFeePercent === null) return false;
             if (data.otherBrokerMinFee === undefined || data.otherBrokerMinFee === null) return false;
         }
     }
     return true;
 }, {
-    message: 'Vui lòng nhập đầy đủ thông tin cho công ty chứng khoán khác (Tên, % phí, Phí tối thiểu nếu bật tự động tính phí)',
-    path: ['otherBrokerName'],
+    message: 'Vui lòng nhập đầy đủ thông tin cho công ty chứng khoán khác (Tên, và % phí, Phí tối thiểu nếu bật tự động tính phí).',
+    // Cân nhắc việc trỏ path đến một trường cụ thể hơn hoặc một path chung nếu lỗi phức tạp
+    path: ['otherBrokerName'], // Hoặc một path chung hơn như 'brokerDetails' nếu có
 });
 
 // Kiểu dữ liệu của form
@@ -137,19 +141,21 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     }, []);
 
     // Hàm tính phí giao dịch tự động
-    const calculateFee = useCallback((price: number, quantity: number, brokerId: string, values: FormValues) => {
+    const calculateFee = useCallback((price: number, quantity: number, brokerId: string | undefined, values: FormValues) => {
         if (price <= 0 || quantity <= 0) return 0;
 
+        const currentBrokerId = brokerId ?? BROKERS[0].id; // Default brokerId
+
         let currentBroker: BrokerOption;
-        if (brokerId === 'other') {
+        if (currentBrokerId === 'other') {
             currentBroker = {
                 id: 'other',
                 name: values.otherBrokerName || 'Khác',
-                feePercent: values.otherBrokerFeePercent !== undefined ? values.otherBrokerFeePercent : 0,
-                minFee: values.otherBrokerMinFee !== undefined ? values.otherBrokerMinFee : 0,
+                feePercent: values.otherBrokerFeePercent ?? 0.15, // Sử dụng default từ defaultValues
+                minFee: values.otherBrokerMinFee ?? 0,       // Sử dụng default từ defaultValues
             };
         } else {
-            currentBroker = BROKERS.find(b => b.id === brokerId) || BROKERS[0];
+            currentBroker = BROKERS.find(b => b.id === currentBrokerId) || BROKERS[0];
         }
 
         const totalValue = price * quantity;
@@ -175,7 +181,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             setFormattedPrice(price.toLocaleString('vi-VN'));
 
             // Cập nhật phí nếu chế độ tự động được bật
-            if (form.getValues('autoFee')) {
+            if (form.getValues('autoFee') ?? true) {
                 const quantity = form.getValues('quantity');
                 const brokerId = form.getValues('broker');
                 const fee = calculateFee(price, quantity, brokerId, form.getValues());
@@ -195,7 +201,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             setFormattedPrice(numValue.toLocaleString('vi-VN'));
 
             // Cập nhật phí nếu cần
-            if (form.getValues('autoFee')) {
+            if (form.getValues('autoFee') ?? true) {
                 const quantity = form.getValues('quantity');
                 const brokerId = form.getValues('broker');
                 const fee = calculateFee(numValue, quantity, brokerId, form.getValues());
@@ -231,7 +237,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         form.setValue('quantity', value);
 
         // Cập nhật phí nếu cần
-        if (form.getValues('autoFee')) {
+        if (form.getValues('autoFee') ?? true) {
             const price = form.getValues('price');
             const brokerId = form.getValues('broker');
             const fee = calculateFee(price, value, brokerId, form.getValues());
@@ -240,10 +246,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     };
 
     // Xử lý khi chuyển đổi chế độ tự động tính phí
-    const handleAutoFeeToggle = (checked: boolean) => {
-        form.setValue('autoFee', checked);
+    const handleAutoFeeToggle = (checked: boolean | undefined) => {
+        const isAutoFee = checked ?? true; // Default to true if undefined
+        form.setValue('autoFee', isAutoFee);
 
-        if (checked) {
+        if (isAutoFee) {
             // Khi bật chế độ tự động, tính lại phí
             const price = form.getValues('price');
             const quantity = form.getValues('quantity');
@@ -271,7 +278,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             // Để lại otherBrokerFeePercent và otherBrokerMinFee như defaultValues hoặc giá trị người dùng đã nhập trước đó nếu họ quay lại chọn 'Khác'
         }
 
-        if (form.getValues('autoFee')) {
+        if (form.getValues('autoFee') ?? true) {
             const price = form.getValues('price');
             const quantity = form.getValues('quantity');
             const fee = calculateFee(price, quantity, brokerId, form.getValues());
@@ -307,35 +314,27 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 throw new Error('Vui lòng nhập số lượng hợp lệ');
             }
 
-            let finalBrokerName = values.broker;
+            const currentBrokerId = values.broker ?? BROKERS[0].id;
+            let finalBrokerName = BROKERS.find(b => b.id === currentBrokerId)?.name ?? 'Không xác định';
             let feeDetailsForNotes = '';
 
-            if (values.broker === 'other') {
+            if (currentBrokerId === 'other') {
                 if (!values.otherBrokerName || values.otherBrokerName.trim() === '') {
                     form.setError('otherBrokerName', { type: 'manual', message: 'Vui lòng nhập tên công ty chứng khoán.' });
                     setIsLoading(false);
                     return;
                 }
-                finalBrokerName = values.otherBrokerName.trim();
-                if (values.autoFee) {
-                    if (values.otherBrokerFeePercent === undefined || values.otherBrokerFeePercent === null) {
-                        form.setError('otherBrokerFeePercent', { type: 'manual', message: 'Vui lòng nhập % phí.' });
-                        setIsLoading(false);
-                        return;
-                    }
-                    if (values.otherBrokerMinFee === undefined || values.otherBrokerMinFee === null) {
-                        form.setError('otherBrokerMinFee', { type: 'manual', message: 'Vui lòng nhập phí tối thiểu.' });
-                        setIsLoading(false);
-                        return;
-                    }
-                    feeDetailsForNotes = ` (% phí: ${values.otherBrokerFeePercent}, tối thiểu: ${values.otherBrokerMinFee} VND)`
+                finalBrokerName = values.otherBrokerName.trim(); // otherBrokerName is required by refine if broker is 'other'
+                if (values.autoFee ?? true) { // Default autoFee to true
+                    // otherBrokerFeePercent and otherBrokerMinFee are required by refine if autoFee is true and broker is 'other'
+                    feeDetailsForNotes = ` (% phí: ${values.otherBrokerFeePercent}, tối thiểu: ${values.otherBrokerMinFee} VND)`;
                 } else {
                     feeDetailsForNotes = ' (Phí nhập thủ công)';
                 }
             } else {
-                const selectedBrokerInfo = BROKERS.find(b => b.id === values.broker);
+                const selectedBrokerInfo = BROKERS.find(b => b.id === currentBrokerId);
                 if (selectedBrokerInfo) {
-                    finalBrokerName = selectedBrokerInfo.name;
+                    // finalBrokerName is already set above
                     feeDetailsForNotes = ` (% phí: ${selectedBrokerInfo.feePercent}, tối thiểu: ${selectedBrokerInfo.minFee} VND)`;
                 }
             }
@@ -346,8 +345,8 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 price: values.price,
                 quantity: values.quantity,
                 purchaseDate: format(values.purchaseDate, 'yyyy-MM-dd'),
-                fee: values.fee || 0,
-                broker: finalBrokerName,
+                fee: values.fee ?? 0, // Default fee to 0 if undefined
+                broker: finalBrokerName, // finalBrokerName is now guaranteed to be a string
                 brokerFeeDetails: feeDetailsForNotes,
                 notes: values.notes || ''
             };
@@ -408,7 +407,8 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
     // Tính tổng giá trị (số lượng * đơn giá)
     const totalInvestment = form.watch('price') * form.watch('quantity');
-    const totalWithFee = totalInvestment + form.watch('fee');
+    const watchedFee = form.watch('fee');
+    const totalWithFee = totalInvestment + (watchedFee ?? 0);
 
     return (
         <Form {...form}>
@@ -453,9 +453,9 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                 <CurrencyInput
                                                     placeholder="0"
                                                     value={field.value}
-                                                    onValueChange={(value) => {
+                                                    onChange={(value: number | undefined) => {
                                                         field.onChange(value);
-                                                        if (value !== undefined && form.getValues('autoFee')) {
+                                                        if (value !== undefined && (form.getValues('autoFee') ?? true)) {
                                                             const quantity = form.getValues('quantity');
                                                             const brokerId = form.getValues('broker');
                                                             const fee = calculateFee(value, quantity, brokerId, form.getValues());
@@ -479,7 +479,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                             setFormattedPrice(currentStockPrice.toLocaleString('vi-VN'));
 
                                                             // Cập nhật phí nếu cần
-                                                            if (form.getValues('autoFee')) {
+                                                            if (form.getValues('autoFee') ?? true) {
                                                                 const quantity = form.getValues('quantity');
                                                                 const brokerId = form.getValues('broker');
                                                                 const fee = calculateFee(currentStockPrice, quantity, brokerId, form.getValues());
@@ -513,7 +513,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             <CurrencyInput
                                                 placeholder="100"
                                                 value={field.value}
-                                                onValueChange={(value) => {
+                                                onChange={(value: number | undefined) => {
                                                     let finalValue = value;
                                                     if (value !== undefined) {
                                                         const roundedValue = Math.floor(value / 100) * 100;
@@ -524,7 +524,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                         }
                                                     }
                                                     field.onChange(finalValue);
-                                                    if (finalValue !== undefined && form.getValues('autoFee')) {
+                                                    if (finalValue !== undefined && (form.getValues('autoFee') ?? true)) {
                                                         const price = form.getValues('price');
                                                         const brokerId = form.getValues('broker');
                                                         const fee = calculateFee(price, finalValue, brokerId, form.getValues());
@@ -552,7 +552,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                     <FormItem>
                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Công ty chứng khoán</FormLabel>
                                         <Select
-                                            value={field.value}
+                                            value={field.value ?? BROKERS[0].id}
                                             onValueChange={handleBrokerChange}
                                             disabled={isLoading}
                                         >
@@ -595,7 +595,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             </FormItem>
                                         )}
                                     />
-                                    {form.watch('autoFee') && (
+                                    {(form.watch('autoFee') ?? true) && (
                                         <>
                                             <FormField
                                                 control={form.control}
@@ -620,7 +620,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                             <CurrencyInput
                                                                 placeholder="5000"
                                                                 value={field.value}
-                                                                onValueChange={field.onChange}
+                                                                onChange={field.onChange}
                                                                 onBlur={field.onBlur}
                                                                 disabled={isLoading}
                                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
@@ -632,7 +632,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             />
                                         </>
                                     )}
-                                    {!form.watch('autoFee') && (
+                                    {!(form.watch('autoFee') ?? true) && (
                                         <FormDescription className="col-span-1 md:col-span-2 text-sm text-muted-foreground dark:text-muted-foreground-dark">
                                             Bạn đã chọn nhập phí giao dịch thủ công cho công ty chứng khoán này.
                                         </FormDescription>
@@ -708,7 +708,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             render={({ field }) => (
                                                 <FormControl>
                                                     <Switch
-                                                        checked={field.value}
+                                                        checked={field.value ?? true}
                                                         onCheckedChange={handleAutoFeeToggle}
                                                         disabled={isLoading}
                                                         className="data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary-dark data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input-dark"
@@ -728,16 +728,16 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             <FormControl>
                                                 <CurrencyInput
                                                     placeholder="0"
-                                                    value={field.value}
-                                                    onValueChange={field.onChange}
+                                                    value={field.value ?? 0}
+                                                    onChange={field.onChange}
                                                     onBlur={field.onBlur}
-                                                    disabled={isLoading || form.getValues('autoFee')}
-                                                    className={cn(form.getValues('autoFee') ? "bg-gray-100 dark:bg-gray-700 text-right" : "bg-input dark:bg-input-dark text-right", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
+                                                    disabled={isLoading || (form.getValues('autoFee') ?? true)}
+                                                    className={cn((form.getValues('autoFee') ?? true) ? "bg-gray-100 dark:bg-gray-700 text-right" : "bg-input dark:bg-input-dark text-right", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
                                                 />
                                             </FormControl>
                                             <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                                {form.getValues('autoFee')
-                                                    ? `Phí tự động: ${form.watch('broker') === 'other' ? (form.getValues('otherBrokerFeePercent') || 0) : selectedBroker.feePercent}% giá trị giao dịch, tối thiểu ${form.watch('broker') === 'other' ? (form.getValues('otherBrokerMinFee') || 0).toLocaleString() : selectedBroker.minFee.toLocaleString()} VND`
+                                                {(form.getValues('autoFee') ?? true)
+                                                    ? `Phí tự động: ${(form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerFeePercent') ?? 0.15) : selectedBroker.feePercent}% giá trị giao dịch, tối thiểu ${((form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerMinFee') ?? 0) : selectedBroker.minFee).toLocaleString()} VND`
                                                     : "Phí môi giới và các chi phí khác"}
                                             </FormDescription>
                                             <FormMessage />
@@ -759,7 +759,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             <div className="flex justify-between items-center text-sm">
                                 <div className="text-gray-600 dark:text-gray-300">Phí giao dịch:</div>
                                 <div className="font-medium text-gray-700 dark:text-gray-200">
-                                    + {form.watch('fee').toLocaleString('vi-VN')} VND
+                                    + {(form.watch('fee') ?? 0).toLocaleString('vi-VN')} VND
                                 </div>
                             </div>
 
@@ -813,4 +813,4 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             </form>
         </Form>
     );
-} 
+}

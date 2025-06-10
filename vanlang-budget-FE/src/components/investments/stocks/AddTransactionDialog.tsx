@@ -58,19 +58,19 @@ export default function AddTransactionDialog({
             required_error: t('typeRequired'),
         }),
         price: z.coerce.number()
-            .min(0, t('pricePositive'))
-            .default(investment.currentPrice),
+            .min(0, t('pricePositive')),
         quantity: z.coerce.number()
             .min(0, t('quantityPositive')),
         fee: z.coerce.number()
-            .min(0, t('feePositive'))
-            .default(0),
-        date: z.date().default(() => new Date()),
+            .min(0, t('feePositive')),
+        date: z.date(),
         notes: z.string().max(500, t('notesTooLong')).optional(),
     });
 
+    type AddTransactionFormValues = z.infer<typeof formSchema>;
+
     // Khởi tạo form
-    const form = useForm<z.infer<typeof formSchema>>({
+    const form = useForm<AddTransactionFormValues>({
         resolver: zodResolver(formSchema),
         defaultValues: {
             type: 'buy',
@@ -83,7 +83,7 @@ export default function AddTransactionDialog({
     });
 
     // Xử lý submit form
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const onSubmit = async (values: AddTransactionFormValues) => {
         setIsLoading(true);
 
         const transactionData = {

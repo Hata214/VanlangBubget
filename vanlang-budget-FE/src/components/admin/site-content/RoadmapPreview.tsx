@@ -29,7 +29,7 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
     const startInlineEdit = (key: string, value: any) => {
         setEditingField(key);
         setEditValue(value);
-        
+
         // Focus vào input sau khi render
         setTimeout(() => {
             if (inputRef.current) {
@@ -75,20 +75,20 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
         // Phân tích key để cập nhật đúng vị trí trong nested object
         const keys = key.split('.');
         const lastKey = keys.pop();
-        
+
         setUpdatedContent((prev: any) => {
             const newContent = { ...prev };
-            
+
             // Tìm đến object cần cập nhật
             let current = newContent;
             for (const k of keys) {
                 if (!current[k]) current[k] = {};
                 current = current[k];
             }
-            
+
             // Cập nhật giá trị
             if (lastKey) current[lastKey] = value;
-            
+
             return newContent;
         });
 
@@ -115,7 +115,7 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
     // Hàm lưu tất cả thay đổi
     const saveAllChanges = async () => {
         if (changedFields.length === 0) {
-            toast.info('Không có thay đổi để lưu');
+            toast('Không có thay đổi để lưu');
             return;
         }
 
@@ -125,7 +125,7 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung trang Lộ trình!'
                 : 'Đã gửi nội dung trang Lộ trình để SuperAdmin phê duyệt!');
-            
+
             setChangedFields([]);
             if (onUpdate) {
                 onUpdate();
@@ -155,13 +155,13 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
                         className="flex-1 p-1 text-sm border-none focus:ring-0 bg-transparent"
                         autoFocus
                     />
-                    <button 
+                    <button
                         onClick={() => saveInlineEdit(key)}
                         className="p-1 text-green-600 hover:text-green-800"
                     >
                         <Save size={16} />
                     </button>
-                    <button 
+                    <button
                         onClick={cancelInlineEdit}
                         className="p-1 text-red-600 hover:text-red-800"
                     >
@@ -172,7 +172,7 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
         }
 
         return (
-            <span 
+            <span
                 className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
                 onClick={() => startInlineEdit(key, value)}
                 data-field={key}
@@ -226,7 +226,7 @@ export default function RoadmapPreview({ content, onUpdate }: RoadmapPreviewProp
                                         description: `Mô tả chi tiết về cột mốc ${index + 1} và các tính năng sẽ được phát triển.`,
                                         completed: index === 0
                                     };
-                                    
+
                                     return (
                                         <div key={index} className={`relative ${index % 2 === 0 ? 'ml-auto pl-16 pr-4' : 'mr-auto pr-16 pl-4'} w-1/2`}>
                                             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/3">

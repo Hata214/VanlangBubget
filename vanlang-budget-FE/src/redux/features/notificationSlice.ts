@@ -52,7 +52,8 @@ interface FetchNotificationsParams {
 // Thunk để lấy thông báo từ API
 export const fetchNotifications = createAsyncThunk(
     'notifications/fetchNotifications',
-    async (page: number = 1, { rejectWithValue }) => {
+    async (params: FetchNotificationsParams = { page: 1, sort: 'desc' }, { rejectWithValue }) => {
+        const { page = 1, sort = 'desc' } = params;
         try {
             // Kiểm tra token trước khi gọi API
             const token = getToken();
@@ -64,10 +65,10 @@ export const fetchNotifications = createAsyncThunk(
                 };
             }
 
-            console.log(`Fetching notifications, page: ${page} sort: desc`);
+            console.log(`Fetching notifications, page: ${page} sort: ${sort}`);
 
             // Sử dụng instance đã được cấu hình thay vì axios trực tiếp
-            const response = await instance.get(`/api/notifications?page=${page}&sort=desc`);
+            const response = await instance.get(`/api/notifications?page=${page}&sort=${sort}`);
 
             return {
                 notifications: response.data.data || [],
@@ -217,8 +218,8 @@ const notificationSlice = createSlice({
             })
             .addCase(fetchNotifications.fulfilled, (state, action) => {
                 state.isLoading = false;
-                // Nếu trang đầu tiên, thay thế toàn bộ danh sách
-                if (action.meta.arg === 1) {
+                // Nếu trang đầu tiên (hoặc không có tham số page, mặc định là 1), thay thế toàn bộ danh sách
+                if (action.meta.arg?.page === 1 || !action.meta.arg?.page) {
                     state.notifications = action.payload.notifications;
                 } else {
                     // Nếu trang tiếp theo, thêm vào danh sách hiện tại
@@ -289,4 +290,4 @@ const notificationSlice = createSlice({
 });
 
 export const { resetNotifications, addNotification } = notificationSlice.actions;
-export default notificationSlice.reducer; 
+export default notificationSlice.reducer;

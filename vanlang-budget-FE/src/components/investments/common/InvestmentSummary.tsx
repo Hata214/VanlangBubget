@@ -2,11 +2,12 @@
 
 import React from 'react';
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency } from '@/utils/formatters';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { TrendingDown, Minus, ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { Separator } from '@/components/ui/Separator';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+// import { ArrowUpRight, ArrowDownRight, TrendingUp } from 'lucide-react'; // Removed duplicate
 
 interface InvestmentType {
     count: number;
@@ -192,4 +193,4 @@ export default function InvestmentSummary({ summary }: InvestmentSummaryProps) {
             </div>
         </div>
     );
-} 
+}

@@ -23,9 +23,9 @@ export function NotificationDropdown() {
     // Lấy danh sách thông báo khi component mount
     useEffect(() => {
         if (isOpen && notifications.length === 0) {
-            dispatch(fetchNotifications(1));
+            dispatch(fetchNotifications({ page: 1, sort: sortDirection }));
         }
-    }, [dispatch, isOpen, notifications.length]);
+    }, [dispatch, isOpen, notifications.length, sortDirection]);
 
     // Xử lý click bên ngoài dropdown
     useEffect(() => {
@@ -98,7 +98,7 @@ export function NotificationDropdown() {
     // Xử lý tải thêm thông báo
     const handleLoadMore = () => {
         const nextPage = page + 1;
-        dispatch(fetchNotifications(nextPage));
+        dispatch(fetchNotifications({ page: nextPage, sort: sortDirection }));
         setPage(nextPage);
     };
 
@@ -242,4 +242,4 @@ export function NotificationDropdown() {
             )}
         </div>
     );
-} 
+}

@@ -368,7 +368,7 @@ export function ExpenseForm({ initialData, onSubmit, isSubmitting }: ExpenseForm
                                     <CurrencyInput
                                         placeholder={t('expense.enterAmount')}
                                         value={field.value}
-                                        onValueChange={field.onChange}
+                                        onChange={field.onChange}
                                         onBlur={field.onBlur}
                                     />
                                 </FormControl>

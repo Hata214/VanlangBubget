@@ -29,7 +29,7 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
     const startInlineEdit = (key: string, value: any) => {
         setEditingField(key);
         setEditValue(value);
-        
+
         // Focus vào input sau khi render
         setTimeout(() => {
             if (inputRef.current) {
@@ -75,20 +75,20 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
         // Phân tích key để cập nhật đúng vị trí trong nested object
         const keys = key.split('.');
         const lastKey = keys.pop();
-        
+
         setUpdatedContent((prev: any) => {
             const newContent = { ...prev };
-            
+
             // Tìm đến object cần cập nhật
             let current = newContent;
             for (const k of keys) {
                 if (!current[k]) current[k] = {};
                 current = current[k];
             }
-            
+
             // Cập nhật giá trị
             if (lastKey) current[lastKey] = value;
-            
+
             return newContent;
         });
 
@@ -115,7 +115,7 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
     // Hàm lưu tất cả thay đổi
     const saveAllChanges = async () => {
         if (changedFields.length === 0) {
-            toast.info('Không có thay đổi để lưu');
+            toast('Không có thay đổi để lưu');
             return;
         }
 
@@ -125,7 +125,7 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
             toast.success(isSuperAdmin
                 ? 'Đã lưu thành công nội dung trang Liên hệ!'
                 : 'Đã gửi nội dung trang Liên hệ để SuperAdmin phê duyệt!');
-            
+
             setChangedFields([]);
             if (onUpdate) {
                 onUpdate();
@@ -155,13 +155,13 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
                         className="flex-1 p-1 text-sm border-none focus:ring-0 bg-transparent"
                         autoFocus
                     />
-                    <button 
+                    <button
                         onClick={() => saveInlineEdit(key)}
                         className="p-1 text-green-600 hover:text-green-800"
                     >
                         <Save size={16} />
                     </button>
-                    <button 
+                    <button
                         onClick={cancelInlineEdit}
                         className="p-1 text-red-600 hover:text-red-800"
                     >
@@ -172,7 +172,7 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
         }
 
         return (
-            <span 
+            <span
                 className={`editable-content cursor-pointer hover:bg-blue-50 hover:border-dashed hover:border-blue-300 p-1 rounded ${className}`}
                 onClick={() => startInlineEdit(key, value)}
                 data-field={key}
@@ -306,7 +306,7 @@ export default function ContactPreview({ content, onUpdate }: ContactPreviewProp
                                 question: `Câu hỏi thường gặp ${index + 1}?`,
                                 answer: `Câu trả lời cho câu hỏi thường gặp ${index + 1}.`
                             };
-                            
+
                             return (
                                 <div key={index} className="bg-white p-6 rounded-lg shadow">
                                     <h3 className="text-lg font-bold mb-2 group">

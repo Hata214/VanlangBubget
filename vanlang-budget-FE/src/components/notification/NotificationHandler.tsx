@@ -74,8 +74,8 @@ export function NotificationHandler() {
         const handleConnectSuccess = () => {
             console.log('Socket kết nối thành công!')
             // Tham gia room của user khi kết nối thành công
-            if (user._id) {
-                const userId = String(user._id)
+            if (user.id) {
+                const userId = String(user.id)
                 socketService.emit('join', userId)
                 console.log(`Đã tham gia vào room ${userId}`)
             }
@@ -121,7 +121,7 @@ export function NotificationHandler() {
                 dispatch(addNotification(notificationData));
 
                 // Tải lại danh sách thông báo để hiển thị trong trang notifications
-                dispatch(fetchNotifications(1));
+                dispatch(fetchNotifications({ page: 1 }));
             }
 
             // Hiển thị toast thông báo
@@ -145,7 +145,7 @@ export function NotificationHandler() {
             dispatch(fetchLoans())
 
             // Tải lại danh sách thông báo và số lượng thông báo chưa đọc
-            dispatch(fetchNotifications(1))
+            dispatch(fetchNotifications({ page: 1 }))
             dispatch(fetchUnreadCount())
 
             // Hiển thị thông báo khi trạng thái khoản vay thay đổi
@@ -174,7 +174,7 @@ export function NotificationHandler() {
                 message,
                 type: type as any, // Sửa lỗi kiểu dữ liệu bằng cách ép kiểu
                 isRead: false,
-                userId: user._id,
+                userId: user.id,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -186,7 +186,7 @@ export function NotificationHandler() {
             dispatch(fetchUnreadCount());
 
             // Tải lại danh sách thông báo
-            dispatch(fetchNotifications(1));
+            dispatch(fetchNotifications({ page: 1 }));
 
             // Hiển thị toast thông báo
             return notificationData;
@@ -312,7 +312,7 @@ export function NotificationHandler() {
         socketService.on(SocketEvent.BUDGET_UPDATE, (data) => {
             console.log('Budget updated:', data)
             // Tải lại thông báo khi có cập nhật ngân sách
-            dispatch(fetchNotifications(1))
+            dispatch(fetchNotifications({ page: 1 }))
         })
         socketService.on(SocketEvent.EXPENSE_CREATE, handleExpenseCreate)
         socketService.on(SocketEvent.INCOME_CREATE, handleIncomeCreate)
@@ -362,4 +362,4 @@ export function NotificationHandler() {
 
     // Component này không hiển thị gì, chỉ xử lý logic
     return null
-} 
+}

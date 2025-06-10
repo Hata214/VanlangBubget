@@ -25,7 +25,7 @@ export const fetchLoanPayments = createAsyncThunk(
 export const addLoanPayment = createAsyncThunk(
     'loanPayment/addLoanPayment',
     async ({ loanId, data }: { loanId: string; data: Omit<LoanPayment, 'id' | 'userId' | 'createdAt' | 'updatedAt'> }) => {
-        const response = await loanService.createPayment(loanId, data)
+        const response = await loanService.addPayment(loanId, data)
         return response
     }
 )
@@ -125,4 +125,4 @@ const loanPaymentSlice = createSlice({
     },
 })
 
-export default loanPaymentSlice.reducer 
+export default loanPaymentSlice.reducer
