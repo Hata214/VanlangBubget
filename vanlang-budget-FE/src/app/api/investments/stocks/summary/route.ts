@@ -1,17 +1,5 @@
 import { NextResponse } from 'next/server';
-import { stockTransactions } from "../transactions/route";
-
-// Định nghĩa kiểu dữ liệu cho giao dịch cổ phiếu
-type StockTransaction = {
-    id: string;
-    symbol: string;
-    price: number;
-    quantity: number;
-    purchaseDate: string;
-    fee: number;
-    broker?: string;
-    notes?: string;
-};
+import { stockTransactions, StockTransaction } from "../data"; // Updated import path and added StockTransaction type
 
 // Định nghĩa cấu trúc dữ liệu cho các ngành nghề
 type Industry = {
@@ -238,4 +226,4 @@ export async function GET() {
             { status: 500 }
         );
     }
-} 
+}

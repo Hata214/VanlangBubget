@@ -38,6 +38,7 @@ interface DisplayNotification {
 }
 
 // Loại thông báo để hiển thị giao diện
+// eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
 enum NotificationVariant {
     DEFAULT = 'default',
     UPDATE = 'update',
@@ -788,4 +789,4 @@ export default function NotificationsPage() {
             </div>
         </MainLayout>
     );
-} 
+}

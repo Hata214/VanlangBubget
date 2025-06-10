@@ -65,6 +65,7 @@ interface ActivityLog {
 
 interface AdminUser {
     id: string;
+    _id?: string; // Thêm _id như một trường tùy chọn
     email: string;
     firstName: string;
     lastName: string;
@@ -436,7 +437,7 @@ export default function ActivityLogsPage() {
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
                                                         {log.adminId ? (
                                                             <span>
-                                                                {getAdminName(log.adminId)}
+                                                                {getAdminName(log.adminId._id)}
                                                             </span>
                                                         ) : 'N/A'}
                                                     </div>
@@ -540,4 +541,4 @@ export default function ActivityLogsPage() {
             </Card>
         </div>
     );
-} 
+}
