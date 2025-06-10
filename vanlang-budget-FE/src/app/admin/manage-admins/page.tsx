@@ -284,11 +284,11 @@ export default function ManageAdminsPage() {
     };
 
     const updateURLParams = (filters: { role?: string; dateRange?: string; search?: string; page?: number }) => {
-        const params = new URLSearchParams(searchParams);
+        const params = new URLSearchParams(searchParams.toString());
 
         Object.entries(filters).forEach(([key, value]) => {
             if (value && value !== 'all' && value !== '') {
-                params.set(key, value);
+                params.set(key, String(value));
             } else {
                 params.delete(key);
             }
@@ -641,4 +641,4 @@ export default function ManageAdminsPage() {
             </Dialog>
         </div>
     );
-} 
+}
