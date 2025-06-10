@@ -105,24 +105,45 @@ export async function getInvestments(): Promise<Investment[]> {
         await new Promise(resolve => setTimeout(resolve, 800));
 
         // Trả về danh sách đầu tư mẫu
+        const today = new Date().toISOString().split('T')[0];
         return [
             {
                 id: '1',
+                userId: 'mockUserId123',
+                name: 'Cổ phiếu Vinamilk (VNM)',
+                type: 'stock',
                 symbol: 'VNM',
-                quantity: 100,
-                price: 86000,
-                totalAmount: 8600000,
-                date: new Date().toISOString().split('T')[0],
-                notes: 'Đầu tư dài hạn'
+                category: 'Hàng tiêu dùng',
+                initialInvestment: 8600000,
+                currentValue: 8600000,
+                totalQuantity: 100,
+                currentPrice: 86000,
+                startDate: today,
+                notes: 'Đầu tư dài hạn',
+                createdAt: today,
+                updatedAt: today,
+                profitLoss: 0, // currentValue - initialInvestment
+                roi: 0, // (profitLoss / initialInvestment) * 100
+                transactions: []
             },
             {
                 id: '2',
+                userId: 'mockUserId123',
+                name: 'Cổ phiếu FPT (FPT)',
+                type: 'stock',
                 symbol: 'FPT',
-                quantity: 50,
-                price: 95600,
-                totalAmount: 4780000,
-                date: new Date().toISOString().split('T')[0],
-                notes: 'Cổ phiếu công nghệ'
+                category: 'Công nghệ',
+                initialInvestment: 4780000,
+                currentValue: 4780000,
+                totalQuantity: 50,
+                currentPrice: 95600,
+                startDate: today,
+                notes: 'Cổ phiếu công nghệ',
+                createdAt: today,
+                updatedAt: today,
+                profitLoss: 0, // currentValue - initialInvestment
+                roi: 0, // (profitLoss / initialInvestment) * 100
+                transactions: []
             }
         ];
     } catch (error) {
@@ -131,7 +152,9 @@ export async function getInvestments(): Promise<Investment[]> {
     }
 }
 
-export default {
+const mockInvestmentService = {
     createInvestment,
     getInvestments
-}; 
+};
+
+export default mockInvestmentService;

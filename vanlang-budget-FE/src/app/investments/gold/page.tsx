@@ -75,4 +75,4 @@ export default function GoldPage() {
             </div>
         </MainLayout>
     );
-} 
+}

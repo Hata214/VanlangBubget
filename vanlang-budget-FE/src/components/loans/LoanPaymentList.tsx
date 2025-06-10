@@ -5,6 +5,15 @@ import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/Alert'
+import {
+    Table,
+    TableHeader,
+    TableBody,
+    TableRow,
+    TableHead,
+    TableCell,
+    TableCaption,
+} from '@/components/ui/table';
 import { formatCurrency, formatDate } from '@/lib/utils'
 import { LoanPaymentForm } from './LoanPaymentForm'
 import { Edit2, Trash2, FileText } from 'lucide-react'
@@ -151,12 +160,45 @@ export function LoanPaymentList({
                 <Button onClick={() => setShowAddModal(true)}>{t('loan.addPayment')}</Button>
             </div>
 
-            <Table
-                columns={columns}
-                data={payments}
-                isLoading={isLoading}
-                emptyMessage={t('loan.noPayments')}
-            />
+            {isLoading ? (
+                <div className="flex justify-center items-center h-32">
+                    <p>{t('common.loading')}...</p> {/* Hoặc một spinner */}
+                </div>
+            ) : payments.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                    {t('loan.noPayments')}
+                </div>
+            ) : (
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                {columns.map((column, index) => (
+                                    <TableHead key={index} className={column.className}>
+                                        {column.header}
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {payments.map((payment) => (
+                                <TableRow key={payment.id}>
+                                    {columns.map((column, colIndex) => (
+                                        <TableCell key={colIndex} className={column.className}>
+                                            {typeof column.accessor === 'function'
+                                                ? column.accessor(payment)
+                                                : payment[column.accessor as keyof LoanPayment]}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                        {payments.length === 0 && !isLoading && (
+                            <TableCaption>{t('loan.noPayments')}</TableCaption>
+                        )}
+                    </Table>
+                </div>
+            )}
 
             <Modal
                 isOpen={showAddModal}

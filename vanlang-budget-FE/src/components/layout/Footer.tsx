@@ -10,7 +10,7 @@ import { useFooterContent } from '@/hooks/useFooterContent';
 export function Footer() {
     const t = useTranslations();
     const currentYear = new Date().getFullYear();
-    const { isAuthenticated: isUserAuthenticated } = useAuth(); // Lấy trạng thái xác thực từ context
+    const { isAuthenticated: isUserAuthenticated, user } = useAuth(); // Lấy trạng thái xác thực và user từ context
     const { content: footerContent, loading: footerLoading } = useFooterContent();
 
     // Debug logging
@@ -193,7 +193,7 @@ export function Footer() {
                     </Link>
                 ) : (
                     // Kiểm tra user có role là admin hoặc superadmin
-                    useAuth().user?.role === 'admin' || useAuth().user?.role === 'superadmin' ? (
+                    user?.role === 'admin' || user?.role === 'superadmin' ? (
                         <Link href="/admin" className="text-white dark:text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-2 rounded-md shadow-lg flex items-center gap-2">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect width="7" height="9" x="3" y="3" rx="1" />

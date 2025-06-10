@@ -29,7 +29,7 @@ declare module '*.module.sass' {
 }
 
 declare module '*.svg' {
-    import React = require('react');
+    import * as React from 'react';
     export const ReactComponent: React.FC<React.SVGProps<SVGSVGElement>>;
     const src: string;
     export default src;
@@ -64,4 +64,4 @@ interface ProcessEnv {
     NEXT_PUBLIC_API_URL: string;
     NEXT_PUBLIC_SITE_URL: string;
     NEXT_PUBLIC_SOCKET_URL: string;
-} 
+}

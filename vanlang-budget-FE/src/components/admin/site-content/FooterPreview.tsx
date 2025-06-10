@@ -115,7 +115,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
     // Hàm lưu tất cả thay đổi
     const saveAllChanges = async () => {
         if (changedFields.length === 0) {
-            toast.info('Không có thay đổi để lưu');
+            toast('Không có thay đổi để lưu');
             return;
         }
 
@@ -340,8 +340,7 @@ export default function FooterPreview({ content, onUpdate }: FooterPreviewProps)
                         </div>
                     </div>
                 </div>
+            </footer>
         </div>
-            </footer >
-        </div >
     );
 }

@@ -140,6 +140,7 @@ export default function InlineEditor({ field, value, onSave, onCancel }: InlineE
                     className="p-1 hover:bg-gray-200 rounded"
                     title="Image"
                 >
+                    {/* eslint-disable-next-line jsx-a11y/alt-text */}
                     <Image className="h-4 w-4" />
                 </button>
             </div>
@@ -187,8 +188,8 @@ export default function InlineEditor({ field, value, onSave, onCancel }: InlineE
                             <button
                                 onClick={() => setEditorType('text')}
                                 className={`px-3 py-1 text-xs rounded ${editorType === 'text'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Văn bản
@@ -196,8 +197,8 @@ export default function InlineEditor({ field, value, onSave, onCancel }: InlineE
                             <button
                                 onClick={() => setEditorType('textarea')}
                                 className={`px-3 py-1 text-xs rounded ${editorType === 'textarea'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Đoạn văn
@@ -205,8 +206,8 @@ export default function InlineEditor({ field, value, onSave, onCancel }: InlineE
                             <button
                                 onClick={() => setEditorType('rich')}
                                 className={`px-3 py-1 text-xs rounded ${editorType === 'rich'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    ? 'bg-blue-100 text-blue-700'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                     }`}
                             >
                                 Rich Text

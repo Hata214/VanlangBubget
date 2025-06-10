@@ -24,10 +24,8 @@ export async function getStockPrice(symbol: string): Promise<StockPriceResponse>
         return {
             symbol: symbol,
             price: Math.floor(Math.random() * 100000) + 10000,
-            change: Math.floor(Math.random() * 2000) - 1000,
-            changePercent: (Math.random() * 4) - 2,
-            date: new Date().toISOString().split('T')[0],
-            time: new Date().toTimeString().split(' ')[0],
+            timestamp: new Date().toISOString(),
+            // Các trường name, description, industry, founded, error có thể được thêm nếu cần thiết cho mock
         };
     }
 }
@@ -61,7 +59,9 @@ export async function getAllStocks() {
     }
 }
 
-export default {
+const mockStockService = {
     getStockPrice,
     getAllStocks
-}; 
+};
+
+export default mockStockService;

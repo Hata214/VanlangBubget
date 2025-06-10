@@ -1,5 +1,5 @@
 // Dữ liệu fallback cho trang chủ (tiếng Việt)
-export default {
+const homepageViFallback = {
     // Hero section
     hero: {
         title: {
@@ -374,4 +374,6 @@ export default {
             linkedin: 'https://linkedin.com/company/vanlangbudget'
         }
     }
-}; 
+};
+
+export default homepageViFallback;

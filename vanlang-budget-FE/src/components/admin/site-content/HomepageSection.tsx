@@ -4,6 +4,8 @@ import siteContentService from '@/services/siteContentService';
 import { useAppSelector } from '@/redux/hooks';
 import { toast } from 'react-hot-toast';
 import { HelpTooltip } from '@/components/ui/HelpTooltip';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import './wysiwyg-editor.css'; // Import CSS cho WYSIWYG Editor
 
 interface HomepageSectionProps {
@@ -258,11 +260,14 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                             </div>
                         ) : typeof content[key] === 'string' && (content[key].startsWith('http') || content[key].includes('/images/')) ? (
                             <div className="space-y-2">
-                                <ImageEditor
+                                <label htmlFor={`${key}-imageUrl-edit`} className="block text-sm font-medium text-gray-700 mb-1">{`Hình ảnh cho ${key}`}</label>
+                                <Input
+                                    type="text"
+                                    id={`${key}-imageUrl-edit`}
                                     value={content[key]}
-                                    onChange={(url) => handleInputChange(key, url)}
-                                    label={`Hình ảnh cho ${key}`}
+                                    onChange={(e) => handleInputChange(key, e.target.value)}
                                     placeholder="Nhập URL hình ảnh hoặc tải lên"
+                                    className="w-full p-2 border rounded-md"
                                 />
                             </div>
                         ) : typeof content[key] === 'boolean' ? (
@@ -330,7 +335,7 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
         }
 
         // Hiển thị thông báo toast để hướng dẫn người dùng
-        toast.success(`Đang chỉnh sửa trường "${key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}". Nhấn Enter để lưu, Esc để hủy.`, {
+        toast.success(`Đang chỉnh sửa trường '${key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}'. Nhấn Enter để lưu, Esc để hủy.`, {
             position: "bottom-center",
             duration: 3000,
             icon: '✏️'
@@ -351,7 +356,7 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
             }, 2000);
         }
 
-        toast.success(`Đã cập nhật "${key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}"`, {
+        toast.success(`Đã cập nhật '${key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}'`, {
             position: "bottom-center",
             icon: '✅',
             duration: 2000
@@ -510,15 +515,17 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                                         />
                                     ) : typeof value === 'string' && ((value as string).startsWith('http') || (value as string).includes('/images/')) ? (
                                         <div className="space-y-2">
-                                            <ImageEditor
+                                            <Input
+                                                type="text"
                                                 value={editValue as string}
-                                                onChange={(url) => setEditValue(url)}
+                                                onChange={(e) => setEditValue(e.target.value)}
                                                 placeholder="Nhập URL hình ảnh hoặc tải lên"
+                                                className="w-full p-2 border border-gray-300 rounded-md"
                                             />
                                             <div className="flex space-x-2 mt-2">
                                                 <Button
                                                     size="sm"
-                                                    onClick={() => handleInlineSave(key)}
+                                                    onClick={() => saveInlineEdit(key)}
                                                 >
                                                     Lưu
                                                 </Button>
