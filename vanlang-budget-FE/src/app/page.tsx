@@ -210,7 +210,7 @@ export default function HomePage() {
                                 {t('home.features.subtitle')}
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                             {features.map((feature: { icon: JSX.Element; title: string; description: string }, index: number) => (
                                 <div key={index} className="p-6 bg-card rounded-lg shadow-md border border-border hover:shadow-lg transition-shadow duration-300">
                                     <div className="mb-4">{feature.icon}</div>
@@ -233,7 +233,7 @@ export default function HomePage() {
                                 {t('home.screenshots.subtitle')}
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                             <div className="bg-card p-2 rounded-xl shadow-md overflow-hidden border border-border">
                                 <div className="aspect-video rounded-lg bg-indigo-100 dark:bg-indigo-950/30 flex items-center justify-center">
                                     <BarChart4 className="h-16 w-16 text-indigo-500" />
@@ -267,7 +267,7 @@ export default function HomePage() {
                                 {t('home.testimonials.subtitle')}
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
                             {testimonials.map((testimonial: Testimonial, index: number) => (
                                 <div key={index} className="bg-card p-8 rounded-lg shadow-md border border-border">
                                     <div className="flex mb-4">
@@ -299,7 +299,7 @@ export default function HomePage() {
                                 {t('home.pricing.subtitle')}
                             </p>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
                             {(homepageContent?.pricing?.plans || pricingPlans).map((plan: PricingPlan, index: number) => (
                                 <div key={index} className={`bg-card rounded-lg shadow-md overflow-hidden border ${index === 1 ? 'border-primary' : 'border-border'}`}>
                                     <div className={`p-6 ${index === 1 ? 'bg-primary' : 'bg-muted dark:bg-muted/60'}`}>
@@ -345,7 +345,7 @@ export default function HomePage() {
                                 {t('home.faq.subtitle')}
                             </p>
                         </div>
-                        <div className="space-y-8">
+                        <div className="space-y-6">
                             {faqs.map((faq, index) => (
                                 <div key={index} className="bg-card shadow-md rounded-lg p-6 border border-border">
                                     <h3 className="text-lg font-semibold text-foreground mb-2">{faq.question}</h3>
@@ -368,13 +368,13 @@ export default function HomePage() {
                         <div className="flex flex-col sm:flex-row gap-4 justify-center">
                             <Link
                                 href={isAuthenticated ? "/dashboard" : "/register"}
-                                className="inline-flex items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 {t('home.cta.getStarted')} <ChevronRight className="ml-2 h-4 w-4" />
                             </Link>
                             <Link
                                 href="/contact"
-                                className="inline-flex items-center px-6 py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                                className="inline-flex items-center px-4 sm:px-6 py-2 sm:py-3 border border-border rounded-md shadow-sm text-base font-medium text-primary dark:text-white bg-background dark:bg-slate-800 hover:bg-muted dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                             >
                                 {t('home.cta.contact')} <ChevronRight className="ml-2 h-4 w-4" />
                             </Link>

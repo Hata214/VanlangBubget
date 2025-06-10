@@ -88,7 +88,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
         {
             header: t('common.date'),
             accessor: 'date',
-            className: 'w-32',
+            className: 'w-28 sm:w-32',
         },
         {
             header: t('common.type'),
@@ -123,7 +123,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     </span>
                 );
             },
-            className: 'w-24',
+            className: 'w-20 sm:w-24',
         },
         {
             header: t('common.category'),
@@ -164,7 +164,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     </span>
                 );
             },
-            className: 'w-40',
+            className: 'w-32 sm:w-40',
         },
         {
             header: t('common.description'),
@@ -191,7 +191,7 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
                     </span>
                 );
             },
-            className: 'w-32 text-right',
+            className: 'w-28 sm:w-32 text-right',
         },
     ]
 
@@ -208,4 +208,4 @@ export function RecentTransactions({ transactions, isLoading }: RecentTransactio
             emptyMessage={t('common.noData')}
         />
     )
-} 
+}

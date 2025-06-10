@@ -69,9 +69,9 @@ export default function DashboardPage() {
         // Chỉ gửi thông báo khi:
         // 1. Đã tải dữ liệu xong
         // 2. Số dư thực sự âm
-        // 3. Người dùng đã đăng nhập và có _id
+        // 3. Người dùng đã đăng nhập và có id
         // 4. Chưa gửi thông báo trong phiên làm việc hiện tại
-        if (!isLoading && balance < 0 && user && user._id && !hasNotifiedNegativeBalance) {
+        if (!isLoading && balance < 0 && user && user.id && !hasNotifiedNegativeBalance) {
             // Gửi thông báo qua API mà không cần kiểm tra thời gian 24 giờ
             const checkNegativeBalance = async () => {
                 try {
@@ -503,7 +503,7 @@ export default function DashboardPage() {
                                 <CardTitle>{t('dashboard.monthlyIncomeExpense')}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="h-[300px]">
+                                <div className="h-[280px] sm:h-[300px]">
                                     <BarChart data={monthlyData} />
                                 </div>
                             </CardContent>
@@ -514,7 +514,7 @@ export default function DashboardPage() {
                                 <CardTitle>{t('dashboard.financialDistribution')}</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="h-[450px] relative">
+                                <div className="h-[350px] sm:h-[400px] md:h-[450px] relative">
                                     <PieChart data={transactionsByCategory} />
                                 </div>
                             </CardContent>

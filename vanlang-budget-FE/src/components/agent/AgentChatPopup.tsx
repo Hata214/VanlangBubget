@@ -296,11 +296,15 @@ const AgentChatPopup: React.FC = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className={`fixed bottom-6 right-6 z-[9999] transition-all duration-300 ${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'
-          }`}>
-          <Card className="h-full flex flex-col shadow-2xl border-0 bg-white dark:bg-gray-900">
+        <div
+          className={`fixed z-[9999] transition-all duration-300 ${isMinimized
+              ? 'bottom-6 right-6 w-80 h-16' // Minimized state: always bottom-right, fixed small size
+              : 'inset-0 w-full h-full md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[600px]' // Expanded: fullscreen on mobile, original on desktop
+            }`}
+        >
+          <Card className="h-full flex flex-col shadow-2xl border-0 bg-white dark:bg-gray-900 rounded-none md:rounded-lg">
             {/* Header */}
-            <CardHeader className="flex flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-t-lg">
+            <CardHeader className="flex flex-row items-center justify-between p-4 bg-gradient-to-r from-emerald-500 to-blue-600 text-white rounded-t-none md:rounded-t-lg">
               <div className="flex items-center space-x-2">
                 <Bot className="h-5 w-5" />
                 <div className="flex flex-col">

@@ -184,6 +184,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
     return (
         <>
             <div className="min-h-screen bg-background">
+                {/* Backdrop for mobile */}
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                        onClick={() => setIsSidebarOpen(false)}
+                    ></div>
+                )}
+
                 {/* Sidebar */}
                 <div
                     className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -303,7 +311,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
                 {/* Main Content */}
                 <div
-                    className={`transition-margin duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'
+                    className={`transition-margin duration-300 ease-in-out ${isSidebarOpen ? 'md:ml-64' : 'ml-0'
                         }`}
                 >
                     {/* Header with menu button when sidebar is closed */}
