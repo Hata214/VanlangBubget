@@ -117,7 +117,7 @@ const AgentChatPopup: React.FC = () => {
       description: newMode
         ? 'Bây giờ bạn có thể hỏi bất kỳ câu hỏi nào!'
         : 'Trở về chế độ VanLang Agent thông thường',
-      variant: 'default'
+      type: 'info'
     });
 
     // Add system message to chat
@@ -152,7 +152,7 @@ const AgentChatPopup: React.FC = () => {
       toast({
         title: 'Lỗi xác thực',
         description: 'Vui lòng đăng nhập để sử dụng Agent',
-        variant: 'destructive'
+        type: 'error'
       });
       return;
     }
@@ -236,7 +236,7 @@ const AgentChatPopup: React.FC = () => {
       toast({
         title: 'Lỗi Agent',
         description: error instanceof Error ? error.message : 'Có lỗi xảy ra',
-        variant: 'destructive'
+        type: 'error'
       });
     } finally {
       setIsLoading(false);
@@ -255,7 +255,8 @@ const AgentChatPopup: React.FC = () => {
     setSessionInfo(null);
     toast({
       title: 'Đã xóa cuộc trò chuyện',
-      description: 'Lịch sử chat đã được xóa'
+      description: 'Lịch sử chat đã được xóa',
+      type: 'info'
     });
   };
 
@@ -271,11 +272,6 @@ const AgentChatPopup: React.FC = () => {
 
   return (
     <>
-      {/* Debug indicator - Always visible */}
-      <div className="fixed bottom-20 right-6 z-[9999] bg-green-500 text-white p-2 rounded text-xs">
-        🤖 VanLang Agent: ✅ Active
-      </div>
-
       {/* Chat Bubble Button - Always show for testing */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-[9999]">
