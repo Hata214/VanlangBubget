@@ -45,25 +45,26 @@ const productionOriginsFromEnv = process.env.FRONTEND_URL || process.env.CORS_OR
 const allowedOrigins = process.env.NODE_ENV === 'development'
     ? ['http://localhost:3000', 'http://localhost:4000']
     : productionOriginsFromEnv ?
-        productionOriginsFromEnv.split(',') : // Hỗ trợ nhiều origin nếu FRONTEND_URL/CORS_ORIGIN chứa dấu phẩy
+        productionOriginsFromEnv.split(',').map(origin => origin.trim()) : // Thêm .map(origin => origin.trim()) để loại bỏ khoảng trắng
         ['https://vanlang-budget-fe.vercel.app']; // Mặc định nếu không có biến môi trường nào được đặt
 
-console.log('CORS Allowed Origins:', allowedOrigins);
+console.log('CORS Allowed Origins on Startup:', allowedOrigins); // Log khi khởi động
 
 // Cấu hình CORS
 const corsOptions = {
     origin: function (origin, callback) {
-        // Cho phép tất cả origin trong môi trường development
+        // Cho phép tất cả origin trong môi trường development hoặc nếu không có origin (ví dụ: Postman)
         if (process.env.NODE_ENV === 'development' || !origin) {
             callback(null, true);
             return;
         }
 
         // Kiểm tra origin có trong danh sách cho phép không
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (allowedOrigins.includes(origin)) { // Sử dụng .includes() cho mảng
             callback(null, true);
         } else {
-            console.log(`Origin ${origin} không được phép truy cập`);
+            // Log chi tiết hơn khi từ chối
+            console.log(`CORS: Origin '${origin}' IS NOT ALLOWED. Allowed origins list: [${allowedOrigins.join(' | ')}]`);
             callback(new Error('Not allowed by CORS'));
         }
     },
