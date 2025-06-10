@@ -24,7 +24,7 @@ import PagePreview from './PagePreview';
 import InlineEditor from './InlineEditor';
 
 interface User {
-    _id: string;
+    id: string;
     email: string;
     role: string;
     firstName?: string;
