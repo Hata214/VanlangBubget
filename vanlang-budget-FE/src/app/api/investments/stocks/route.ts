@@ -54,6 +54,12 @@ export async function GET() {
 
         // Kết nối database
         const { db } = await connectToDatabase();
+        if (!db) {
+            return NextResponse.json(
+                { success: false, message: 'Không thể kết nối đến cơ sở dữ liệu' },
+                { status: 500 }
+            );
+        }
         const stocksCollection = db.collection('stockInvestments');
 
         // Lấy tất cả đầu tư cổ phiếu của người dùng
@@ -125,6 +131,12 @@ export async function POST(request: Request) {
 
         // Kết nối database
         const { db } = await connectToDatabase();
+        if (!db) {
+            return NextResponse.json(
+                { success: false, message: 'Không thể kết nối đến cơ sở dữ liệu' },
+                { status: 500 }
+            );
+        }
         const stocksCollection = db.collection('stockInvestments');
 
         // Thêm vào collection stockInvestments
@@ -174,4 +186,4 @@ export async function POST(request: Request) {
             { status: 500 }
         );
     }
-} 
+}
