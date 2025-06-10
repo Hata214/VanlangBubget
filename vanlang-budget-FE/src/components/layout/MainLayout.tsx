@@ -50,7 +50,7 @@ function SimpleBell({ unreadCount = 0 }) {
     const router = useRouter();
 
     const handleClick = () => {
-        router.push(`/${locale}/notifications`);
+        router.push('/notifications'); // Bỏ tiền tố locale
     };
 
     return (

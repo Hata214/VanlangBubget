@@ -229,7 +229,20 @@ export function StockPortfolioDashboard() {
                                                 formatter={pieTooltipFormatter}
                                                 labelFormatter={pieTooltipLabelFormatter}
                                             />
-                                            <Legend />
+                                            <Legend
+                                                layout="horizontal"
+                                                verticalAlign="bottom"
+                                                align="center"
+                                                iconSize={12}
+                                                wrapperStyle={{ paddingTop: '10px', paddingBottom: '0px', lineHeight: '1.4em' }}
+                                                formatter={(value, entry, index) => {
+                                                    // value là giá trị của thuộc tính nameKey (tức là entry.name)
+                                                    if (value && value.length > 15) {
+                                                        return `${value.substring(0, 13)}...`;
+                                                    }
+                                                    return value;
+                                                }}
+                                            />
                                         </PieChart>
                                     </ResponsiveContainer>
                                 )}

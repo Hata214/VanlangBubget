@@ -51,19 +51,19 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
     return (
         <Card className="w-full">
             <CardHeader>
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <CardTitle>{t('addInvestment')}</CardTitle>
                         <CardDescription>{t('addInvestmentDescription')}</CardDescription>
                     </div>
-                    <div>
+                    <div className="mt-2 sm:mt-0">
                         {renderMarketButton()}
                     </div>
                 </div>
             </CardHeader>
             <CardContent>
                 <Tabs defaultValue="stock" value={activeTab} onValueChange={setActiveTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 mb-6">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
                         <TabsTrigger value="stock" className="flex items-center">
                             <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
                             Cổ phiếu

@@ -157,14 +157,14 @@ export default function StocksMarketPage() {
     return (
         <MainLayout>
             <div className="container mx-auto px-4 py-6">
-                <div className="flex items-center justify-between mb-6">
+                <div className="flex flex-col items-start sm:flex-row sm:items-center sm:justify-between mb-6">
                     <div>
                         <h1 className="text-2xl font-bold">{t('title')}</h1>
                         <p className="text-muted-foreground">{t('description')}</p>
                     </div>
-                    <Link href="/investments" passHref>
-                        <Button variant="outline" className="flex items-center">
-                            <ChevronLeft className="h-4 w-4 mr-2" />
+                    <Link href="/investments" passHref className="mt-3 sm:mt-0 self-start sm:self-center">
+                        <Button variant="outline" size="sm" className="flex items-center whitespace-nowrap">
+                            <ChevronLeft className="h-4 w-4 mr-1 sm:mr-2" />
                             {t('backToPortfolio')}
                         </Button>
                     </Link>
