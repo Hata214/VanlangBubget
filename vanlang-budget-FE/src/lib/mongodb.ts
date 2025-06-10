@@ -15,10 +15,10 @@ interface MongooseCache {
 /**
  * Biến toàn cục dùng để lưu trữ kết nối MongoDB
  */
-let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+let cached: MongooseCache = (global as any).mongoose || { conn: null, promise: null };
 
 if (!cached) {
-    cached = global.mongoose = { conn: null, promise: null };
+    cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
 /**
@@ -124,6 +124,6 @@ export async function connectToDatabase(): Promise<{ client: MongoClient | null;
 
 declare global {
     // eslint-disable-next-line no-var
-    var mongoose: MongooseCache | undefined;
-    var mongoClient: MongoClientConnection | undefined;
+    let mongoose: MongooseCache | undefined;
+    let mongoClient: MongoClientConnection | undefined;
 }

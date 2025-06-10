@@ -32,7 +32,7 @@ export default function SavingsPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Thông báo quan trọng</AlertTitle>
                     <AlertDescription>
-                        Tính năng xem lãi suất ngân hàng trực tiếp hiện đang được phát triển. Vui lòng tự nhập thông tin khoản tiết kiệm của bạn thông qua nút "Thêm khoản tiết kiệm mới" bên dưới.
+                        Tính năng xem lãi suất ngân hàng trực tiếp hiện đang được phát triển. Vui lòng tự nhập thông tin khoản tiết kiệm của bạn thông qua nút &quot;Thêm khoản tiết kiệm mới&quot; bên dưới.
                     </AlertDescription>
                 </Alert>
 
@@ -69,7 +69,7 @@ export default function SavingsPage() {
                         <li>Theo dõi lãi suất và số tiền lãi dự kiến theo thời gian</li>
                         <li>Nhận thông báo khi khoản tiết kiệm sắp đáo hạn</li>
                         <li>So sánh hiệu quả giữa các khoản tiết kiệm khác nhau</li>
-                        <li>Xem tổng quan về danh mục tiết kiệm trong phần "Danh mục đầu tư"</li>
+                        <li>Xem tổng quan về danh mục tiết kiệm trong phần &quot;Danh mục đầu tư&quot;</li>
                     </ul>
                 </div>
             </div>

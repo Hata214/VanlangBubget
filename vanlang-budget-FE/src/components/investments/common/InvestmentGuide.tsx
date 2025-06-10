@@ -53,14 +53,14 @@ export default function InvestmentGuide() {
                         </AccordionTrigger>
                         <AccordionContent className="text-gray-700">
                             <ol className="list-decimal pl-5 space-y-2">
-                                <li>Chọn tab <span className="font-medium">"Thêm đầu tư"</span></li>
+                                <li>Chọn tab <span className="font-medium">&quot;Thêm đầu tư&quot;</span></li>
                                 <li>Chọn loại đầu tư phù hợp (cổ phiếu, vàng, crypto...)</li>
                                 <li>Nhập tên tài sản và mã ký hiệu (nếu có)</li>
                                 <li>Nhập giá hiện tại của một đơn vị tài sản</li>
                                 <li>Nhập số lượng đã mua và ngày mua</li>
                                 <li>Điền phí giao dịch nếu có</li>
                                 <li>Thêm ghi chú để dễ theo dõi (không bắt buộc)</li>
-                                <li>Nhấn <span className="font-medium">"Thêm đầu tư"</span> để lưu</li>
+                                <li>Nhấn <span className="font-medium">&quot;Thêm đầu tư&quot;</span> để lưu</li>
                             </ol>
                         </AccordionContent>
                     </AccordionItem>

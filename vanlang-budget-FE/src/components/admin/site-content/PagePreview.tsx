@@ -254,7 +254,7 @@ export default function PagePreview({
                                     ))}
                                 </div>
                                 <p className="text-gray-700 mb-6 italic">
-                                    "{renderEditableContent(`testimonials.items.${index}.content`, content?.testimonials?.items?.[index]?.content || `Đánh giá ${index + 1}`)}"
+                                    &quot;{renderEditableContent(`testimonials.items.${index}.content`, content?.testimonials?.items?.[index]?.content || `Đánh giá ${index + 1}`)}&quot;
                                 </p>
                                 <div>
                                     <p className="font-semibold text-gray-900">

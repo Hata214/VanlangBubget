@@ -33,7 +33,7 @@ export default function GoldPage() {
                     <AlertTriangle className="h-4 w-4" />
                     <AlertTitle>Thông báo quan trọng</AlertTitle>
                     <AlertDescription>
-                        Tính năng xem giá vàng trực tiếp hiện đã bị vô hiệu hóa. Vui lòng tự nhập thông tin vàng của bạn thông qua nút "Thêm đầu tư vàng mới" bên dưới.
+                        Tính năng xem giá vàng trực tiếp hiện đã bị vô hiệu hóa. Vui lòng tự nhập thông tin vàng của bạn thông qua nút &quot;Thêm đầu tư vàng mới&quot; bên dưới.
                     </AlertDescription>
                 </Alert>
 
@@ -68,7 +68,7 @@ export default function GoldPage() {
                     <ul className="space-y-2 list-disc pl-5 text-amber-700">
                         <li>Thêm chi tiết về các khoản đầu tư vàng bạn đã mua</li>
                         <li>Theo dõi giá trị đầu tư vàng của bạn theo thời gian</li>
-                        <li>Xem tổng quan về danh mục đầu tư vàng trong phần "Danh mục đầu tư"</li>
+                        <li>Xem tổng quan về danh mục đầu tư vàng trong phần &quot;Danh mục đầu tư&quot;</li>
                         <li>Cập nhật giá vàng hiện tại theo thông tin bạn có để theo dõi lợi nhuận/lỗ</li>
                     </ul>
                 </div>

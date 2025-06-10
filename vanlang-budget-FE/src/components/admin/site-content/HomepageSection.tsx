@@ -280,7 +280,7 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                                     <option value="true">Có</option>
                                     <option value="false">Không</option>
                                 </select>
-                                <p className="text-xs text-gray-500 mt-1">Chọn "Có" để bật hoặc "Không" để tắt.</p>
+                                <p className="text-xs text-gray-500 mt-1">Chọn &quot;Có&quot; để bật hoặc &quot;Không&quot; để tắt.</p>
                             </div>
                         ) : typeof content[key] === 'number' ? (
                             <div>
@@ -406,10 +406,10 @@ export default function HomepageSection({ section, title, defaultContent, onUpda
                                     <div>
                                         <p className="font-medium text-blue-800">Hướng dẫn chỉnh sửa trực tiếp:</p>
                                         <ol className="list-decimal list-inside mt-1 space-y-1 text-blue-700">
-                                            <li>Nhấp vào nút <span className="font-medium bg-blue-100 px-1 rounded">"Nhấp để chỉnh sửa"</span> bên cạnh mỗi trường</li>
+                                            <li>Nhấp vào nút <span className="font-medium bg-blue-100 px-1 rounded">&quot;Nhấp để chỉnh sửa&quot;</span> bên cạnh mỗi trường</li>
                                             <li>Hoặc nhấp trực tiếp vào nội dung bạn muốn chỉnh sửa</li>
-                                            <li>Nhập nội dung mới và nhấn <span className="font-medium bg-blue-100 px-1 rounded">Enter</span> hoặc nút <span className="font-medium bg-blue-100 px-1 rounded">"Lưu"</span></li>
-                                            <li>Sau khi chỉnh sửa xong, nhấn nút <span className="font-medium bg-blue-100 px-1 rounded">"Lưu thay đổi"</span> ở trên cùng</li>
+                                            <li>Nhập nội dung mới và nhấn <span className="font-medium bg-blue-100 px-1 rounded">Enter</span> hoặc nút <span className="font-medium bg-blue-100 px-1 rounded">&quot;Lưu&quot;</span></li>
+                                            <li>Sau khi chỉnh sửa xong, nhấn nút <span className="font-medium bg-blue-100 px-1 rounded">&quot;Lưu thay đổi&quot;</span> ở trên cùng</li>
                                         </ol>
                                     </div>
                                     <button
