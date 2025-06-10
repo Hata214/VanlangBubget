@@ -13,22 +13,23 @@ export const options = {
     maintainAspectRatio: false,
     plugins: {
         legend: {
-            position: 'right' as const,
+            position: 'bottom' as const, // Chuyển legend xuống dưới
             labels: {
-                boxWidth: 15,
-                padding: 15,
+                boxWidth: 16, // Tăng kích thước hộp màu một chút
+                padding: 15, // Giảm padding giữa các mục để chúng gần nhau hơn
                 font: {
-                    size: 12
+                    size: 12 // Tăng kích thước font một chút
                 },
-                generateLabels: (chart: any) => {
+                generateLabels: (chart: any) => { // Giữ lại logic cắt nhãn dài
                     const datasets = chart.data.datasets;
                     return chart.data.labels.map((label: string, i: number) => {
                         const meta = chart.getDatasetMeta(0);
                         const style = meta.controller.getStyle(i);
 
                         let displayLabel = label;
-                        if (displayLabel.length > 20) {
-                            displayLabel = displayLabel.substring(0, 18) + '...';
+                        // Cắt nhãn dài hơn một chút để phù hợp hơn khi ở dưới
+                        if (displayLabel.length > 25) {
+                            displayLabel = displayLabel.substring(0, 22) + '...';
                         }
 
                         return {
@@ -42,19 +43,8 @@ export const options = {
                     });
                 }
             },
-            display: true,
-            align: 'start' as 'start' | 'center' | 'end',
-            fullSize: true,
-            maxWidth: 300,
-            maxHeight: 100,
-            title: {
-                display: true,
-                text: 'Danh mục',
-                font: {
-                    weight: 'bold' as const,
-                    size: 13
-                }
-            },
+            display: false, // Ẩn legend mặc định, sẽ dùng checkboxes
+            // Các thuộc tính align, fullSize, maxWidth, maxHeight, title không cần thiết khi legend ở dưới và là mặc định
         },
         tooltip: {
             callbacks: {
@@ -95,119 +85,71 @@ interface PieChartProps {
 
 export function PieChart({ data }: PieChartProps) {
     const chartRef = useRef<ChartJSInstance<'pie', number[], string> | null>(null);
-    const [legendItemVisibility, setLegendItemVisibility] = useState<boolean[]>([]);
+    const [visibility, setVisibility] = useState<boolean[]>([]);
 
     useEffect(() => {
         if (data && data.labels) {
-            setLegendItemVisibility(Array(data.labels.length).fill(true));
-            // Ensure chart is also reset if data changes fundamentally
+            const initialVisibility = Array(data.labels.length).fill(true);
+            setVisibility(initialVisibility);
+
+            // Đảm bảo chart instance được cập nhật đúng visibility ban đầu
             if (chartRef.current) {
-                data.labels.forEach((_, index) => {
-                    if (!chartRef.current?.getDataVisibility(index)) {
-                        chartRef.current?.toggleDataVisibility(index);
+                initialVisibility.forEach((isVisible, index) => {
+                    if (chartRef.current!.getDataVisibility(index) !== isVisible) {
+                        chartRef.current!.toggleDataVisibility(index);
                     }
                 });
-                chartRef.current?.update();
+                chartRef.current.update();
             }
         }
     }, [data]);
 
-    const handleLegendItemClick = (index: number) => {
+    const handleVisibilityChange = (index: number) => {
         const chart = chartRef.current;
         if (chart) {
             chart.toggleDataVisibility(index);
             chart.update();
-
-            setLegendItemVisibility(prev => {
-                const newState = [...prev];
-                newState[index] = chart.getDataVisibility(index);
-                return newState;
+            setVisibility(prev => {
+                const newVisibility = [...prev];
+                newVisibility[index] = chart.getDataVisibility(index);
+                return newVisibility;
             });
         }
     };
 
     return (
-        <div className="pie-chart-container" style={{ position: 'relative', height: '100%' }}>
-            <div style={{ height: '85%', marginRight: '260px' }}>
-                <Pie
-                    ref={chartRef}
-                    options={{
-                        ...options,
-                        plugins: {
-                            ...options.plugins,
-                            legend: {
-                                ...options.plugins.legend,
-                                display: false // Keep custom legend
-                            }
-                        }
-                    }}
-                    data={data}
-                />
-            </div>
-            <div
-                className="legend-scroll"
-                style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    bottom: '10px',
-                    maxHeight: '430px',
-                    overflowY: 'auto',
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    padding: '10px',
-                    borderRadius: '8px',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-                    width: '240px',
-                    border: '1px solid #eaeaea'
-                }}
-            >
-                <div className="legend-title" style={{
-                    fontWeight: 'bold',
-                    marginBottom: '12px',
-                    textAlign: 'center',
-                    fontSize: '14px',
-                    padding: '4px 0',
-                    borderBottom: '1px solid #eaeaea'
-                }}>
-                    Phân bổ tài chính
-                </div>
-                <div className="legend-items">
-                    {data.labels.map((label: string, index: number) => {
-                        const isVisible = legendItemVisibility[index] !== undefined ? legendItemVisibility[index] : true;
+        <div className="pie-chart-container" style={{ position: 'relative', height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div className="mb-3 p-2 border border-border rounded-md bg-card max-h-28 overflow-y-auto">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-3 gap-y-1.5">
+                    {data.labels.map((label, index) => {
+                        const isChecked = visibility[index] !== undefined ? visibility[index] : true;
+                        const color = data.datasets[0].backgroundColor[index];
                         return (
-                            <div
-                                key={index}
-                                className="legend-item"
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    marginBottom: '8px',
-                                    fontSize: '13px',
-                                    cursor: 'pointer',
-                                    opacity: isVisible ? 1 : 0.5,
-                                }}
-                                onClick={() => handleLegendItemClick(index)}
-                            >
-                                <div style={{
-                                    width: '14px',
-                                    height: '14px',
-                                    backgroundColor: data.datasets[0].backgroundColor[index],
-                                    marginRight: '8px',
-                                    borderRadius: '2px',
-                                }}></div>
-                                <div style={{
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: '180px',
-                                    lineHeight: '1.3',
-                                    textDecoration: isVisible ? 'none' : 'line-through',
-                                }}>
-                                    {label}
-                                </div>
-                            </div>
+                            <label key={index} className="flex items-center text-xs cursor-pointer select-none group">
+                                <span
+                                    className="inline-block w-3 h-3 rounded-sm mr-1.5 border border-gray-300 dark:border-gray-700 flex-shrink-0"
+                                    style={{ backgroundColor: color }}
+                                ></span>
+                                <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleVisibilityChange(index)}
+                                    className="form-checkbox h-3.5 w-3.5 text-primary rounded-sm border-gray-300 dark:border-gray-600 focus:ring-primary/50 focus:ring-offset-0 mr-1.5 flex-shrink-0"
+                                />
+                                <span className={`truncate group-hover:text-primary ${!isChecked ? 'line-through text-muted-foreground opacity-60' : 'text-foreground'}`} title={label}>
+                                    {label.length > 18 ? label.substring(0, 16) + '...' : label}
+                                </span>
+                            </label>
                         );
                     })}
                 </div>
+            </div>
+            <div style={{ flexGrow: 1, position: 'relative' }}> {/* Container cho biểu đồ để nó chiếm không gian còn lại */}
+                <Pie
+                    ref={chartRef}
+                    options={options}
+                    data={data}
+                />
             </div>
         </div>
     )
