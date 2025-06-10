@@ -39,12 +39,14 @@ import initializeAgentRoutes from './routes/agent.js'; // Agent v2 routes
 const app = express();
 
 // CORS middleware setup
-// Lấy danh sách origin từ biến môi trường hoặc sử dụng mặc định cho development
+// Lấy danh sách origin từ biến môi trường hoặc sử dụng mặc định
+const productionOriginsFromEnv = process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
+
 const allowedOrigins = process.env.NODE_ENV === 'development'
-    ? ['http://localhost:3000', 'http://localhost:4000']  // Đã bao gồm localhost:4000, kiểm tra lại logic
-    : process.env.CORS_ORIGIN ?
-        process.env.CORS_ORIGIN.split(',') :
-        ['http://localhost:3000', 'https://vanlang-budget-fe.vercel.app'];
+    ? ['http://localhost:3000', 'http://localhost:4000']
+    : productionOriginsFromEnv ?
+        productionOriginsFromEnv.split(',') : // Hỗ trợ nhiều origin nếu FRONTEND_URL/CORS_ORIGIN chứa dấu phẩy
+        ['https://vanlang-budget-fe.vercel.app']; // Mặc định nếu không có biến môi trường nào được đặt
 
 console.log('CORS Allowed Origins:', allowedOrigins);
 
