@@ -3,7 +3,7 @@ services:
     name: vanlang-budget-be
     env: node
     rootDirectory: vanlang-budget-BE
-    buildCommand: npm install
+    buildCommand: npm ci --verbose
     startCommand: npm start
     autoDeploy: true
     healthCheckPath: /health
