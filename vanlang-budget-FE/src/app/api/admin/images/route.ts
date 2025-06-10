@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
   try {
     // Thư mục gốc chứa hình ảnh
     const publicDir = join(process.cwd(), 'public');
-    
+
     // Các thư mục cần quét
     const directories = [
       join(publicDir, 'images'),
@@ -63,17 +63,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Sắp xếp hình ảnh theo thời gian tạo (mới nhất trước)
-    allImages.sort((a, b) => {
+    // Để sử dụng await trong hàm sort, chúng ta cần xử lý bất đồng bộ một cách cẩn thận
+    // Tạo một mảng các promise để lấy thông tin stat cho tất cả các ảnh
+    const statPromises = allImages.map(async (imagePath) => {
       try {
-        const statsA = stat(join(publicDir, a));
-        const statsB = stat(join(publicDir, b));
-        return statsB.mtime.getTime() - statsA.mtime.getTime();
+        const fullPath = join(publicDir, imagePath);
+        const stats = await stat(fullPath);
+        return { path: imagePath, mtime: stats.mtime.getTime() };
       } catch (error) {
-        return 0;
+        // Nếu không lấy được stat, coi như thời gian là 0 để đẩy xuống cuối
+        console.error(`Error stating file ${imagePath}:`, error);
+        return { path: imagePath, mtime: 0 };
       }
     });
 
-    return NextResponse.json(allImages);
+    // Chờ tất cả các promise hoàn thành
+    const imagesWithStats = await Promise.all(statPromises);
+
+    // Sắp xếp dựa trên mtime đã lấy được
+    imagesWithStats.sort((a, b) => b.mtime - a.mtime);
+
+    // Lấy lại danh sách đường dẫn đã sắp xếp
+    const sortedImages = imagesWithStats.map(item => item.path);
+
+    return NextResponse.json(sortedImages);
   } catch (error) {
     console.error('Lỗi khi lấy danh sách hình ảnh:', error);
     return NextResponse.json(
