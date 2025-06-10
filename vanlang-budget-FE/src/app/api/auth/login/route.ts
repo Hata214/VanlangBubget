@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json()
         const { email, password } = body
 
-        const data = await authService.login({ email, password })
+        const data = await authService.login(email, password)
 
         const response = NextResponse.json(
             { success: true, data },
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
         )
 
         // Set cookie
-        response.cookies.set('token', data.token, {
+        response.cookies.set('token', data.token.accessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
@@ -32,4 +32,4 @@ export async function POST(request: NextRequest) {
             { status: error.status || 500 }
         )
     }
-} 
+}
