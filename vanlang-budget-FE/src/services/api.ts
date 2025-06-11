@@ -6,10 +6,13 @@ export const TOKEN_COOKIE_NAME = 'token' // Thay đổi từ 'jwt' thành 'token
 export const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken'
 
 // Export API URL cho các services khác sử dụng
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+// Ưu tiên NEXT_PUBLIC_API_BASE_URL, sau đó là NEXT_PUBLIC_API_URL, cuối cùng là fallback cho local dev
+export const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 // Log thông tin API URL khi khởi tạo module
-console.log('API Service Initialized - URL:', API_URL);
+console.log('API Service Initialized - Using API_URL:', API_URL);
+console.log('NEXT_PUBLIC_API_BASE_URL (from env):', process.env.NEXT_PUBLIC_API_BASE_URL);
+console.log('NEXT_PUBLIC_API_URL (from env):', process.env.NEXT_PUBLIC_API_URL);
 console.log('Environment:', process.env.NODE_ENV || 'development');
 
 // Biến kiểm soát khởi động lại
@@ -38,7 +41,7 @@ export const formatTokenForHeader = (token: string): string => {
 
 // Instance axios có sẵn baseURL và withCredentials
 const instance = axios.create({
-    baseURL: API_URL,
+    baseURL: API_URL, // API_URL giờ đây sẽ ưu tiên NEXT_PUBLIC_API_BASE_URL
     timeout: 30000,
     headers: {
         'Content-Type': 'application/json',
