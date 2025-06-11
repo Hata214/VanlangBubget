@@ -2,13 +2,27 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import random
 from datetime import datetime
+import os # Quan trọng: import os để truy cập biến môi trường
 
 app = FastAPI()
 
-# Thêm CORS middleware để cho phép Next.js gọi API
+# Lấy FRONTEND_URL từ biến môi trường.
+frontend_url_env = os.getenv("FRONTEND_URL")
+
+# Mặc định cho local development nếu FRONTEND_URL không được set
+default_local_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
+allowed_origins = []
+if frontend_url_env:
+    allowed_origins.extend([origin.strip() for origin in frontend_url_env.split(',')])
+else:
+    allowed_origins.extend(default_local_origins)
+    print("Cảnh báo: Biến môi trường FRONTEND_URL không được đặt trong mock_api. Sử dụng origin mặc định cho local development.")
+
+# Thêm CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=allowed_origins, # Sử dụng danh sách đã xử lý
     allow_credentials=True,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
