@@ -1,4 +1,3 @@
-console.log('<<<< DEBUGGING APP.JS VERSION - CORS TEST - 2025-06-11 09:43 AM >>>>');
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -51,19 +50,16 @@ const allowedOrigins = process.env.NODE_ENV === 'development'
 
 console.log('CORS Allowed Origins on Startup (from env or default):', allowedOrigins); // Log khi khởi động
 
-const specificOriginForTest = 'https://vanlang-bubget-vanlang-budget-kg3i20asd-hata214s-projects.vercel.app';
-console.log(`[CORS HARDCODED TEST] Expecting origin: ${specificOriginForTest}`);
-
 // Cấu hình CORS
 const corsOptions = {
     origin: function (origin, callback) {
-        console.log(`[CORS HARDCODED TEST] Incoming request origin: ${origin}`);
-        if (origin === specificOriginForTest || !origin) { // Cho phép origin cụ thể hoặc nếu không có origin (VD: Postman)
-            console.log(`[CORS HARDCODED TEST] Allowing origin: ${origin}`);
+        // Cho phép các request không có origin (ví dụ: Postman, curl) hoặc nếu origin nằm trong danh sách allowedOrigins
+        if (!origin || allowedOrigins.includes(origin)) {
+            // console.log(`[CORS] Allowing origin: ${origin}`); // Có thể bật lại nếu cần debug chi tiết
             callback(null, true);
         } else {
-            console.log(`[CORS HARDCODED TEST] Denying origin: ${origin}. Expected: ${specificOriginForTest}`);
-            callback(new Error('Not allowed by CORS - Mismatch with hardcoded origin'));
+            console.error(`[CORS] Denying origin: ${origin}. Allowed origins: ${allowedOrigins.join(', ')}`);
+            callback(new Error('Not allowed by CORS'));
         }
     },
     credentials: true,
