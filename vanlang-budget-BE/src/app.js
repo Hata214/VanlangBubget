@@ -53,20 +53,25 @@ console.log('CORS Allowed Origins on Startup:', allowedOrigins); // Log khi kh�
 // Cấu hình CORS
 const corsOptions = {
     origin: function (origin, callback) {
-        // Cho phép tất cả origin trong môi trường development hoặc nếu không có origin (ví dụ: Postman)
-        if (process.env.NODE_ENV === 'development' || !origin) {
-            callback(null, true);
-            return;
-        }
+        // TẠM THỜI CHO PHÉP TẤT CẢ ORIGIN ĐỂ GỠ LỖI
+        console.log(`[DEBUG CORS] Request from origin: ${origin}. Allowing for debug purposes.`);
+        callback(null, true);
+        return;
 
-        // Kiểm tra origin có trong danh sách cho phép không
-        if (allowedOrigins.includes(origin)) { // Sử dụng .includes() cho mảng
-            callback(null, true);
-        } else {
-            // Log chi tiết hơn khi từ chối
-            console.log(`CORS: Origin '${origin}' IS NOT ALLOWED. Allowed origins list: [${allowedOrigins.join(' | ')}]`);
-            callback(new Error('Not allowed by CORS'));
-        }
+        // // Cho phép tất cả origin trong môi trường development hoặc nếu không có origin (ví dụ: Postman)
+        // if (process.env.NODE_ENV === 'development' || !origin) {
+        //     callback(null, true);
+        //     return;
+        // }
+
+        // // Kiểm tra origin có trong danh sách cho phép không
+        // if (allowedOrigins.includes(origin)) { // Sử dụng .includes() cho mảng
+        //     callback(null, true);
+        // } else {
+        //     // Log chi tiết hơn khi từ chối
+        //     console.log(`CORS: Origin '${origin}' IS NOT ALLOWED. Allowed origins list: [${allowedOrigins.join(' | ')}]`);
+        //     callback(new Error('Not allowed by CORS'));
+        // }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
