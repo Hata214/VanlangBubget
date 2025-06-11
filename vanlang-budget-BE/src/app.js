@@ -49,30 +49,22 @@ const allowedOrigins = process.env.NODE_ENV === 'development'
         productionOriginsFromEnv.split(',').map(origin => origin.trim()) : // Thêm .map(origin => origin.trim()) để loại bỏ khoảng trắng
         ['https://vanlang-budget-fe.vercel.app', 'https://vanlang-bubget-vanlang-budget-kg3i20asd-hata214s-projects.vercel.app']; // Mặc định nếu không có biến môi trường nào được đặt
 
-console.log('CORS Allowed Origins on Startup:', allowedOrigins); // Log khi khởi động
+console.log('CORS Allowed Origins on Startup (from env or default):', allowedOrigins); // Log khi khởi động
+
+const specificOriginForTest = 'https://vanlang-bubget-vanlang-budget-kg3i20asd-hata214s-projects.vercel.app';
+console.log(`[CORS HARDCODED TEST] Expecting origin: ${specificOriginForTest}`);
 
 // Cấu hình CORS
 const corsOptions = {
     origin: function (origin, callback) {
-        // TẠM THỜI CHO PHÉP TẤT CẢ ORIGIN ĐỂ GỠ LỖI
-        console.log(`[DEBUG CORS] Request from origin: ${origin}. Allowing for debug purposes.`);
-        callback(null, true);
-        return;
-
-        // // Cho phép tất cả origin trong môi trường development hoặc nếu không có origin (ví dụ: Postman)
-        // if (process.env.NODE_ENV === 'development' || !origin) {
-        //     callback(null, true);
-        //     return;
-        // }
-
-        // // Kiểm tra origin có trong danh sách cho phép không
-        // if (allowedOrigins.includes(origin)) { // Sử dụng .includes() cho mảng
-        //     callback(null, true);
-        // } else {
-        //     // Log chi tiết hơn khi từ chối
-        //     console.log(`CORS: Origin '${origin}' IS NOT ALLOWED. Allowed origins list: [${allowedOrigins.join(' | ')}]`);
-        //     callback(new Error('Not allowed by CORS'));
-        // }
+        console.log(`[CORS HARDCODED TEST] Incoming request origin: ${origin}`);
+        if (origin === specificOriginForTest || !origin) { // Cho phép origin cụ thể hoặc nếu không có origin (VD: Postman)
+            console.log(`[CORS HARDCODED TEST] Allowing origin: ${origin}`);
+            callback(null, true);
+        } else {
+            console.log(`[CORS HARDCODED TEST] Denying origin: ${origin}. Expected: ${specificOriginForTest}`);
+            callback(new Error('Not allowed by CORS - Mismatch with hardcoded origin'));
+        }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
