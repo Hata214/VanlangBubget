@@ -1,3 +1,4 @@
+console.log('<<<< DEBUGGING APP.JS VERSION - CORS TEST - 2025-06-11 09:43 AM >>>>');
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
