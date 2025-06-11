@@ -45,7 +45,7 @@ export const useFooterContent = () => {
                 console.log('🦶 Fetching footer content for locale:', locale);
 
                 // Sử dụng route chung thay vì route riêng để tránh vấn đề
-                const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/site-content/footer`;
+                const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/site-content/footer`;
                 console.log('📡 Footer API URL:', apiUrl);
 
                 const response = await fetch(apiUrl);
