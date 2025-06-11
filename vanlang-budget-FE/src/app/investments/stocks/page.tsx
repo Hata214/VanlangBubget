@@ -35,7 +35,9 @@ export default function StocksMarketPage() {
     const [mockHistoricalData, setMockHistoricalData] = useState<any[]>([]); // State for mock historical data
 
 
+    console.log('STOCK_API_URL CHECK - Value from Vercel env:', process.env.NEXT_PUBLIC_STOCK_API_URL);
     const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'http://localhost:8000';
+    console.log('STOCK_API_URL CHECK - API_BASE_URL being used:', API_BASE_URL);
 
     useEffect(() => {
         fetchAllStocks();

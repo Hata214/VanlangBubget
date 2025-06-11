@@ -15,28 +15,30 @@ export const getSocketIO = () => {
  * @param {Object} server - HTTP server instance
  */
 export const initializeSocket = (server) => {
+    // Lấy danh sách origin từ biến môi trường hoặc sử dụng mặc định
+    const productionOriginsFromEnv = process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
+    const defaultProductionOrigins = ['https://vanlang-budget-fe.vercel.app']; // Giữ lại một giá trị mặc định an toàn
+
+    const socketAllowedOrigins = process.env.NODE_ENV === 'development'
+        ? ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'] // Thêm 127.0.0.1 cho dev
+        : productionOriginsFromEnv
+            ? productionOriginsFromEnv.split(',').map(o => o.trim())
+            : defaultProductionOrigins;
+
+    logger.info('Socket.IO Allowed Origins on Startup:', socketAllowedOrigins);
+
     io = new Server(server, {
         cors: {
             origin: function (origin, callback) {
-                const allowedOrigins = [
-                    'http://localhost:3000',
-                    'http://localhost:3001',
-                    'https://vanlang-budget-fe.vercel.app'
-                ];
-
-                // Cho phép kết nối không có origin (ví dụ: từ mobile)
-                if (!origin) {
-                    logger.debug('Socket connection with no origin, allowing');
+                // Cho phép kết nối không có origin (ví dụ: từ mobile, Postman)
+                // Hoặc nếu origin nằm trong danh sách socketAllowedOrigins
+                if (!origin || socketAllowedOrigins.includes(origin)) {
+                    logger.debug(`Socket connection from origin ${origin} allowed.`);
                     return callback(null, true);
                 }
 
-                if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
-                    logger.debug(`Socket connection from origin ${origin} allowed`);
-                    return callback(null, true);
-                }
-
-                logger.error(`Socket connection from unauthorized origin: ${origin}`);
-                return callback(new Error('Không được phép bởi CORS'), false);
+                logger.error(`Socket connection from unauthorized origin: ${origin}. Allowed: ${socketAllowedOrigins.join(', ')}`);
+                return callback(new Error('Socket.IO: Not allowed by CORS'), false);
             },
             methods: ['GET', 'POST'],
             credentials: true,
@@ -233,4 +235,4 @@ export const checkPriceFluctuation = (io, prices) => {
     lastCryptoPrices = prices;
 };
 
-export { socketManager }; 
+export { socketManager };
