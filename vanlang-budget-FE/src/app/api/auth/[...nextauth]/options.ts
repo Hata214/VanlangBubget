@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
                     }
 
                     // Sử dụng URL API từ biến môi trường hoặc mặc định
-                    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+                    const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
                     // Gọi API đăng nhập
                     const response = await axios.post(`${API_URL}/api/auth/login`, {

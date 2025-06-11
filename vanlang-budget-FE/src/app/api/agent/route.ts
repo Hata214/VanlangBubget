@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 // Backend URL từ environment variables
-const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const BACKEND_API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export async function POST(request: Request) {
     console.log('--- FE API Route /api/agent HIT ---');
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         if (!backendResponse.ok) {
             const errorData = await backendResponse.json().catch(() => ({}));
             console.error('FE API Route: Backend error:', errorData);
-            
+
             return NextResponse.json({
                 success: false,
                 error: errorData.error || `Backend error: ${backendResponse.status}`

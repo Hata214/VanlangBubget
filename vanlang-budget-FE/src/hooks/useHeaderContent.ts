@@ -27,7 +27,7 @@ export const useHeaderContent = () => {
                 setLoading(true);
                 console.log('🔄 Fetching header content for locale:', locale);
 
-                const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/site-content/header`;
+                const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/site-content/header`;
                 console.log('📡 API URL:', apiUrl);
 
                 const response = await fetch(apiUrl);

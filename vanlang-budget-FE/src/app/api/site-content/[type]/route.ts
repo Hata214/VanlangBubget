@@ -3,6 +3,8 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/options';
 import { getTranslations } from 'next-intl/server';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
 /**
  * @route GET /api/site-content/[type]
  * @desc Lấy nội dung trang web theo loại
@@ -17,7 +19,7 @@ export async function GET(
         const language = request.nextUrl.searchParams.get('language') || 'vi';
 
         // Gọi API backend
-        const response = await fetch(`${process.env.BACKEND_URL}/api/site-content/${type}?language=${language}`, {
+        const response = await fetch(`${API_BASE}/api/site-content/${type}?language=${language}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -92,7 +94,7 @@ export async function PUT(
         });
 
         // Gọi API backend
-        const response = await fetch(`${process.env.BACKEND_URL}/api/site-content/${type}`, {
+        const response = await fetch(`${API_BASE}/api/site-content/${type}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
