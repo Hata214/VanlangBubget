@@ -1412,17 +1412,6 @@ function generateCapabilityResponse(language = 'vi') {
  */
 function generateFarewellResponse(language = 'vi') {
     if (language === 'vi') {
-        return `👋 **Cảm ơn bạn đã sử dụng VanLangBot!**\n\n✨ Hy vọng tôi đã giúp ích được cho việc quản lý tài chính của bạn.\n\n💡 **Nhớ rằng:**\n• Quản lý tài chính tốt là chìa khóa thành công\n• Hãy tiết kiệm và đầu tư thông minh\n• Tôi luôn sẵn sàng hỗ trợ bạn 24/7\n\n🚀 **Hẹn gặp lại bạn sớm!**\n\nChúc bạn có một ngày tuyệt vời! 🌟`;
-    } else {
-        return `👋 **Thank you for using VanLangBot!**\n\n✨ I hope I've been helpful with your financial management.\n\n💡 **Remember:**\n• Good financial management is the key to success\n• Save and invest wisely\n• I'm always here to help you 24/7\n\n🚀 **See you soon!**\n\nHave a wonderful day! 🌟`;
-    }
-}
-
-/**
- * Tạo response cho lời tạm biệt
- */
-function generateFarewellResponse(language = 'vi') {
-    if (language === 'vi') {
         return `👋 **Tạm biệt và cảm ơn bạn!**\n\n🤖 Rất vui được hỗ trợ bạn về tài chính hôm nay!\n\n💡 **Nhớ rằng:**\n• Quản lý tài chính là một hành trình dài hạn\n• Hãy theo dõi thu chi thường xuyên\n• Đầu tư và tiết kiệm một cách thông minh\n• Luôn có kế hoạch tài chính rõ ràng\n\n🚀 **Hẹn gặp lại bạn sớm!** Tôi luôn sẵn sàng hỗ trợ bạn 24/7.\n\nChúc bạn thành công trên con đường tài chính! 💰✨`;
     } else {
         return `👋 **Goodbye and thank you!**\n\n🤖 It was great helping you with your finances today!\n\n💡 **Remember:**\n• Financial management is a long-term journey\n• Track your income and expenses regularly\n• Invest and save wisely\n• Always have a clear financial plan\n\n🚀 **See you soon!** I'm always here to help you 24/7.\n\nWishing you success on your financial journey! 💰✨`;
