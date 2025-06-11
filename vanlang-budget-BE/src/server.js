@@ -7,6 +7,7 @@ import { initSocket } from './socket.js';
 // import { initCronJobs } from './cronjobs.js'; // Temporarily disabled
 import logger from './utils/logger.js';
 import { setupSwagger } from './swagger.js';
+import app from './app.js'; // IMPORT APP TỪ APP.JS
 
 // Import routes
 import authRoutes from './routes/authRoutes.js';
@@ -49,40 +50,10 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 const MONGO_URI = process.env.MONGODB_URI;
 
 // Khởi tạo Express app
-const app = express();
+// const app = express(); // ĐÃ XÓA - SẼ SỬ DỤNG APP IMPORT TỪ APP.JS
 
-// CORS configuration
-const corsOptions = {
-    origin: function (origin, callback) {
-        // Thêm tất cả origin có thể cần thiết
-        const allowedOrigins = [
-            'http://localhost:3000',  // NextJS dev
-            'http://localhost:2000',  // Alternate dev port
-            'http://localhost:4000',  // ExpressJS dev
-            'https://vanlang-budget-fe.vercel.app',  // Production FE
-            'https://vanlang-budget.vercel.app'  // Alternate production FE
-        ];
-
-        console.log('Request origin:', origin);
-
-        // Allow requests with no origin (like mobile apps, curl requests)
-        // Hoặc cho phép tất cả trong môi trường dev
-        if (!origin || allowedOrigins.indexOf(origin) !== -1 || NODE_ENV === 'development') {
-            callback(null, true);
-        } else {
-            console.log(`Origin ${origin} không được phép truy cập`);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'Cache-Control', 'Pragma', 'Expires', 'headers']
-};
-
-// Handle OPTIONS requests globally for preflight
-app.options('*', cors(corsOptions)); // Xử lý OPTIONS trước
-
-app.use(cors(corsOptions)); // Áp dụng CORS cho các request khác
+// Cấu hình CORS và các middleware cơ bản khác giờ đây sẽ được quản lý bởi app.js
+// Do đó, khối CORS configuration cục bộ dưới đây sẽ được xóa.
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
