@@ -1415,6 +1415,7 @@
         "featuredStocks": "Cổ phiếu nổi bật",
         "backToPortfolio": "Quay lại Danh mục đầu tư",
         "marketChart": "Biểu đồ thị trường",
-        "stockList": "Danh sách cổ phiếu"
+        "stockList": "Danh sách cổ phiếu",
+        "loadingStockList": "Đang tải danh sách cổ phiếu..."
     }
 }
