@@ -46,7 +46,7 @@ const allowedOrigins = process.env.NODE_ENV === 'development'
     ? ['http://localhost:3000', 'http://localhost:4000']
     : productionOriginsFromEnv ?
         productionOriginsFromEnv.split(',').map(origin => origin.trim()) : // Thêm .map(origin => origin.trim()) để loại bỏ khoảng trắng
-        ['https://vanlang-budget-fe.vercel.app']; // Mặc định nếu không có biến môi trường nào được đặt
+        ['https://vanlang-budget-fe.vercel.app', 'https://vanlang-bubget-vanlang-budget-kg3i20asd-hata214s-projects.vercel.app']; // Mặc định nếu không có biến môi trường nào được đặt
 
 console.log('CORS Allowed Origins on Startup:', allowedOrigins); // Log khi khởi động
 
