@@ -34,16 +34,24 @@ import { useSiteContent } from '@/components/SiteContentProvider'
 export default function HomePage() {
     const t = useTranslations()
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
-    const { content, isLoading } = useSiteContent()
+    const { content: siteProviderContent, isLoading, language } = useSiteContent()
 
-    console.log('[HOMEPAGE DEBUG] useSiteContent result:', { content, isLoading })
+    console.log('[HOMEPAGE DEBUG] useSiteContent result:', { siteProviderContent, isLoading, language })
 
-    // Lấy content cho homepage theo ngôn ngữ hiện tại
-    // Ưu tiên content từ database, fallback về translation files
-    const homepageData = content?.['homepage-vi'] || {}
-    const homepageContent = homepageData?.content || {}
-    console.log('[HOMEPAGE DEBUG] Homepage data:', homepageData)
-    console.log('[HOMEPAGE DEBUG] Homepage content:', homepageContent)
+    // Lấy content cho homepage theo ngôn ngữ hiện tại từ SiteContentProvider
+    const homepageServiceResponse = siteProviderContent?.['homepage']; // Lấy toàn bộ response cho 'homepage'
+    // homepageServiceResponse có thể là { status: '...', data: { content: { vi: ..., en: ... }, ... } }
+
+    let homepageContent: any = {}; // Khởi tạo rỗng, sử dụng any để đơn giản hóa việc truy cập nested
+    if (homepageServiceResponse && homepageServiceResponse.data && homepageServiceResponse.data.content) {
+        homepageContent = homepageServiceResponse.data.content[language] || {}; // Lấy nội dung cho ngôn ngữ hiện tại
+    } else if (homepageServiceResponse && homepageServiceResponse.content) {
+        // Fallback cho trường hợp content nằm trực tiếp trong homepageServiceResponse (cấu trúc cũ hơn có thể còn sót)
+        homepageContent = homepageServiceResponse.content[language] || {};
+    }
+
+    console.log('[HOMEPAGE DEBUG] Homepage service response:', homepageServiceResponse);
+    console.log(`[HOMEPAGE DEBUG] Homepage content for language '${language}':`, homepageContent);
 
     // Dynamic features từ database hoặc fallback
     const defaultFeatures = [
