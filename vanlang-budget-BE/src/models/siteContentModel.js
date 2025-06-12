@@ -19,35 +19,37 @@ const siteContentSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.Mixed,
             required: [true, 'Nội dung là bắt buộc'],
             validate: {
-                validator: function (content) {
-                    // Kiểm tra tối thiểu cho nội dung trang chủ
+                validator: function (contentValue) { // contentValue là object đa ngôn ngữ {vi: ..., en: ...}
                     if (this.type === 'homepage') {
-                        // Kiểm tra content phải là một object
-                        if (typeof content !== 'object' || content === null) {
-                            // console.log('Nội dung không phải là object'); // Removed for production
+                        if (typeof contentValue !== 'object' || contentValue === null) {
+                            return false;
+                        }
+                        // Xác định nội dung tham chiếu (ví dụ: tiếng Việt hoặc ngôn ngữ đầu tiên có dữ liệu)
+                        const refLang = contentValue.vi ? 'vi' : Object.keys(contentValue).find(lang => typeof contentValue[lang] === 'object' && contentValue[lang] !== null);
+                        const refContent = refLang ? contentValue[refLang] : null;
+
+                        if (!refContent || typeof refContent !== 'object') {
+                            // Không có ngôn ngữ tham chiếu hoặc nội dung tham chiếu không phải object
                             return false;
                         }
 
-                        // Kiểm tra tối thiểu phải có ít nhất một section
                         const validSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
                         const hasAtLeastOneSection = validSections.some(section => {
-                            return content[section] && typeof content[section] === 'object';
+                            return refContent[section] && typeof refContent[section] === 'object';
                         });
 
                         if (!hasAtLeastOneSection) {
-                            // console.log('Nội dung homepage phải có ít nhất một section hợp lệ'); // Removed for production
                             return false;
                         }
 
-                        // Lưu các section vào trường sections
-                        this.sections = Object.keys(content).filter(key =>
-                            validSections.includes(key) && content[key] && typeof content[key] === 'object'
+                        // Lưu các section vào trường sections dựa trên nội dung tham chiếu
+                        this.sections = Object.keys(refContent).filter(key =>
+                            validSections.includes(key) && refContent[key] && typeof refContent[key] === 'object'
                         );
                     }
-
                     return true;
                 },
-                message: 'Cấu trúc nội dung trang chủ không hợp lệ. Phải có ít nhất một section hợp lệ.'
+                message: 'Cấu trúc nội dung trang chủ không hợp lệ. Phải có ít nhất một section hợp lệ trong ngôn ngữ tham chiếu.'
             }
         },
         lastUpdatedBy: {
@@ -136,44 +138,18 @@ siteContentSchema.statics.updateFooterContent = async function (content, userId)
 /**
  * Phương thức tĩnh để lấy nội dung trang chủ
  */
-siteContentSchema.statics.getHomepageContent = async function (language = 'vi') {
+siteContentSchema.statics.getHomepageContent = async function () {
     try {
-        console.log(`[DEBUG] getHomepageContent called with language: ${language}`);
-        const homepageContent = await this.findOne({ type: 'homepage' });
-        console.log(`[DEBUG] Found homepage content:`, homepageContent ? 'YES' : 'NO');
-
-        if (!homepageContent) {
-            console.log(`[DEBUG] No homepage content found in database`);
+        const homepageDoc = await this.findOne({ type: 'homepage' });
+        if (!homepageDoc) {
             return null;
         }
-
-        console.log(`[DEBUG] Homepage content structure:`, {
-            id: homepageContent._id,
-            type: homepageContent.type,
-            version: homepageContent.version,
-            status: homepageContent.status,
-            hasContent: !!homepageContent.content,
-            contentKeys: homepageContent.content ? Object.keys(homepageContent.content) : []
-        });
-
-        // Xử lý nội dung theo ngôn ngữ nếu được hỗ trợ
-        if (language && language !== 'vi' && homepageContent.content[language]) {
-            console.log(`[DEBUG] Returning content for language: ${language}`);
-            return homepageContent.content[language];
-        }
-
-        // Trả về cả thông tin meta (version, updatedAt, v.v.) kèm theo nội dung
-        const result = {
-            content: homepageContent.content,
-            version: homepageContent.version,
-            updatedAt: homepageContent.updatedAt,
-            updatedBy: homepageContent.lastUpdatedBy,
-            status: homepageContent.status,
-            sections: homepageContent.sections
-        };
-        return result;
+        // Trả về toàn bộ document. Frontend sẽ chịu trách nhiệm hiển thị ngôn ngữ phù hợp.
+        // Sử dụng toObject() để đảm bảo virtuals (nếu có) được bao gồm và là plain JS object.
+        return homepageDoc.toObject({ virtuals: true });
     } catch (error) {
-        // console.error('Lỗi khi lấy nội dung trang chủ:', error); // Có thể bật lại nếu cần debug
+        // Thay thế bằng logger phù hợp cho production
+        console.error('Lỗi trong SiteContent.getHomepageContent:', error);
         return null;
     }
 };
@@ -204,10 +180,10 @@ siteContentSchema.statics.updateHomepageContent = async function (content, userI
         updateData.version = 1;
     }
 
-    // Cập nhật sections
-    if (content && typeof content === 'object') {
-        updateData.sections = Object.keys(content);
-    }
+    // Cập nhật sections - Sẽ được xử lý bởi validator, không cần gán ở đây nữa
+    // if (content && typeof content === 'object' && existingContent?.type === 'homepage') {
+    //     // Logic xác định sections từ content đa ngôn ngữ đã được chuyển vào validator
+    // }
 
     // Cập nhật trạng thái
     if (options.status) {
@@ -215,8 +191,14 @@ siteContentSchema.statics.updateHomepageContent = async function (content, userI
     }
 
     // Cập nhật ngôn ngữ được hỗ trợ
-    if (options.language && !existingContent?.languages?.includes(options.language)) {
-        updateData.$addToSet = { languages: options.language };
+    // options.language được dùng bởi updateSiteContentByType khi cập nhật toàn bộ content cho một ngôn ngữ
+    // options.addNewLanguage được dùng bởi updateHomepageSection khi một section của ngôn ngữ mới được thêm vào
+    const languageToAdd = options.addNewLanguage || options.language;
+    if (languageToAdd && (!existingContent || !existingContent.languages.includes(languageToAdd))) {
+        if (!updateData.$addToSet) {
+            updateData.$addToSet = {};
+        }
+        updateData.$addToSet.languages = languageToAdd;
     }
 
     return this.findOneAndUpdate(
@@ -233,22 +215,34 @@ siteContentSchema.statics.updateHomepageContent = async function (content, userI
 /**
  * Phương thức tĩnh để cập nhật một section cụ thể của trang chủ
  */
-siteContentSchema.statics.updateHomepageSection = async function (sectionName, sectionContent, userId, options = {}) {
-    const existingContent = await this.findOne({ type: 'homepage' });
-    if (!existingContent) {
-        // Nếu chưa có nội dung trang chủ, tạo mới với section này
-        const newContent = { [sectionName]: sectionContent };
-        return this.updateHomepageContent(newContent, userId, options);
+siteContentSchema.statics.updateHomepageSection = async function (sectionName, sectionData, userId, options = {}) {
+    const { language = 'vi' } = options; // Mặc định là 'vi' nếu không có ngôn ngữ nào được cung cấp
+
+    const homepageDoc = await this.findOne({ type: 'homepage' });
+
+    let currentFullContent = homepageDoc && homepageDoc.content ? { ...homepageDoc.content } : {};
+
+    // Đảm bảo cấu trúc ngôn ngữ tồn tại trong currentFullContent
+    if (!currentFullContent[language] || typeof currentFullContent[language] !== 'object') {
+        currentFullContent[language] = {};
     }
 
-    // Tạo bản sao nội dung hiện tại
-    const updatedContent = { ...existingContent.content };
+    // Cập nhật section cho ngôn ngữ cụ thể
+    currentFullContent[language][sectionName] = sectionData;
 
-    // Cập nhật section được chỉ định
-    updatedContent[sectionName] = sectionContent;
+    // Chuẩn bị options cho updateHomepageContent
+    const updateOptions = { ...options };
+    // Nếu ngôn ngữ này chưa có trong danh sách languages của document, đánh dấu để thêm mới
+    if (homepageDoc && !homepageDoc.languages.includes(language)) {
+        updateOptions.addNewLanguage = language;
+    }
+    // Xóa language khỏi options vì updateHomepageContent sẽ nhận toàn bộ currentFullContent
+    // và options.language trong updateHomepageContent dùng để thêm ngôn ngữ mới vào mảng languages
+    delete updateOptions.language;
 
-    // Gọi phương thức cập nhật đầy đủ
-    return this.updateHomepageContent(updatedContent, userId, options);
+
+    // Gọi phương thức cập nhật đầy đủ với toàn bộ object content đã được sửa đổi
+    return this.updateHomepageContent(currentFullContent, userId, updateOptions);
 };
 
 /**

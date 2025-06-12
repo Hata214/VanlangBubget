@@ -72,7 +72,9 @@ export const getSiteContentByType = async (req, res, next) => {
 
         // Xử lý đặc biệt cho homepage
         if (type === 'homepage') {
-            const homepageContent = await SiteContent.getHomepageContent(language);
+            // Model getHomepageContent() giờ sẽ trả về toàn bộ document
+            // Frontend sẽ chịu trách nhiệm chọn ngôn ngữ để hiển thị từ object content
+            const homepageContent = await SiteContent.getHomepageContent();
 
             // Nếu không có dữ liệu, trả về dữ liệu mặc định
             if (!homepageContent) {
@@ -103,22 +105,17 @@ export const getSiteContentByType = async (req, res, next) => {
             });
         }
 
-        let responseData = siteContent.content;
-
-        // Xử lý đặc biệt cho features, roadmap, pricing, contact, header, footer - extract language content
-        if (['features', 'roadmap', 'pricing', 'contact', 'header', 'footer'].includes(type) && language) {
-            // console.log(`🔍 Extracting ${language} content for ${type}`);
-            if (responseData && responseData[language]) {
-                responseData = responseData[language];
-                // console.log(`✅ Found ${language} content for ${type}:`, responseData);
-            } else {
-                // console.log(`⚠️ No ${language} content found for ${type}, returning full content`);
-            }
-        }
+        // Luôn trả về toàn bộ document SiteContent.
+        // Frontend admin sẽ chịu trách nhiệm lấy siteContent.content[selectedLanguage].
+        // Tham số 'language' trong query có thể vẫn hữu ích cho các client public muốn lấy nội dung đã được lọc sẵn.
+        // Tuy nhiên, để admin chỉnh sửa, việc có toàn bộ object content là cần thiết.
+        // Nếu client là admin panel, nó nên bỏ qua việc lọc theo 'language' ở đây và tự xử lý.
+        // Hoặc, chúng ta có thể quyết định rằng endpoint này cho admin luôn trả về toàn bộ.
+        // Hiện tại, để đơn giản, chúng ta sẽ trả về toàn bộ document.
 
         res.status(200).json({
             status: 'success',
-            data: responseData
+            data: siteContent.toObject({ virtuals: true }) // Trả về toàn bộ document
         });
     } catch (error) {
         logger.error(`Lỗi khi lấy nội dung loại ${req.params.type}:`, error);
@@ -156,12 +153,16 @@ export const updateSiteContentByType = async (req, res, next) => {
 
         // Xử lý đặc biệt cho homepage
         if (type === 'homepage') {
-            // Kiểm tra nếu Admin thông thường thì đặt trạng thái pending_review
+            // req.body.content bây giờ nên là một object chứa toàn bộ dữ liệu đa ngôn ngữ, ví dụ: { vi: {...}, en: {...} }
+            // Model updateHomepageContent sẽ xử lý việc lưu trữ cấu trúc này.
             const userRole = req.user.role;
             const contentStatus = userRole === 'superadmin' ? (status || 'published') : 'pending_review';
 
+            // Không cần truyền options.language ở đây nữa vì content đã bao gồm tất cả ngôn ngữ
+            // Model sẽ tự động cập nhật mảng languages nếu có ngôn ngữ mới trong content.
             updatedContent = await SiteContent.updateHomepageContent(content, req.user._id, {
-                status: contentStatus
+                status: contentStatus,
+                // language: req.body.language // Loại bỏ, vì content đã là object đa ngôn ngữ
             });
 
             // Ghi log cần superadmin phê duyệt nếu là admin thông thường
@@ -169,13 +170,25 @@ export const updateSiteContentByType = async (req, res, next) => {
                 logger.info(`Nội dung trang chủ cần được SuperAdmin phê duyệt, cập nhật bởi: ${req.user.email}`);
             }
         } else {
+            // Đối với các type khác (about, features, header, footer, etc.)
+            // req.body.content nên là object đa ngôn ngữ hoàn chỉnh { vi: ..., en: ... }
+            // req.body.language có thể được gửi để chỉ định ngôn ngữ chính đang được sửa,
+            // giúp backend biết để thêm vào mảng 'languages' nếu là ngôn ngữ mới.
+            const { language } = req.body;
+            const updateQuery = {
+                content,
+                lastUpdatedBy: req.user._id
+            };
+
+            const existingDoc = await SiteContent.findOne({ type });
+            if (language && (!existingDoc || !existingDoc.languages.includes(language))) {
+                updateQuery.$addToSet = { languages: language };
+            }
+
             updatedContent = await SiteContent.findOneAndUpdate(
                 { type },
-                {
-                    content,
-                    lastUpdatedBy: req.user._id
-                },
-                { new: true, upsert: true }
+                updateQuery,
+                { new: true, upsert: true, runValidators: true } // Thêm runValidators
             );
         }
 
@@ -335,11 +348,12 @@ export const updateHomepageSection = async (req, res, next) => {
 
         res.status(200).json({
             status: 'success',
-            data: content,
+            data: content, // Trả về nội dung của section vừa được cập nhật
             meta: {
-                version: updatedContent.version,
-                status: updatedContent.status,
-                updatedAt: updatedContent.updatedAt
+                version: updatedContentDoc.version,
+                status: updatedContentDoc.status,
+                updatedAt: updatedContentDoc.updatedAt,
+                // sections: updatedContentDoc.sections // Cân nhắc trả về sections nếu cần
             }
         });
     } catch (error) {

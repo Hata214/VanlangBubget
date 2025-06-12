@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import siteContentService from '@/services/siteContentService';
-import { NextIntlClientProvider } from 'next-intl'; // Thêm import
-import messagesEn from '@/messages/en.json';      // Thêm import
-import messagesVi from '@/messages/vi.json';      // Thêm import
+import { NextIntlClientProvider } from 'next-intl';
+import messagesEn from '@/messages/en.json';
+import messagesVi from '@/messages/vi.json';
 import ContentSidebar from './ContentSidebar';
 import PagePreview from './PagePreview';
 import InlineEditor from './InlineEditor';
@@ -39,14 +39,13 @@ interface ContentData {
     [key: string]: any;
 }
 
-// Các sections thuộc homepage
-const HOMEPAGE_SECTIONS = ['homepage', 'testimonials'];
+const HOMEPAGE_SECTIONS = ['homepage', 'testimonials']; // 'testimonials' là ví dụ, cần xem lại các section thực tế của homepage
 
 export default function FullPageContentManager({ user }: FullPageContentManagerProps) {
-    // State management
     const [selectedPage, setSelectedPage] = useState<string>('homepage');
     const [currentLanguage, setCurrentLanguage] = useState<'vi' | 'en'>('vi');
-    const [content, setContent] = useState<ContentData>({});
+    const [fullContent, setFullContent] = useState<ContentData | null>(null); // Stores the entire multi-language content object e.g., { vi: {...}, en: {...} }
+    const [currentLangContent, setCurrentLangContent] = useState<ContentData>({}); // Stores content for the currently selected language
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
@@ -59,149 +58,61 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     const previewAreaRef = useRef<HTMLDivElement>(null);
     const isSuperAdmin = user?.role === 'superadmin';
 
-    // Load content when page or language changes
     useEffect(() => {
         loadContent();
-    }, [selectedPage, currentLanguage]);
+    }, [selectedPage]); // Reload content when selectedPage changes
 
-    // Handle scroll to show/hide scroll to top button
+    useEffect(() => {
+        if (fullContent) {
+            setCurrentLangContent(fullContent[currentLanguage] || {});
+            setPreviewKey(prev => prev + 1); // Force preview update when language or full content changes
+        }
+    }, [currentLanguage, fullContent]);
+
     useEffect(() => {
         const previewArea = previewAreaRef.current;
         if (!previewArea) return;
-
-        const handleScroll = () => {
-            setShowScrollTop(previewArea.scrollTop > 300);
-        };
-
+        const handleScroll = () => setShowScrollTop(previewArea.scrollTop > 300);
         previewArea.addEventListener('scroll', handleScroll);
         return () => previewArea.removeEventListener('scroll', handleScroll);
     }, []);
 
     const loadContent = async () => {
         setIsLoading(true);
+        setFullContent(null);
+        setCurrentLangContent({});
         try {
-            // Ensure we only use valid page types for API calls
             const validPages = ['homepage', 'about', 'features', 'roadmap', 'pricing', 'contact', 'header', 'footer'];
-            const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
+            const basePage = selectedPage.split('-')[0];
 
             if (!validPages.includes(basePage)) {
                 console.warn(`Invalid page type: ${selectedPage}, defaulting to homepage`);
                 setSelectedPage('homepage');
+                setIsLoading(false);
                 return;
             }
 
-            // Đối với homepage và các sections của nó, luôn sử dụng 'homepage' làm contentKey
-            // Đối với các trang khác, chỉ sử dụng basePage (backend xử lý language qua query param)
-            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
-            console.log('🔍 DEBUG - basePage:', basePage);
-            console.log('🔍 DEBUG - HOMEPAGE_SECTIONS:', HOMEPAGE_SECTIONS);
-            console.log('🔍 DEBUG - HOMEPAGE_SECTIONS.includes(basePage):', HOMEPAGE_SECTIONS.includes(basePage));
-            console.log('🔍 DEBUG - contentKey:', contentKey);
-            console.log('🔄 Loading content for:', contentKey, 'language:', currentLanguage);
+            const contentKeyForApi = basePage; // Use basePage (e.g., 'homepage', 'about') for API call
+            console.log('🔄 Loading content for type:', contentKeyForApi);
 
-            let response;
-            if (basePage === 'features') {
-                // Features cần xử lý đặc biệt
-                response = await siteContentService.getContentByType('features', currentLanguage);
-                console.log('🔍 Features response:', response);
+            const response = await siteContentService.getContentByType(contentKeyForApi);
+            console.log('✅ Loaded full SiteContent document:', response);
 
-                // Extract language specific content
-                if (response && response.data && response.data[currentLanguage]) {
-                    response.data = response.data[currentLanguage];
-                    console.log('🔍 Extracted features content for', currentLanguage, ':', response.data);
-                }
-            } else if (basePage === 'roadmap') {
-                // Roadmap cần xử lý đặc biệt
-                response = await siteContentService.getContentByType('roadmap', currentLanguage);
-                console.log('🗺️ Roadmap response:', response);
-                console.log('🗺️ Roadmap response data:', response?.data);
-                console.log('🗺️ Roadmap response data type:', typeof response?.data);
-                console.log('🗺️ Roadmap response data structure:', JSON.stringify(response?.data, null, 2));
-
-                // Extract language specific content for roadmap
-                if (response && response.data && response.data[currentLanguage]) {
-                    response.data = response.data[currentLanguage];
-                    console.log('🗺️ Extracted roadmap content for', currentLanguage, ':', response.data);
-                }
-            } else if (basePage === 'contact') {
-                // Contact cần xử lý đặc biệt
-                response = await siteContentService.getContentByType('contact', currentLanguage);
-                console.log('📞 Contact response:', response);
-                console.log('📞 Contact response data:', response?.data);
-                console.log('📞 Contact response data type:', typeof response?.data);
-                console.log('📞 Contact response data structure:', JSON.stringify(response?.data, null, 2));
-
-                // Extract language specific content for contact
-                if (response && response.data && response.data[currentLanguage]) {
-                    response.data = response.data[currentLanguage];
-                    console.log('📞 Extracted contact content for', currentLanguage, ':', response.data);
-                }
-            } else if (basePage === 'header') {
-                // Header cần xử lý đặc biệt
-                response = await siteContentService.getContentByType('header', currentLanguage);
-                console.log('🔝 Header response:', response);
-                console.log('🔝 Header response data:', response?.data);
-                console.log('🔝 Header response data type:', typeof response?.data);
-                console.log('🔝 Header response data structure:', JSON.stringify(response?.data, null, 2));
-
-                // Extract language specific content for header
-                if (response && response.data && response.data[currentLanguage]) {
-                    response.data = response.data[currentLanguage];
-                    console.log('🔝 Extracted header content for', currentLanguage, ':', response.data);
-                }
-            } else if (basePage === 'footer') {
-                // Footer cần xử lý đặc biệt
-                response = await siteContentService.getContentByType('footer', currentLanguage);
-                console.log('🔻 Footer response:', response);
-                console.log('🔻 Footer response data:', response?.data);
-                console.log('🔻 Footer response data type:', typeof response?.data);
-                console.log('🔻 Footer response data structure:', JSON.stringify(response?.data, null, 2));
-
-                // Extract language specific content for footer
-                if (response && response.data && response.data[currentLanguage]) {
-                    response.data = response.data[currentLanguage];
-                    console.log('🔻 Extracted footer content for', currentLanguage, ':', response.data);
-                }
-            } else {
-                response = await siteContentService.getContentByType(contentKey, currentLanguage);
+            if (response && response.data && response.data.content) {
+                setFullContent(response.data.content); // response.data.content is the multi-lang object {vi: ..., en: ...}
+            } else if (response && response.data && Object.keys(response.data).length > 0 && !response.data.content && (basePage === 'header' || basePage === 'footer')) {
+                // Fallback for header/footer if content is directly in response.data (older structure)
+                setFullContent(response.data);
+                console.warn(`Content for ${basePage} might be in an older format. Using response.data directly.`);
             }
-            console.log('✅ Loaded content response:', response);
-            console.log('📝 Response data:', response?.data);
-            console.log('📝 Response data type:', typeof response?.data);
-
-            // Extract content from response structure
-            // For roadmap, features, pricing, contact, header, and footer, after language extraction, data is already the content
-            let contentData;
-            if (basePage === 'roadmap' || basePage === 'features' || basePage === 'pricing' || basePage === 'contact' || basePage === 'header' || basePage === 'footer') {
-                contentData = response.data || {};
-            } else {
-                contentData = response.data?.content || response.data || {};
+            else {
+                setFullContent({});
+                toast.error('Không có dữ liệu nội dung hoặc định dạng không đúng.');
             }
-
-            // Nếu đang load một section cụ thể của homepage, extract section đó
-            if (HOMEPAGE_SECTIONS.includes(basePage) && basePage !== 'homepage') {
-                contentData = contentData[basePage] || contentData;
-            }
-
-            // Clean up any flat field duplicates (e.g., remove "hero.title" if hero.title exists)
-            const cleanedContent = { ...contentData };
-            Object.keys(cleanedContent).forEach(key => {
-                if (key.includes('.')) {
-                    const [section, field] = key.split('.');
-                    if (cleanedContent[section] && cleanedContent[section][field]) {
-                        delete cleanedContent[key]; // Remove duplicate flat field
-                    }
-                }
-            });
-
-            setContent(cleanedContent);
-            console.log('Content set to state:', cleanedContent);
-
-            // Force re-render of preview
-            setPreviewKey(prev => prev + 1);
         } catch (error) {
             console.error('Lỗi khi tải nội dung:', error);
             toast.error('Không thể tải nội dung. Vui lòng thử lại sau.');
+            setFullContent({});
         } finally {
             setIsLoading(false);
         }
@@ -234,135 +145,58 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     };
 
     const handleContentChange = (field: string, value: any) => {
-        console.log('Content change:', field, value);
-        setContent(prev => {
-            const newContent = { ...prev };
-
-            // Handle nested field updates (e.g., "hero.title" -> hero: { title: value })
-            if (field.includes('.')) {
-                const fieldParts = field.split('.');
-                let current = newContent;
-
-                // Navigate to the parent object
-                for (let i = 0; i < fieldParts.length - 1; i++) {
-                    if (!current[fieldParts[i]]) {
-                        current[fieldParts[i]] = {};
-                    }
-                    current = current[fieldParts[i]];
-                }
-
-                // Set the final value
-                current[fieldParts[fieldParts.length - 1]] = value;
-            } else {
-                // Handle direct field updates
-                newContent[field] = value;
+        // Update currentLangContent for immediate UI reflection
+        const newCurrentLangContent = { ...currentLangContent };
+        // Logic for nested updates
+        let targetInCurrent = newCurrentLangContent;
+        if (field.includes('.')) {
+            const fieldParts = field.split('.');
+            for (let i = 0; i < fieldParts.length - 1; i++) {
+                targetInCurrent[fieldParts[i]] = { ...targetInCurrent[fieldParts[i]] } as ContentData;
+                targetInCurrent = targetInCurrent[fieldParts[i]] as ContentData;
             }
+            targetInCurrent[fieldParts[fieldParts.length - 1]] = value;
+        } else {
+            newCurrentLangContent[field] = value;
+        }
+        setCurrentLangContent(newCurrentLangContent);
 
-            console.log('New content state:', newContent);
-            return newContent;
+        // Update fullContent (the master multi-language object)
+        setFullContent(prevFullContent => {
+            const newFullContent = { ...prevFullContent };
+            newFullContent[currentLanguage] = newCurrentLangContent; // Assign the updated current language content
+            console.log('📚 Updated fullContent state:', newFullContent);
+            return newFullContent;
         });
         setHasChanges(true);
     };
 
     const handleSaveContent = async () => {
+        if (!fullContent) {
+            toast.error('Không có nội dung để lưu.');
+            return;
+        }
         setIsSaving(true);
         try {
-            const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
+            const basePage = selectedPage.split('-')[0];
+            // For API, always use the base page type (e.g., 'homepage', 'about')
+            const contentKeyForApi = basePage;
 
-            // Đối với homepage và các sections của nó, luôn sử dụng 'homepage' làm contentKey
-            // Đối với các trang khác, chỉ sử dụng basePage (backend xử lý language qua query param)
-            const contentKey = HOMEPAGE_SECTIONS.includes(basePage) ? 'homepage' : basePage;
-            console.log('🔍 SAVE DEBUG - basePage:', basePage);
-            console.log('🔍 SAVE DEBUG - HOMEPAGE_SECTIONS:', HOMEPAGE_SECTIONS);
-            console.log('🔍 SAVE DEBUG - HOMEPAGE_SECTIONS.includes(basePage):', HOMEPAGE_SECTIONS.includes(basePage));
-            console.log('🔍 SAVE DEBUG - contentKey:', contentKey);
+            console.log('💾 Saving content for type:', contentKeyForApi, 'Language being edited:', currentLanguage);
+            console.log('💾 Full multi-language content to save:', JSON.stringify(fullContent, null, 2));
 
-            let contentToSave = content;
+            // Backend's updateContentByType expects the full multi-language content object
+            // and the language that was primarily edited.
+            await siteContentService.updateContentByType(
+                contentKeyForApi,
+                fullContent, // Send the entire { vi: {...}, en: {...} } object
+                currentLanguage // Language primarily being edited
+            );
 
-            // Nếu đang save một section cụ thể của homepage, cần merge vào toàn bộ homepage content
-            if (HOMEPAGE_SECTIONS.includes(basePage) && basePage !== 'homepage') {
-                // Load toàn bộ homepage content hiện tại
-                const currentHomepage = await siteContentService.getContentByType('homepage');
-                const fullHomepageContent = currentHomepage.data?.content || {};
-
-                // Merge section content vào homepage content
-                contentToSave = {
-                    ...fullHomepageContent,
-                    [basePage]: content
-                };
-            }
-
-            console.log('💾 Saving content with key:', contentKey);
-            console.log('💾 Content to save:', JSON.stringify(contentToSave, null, 2));
-
-            let saveResponse;
-            if (basePage === 'features') {
-                // Features cần wrap trong language object
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                saveResponse = await siteContentService.updateContentByType('features', dataToSave);
-            } else if (basePage === 'roadmap') {
-                // Roadmap cần wrap trong language object giống features
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                console.log('🗺️ Saving roadmap content:', JSON.stringify(dataToSave, null, 2));
-                saveResponse = await siteContentService.updateContentByType('roadmap', dataToSave);
-                console.log('🗺️ Roadmap save response:', saveResponse);
-            } else if (basePage === 'pricing') {
-                // Pricing cần wrap trong language object giống features và roadmap
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                console.log('💰 Saving pricing content:', JSON.stringify(dataToSave, null, 2));
-                saveResponse = await siteContentService.updateContentByType('pricing', dataToSave);
-                console.log('💰 Pricing save response:', saveResponse);
-            } else if (basePage === 'contact') {
-                // Contact cần wrap trong language object giống features, roadmap và pricing
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                console.log('📞 Saving contact content:', JSON.stringify(dataToSave, null, 2));
-                saveResponse = await siteContentService.updateContentByType('contact', dataToSave);
-                console.log('📞 Contact save response:', saveResponse);
-            } else if (basePage === 'header') {
-                // Header cần wrap trong language object
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                console.log('🔝 Saving header content:', JSON.stringify(dataToSave, null, 2));
-                saveResponse = await siteContentService.updateContentByType('header', dataToSave);
-                console.log('🔝 Header save response:', saveResponse);
-            } else if (basePage === 'footer') {
-                // Footer cần wrap trong language object
-                const dataToSave = {
-                    [currentLanguage]: contentToSave
-                };
-                console.log('🔻 Saving footer content:', JSON.stringify(dataToSave, null, 2));
-                saveResponse = await siteContentService.updateContentByType('footer', dataToSave);
-                console.log('🔻 Footer save response:', saveResponse);
-            } else {
-                saveResponse = await siteContentService.updateContentByType(contentKey, contentToSave);
-            }
-            console.log('✅ Save response:', saveResponse);
-
-            toast.success(isSuperAdmin
-                ? 'Đã lưu thành công!'
-                : 'Đã gửi nội dung để SuperAdmin phê duyệt!');
+            toast.success(isSuperAdmin ? 'Đã lưu thành công!' : 'Đã gửi nội dung để SuperAdmin phê duyệt!');
             setHasChanges(false);
             setEditingField(null);
-
-            // Force reload content with cache busting to ensure fresh data
-            console.log('🔄 Content saved successfully, reloading with cache busting...');
-
-            // Immediately reload content to refresh preview
-            await loadContent();
-            console.log('🔄 Content reloaded after save');
-
-            // Force re-render of PagePreview component
-            setPreviewKey(prev => prev + 1);
-            console.log('🔄 Preview key updated to force re-render');
+            await loadContent(); // Reload to get fresh data and version numbers
         } catch (error) {
             console.error('Lỗi khi lưu nội dung:', error);
             toast.error('Không thể lưu nội dung. Vui lòng thử lại sau.');
@@ -375,34 +209,23 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
         if (window.confirm('Bạn có chắc chắn muốn khôi phục nội dung mặc định? Điều này sẽ xóa tất cả các thay đổi tùy chỉnh.')) {
             setIsLoading(true);
             try {
-                const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
-
-                if (HOMEPAGE_SECTIONS.includes(basePage)) {
-                    await siteContentService.initializeHomepageContent(currentLanguage);
+                const basePage = selectedPage.split('-')[0];
+                // Assuming initializeContentByType and initializeHomepageContent now handle multi-language reset correctly if needed,
+                // or reset for the specified language. For simplicity, we might reset all languages to default.
+                // The service call might need adjustment if it's language-specific for reset.
+                // For now, let's assume it resets the current language or all if not specified.
+                if (basePage === 'homepage') {
+                    await siteContentService.initializeHomepageContent(); // Consider if this should be language specific
                 } else {
-                    // Xử lý đặc biệt cho pricing, features, roadmap, contact, header, footer
-                    if (['pricing', 'features', 'roadmap', 'contact', 'header', 'footer'].includes(basePage)) {
-                        console.log(`🔄 Initializing ${basePage} content...`);
-                        await siteContentService.initializeContentByType(basePage, currentLanguage);
-                    } else {
-                        await siteContentService.initializeContentByType(basePage, currentLanguage);
-                    }
+                    await siteContentService.initializeContentByType(basePage); // Same consideration
                 }
-
                 toast.success(`Đã khôi phục nội dung mặc định cho trang ${getPageTitle(basePage)}`);
-
-                // Reset states để tránh interface bị reset
                 setHasChanges(false);
                 setEditingField(null);
-
-                // Reload content và force re-render
                 await loadContent();
-                setPreviewKey(prev => prev + 1);
-
-                console.log('🔄 Reset to default completed successfully');
             } catch (error) {
                 console.error('Lỗi khi khôi phục nội dung mặc định:', error);
-                toast.error('Không thể khôi phục nội dung mặc định. Vui lòng thử lại sau.');
+                toast.error('Không thể khôi phục nội dung mặc định.');
             } finally {
                 setIsLoading(false);
             }
@@ -413,18 +236,13 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
         if (window.confirm('Bạn có chắc chắn muốn phê duyệt nội dung này?')) {
             setIsLoading(true);
             try {
-                const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
-
-                if (HOMEPAGE_SECTIONS.includes(basePage)) {
-                    await siteContentService.approveHomepageContent();
-                } else {
-                    await siteContentService.approveContentByType(basePage);
-                }
+                const basePage = selectedPage.split('-')[0];
+                await siteContentService.approveContentByType(basePage); // approveContentByType handles homepage internally
                 toast.success(`Đã phê duyệt nội dung cho trang ${getPageTitle(basePage)}`);
                 await loadContent();
             } catch (error) {
                 console.error('Lỗi khi phê duyệt nội dung:', error);
-                toast.error('Không thể phê duyệt nội dung. Vui lòng thử lại sau.');
+                toast.error('Không thể phê duyệt nội dung.');
             } finally {
                 setIsLoading(false);
             }
@@ -436,18 +254,13 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
         if (reason !== null) {
             setIsLoading(true);
             try {
-                const basePage = selectedPage.split('-')[0]; // Remove any sub-section suffixes
-
-                if (HOMEPAGE_SECTIONS.includes(basePage)) {
-                    await siteContentService.rejectHomepageContent(reason);
-                } else {
-                    await siteContentService.rejectContentByType(basePage, reason);
-                }
+                const basePage = selectedPage.split('-')[0];
+                await siteContentService.rejectContentByType(basePage, reason); // rejectContentByType handles homepage internally
                 toast.success(`Đã từ chối nội dung cho trang ${getPageTitle(basePage)}`);
                 await loadContent();
             } catch (error) {
                 console.error('Lỗi khi từ chối nội dung:', error);
-                toast.error('Không thể từ chối nội dung. Vui lòng thử lại sau.');
+                toast.error('Không thể từ chối nội dung.');
             } finally {
                 setIsLoading(false);
             }
@@ -493,16 +306,12 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
 
     const scrollToTop = () => {
         if (previewAreaRef.current) {
-            previewAreaRef.current.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
+            previewAreaRef.current.scrollTo({ top: 0, behavior: 'smooth' });
         }
     };
 
     return (
         <div className="flex min-h-screen bg-gray-50">
-            {/* Sidebar */}
             <ContentSidebar
                 selectedPage={selectedPage}
                 currentLanguage={currentLanguage}
@@ -510,10 +319,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 onLanguageChange={handleLanguageChange}
                 hasChanges={hasChanges}
             />
-
-            {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-h-screen">
-                {/* Top Toolbar */}
                 <div className="bg-white border-b border-gray-200 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -527,9 +333,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 </span>
                             </div>
                         </div>
-
                         <div className="flex items-center space-x-3">
-                            {/* View Mode Toggle */}
                             <div className="flex items-center bg-gray-100 rounded-lg p-1">
                                 <button
                                     onClick={() => setViewMode('desktop')}
@@ -553,8 +357,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     <Smartphone className="h-4 w-4" />
                                 </button>
                             </div>
-
-                            {/* Edit Mode Toggle */}
                             <button
                                 onClick={toggleEditMode}
                                 className={`flex items-center px-4 py-2 rounded-lg ${isEditMode
@@ -565,8 +367,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 <Edit3 className="h-4 w-4 mr-2" />
                                 {isEditMode ? 'Thoát chỉnh sửa' : 'Chỉnh sửa'}
                             </button>
-
-                            {/* Highlight Button */}
                             {isEditMode && (
                                 <button
                                     onClick={highlightEditableElements}
@@ -576,16 +376,8 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     Làm nổi bật
                                 </button>
                             )}
-
-
-
-                            {/* Refresh Preview Button */}
                             <button
-                                onClick={() => {
-                                    console.log('🔄 Manual refresh clicked');
-                                    loadContent();
-                                    setPreviewKey(prev => prev + 1);
-                                }}
+                                onClick={() => { loadContent(); setPreviewKey(prev => prev + 1); }}
                                 disabled={isLoading}
                                 className="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 disabled:opacity-50"
                                 title="Làm mới preview"
@@ -593,10 +385,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                                 Làm mới
                             </button>
-
-
-
-                            {/* Action Buttons */}
                             <button
                                 onClick={handleResetToDefault}
                                 disabled={isSaving || isLoading}
@@ -605,8 +393,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Khôi phục
                             </button>
-
-                            {/* SuperAdmin Actions */}
                             {isSuperAdmin && (
                                 <>
                                     <button
@@ -627,8 +413,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     </button>
                                 </>
                             )}
-
-                            {/* Save Button */}
                             <button
                                 onClick={handleSaveContent}
                                 disabled={isSaving || !hasChanges}
@@ -649,8 +433,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                         </div>
                     </div>
                 </div>
-
-                {/* Preview Area */}
                 <div
                     ref={previewAreaRef}
                     className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative"
@@ -663,7 +445,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                             key={`${selectedPage}-${currentLanguage}-${previewKey}`}
                             page={selectedPage}
                             language={currentLanguage}
-                            content={content}
+                            content={currentLangContent}
                             viewMode={viewMode}
                             isEditMode={isEditMode}
                             editingField={editingField}
@@ -672,8 +454,6 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                             isLoading={isLoading}
                         />
                     </NextIntlClientProvider>
-
-                    {/* Scroll to Top Button */}
                     {showScrollTop && (
                         <button
                             onClick={scrollToTop}
@@ -685,19 +465,13 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     )}
                 </div>
             </div>
-
-            {/* Inline Editor Modal */}
             {isEditMode && editingField && (
                 <InlineEditor
                     field={editingField}
-                    value={content[editingField]}
+                    value={currentLangContent[editingField]}
                     onSave={(value) => {
-                        console.log('Inline editor save:', editingField, value);
                         handleContentChange(editingField, value);
                         setEditingField(null);
-
-                        // Don't auto-save - let user save manually to avoid conflicts
-                        console.log('Content updated in state, ready to save manually');
                     }}
                     onCancel={() => setEditingField(null)}
                 />
