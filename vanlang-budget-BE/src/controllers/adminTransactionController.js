@@ -146,9 +146,9 @@ export const getAllTransactions = catchAsync(async (req, res, next) => {
             description: transaction.description || transaction.title || 'Không có mô tả',
             category: transaction.category || transaction.type || 'Khác',
             date: transaction.date || transaction.createdAt,
-            userId: transaction.userId._id.toString(),
-            userName: `${transaction.userId.firstName} ${transaction.userId.lastName}`,
-            userEmail: transaction.userId.email,
+            userId: transaction.userId ? transaction.userId._id.toString() : 'Không xác định',
+            userName: transaction.userId ? `${transaction.userId.firstName || ''} ${transaction.userId.lastName || ''}`.trim() : 'Không xác định',
+            userEmail: transaction.userId ? transaction.userId.email : 'Không xác định',
             createdAt: transaction.createdAt,
             updatedAt: transaction.updatedAt
         }));
@@ -280,9 +280,9 @@ export const getTransactionById = catchAsync(async (req, res, next) => {
         description: transaction.description || transaction.title || 'Không có mô tả',
         category: transaction.category || transaction.type || 'Khác',
         date: transaction.date || transaction.createdAt,
-        userId: transaction.userId._id.toString(),
-        userName: `${transaction.userId.firstName} ${transaction.userId.lastName}`,
-        userEmail: transaction.userId.email,
+        userId: transaction.userId ? transaction.userId._id.toString() : 'Không xác định',
+        userName: transaction.userId ? `${transaction.userId.firstName || ''} ${transaction.userId.lastName || ''}`.trim() : 'Không xác định',
+        userEmail: transaction.userId ? transaction.userId.email : 'Không xác định',
         createdAt: transaction.createdAt,
         updatedAt: transaction.updatedAt,
         ...transaction // Include all other fields
@@ -527,8 +527,8 @@ export const exportTransactions = catchAsync(async (req, res, next) => {
             description: transaction.description || transaction.title || 'Không có mô tả',
             category: transaction.category || transaction.type || 'Khác',
             date: transaction.date || transaction.createdAt,
-            userName: `${transaction.userId.firstName} ${transaction.userId.lastName}`,
-            userEmail: transaction.userId.email,
+            userName: transaction.userId ? `${transaction.userId.firstName || ''} ${transaction.userId.lastName || ''}`.trim() : 'Không xác định',
+            userEmail: transaction.userId ? transaction.userId.email : 'Không xác định',
             createdAt: transaction.createdAt
         }));
 

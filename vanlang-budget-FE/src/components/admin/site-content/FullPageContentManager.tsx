@@ -23,6 +23,7 @@ import { useSiteContent as useGlobalSiteContent } from '@/components/SiteContent
 import ContentSidebar from './ContentSidebar';
 import PagePreview from './PagePreview';
 import InlineEditor from './InlineEditor';
+import ContentDebugPanel from '../debug/ContentDebugPanel';
 
 interface User {
     id: string;
@@ -509,6 +510,20 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     onCancel={() => setEditingField(null)}
                 />
             )}
+
+            {/* Debug Panel - Only in development */}
+            <ContentDebugPanel
+                currentLanguage={currentLanguage}
+                fullContent={fullContent}
+                currentLangContent={currentLangContent}
+                selectedPage={selectedPage}
+                isLoading={isLoading}
+                hasChanges={hasChanges}
+                onRefresh={() => {
+                    loadContent();
+                    setPreviewKey(prev => prev + 1);
+                }}
+            />
         </div>
     );
 }
