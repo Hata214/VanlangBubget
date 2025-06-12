@@ -19,6 +19,7 @@ import siteContentService from '@/services/siteContentService';
 import { NextIntlClientProvider } from 'next-intl';
 import messagesEn from '@/messages/en.json';
 import messagesVi from '@/messages/vi.json';
+import { useSiteContent as useGlobalSiteContent } from '@/components/SiteContentProvider'; // Alias to avoid naming conflict
 import ContentSidebar from './ContentSidebar';
 import PagePreview from './PagePreview';
 import InlineEditor from './InlineEditor';
@@ -57,6 +58,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
 
     const previewAreaRef = useRef<HTMLDivElement>(null);
     const isSuperAdmin = user?.role === 'superadmin';
+    const { refreshContent: refreshGlobalContent } = useGlobalSiteContent(); // Get the global refresh function
 
     useEffect(() => {
         loadContent();
@@ -196,7 +198,14 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
             toast.success(isSuperAdmin ? 'Đã lưu thành công!' : 'Đã gửi nội dung để SuperAdmin phê duyệt!');
             setHasChanges(false);
             setEditingField(null);
-            await loadContent(); // Reload to get fresh data and version numbers
+            await loadContent(); // Reload to get fresh data for admin preview
+
+            // Refresh global content after local operations are done
+            if (refreshGlobalContent) {
+                console.log('Attempting to refresh global site content from FullPageContentManager...');
+                await refreshGlobalContent();
+                console.log('Global site content refresh triggered from FullPageContentManager.');
+            }
         } catch (error) {
             console.error('Lỗi khi lưu nội dung:', error);
             toast.error('Không thể lưu nội dung. Vui lòng thử lại sau.');
