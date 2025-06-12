@@ -238,6 +238,84 @@ export const adminService = {
         return response;
     },
 
+    // === Payment Transaction Management ===
+    /**
+     * Lấy danh sách giao dịch thanh toán premium
+     */
+    async getPaymentTransactions(queryString?: string) {
+        const url = queryString ? `/api/admin/transactions?${queryString}` : '/api/admin/transactions';
+        const response = await api.get(url);
+        return response.data;
+    },
+
+    /**
+     * Lấy chi tiết giao dịch thanh toán
+     */
+    async getPaymentTransactionById(transactionId: string) {
+        const response = await api.get(`/api/admin/transactions/${transactionId}`);
+        return response.data;
+    },
+
+    /**
+     * Cập nhật trạng thái giao dịch thanh toán
+     */
+    async updatePaymentTransactionStatus(transactionId: string, status: string, notes?: string) {
+        const response = await api.patch(`/api/admin/transactions/${transactionId}/status`, {
+            status,
+            notes
+        });
+        return response.data;
+    },
+
+    /**
+     * Lấy thống kê giao dịch thanh toán
+     */
+    async getPaymentTransactionStats(dateRange?: { startDate?: string; endDate?: string }) {
+        const params = dateRange || {};
+        const response = await api.get('/api/admin/transactions/stats', { params });
+        return response.data;
+    },
+
+    /**
+     * Tạo giao dịch mẫu (cho development/testing)
+     */
+    async createSampleTransactions() {
+        const response = await api.post('/api/admin/transactions/create-sample');
+        return response.data;
+    },
+
+    /**
+     * Xuất báo cáo giao dịch thanh toán
+     */
+    async exportPaymentTransactions(filters?: {
+        search?: string;
+        status?: string;
+        type?: string;
+        planType?: string;
+        paymentMethod?: string;
+        startDate?: string;
+        endDate?: string;
+    }) {
+        const params = filters || {};
+        const response = await api.get('/api/admin/transactions/export', {
+            params,
+            responseType: 'blob'
+        });
+
+        // Tạo file download
+        const blob = new Blob([response.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `payment-transactions-export-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        return { success: true, message: 'Xuất dữ liệu thành công' };
+    },
+
     // === Admin Management (SuperAdmin only) ===
     /**
      * Lấy danh sách tất cả admin users

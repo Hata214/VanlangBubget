@@ -498,6 +498,107 @@
         "resetDataConfirmPlaceholder": "Nhập 'resetdata' để xác nhận",
         "confirmResetData": "Xác nhận xóa dữ liệu"
     },
+    "admin": {
+        "transactions": {
+            "title": "Quản lý Giao dịch Thanh toán",
+            "subtitle": "Quản lý tất cả giao dịch thanh toán premium của người dùng trong hệ thống",
+            "comingSoon": {
+                "title": "Tính năng đang phát triển",
+                "description": "Hệ thống quản lý giao dịch thanh toán đang được phát triển để chuẩn bị cho việc ra mắt các gói premium. Hiện tại bạn có thể xem giao diện và tạo dữ liệu mẫu để test.",
+                "createSample": "Tạo dữ liệu mẫu để test"
+            },
+            "stats": {
+                "totalRevenue": "Tổng doanh thu",
+                "totalTransactions": "Tổng giao dịch",
+                "pendingTransactions": "Chờ xử lý",
+                "failedTransactions": "Thất bại",
+                "completedTransactions": "giao dịch hoàn thành",
+                "totalValue": "Tổng giá trị",
+                "needReview": "Cần xem xét",
+                "needCheck": "Cần kiểm tra"
+            },
+            "filters": {
+                "title": "Bộ lọc",
+                "search": "Tìm kiếm",
+                "searchPlaceholder": "Tìm theo ID, email...",
+                "status": "Trạng thái",
+                "selectStatus": "Chọn trạng thái",
+                "type": "Loại giao dịch",
+                "selectType": "Chọn loại",
+                "planType": "Gói dịch vụ",
+                "selectPlan": "Chọn gói",
+                "paymentMethod": "Phương thức",
+                "selectPaymentMethod": "Chọn phương thức",
+                "dateRange": "Thời gian",
+                "selectDateRange": "Chọn thời gian",
+                "clearFilters": "Xóa bộ lọc"
+            },
+            "status": {
+                "all": "Tất cả",
+                "pending": "Chờ xử lý",
+                "processing": "Đang xử lý",
+                "completed": "Hoàn thành",
+                "failed": "Thất bại",
+                "cancelled": "Đã hủy",
+                "refunded": "Hoàn tiền"
+            },
+            "types": {
+                "all": "Tất cả",
+                "subscription": "Đăng ký",
+                "upgrade": "Nâng cấp",
+                "renewal": "Gia hạn",
+                "refund": "Hoàn tiền"
+            },
+            "plans": {
+                "all": "Tất cả",
+                "basic": "Basic",
+                "standard": "Standard",
+                "premium": "Premium"
+            },
+            "paymentMethods": {
+                "all": "Tất cả",
+                "credit_card": "Thẻ tín dụng",
+                "debit_card": "Thẻ ghi nợ",
+                "bank_transfer": "Chuyển khoản",
+                "e_wallet": "Ví điện tử"
+            },
+            "table": {
+                "transactionId": "ID Giao dịch",
+                "user": "Người dùng",
+                "plan": "Gói dịch vụ",
+                "amount": "Số tiền",
+                "status": "Trạng thái",
+                "paymentMethod": "Phương thức",
+                "createdAt": "Ngày tạo",
+                "actions": "Thao tác",
+                "processed": "Xử lý",
+                "noTransactions": "Không có giao dịch thanh toán nào được tìm thấy",
+                "createSampleHint": "Hãy tạo dữ liệu mẫu để test giao diện"
+            },
+            "actions": {
+                "showFilters": "Hiện bộ lọc",
+                "hideFilters": "Ẩn bộ lọc",
+                "refresh": "Làm mới",
+                "createSample": "Tạo dữ liệu mẫu",
+                "exportReport": "Xuất báo cáo",
+                "view": "Xem",
+                "edit": "Sửa"
+            },
+            "pagination": {
+                "showing": "Hiển thị {start} đến {end} trong tổng số {total} giao dịch thanh toán",
+                "previous": "Trước",
+                "next": "Sau",
+                "page": "Trang {current} / {total}"
+            },
+            "messages": {
+                "loadError": "Không thể tải danh sách giao dịch thanh toán",
+                "exportSuccess": "Xuất báo cáo thành công",
+                "exportError": "Không thể xuất báo cáo",
+                "sampleCreated": "Đã tạo {count} giao dịch mẫu thành công",
+                "sampleError": "Không thể tạo dữ liệu mẫu"
+            }
+        }
+    },
     "income": {
         "manage": "Thu nhập",
         "add": "Thêm Thu nhập",

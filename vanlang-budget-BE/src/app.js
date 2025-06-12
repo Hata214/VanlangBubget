@@ -31,6 +31,7 @@ import oauthRoutes from './routes/oauthRoutes.js';
 import investmentRoutes from './routes/investmentRoutes.js';
 import siteContentRoutes from './routes/siteContentRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import paymentTransactionRoutes from './routes/paymentTransactionRoutes.js';
 // import chatbotRoutes from './routes/chatbot.js'; // New refactored chatbot routes - có lỗi
 import enhancedChatbotRoutes from './routes/enhancedChatbot.js'; // Legacy - working version
 import initializeAgentRoutes from './routes/agent.js'; // Agent v2 routes
@@ -172,6 +173,8 @@ app.use('/api/investments', investmentRoutes);
 
 // Áp dụng giới hạn tốc độ nghiêm ngặt hơn cho khu vực admin
 app.use('/api/admin', adminLimiter, adminRoutes);
+app.use('/api/admin/transactions', adminLimiter, paymentTransactionRoutes);
+console.log('Route payment transactions đã đăng ký tại /api/admin/transactions ✅');
 
 // import statsRoutes from './routes/statsRoutes.js';
 // app.use('/api/stats', statsRoutes);

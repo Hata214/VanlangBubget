@@ -63,7 +63,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(socketMiddleware);
 
 // Set up Swagger documentation
-setupSwagger(app);
+try {
+    setupSwagger(app);
+} catch (error) {
+    console.warn('Swagger setup failed:', error.message);
+}
 
 // Home route
 app.get('/', (req, res) => {

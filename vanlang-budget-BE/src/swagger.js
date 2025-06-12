@@ -179,6 +179,74 @@ export const setupSwagger = (app) => {
                             token: { type: 'string' },
                             user: { $ref: '#/components/schemas/User' }
                         }
+                    },
+                    PaymentTransaction: {
+                        type: 'object',
+                        required: ['userId', 'transactionId', 'type', 'planType', 'planName', 'amount', 'paymentMethod', 'paymentGateway'],
+                        properties: {
+                            _id: { type: 'string', description: 'Auto-generated MongoDB ObjectId' },
+                            transactionId: { type: 'string', description: 'Unique transaction identifier' },
+                            userId: {
+                                type: 'object',
+                                properties: {
+                                    _id: { type: 'string' },
+                                    firstName: { type: 'string' },
+                                    lastName: { type: 'string' },
+                                    email: { type: 'string' }
+                                }
+                            },
+                            type: {
+                                type: 'string',
+                                enum: ['subscription', 'upgrade', 'renewal', 'refund'],
+                                description: 'Payment transaction type'
+                            },
+                            status: {
+                                type: 'string',
+                                enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'],
+                                description: 'Transaction status'
+                            },
+                            planType: {
+                                type: 'string',
+                                enum: ['basic', 'standard', 'premium'],
+                                description: 'Service plan type'
+                            },
+                            planName: { type: 'string', description: 'Service plan name' },
+                            amount: { type: 'number', description: 'Payment amount' },
+                            currency: { type: 'string', enum: ['VND', 'USD'], default: 'VND' },
+                            paymentMethod: {
+                                type: 'string',
+                                enum: ['credit_card', 'debit_card', 'bank_transfer', 'e_wallet', 'paypal', 'stripe'],
+                                description: 'Payment method used'
+                            },
+                            paymentGateway: {
+                                type: 'string',
+                                enum: ['vnpay', 'momo', 'zalopay', 'paypal', 'stripe'],
+                                description: 'Payment gateway used'
+                            },
+                            gatewayTransactionId: { type: 'string', description: 'Transaction ID from payment gateway' },
+                            subscriptionStartDate: { type: 'string', format: 'date' },
+                            subscriptionEndDate: { type: 'string', format: 'date' },
+                            description: { type: 'string' },
+                            notes: { type: 'string' },
+                            ipAddress: { type: 'string' },
+                            userAgent: { type: 'string' },
+                            refundAmount: { type: 'number' },
+                            refundReason: { type: 'string' },
+                            refundDate: { type: 'string', format: 'date' },
+                            processedBy: {
+                                type: 'object',
+                                properties: {
+                                    _id: { type: 'string' },
+                                    firstName: { type: 'string' },
+                                    lastName: { type: 'string' },
+                                    email: { type: 'string' }
+                                }
+                            },
+                            processedAt: { type: 'string', format: 'date-time' },
+                            metadata: { type: 'object' },
+                            createdAt: { type: 'string', format: 'date-time' },
+                            updatedAt: { type: 'string', format: 'date-time' }
+                        }
                     }
                 },
                 responses: {
