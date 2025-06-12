@@ -79,8 +79,11 @@ temp/
 # Documentation and configuration files
 *.md
 *.cursorrules
-.cursor/
+*.cursor/
 
 # Keep these directories (if needed)
 !vanlang-budget-BE/
 !vanlang-budget-FE/
+
+# Mermaid files
+*.Mermaid
