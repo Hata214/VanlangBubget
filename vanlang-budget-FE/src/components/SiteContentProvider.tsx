@@ -52,23 +52,20 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
         }
     }, [pathname, language]);
 
-    // Xác định loại trang hiện tại từ pathname
-    const getContentTypeFromPath = (path: string): string => {
+    // Xác định loại trang hiện tại từ pathname (chỉ trả về base type)
+    const getBaseContentTypeFromPath = (path: string): string => {
         const pathSegments = path.split('/').filter(Boolean);
+        let actualPathSegments = pathSegments;
 
-        // Trang chủ
-        if (pathSegments.length === 0 || pathSegments[0] === '') {
-            return `homepage-${language}`;
+        // Bỏ qua segment ngôn ngữ (nếu có) để lấy path thực tế cho content type
+        if (pathSegments.length > 0 && (pathSegments[0] === 'vi' || pathSegments[0] === 'en')) {
+            actualPathSegments = pathSegments.slice(1);
         }
 
-        // Kiểm tra trang ngôn ngữ
-        const actualPath = pathSegments[0] === 'vi' || pathSegments[0] === 'en'
-            ? pathSegments[1] || 'homepage'
-            : pathSegments[0];
+        const pageSegment = actualPathSegments[0] || 'homepage'; // Mặc định là 'homepage' nếu không có segment
 
-        // Ánh xạ path sang loại nội dung
         const contentTypeMap: Record<string, string> = {
-            '': 'homepage',
+            '': 'homepage', // Được xử lý bởi pageSegment default
             'home': 'homepage',
             'homepage': 'homepage',
             'about': 'about',
@@ -76,10 +73,9 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
             'pricing': 'pricing',
             'contact': 'contact',
             'roadmap': 'roadmap'
+            // Các loại khác như header, footer có thể cần logic tải riêng nếu không dựa trên path
         };
-
-        const contentType = contentTypeMap[actualPath] || 'homepage';
-        return `${contentType}-${language}`;
+        return contentTypeMap[pageSegment] || 'homepage'; // Fallback về 'homepage' cho các path không xác định
     };
 
     // Tải nội dung từ API
@@ -88,50 +84,69 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
 
         setIsLoading(true);
         setError(null);
+        const baseContentType = getBaseContentTypeFromPath(pathname);
 
         try {
-            const contentType = getContentTypeFromPath(pathname);
-
             // Kiểm tra xem dữ liệu đã được đồng bộ với database chưa
             try {
-                const statusResponse = await siteContentService.checkContentStatus(contentType);
-                console.log(`Kết quả kiểm tra trạng thái cho ${contentType}:`, statusResponse);
+                // siteContentService.checkContentStatus có thể đã tự xử lý việc tách ngôn ngữ
+                // nhưng truyền baseContentType sẽ rõ ràng hơn.
+                const statusResponse = await siteContentService.checkContentStatus(baseContentType);
+                console.log(`Kết quả kiểm tra trạng thái cho ${baseContentType}:`, statusResponse);
 
-                // Nếu dữ liệu chưa được đồng bộ, sử dụng fallback
                 if (statusResponse?.data?.isSync === false) {
-                    console.log(`Dữ liệu ${contentType} chưa được đồng bộ, sử dụng fallback`);
-                    const fallbackData = localFallbackData[contentType] || {};
-                    setContent(prev => ({ ...prev, [contentType]: fallbackData }));
+                    console.log(`Dữ liệu ${baseContentType} chưa được đồng bộ, sử dụng fallback`);
+                    const viFallback = localFallbackData[`${baseContentType}-vi`] || {};
+                    const enFallback = localFallbackData[`${baseContentType}-en`] || {};
+                    const fallbackResponse = {
+                        status: 'success_fallback_sync',
+                        data: {
+                            content: { vi: viFallback, en: enFallback },
+                            type: baseContentType, status: 'published', version: 0, languages: ['vi', 'en']
+                        }
+                    };
+                    setContent(prev => ({ ...prev, [baseContentType]: fallbackResponse }));
                     return;
                 }
             } catch (statusError) {
-                console.warn(`Lỗi khi kiểm tra trạng thái ${contentType}, tiếp tục tải nội dung:`, statusError);
-                // Tiếp tục tải nội dung ngay cả khi kiểm tra trạng thái thất bại
+                console.warn(`Lỗi khi kiểm tra trạng thái ${baseContentType}, tiếp tục tải nội dung:`, statusError);
             }
 
-            // Tải dữ liệu từ API
-            console.log(`[PROVIDER DEBUG] Loading content for type: ${contentType}`);
-            const response = await siteContentService.getContentByType(contentType);
-            console.log(`[PROVIDER DEBUG] Service response:`, response);
+            // Tải dữ liệu từ API sử dụng baseContentType
+            console.log(`[PROVIDER DEBUG] Loading content for base type: ${baseContentType}`);
+            const response = await siteContentService.getContentByType(baseContentType);
+            console.log(`[PROVIDER DEBUG] Service response for ${baseContentType}:`, response);
 
-            if (response && response.data) {
-                // Lưu nội dung vào state
-                console.log(`[PROVIDER DEBUG] Setting content for ${contentType}:`, response.data);
-                setContent(prev => ({ ...prev, [contentType]: response.data }));
+            if (response && response.data) { // response là toàn bộ object từ service {status, data: SiteContentDoc}
+                console.log(`[PROVIDER DEBUG] Setting content for ${baseContentType}:`, response);
+                setContent(prev => ({ ...prev, [baseContentType]: response }));
             } else {
-                // Sử dụng dữ liệu fallback nếu không có dữ liệu từ API
-                console.log(`[PROVIDER DEBUG] Using fallback for ${contentType}`);
-                const fallbackData = localFallbackData[contentType] || {};
-                setContent(prev => ({ ...prev, [contentType]: fallbackData }));
+                console.log(`[PROVIDER DEBUG] Using fallback for ${baseContentType} due to no/invalid API response`);
+                const viFallback = localFallbackData[`${baseContentType}-vi`] || {};
+                const enFallback = localFallbackData[`${baseContentType}-en`] || {};
+                const fallbackResponse = {
+                    status: 'success_fallback_api',
+                    data: {
+                        content: { vi: viFallback, en: enFallback },
+                        type: baseContentType, status: 'published', version: 0, languages: ['vi', 'en']
+                    }
+                };
+                setContent(prev => ({ ...prev, [baseContentType]: fallbackResponse }));
             }
         } catch (err) {
-            console.error('Lỗi khi tải nội dung:', err);
+            console.error(`Lỗi khi tải nội dung cho ${baseContentType}:`, err);
             setError(err as Error);
 
-            // Sử dụng dữ liệu fallback khi có lỗi
-            const contentType = getContentTypeFromPath(pathname);
-            const fallbackData = localFallbackData[contentType] || {};
-            setContent(prev => ({ ...prev, [contentType]: fallbackData }));
+            const viFallback = localFallbackData[`${baseContentType}-vi`] || {};
+            const enFallback = localFallbackData[`${baseContentType}-en`] || {};
+            const fallbackResponse = {
+                status: 'error_fallback',
+                data: {
+                    content: { vi: viFallback, en: enFallback },
+                    type: baseContentType, status: 'published', version: 0, languages: ['vi', 'en']
+                }
+            };
+            setContent(prev => ({ ...prev, [baseContentType]: fallbackResponse }));
         } finally {
             setIsLoading(false);
         }
@@ -153,23 +168,36 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
 
     // Lấy dữ liệu fallback nếu dữ liệu chính rỗng
     const getFallbackIfEmpty = (key: string, fallbackObj?: any) => {
-        const contentType = getContentTypeFromPath(pathname);
-        const currentContent = content[contentType] || {};
+        const baseContentType = getBaseContentTypeFromPath(pathname);
+        const pageServiceResponse = content[baseContentType]; // Đây là { status, data: SiteContentDoc }
+        const multiLangContent = pageServiceResponse?.data?.content;
+        const langSpecificContent = multiLangContent?.[language];
 
-        // Nếu có dữ liệu, trả về dữ liệu đó
-        if (currentContent[key] && Object.keys(currentContent[key]).length > 0) {
-            return currentContent[key];
+        // Nếu có dữ liệu từ API cho key này
+        if (langSpecificContent && typeof langSpecificContent === 'object' && langSpecificContent !== null && key in langSpecificContent) {
+            const value = langSpecificContent[key];
+            // Kiểm tra xem giá trị có phải là object rỗng không, hoặc có giá trị thực sự
+            if (typeof value === 'object' && value !== null && Object.keys(value).length > 0) {
+                return value;
+            }
+            if (typeof value !== 'object' && value !== null && value !== undefined) {
+                return value;
+            }
         }
 
-        // Nếu không có dữ liệu, trả về fallback
-        const fallback = localFallbackData[contentType] || {};
-        return fallbackObj || fallback[key] || {};
+        // Nếu không, sử dụng fallback từ localFallbackData
+        const fallbackKeyForFile = `${baseContentType}-${language}`; // ví dụ: 'homepage-vi'
+        const fallbackContentForFile = localFallbackData[fallbackKeyForFile] || {};
+
+        return fallbackObj || fallbackContentForFile[key] || (typeof fallbackContentForFile[key] === 'boolean' ? fallbackContentForFile[key] : {});
     };
 
-    // Tải nội dung khi component được mount
+    // Tải nội dung khi component được mount hoặc khi pathname hoặc language thay đổi
     useEffect(() => {
         loadContent();
-    }, [pathname, language]);
+    }, [pathname, language]); // language được thêm vào dependency array vì getBaseContentTypeFromPath không còn phụ thuộc vào nó trực tiếp
+    // nhưng logic hiển thị và fallback trong getFallbackIfEmpty phụ thuộc vào state `language`.
+    // loadContent sẽ fetch cho baseType, và việc chọn ngôn ngữ diễn ra khi truy cập content.
 
     // Giá trị context
     const value: SiteContentContextType = {
