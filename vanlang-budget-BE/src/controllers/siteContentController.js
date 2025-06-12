@@ -656,7 +656,7 @@ export const initializeHomepageContent = async (req, res, next) => {
         if (existingHomepage) {
             // Nếu đã có dữ liệu, cập nhật
             logger.info(`SuperAdmin ${req.user.email} đang cập nhật dữ liệu mặc định cho trang chủ`);
-            result = await updateHomepageContent();
+            result = await updateHomepageContentScript();
             logger.info(`Dữ liệu trang chủ đã được cập nhật thành công bởi ${req.user.email}`);
         } else {
             // Nếu chưa có dữ liệu, tạo mới
