@@ -10,7 +10,7 @@ const adminActivityLogSchema = new mongoose.Schema({
         ref: 'User',
         required: [true, 'Admin ID là bắt buộc']
     },
-    
+
     // Loại hành động
     actionType: {
         type: String,
@@ -18,7 +18,7 @@ const adminActivityLogSchema = new mongoose.Schema({
         enum: [
             // User Management Actions
             'USER_CREATE',
-            'USER_UPDATE', 
+            'USER_UPDATE',
             'USER_DELETE',
             'USER_ACTIVATE',
             'USER_DEACTIVATE',
@@ -26,7 +26,7 @@ const adminActivityLogSchema = new mongoose.Schema({
             'USER_DEMOTE',
             'USER_RESET_PASSWORD',
             'USER_VIEW',
-            
+
             // Content Management Actions
             'CONTENT_CREATE',
             'CONTENT_UPDATE',
@@ -35,13 +35,21 @@ const adminActivityLogSchema = new mongoose.Schema({
             'CONTENT_REJECT',
             'CONTENT_PUBLISH',
             'CONTENT_RESTORE',
-            
+
+            // Transaction Management Actions
+            'TRANSACTIONS_VIEW',
+            'TRANSACTIONS_EXPORT',
+            'TRANSACTION_VIEW',
+            'TRANSACTION_UPDATE',
+            'TRANSACTION_DELETE',
+
             // Admin Management Actions
             'ADMIN_CREATE',
             'ADMIN_UPDATE',
             'ADMIN_DELETE',
             'ADMIN_TOGGLE_STATUS',
-            
+            'ADMIN_LIST_VIEW',
+
             // System Actions
             'LOGIN',
             'LOGOUT',
@@ -50,58 +58,58 @@ const adminActivityLogSchema = new mongoose.Schema({
             'IMPORT_DATA'
         ]
     },
-    
+
     // ID của đối tượng bị tác động (user, content, etc.)
     targetId: {
         type: mongoose.Schema.Types.ObjectId,
         required: false // Một số actions không có target cụ thể
     },
-    
+
     // Loại đối tượng bị tác động
     targetType: {
         type: String,
         enum: ['User', 'SiteContent', 'Admin', 'System'],
         required: false
     },
-    
+
     // Dữ liệu đầu vào của hành động
     inputData: {
         type: mongoose.Schema.Types.Mixed,
         required: false
     },
-    
+
     // Kết quả của hành động
     result: {
         type: String,
         enum: ['SUCCESS', 'FAILED', 'PARTIAL'],
         required: [true, 'Kết quả hành động là bắt buộc']
     },
-    
+
     // Thông tin chi tiết về kết quả
     resultDetails: {
         type: String,
         required: false
     },
-    
+
     // Địa chỉ IP của admin
     ipAddress: {
         type: String,
         required: false
     },
-    
+
     // User Agent
     userAgent: {
         type: String,
         required: false
     },
-    
+
     // Thời gian thực hiện
     timestamp: {
         type: Date,
         default: Date.now,
         required: true
     },
-    
+
     // Metadata bổ sung
     metadata: {
         type: mongoose.Schema.Types.Mixed,
@@ -128,7 +136,7 @@ adminActivityLogSchema.virtual('admin', {
 
 // Virtual để populate target info
 adminActivityLogSchema.virtual('target', {
-    ref: function() {
+    ref: function () {
         return this.targetType;
     },
     localField: 'targetId',
@@ -141,7 +149,7 @@ adminActivityLogSchema.set('toJSON', { virtuals: true });
 adminActivityLogSchema.set('toObject', { virtuals: true });
 
 // Static method để tạo log mới
-adminActivityLogSchema.statics.createLog = async function(logData) {
+adminActivityLogSchema.statics.createLog = async function (logData) {
     try {
         const log = new this(logData);
         await log.save();
@@ -153,7 +161,7 @@ adminActivityLogSchema.statics.createLog = async function(logData) {
 };
 
 // Static method để lấy logs với pagination
-adminActivityLogSchema.statics.getLogsPaginated = async function(options = {}) {
+adminActivityLogSchema.statics.getLogsPaginated = async function (options = {}) {
     const {
         adminId,
         actionType,
@@ -163,21 +171,21 @@ adminActivityLogSchema.statics.getLogsPaginated = async function(options = {}) {
         startDate,
         endDate
     } = options;
-    
+
     const filter = {};
-    
+
     if (adminId) filter.adminId = adminId;
     if (actionType) filter.actionType = actionType;
     if (targetType) filter.targetType = targetType;
-    
+
     if (startDate || endDate) {
         filter.timestamp = {};
         if (startDate) filter.timestamp.$gte = new Date(startDate);
         if (endDate) filter.timestamp.$lte = new Date(endDate);
     }
-    
+
     const skip = (page - 1) * limit;
-    
+
     const [logs, total] = await Promise.all([
         this.find(filter)
             .populate('admin', 'firstName lastName email role')
@@ -186,7 +194,7 @@ adminActivityLogSchema.statics.getLogsPaginated = async function(options = {}) {
             .limit(limit),
         this.countDocuments(filter)
     ]);
-    
+
     return {
         logs,
         total,
