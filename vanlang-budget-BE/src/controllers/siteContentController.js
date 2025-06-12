@@ -2,7 +2,75 @@ import SiteContent from '../models/siteContentModel.js';
 import AppError from '../utils/appError.js';
 import logger from '../utils/logger.js';
 import defaultHomepageContent from '../data/defaultHomepageContent.js';
-import { createHomepageContent, updateHomepageContent } from '../scripts/initHomepageContent.js';
+import { createHomepageContent, updateHomepageContent as updateHomepageContentScript } from '../scripts/initHomepageContent.js'; // Alias để tránh xung đột tên
+import axios from 'axios'; // Thêm axios
+
+// Helper function to trigger revalidation on the frontend
+const triggerFrontendRevalidation = async (contentType) => {
+    const frontendUrl = process.env.FRONTEND_URL_FOR_REVALIDATE || process.env.FRONTEND_URL; // Ưu tiên biến mới nếu có
+    const secretToken = process.env.REVALIDATE_SECRET_TOKEN;
+
+    if (!frontendUrl || !secretToken) {
+        logger.warn('Revalidation not triggered: FRONTEND_URL_FOR_REVALIDATE/FRONTEND_URL or REVALIDATE_SECRET_TOKEN is not set.');
+        return;
+    }
+
+    let pathToRevalidate = '';
+    let tagToRevalidate = `siteContent_${contentType}`; // Tag chung cho loại nội dung
+
+    switch (contentType) {
+        case 'homepage':
+            pathToRevalidate = '/';
+            // tagToRevalidate có thể giữ nguyên hoặc thêm tag cụ thể cho homepage nếu cần
+            break;
+        case 'about':
+            pathToRevalidate = '/about';
+            break;
+        case 'features':
+            pathToRevalidate = '/features';
+            break;
+        case 'roadmap':
+            pathToRevalidate = '/roadmap';
+            break;
+        case 'pricing':
+            pathToRevalidate = '/pricing';
+            break;
+        case 'contact':
+            pathToRevalidate = '/contact';
+            break;
+        // Header và Footer thường là một phần của layout, revalidate các trang chính hoặc dùng tag
+        case 'header':
+        case 'footer':
+            // Có thể revalidate nhiều path hoặc dùng tag nếu các trang dùng chung header/footer
+            // Ví dụ revalidate trang chủ, hoặc nếu có tag cụ thể cho header/footer
+            // Để đơn giản, có thể revalidate tag chung hoặc các path chính
+            // Hoặc không làm gì nếu header/footer được fetch riêng và cache client-side
+            tagToRevalidate = `siteLayout_${contentType}`; // Tag riêng cho layout parts
+            break;
+        default:
+            logger.info(`Revalidation path for type '${contentType}' not specifically defined, using tag '${tagToRevalidate}'.`);
+        // Không cần path cụ thể nếu chỉ dùng tag
+    }
+
+    const revalidateUrlPath = `${frontendUrl}/api/revalidate?path=${encodeURIComponent(pathToRevalidate)}&secret=${secretToken}`;
+    const revalidateUrlTag = `${frontendUrl}/api/revalidate?tag=${encodeURIComponent(tagToRevalidate)}&secret=${secretToken}`;
+
+    try {
+        if (pathToRevalidate) {
+            logger.info(`Attempting to revalidate path: ${pathToRevalidate} via URL: ${revalidateUrlPath}`);
+            const pathResponse = await axios.get(revalidateUrlPath);
+            logger.info(`Frontend path revalidation for '${pathToRevalidate}' triggered:`, pathResponse.data);
+        }
+
+        logger.info(`Attempting to revalidate tag: ${tagToRevalidate} via URL: ${revalidateUrlTag}`);
+        const tagResponse = await axios.get(revalidateUrlTag);
+        logger.info(`Frontend tag revalidation for '${tagToRevalidate}' triggered:`, tagResponse.data);
+
+    } catch (error) {
+        logger.error(`Error triggering frontend revalidation for ${contentType}:`, error.response ? error.response.data : error.message);
+    }
+};
+
 
 /**
  * @desc    Lấy nội dung footer
@@ -196,6 +264,9 @@ export const updateSiteContentByType = async (req, res, next) => {
         logger.info(`Cập nhật nội dung ${type} thành công, ID: ${updatedContent._id}`);
         // console.log(`✅ Cập nhật thành công, trả về data:`, JSON.stringify(updatedContent.content, null, 2));
 
+        // Trigger revalidation
+        await triggerFrontendRevalidation(type);
+
         res.status(200).json({
             status: 'success',
             data: updatedContent.content,
@@ -356,6 +427,11 @@ export const updateHomepageSection = async (req, res, next) => {
                 // sections: updatedContentDoc.sections // Cân nhắc trả về sections nếu cần
             }
         });
+
+        // Trigger revalidation
+        // Vì updateHomepageSection cập nhật một phần của 'homepage', chúng ta revalidate 'homepage'
+        await triggerFrontendRevalidation('homepage');
+
     } catch (error) {
         logger.error(`Lỗi khi cập nhật section ${req.params.section} của trang chủ:`, error);
         next(new AppError(`Không thể cập nhật section ${req.params.section} của trang chủ`, 500));
