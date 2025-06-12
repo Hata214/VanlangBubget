@@ -88,7 +88,8 @@ export default function AdminLoginPage() {
         if (token && (role === 'admin' || role === 'superadmin')) {
             try {
                 // Kiểm tra token có hợp lệ không với backend thực
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/users/me`, {
+                const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+                const response = await fetch(`${apiUrl}/api/users/me`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -144,7 +145,8 @@ export default function AdminLoginPage() {
 
         try {
             // Gọi API xác thực backend thực
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/login`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+            const response = await fetch(`${apiUrl}/api/auth/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

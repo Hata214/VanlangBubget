@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 // Tạo instance axios với cấu hình mặc định
 const axiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000',
     headers: {
         'Content-Type': 'application/json',
     },

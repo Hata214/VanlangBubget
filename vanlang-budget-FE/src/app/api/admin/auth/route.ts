@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
         // Nếu không phải tài khoản mẫu, thử gọi backend thực
         try {
-            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'}/api/auth/login`;
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'}/api/auth/login`;
             console.log('Login API URL:', apiUrl);
 
             // Chuyển tiếp yêu cầu đến API backend
@@ -184,7 +184,7 @@ export async function GET(request: NextRequest) {
         // Gọi API backend để xác thực token thật
         try {
             console.log('Verifying real token with backend API');
-            const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+            const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
             const verifyEndpoint = `${backendUrl}/api/auth/verify-token`;
             console.log('Verification endpoint:', verifyEndpoint);
 

@@ -7,7 +7,7 @@ export const REFRESH_TOKEN_COOKIE_NAME = 'refreshToken'
 
 // Export API URL cho các services khác sử dụng
 // Ưu tiên NEXT_PUBLIC_API_BASE_URL, sau đó là NEXT_PUBLIC_API_URL, cuối cùng là fallback cho local dev
-export const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
 
 // Log thông tin API URL khi khởi tạo module
 console.log('API Service Initialized - Using API_URL:', API_URL);
