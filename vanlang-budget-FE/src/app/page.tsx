@@ -34,7 +34,7 @@ import { useSiteContent } from '@/components/SiteContentProvider'
 export default function HomePage() {
     const t = useTranslations()
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
-    const { content: siteProviderContent, isLoading, language } = useSiteContent()
+    const { content: siteProviderContent, isLoading, language, refreshContent } = useSiteContent()
 
     console.log('[HOMEPAGE DEBUG] useSiteContent result:', { siteProviderContent, isLoading, language })
 
@@ -390,6 +390,23 @@ export default function HomePage() {
                     </div>
                 </section>
             </div>
+
+            {/* Debug Refresh Button - Only show in development */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="fixed bottom-4 left-4 z-50">
+                    <button
+                        onClick={async () => {
+                            console.log('🔄 Manual refresh triggered from homepage');
+                            await refreshContent();
+                            console.log('✅ Manual refresh completed');
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+                        title="Force refresh content"
+                    >
+                        🔄 Refresh Content
+                    </button>
+                </div>
+            )}
 
             {/* Add some custom CSS styles for animations */}
             <style jsx global>{`

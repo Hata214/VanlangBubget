@@ -9,16 +9,36 @@ export const siteContentService = {
     /**
      * Lấy nội dung trang web theo loại. Backend sẽ trả về toàn bộ document SiteContent.
      * @param type Loại nội dung (ví dụ: 'homepage', 'about')
+     * @param forceRefresh Bắt buộc refresh, bỏ qua cache
      */
-    async getContentByType(type: string) {
+    async getContentByType(type: string, forceRefresh: boolean = false) {
         try {
             let actualType = type;
             if (actualType === 'home') { // Chuẩn hóa
                 actualType = 'homepage';
             }
-            console.log(`[SERVICE] Lấy toàn bộ nội dung đa ngôn ngữ cho type: ${actualType}`);
-            const params = { _t: Date.now() }; // Cache busting
-            const response = await axios.get(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, { params });
+            console.log(`[SERVICE] Lấy toàn bộ nội dung đa ngôn ngữ cho type: ${actualType}, forceRefresh: ${forceRefresh}`);
+
+            // Tạo cache busting mạnh hơn
+            const timestamp = Date.now();
+            const randomId = Math.random().toString(36).substring(7);
+            const params = {
+                _t: timestamp,
+                _r: randomId,
+                ...(forceRefresh && { _force: '1' })
+            };
+
+            // Thêm headers để tránh cache
+            const headers = forceRefresh ? {
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+            } : {};
+
+            const response = await axios.get(`${API_ENDPOINTS.SITE_CONTENT}/${actualType}`, {
+                params,
+                headers
+            });
             console.log(`[SERVICE] API Response for ${actualType}:`, response.data);
             return response.data; // response.data là toàn bộ SiteContent document
         } catch (apiError) {
@@ -65,8 +85,8 @@ export const siteContentService = {
         }
     },
 
-    async getHomepageContent() { // Hàm này có thể không cần thiết nữa nếu getContentByType('homepage') đã đủ
-        return this.getContentByType('homepage');
+    async getHomepageContent(forceRefresh: boolean = false) { // Hàm này có thể không cần thiết nữa nếu getContentByType('homepage') đã đủ
+        return this.getContentByType('homepage', forceRefresh);
     },
 
     async getHomepageSection(section: string, language?: string) {

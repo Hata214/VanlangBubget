@@ -79,7 +79,7 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
     };
 
     // Tải nội dung từ API
-    const loadContent = async () => {
+    const loadContent = async (forceRefresh: boolean = false) => {
         if (!pathname) return;
 
         setIsLoading(true);
@@ -87,34 +87,37 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
         const baseContentType = getBaseContentTypeFromPath(pathname);
 
         try {
-            // Kiểm tra xem dữ liệu đã được đồng bộ với database chưa
-            try {
-                // siteContentService.checkContentStatus có thể đã tự xử lý việc tách ngôn ngữ
-                // nhưng truyền baseContentType sẽ rõ ràng hơn.
-                const statusResponse = await siteContentService.checkContentStatus(baseContentType);
-                console.log(`Kết quả kiểm tra trạng thái cho ${baseContentType}:`, statusResponse);
+            // Bỏ qua kiểm tra sync nếu force refresh
+            if (!forceRefresh) {
+                // Kiểm tra xem dữ liệu đã được đồng bộ với database chưa
+                try {
+                    // siteContentService.checkContentStatus có thể đã tự xử lý việc tách ngôn ngữ
+                    // nhưng truyền baseContentType sẽ rõ ràng hơn.
+                    const statusResponse = await siteContentService.checkContentStatus(baseContentType);
+                    console.log(`Kết quả kiểm tra trạng thái cho ${baseContentType}:`, statusResponse);
 
-                if (statusResponse?.data?.isSync === false) {
-                    console.log(`Dữ liệu ${baseContentType} chưa được đồng bộ, sử dụng fallback`);
-                    const viFallback = localFallbackData[`${baseContentType}-vi`] || {};
-                    const enFallback = localFallbackData[`${baseContentType}-en`] || {};
-                    const fallbackResponse = {
-                        status: 'success_fallback_sync',
-                        data: {
-                            content: { vi: viFallback, en: enFallback },
-                            type: baseContentType, status: 'published', version: 0, languages: ['vi', 'en']
-                        }
-                    };
-                    setContent(prev => ({ ...prev, [baseContentType]: fallbackResponse }));
-                    return;
+                    if (statusResponse?.data?.isSync === false) {
+                        console.log(`Dữ liệu ${baseContentType} chưa được đồng bộ, sử dụng fallback`);
+                        const viFallback = localFallbackData[`${baseContentType}-vi`] || {};
+                        const enFallback = localFallbackData[`${baseContentType}-en`] || {};
+                        const fallbackResponse = {
+                            status: 'success_fallback_sync',
+                            data: {
+                                content: { vi: viFallback, en: enFallback },
+                                type: baseContentType, status: 'published', version: 0, languages: ['vi', 'en']
+                            }
+                        };
+                        setContent(prev => ({ ...prev, [baseContentType]: fallbackResponse }));
+                        return;
+                    }
+                } catch (statusError) {
+                    console.warn(`Lỗi khi kiểm tra trạng thái ${baseContentType}, tiếp tục tải nội dung:`, statusError);
                 }
-            } catch (statusError) {
-                console.warn(`Lỗi khi kiểm tra trạng thái ${baseContentType}, tiếp tục tải nội dung:`, statusError);
             }
 
             // Tải dữ liệu từ API sử dụng baseContentType
-            console.log(`[PROVIDER DEBUG] Loading content for base type: ${baseContentType}`);
-            const response = await siteContentService.getContentByType(baseContentType);
+            console.log(`[PROVIDER DEBUG] Loading content for base type: ${baseContentType}, forceRefresh: ${forceRefresh}`);
+            const response = await siteContentService.getContentByType(baseContentType, forceRefresh);
             console.log(`[PROVIDER DEBUG] Service response for ${baseContentType}:`, response);
 
             if (response && response.data) { // response là toàn bộ object từ service {status, data: SiteContentDoc}
@@ -160,8 +163,8 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
         setContent({});
         setError(null);
 
-        // Reload content
-        await loadContent();
+        // Reload content với force refresh
+        await loadContent(true);
 
         console.log('✅ [PROVIDER] Content refreshed successfully');
     };
@@ -198,6 +201,18 @@ export const SiteContentProvider: React.FC<SiteContentProviderProps> = ({
     }, [pathname, language]); // language được thêm vào dependency array vì getBaseContentTypeFromPath không còn phụ thuộc vào nó trực tiếp
     // nhưng logic hiển thị và fallback trong getFallbackIfEmpty phụ thuộc vào state `language`.
     // loadContent sẽ fetch cho baseType, và việc chọn ngôn ngữ diễn ra khi truy cập content.
+
+    // Auto refresh content every 30 seconds in development mode
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            const interval = setInterval(() => {
+                console.log('🔄 Auto-refreshing content...');
+                loadContent(true); // Force refresh
+            }, 30000); // 30 seconds
+
+            return () => clearInterval(interval);
+        }
+    }, [pathname, language]);
 
     // Giá trị context
     const value: SiteContentContextType = {

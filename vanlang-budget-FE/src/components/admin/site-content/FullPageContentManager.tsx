@@ -227,9 +227,24 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
 
             // Refresh global content after local operations are done
             if (refreshGlobalContent) {
-                console.log('Attempting to refresh global site content from FullPageContentManager...');
-                await refreshGlobalContent();
-                console.log('Global site content refresh triggered from FullPageContentManager.');
+                console.log('🔄 Attempting to refresh global site content from FullPageContentManager...');
+
+                // Thêm delay để đảm bảo backend đã xử lý xong revalidation
+                setTimeout(async () => {
+                    try {
+                        await refreshGlobalContent();
+                        console.log('✅ Global site content refresh completed from FullPageContentManager.');
+
+                        // Thông báo cho user biết content đã được cập nhật
+                        toast.success('🔄 Đã cập nhật nội dung trên trang chủ!', {
+                            duration: 3000,
+                            position: 'bottom-right'
+                        });
+                    } catch (error) {
+                        console.error('❌ Error refreshing global content:', error);
+                        toast.error('Có lỗi khi cập nhật trang chủ. Vui lòng refresh trang thủ công.');
+                    }
+                }, 1000); // Delay 1 giây
             }
         } catch (error) {
             console.error('Lỗi khi lưu nội dung:', error);
