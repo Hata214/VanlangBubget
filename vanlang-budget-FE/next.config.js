@@ -16,8 +16,8 @@ const nextConfig = {
       },
     ],
   },
-  // Disable locale prefix in URLs
-  i18n: undefined,
+  // Enable locale prefix in URLs
+  // i18n: undefined,
 };
 
 module.exports = withNextIntl(nextConfig);

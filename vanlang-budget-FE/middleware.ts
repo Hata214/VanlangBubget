@@ -9,7 +9,7 @@ import { locales, defaultLocale } from './src/i18n';
 const intlMiddleware = createIntlMiddleware({
     locales,
     defaultLocale,
-    localePrefix: 'never'
+    localePrefix: 'always' // Thay đổi từ 'never' thành 'always'
 });
 
 /**

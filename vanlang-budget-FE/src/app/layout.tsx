@@ -31,7 +31,7 @@ export default function RootLayout({
 }: {
     children: React.ReactNode
 }) {
-    // Sử dụng ngôn ngữ mặc định vì không còn URL prefix
+    // Sử dụng ngôn ngữ mặc định cho root layout (redirect page)
     const defaultLanguage = 'vi';
 
     return (

@@ -2,12 +2,12 @@
 
 import { useLocale, useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { Globe } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { locales } from '@/i18n'
-import { useLanguage } from '@/contexts/LanguageContext'
 
 type LanguageToggleProps = {
     className?: string
@@ -16,16 +16,10 @@ type LanguageToggleProps = {
 
 export function LanguageToggle({ className, variant = 'default' }: LanguageToggleProps) {
     const t = useTranslations('settings.language')
-    const defaultLocale = useLocale()
-    const { locale, changeLanguage, isChangingLanguage } = useLanguage()
-    const [currentLocale, setCurrentLocale] = useState(defaultLocale)
-
-    // Cập nhật trạng thái local khi locale trong context thay đổi
-    useEffect(() => {
-        if (locale) {
-            setCurrentLocale(locale)
-        }
-    }, [locale])
+    const locale = useLocale()
+    const router = useRouter()
+    const pathname = usePathname()
+    const [isChanging, setIsChanging] = useState(false)
 
     // Danh sách ngôn ngữ được hỗ trợ
     const languageOptions = [
@@ -39,10 +33,20 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
         }
     ]
 
-    // Xử lý khi thay đổi ngôn ngữ - bây giờ chỉ gọi changeLanguage từ context
+    // Xử lý khi thay đổi ngôn ngữ
     const handleLanguageChange = (newLocale: string) => {
-        if (newLocale === currentLocale) return;
-        changeLanguage(newLocale as any);
+        if (newLocale === locale || isChanging) return;
+
+        setIsChanging(true);
+
+        // Lấy pathname hiện tại và thay thế locale
+        const pathWithoutLocale = pathname.replace(/^\/(vi|en)/, '') || '';
+        const newPath = `/${newLocale}${pathWithoutLocale}`;
+
+        router.push(newPath);
+
+        // Reset loading state sau một khoảng thời gian
+        setTimeout(() => setIsChanging(false), 1000);
     }
 
     if (variant === 'icon') {
@@ -55,18 +59,18 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
                     title={t('label')}
                     onClick={() => {
                         // Chuyển đổi giữa tiếng Việt và tiếng Anh
-                        const newLocale = currentLocale === 'vi' ? 'en' : 'vi';
+                        const newLocale = locale === 'vi' ? 'en' : 'vi';
                         handleLanguageChange(newLocale);
                     }}
-                    disabled={isChangingLanguage}
+                    disabled={isChanging}
                 >
                     <Globe className="h-5 w-5" />
                     <span className="sr-only">{t('label')}</span>
                 </Button>
 
-                {currentLocale && (
+                {locale && (
                     <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                        {currentLocale.toUpperCase()}
+                        {locale.toUpperCase()}
                     </span>
                 )}
             </div>
@@ -76,9 +80,9 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
     return (
         <div className={className}>
             <Select
-                value={currentLocale}
+                value={locale}
                 onValueChange={handleLanguageChange}
-                disabled={isChangingLanguage}
+                disabled={isChanging}
             >
                 <SelectTrigger>
                     <div className="flex items-center gap-2">

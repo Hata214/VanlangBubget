@@ -63,7 +63,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                     <div className="flex items-center justify-between h-16">
                         {/* Logo */}
                         <div className="flex items-center h-14">
-                            <Link href="/" className="flex items-center space-x-2">
+                            <Link href={`/${locale}`} className="flex items-center space-x-2">
                                 <Image
                                     src="/logo-vlb.png"
                                     alt="VangLang Budget Logo"

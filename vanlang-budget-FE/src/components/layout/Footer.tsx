@@ -2,13 +2,14 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { InfoIcon, BookIcon, ShieldIcon, SmartphoneIcon, HomeIcon, MailIcon, TagIcon, ExternalLinkIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext'; // Import useAuth
 import { useFooterContent } from '@/hooks/useFooterContent';
 
 export function Footer() {
     const t = useTranslations();
+    const locale = useLocale();
     const currentYear = new Date().getFullYear();
     const { isAuthenticated: isUserAuthenticated, user } = useAuth(); // Lấy trạng thái xác thực và user từ context
     const { content: footerContent, loading: footerLoading } = useFooterContent();
@@ -47,31 +48,31 @@ export function Footer() {
                         <h3 className="text-lg font-semibold mb-6 text-white">{t('footer.links.title')}</h3>
                         <ul className="space-y-3">
                             <li>
-                                <Link href="/about" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href={`/${locale}/about`} className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <InfoIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.company1 || t('footer.links.aboutUs')}</span>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/features" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href={`/${locale}/features`} className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <TagIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product1 || t('footer.links.features')}</span>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/roadmap" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href={`/${locale}/roadmap`} className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <ExternalLinkIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product2 || t('footer.links.roadmap')}</span>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/pricing" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href={`/${locale}/pricing`} className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <TagIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.product3 || t('footer.links.pricing')}</span>
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/contact" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href={`/${locale}/contact`} className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <MailIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.company2 || t('footer.links.contact')}</span>
                                 </Link>
