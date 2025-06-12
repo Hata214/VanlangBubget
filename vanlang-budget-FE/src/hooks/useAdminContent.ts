@@ -36,61 +36,48 @@ export function useAdminContent<T = any>(contentType: string, language: string =
                     console.log(`🔍 Loading ${contentType} as separate content type`)
                 }
 
-                const response = await siteContentService.getContentByType(actualContentType, language)
-                console.log(`🔍 ${contentType} content response:`, response)
+                // Gọi service không cần language, backend trả về toàn bộ document
+                const response = await siteContentService.getContentByType(actualContentType);
+                console.log(`🔍 ${actualContentType} (for ${contentType}) full content response:`, response);
 
-                if (response && response.data) {
-                    let finalContent = response.data
+                if (response && response.data && response.data.content) {
+                    const fullMultiLangContent = response.data.content; // Đây là object { vi: {...}, en: {...} }
+                    let contentForCurrentLanguage = fullMultiLangContent[language];
 
-                    // Xử lý đặc biệt cho các content types - extract language specific content
-                    if (['about', 'features', 'roadmap', 'pricing', 'contact'].includes(contentType)) {
-                        console.log(`🔍 Processing ${contentType} content for language: ${language}`)
-                        console.log(`🔍 Raw API response data:`, finalContent)
-
-                        // Kiểm tra cấu trúc API response có multilingual không: { vi: {...}, en: {...} }
-                        if (finalContent[language]) {
-                            // Cấu trúc multilingual - extract language specific content
-                            finalContent = finalContent[language]
-                            console.log(`🔍 Extracted ${contentType} content for ${language}:`, finalContent)
-                        } else if (finalContent.title || finalContent.description) {
-                            // Cấu trúc single language - sử dụng trực tiếp
-                            console.log(`🔍 Using direct ${contentType} content (single language):`, finalContent)
-                            // finalContent giữ nguyên
-                        } else {
-                            console.log(`🔍 No valid content structure found for ${contentType}, using fallback`)
-                            finalContent = null // Sẽ fallback về translation
-                        }
-                    }
-                    // Nếu cần extract section từ homepage content
-                    else if (extractSection) {
-                        console.log(`🔍 Extracting ${extractSection} from response:`, response.data)
-
-                        // Kiểm tra cấu trúc response: { status: 'success', data: { content: {...} } }
-                        if (response.data.data && response.data.data.content) {
-                            finalContent = response.data.data.content[extractSection]
-                            console.log(`🔍 Extracted ${extractSection} from response.data.data.content:`, finalContent)
-                        }
-                        // Kiểm tra cấu trúc: { data: { content: {...} } }
-                        else if (response.data.content) {
-                            finalContent = response.data.content[extractSection]
-                            console.log(`🔍 Extracted ${extractSection} from response.data.content:`, finalContent)
-                        }
-                        // Kiểm tra cấu trúc: { [extractSection]: {...} }
-                        else if (response.data[extractSection]) {
-                            finalContent = response.data[extractSection]
-                            console.log(`🔍 Extracted ${extractSection} directly from response.data:`, finalContent)
-                        }
-                        else {
-                            console.log(`🔍 Could not find ${extractSection} in response, using full response`)
-                            finalContent = response.data
-                        }
+                    if (extractSection && contentForCurrentLanguage) {
+                        // Nếu là section của homepage, lấy phần section từ ngôn ngữ hiện tại
+                        contentForCurrentLanguage = contentForCurrentLanguage[extractSection];
+                        console.log(`🔍 Extracted section '${extractSection}' for language '${language}':`, contentForCurrentLanguage);
+                    } else if (extractSection && !contentForCurrentLanguage) {
+                        // Trường hợp homepage có section nhưng ngôn ngữ đó chưa có content
+                        console.warn(`🔍 No content for language '${language}' in homepage to extract section '${extractSection}'.`);
+                        contentForCurrentLanguage = null;
+                    } else if (!extractSection && !contentForCurrentLanguage && Object.keys(fullMultiLangContent).length > 0) {
+                        // Nếu không phải section homepage, và ngôn ngữ hiện tại không có content,
+                        // nhưng có content ở ngôn ngữ khác, có thể fallback hoặc để null.
+                        // Hiện tại để null để component tự fallback qua i18n.
+                        console.warn(`🔍 No content for language '${language}' for type '${actualContentType}'.`);
+                        contentForCurrentLanguage = null;
+                    } else if (!contentForCurrentLanguage && Object.keys(fullMultiLangContent).length === 0) {
+                        // Không có content cho bất kỳ ngôn ngữ nào
+                        console.warn(`🔍 No content found for any language for type '${actualContentType}'.`);
+                        contentForCurrentLanguage = null;
                     }
 
-                    console.log(`🔍 Setting content for ${contentType}:`, finalContent)
-                    setContent(finalContent)
-                } else {
-                    console.log(`🔍 No data in response for ${contentType}, using fallback`)
-                    setContent(null) // Fallback to translation
+
+                    console.log(`🔍 Setting content for ${contentType} (lang: ${language}):`, contentForCurrentLanguage);
+                    setContent(contentForCurrentLanguage || null);
+
+                } else if (response && response.data && (contentType === 'header' || contentType === 'footer')) {
+                    // Xử lý trường hợp cũ của header/footer nơi content có thể nằm trực tiếp trong response.data
+                    const fullMultiLangContent = response.data;
+                    let contentForCurrentLanguage = fullMultiLangContent[language];
+                    console.warn(`🔍 Using direct data for ${contentType} (lang: ${language}):`, contentForCurrentLanguage);
+                    setContent(contentForCurrentLanguage || null);
+                }
+                else {
+                    console.log(`🔍 No data.content in response for ${contentType}, using fallback`);
+                    setContent(null); // Fallback to translation
                 }
             } catch (err) {
                 console.error(`Error loading ${contentType} content:`, err)
