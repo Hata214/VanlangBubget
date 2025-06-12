@@ -65,9 +65,33 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     }, [selectedPage]); // Reload content when selectedPage changes
 
     useEffect(() => {
-        if (fullContent) {
-            setCurrentLangContent(fullContent[currentLanguage] || {});
+        console.log('🔄 useEffect triggered - fullContent:', fullContent, 'currentLanguage:', currentLanguage);
+
+        if (fullContent && typeof fullContent === 'object') {
+            // Check if fullContent has the expected multilingual structure
+            if (fullContent[currentLanguage]) {
+                console.log(`🌐 Setting currentLangContent for language: ${currentLanguage}`, fullContent[currentLanguage]);
+                setCurrentLangContent(fullContent[currentLanguage]);
+            } else {
+                // Fallback: if current language doesn't exist, try to use the content directly
+                // This handles cases where content might not be in multilingual format yet
+                console.warn(`⚠️ No content found for language: ${currentLanguage}, available languages:`, Object.keys(fullContent));
+
+                // Try to find any available language content
+                const availableLanguages = Object.keys(fullContent);
+                if (availableLanguages.length > 0 && typeof fullContent[availableLanguages[0]] === 'object') {
+                    console.log(`🔄 Using fallback language: ${availableLanguages[0]}`);
+                    setCurrentLangContent(fullContent[availableLanguages[0]]);
+                } else {
+                    // If no proper language structure, use fullContent directly (legacy format)
+                    console.log('🔄 Using fullContent directly (legacy format)');
+                    setCurrentLangContent(fullContent);
+                }
+            }
             setPreviewKey(prev => prev + 1); // Force preview update when language or full content changes
+        } else {
+            console.log('🔄 No fullContent available, setting empty currentLangContent');
+            setCurrentLangContent({});
         }
     }, [currentLanguage, fullContent]);
 
