@@ -328,7 +328,7 @@ export default function AdminLoginPage() {
                                 transition: 'border-color 0.2s, box-shadow 0.2s',
                                 backgroundColor: '#fff'
                             }}
-                            placeholder="superadmin@control.vn"
+                            placeholder=""
                         />
                     </div>
 
@@ -364,7 +364,7 @@ export default function AdminLoginPage() {
                                     transition: 'border-color 0.2s, box-shadow 0.2s',
                                     backgroundColor: '#fff'
                                 }}
-                                placeholder="Admin123!"
+                                placeholder=""
                             />
                             <button
                                 type="button"
