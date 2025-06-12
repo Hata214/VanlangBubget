@@ -366,7 +366,26 @@
         "didntReceiveCode": "Không nhận được mã?",
         "resendCode": "Gửi lại mã",
         "resendCodeIn": "Gửi lại mã sau",
-        "checkSpamNote": "Hãy kiểm tra cả thư mục Thư rác (Spam) nhé !"
+        "checkSpamNote": "Hãy kiểm tra cả thư mục Thư rác (Spam) nhé !",
+        "validation": {
+            "nameRequired": "Họ và tên là bắt buộc",
+            "nameMinLength": "Họ và tên phải có ít nhất 2 ký tự",
+            "nameMaxLength": "Họ và tên không được vượt quá 100 ký tự",
+            "namePattern": "Họ và tên chỉ được chứa chữ cái và khoảng trắng",
+            "emailRequired": "Email là bắt buộc",
+            "emailInvalid": "Email không đúng định dạng. Ví dụ: example@gmail.com",
+            "emailMaxLength": "Email không được vượt quá 255 ký tự",
+            "passwordRequired": "Mật khẩu là bắt buộc",
+            "passwordMinLength": "Mật khẩu phải có ít nhất 8 ký tự",
+            "passwordMaxLength": "Mật khẩu không được vượt quá 128 ký tự",
+            "passwordLowerCase": "Mật khẩu phải có ít nhất 1 chữ thường (a-z)",
+            "passwordUpperCase": "Mật khẩu phải có ít nhất 1 chữ hoa (A-Z)",
+            "passwordNumber": "Mật khẩu phải có ít nhất 1 số (0-9)",
+            "passwordSpecialChar": "Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*)",
+            "confirmPasswordRequired": "Xác nhận mật khẩu là bắt buộc",
+            "confirmPasswordMismatch": "Mật khẩu xác nhận không khớp với mật khẩu đã nhập",
+            "checkFieldsBelow": "Vui lòng kiểm tra và sửa các lỗi bên dưới"
+        }
     },
     "common": {
         "save": "Lưu thay đổi",
@@ -504,8 +523,9 @@
             "subtitle": "Quản lý tất cả giao dịch thanh toán premium của người dùng trong hệ thống",
             "comingSoon": {
                 "title": "Tính năng đang phát triển",
-                "description": "Hệ thống quản lý giao dịch thanh toán đang được phát triển để chuẩn bị cho việc ra mắt các gói premium. Hiện tại bạn có thể xem giao diện và tạo dữ liệu mẫu để test.",
-                "createSample": "Tạo dữ liệu mẫu để test"
+                "description": "Hệ thống quản lý giao dịch thanh toán đang được phát triển để chuẩn bị cho việc ra mắt các gói premium. Bạn có thể tạo dữ liệu thật từ users hiện có hoặc dữ liệu mẫu để test.",
+                "createSample": "Tạo dữ liệu mẫu để test",
+                "migrateReal": "Tạo dữ liệu thật từ Users"
             },
             "stats": {
                 "totalRevenue": "Tổng doanh thu",
@@ -580,6 +600,7 @@
                 "hideFilters": "Ẩn bộ lọc",
                 "refresh": "Làm mới",
                 "createSample": "Tạo dữ liệu mẫu",
+                "migrateReal": "Tạo dữ liệu thật từ Users",
                 "exportReport": "Xuất báo cáo",
                 "view": "Xem",
                 "edit": "Sửa"
@@ -595,7 +616,9 @@
                 "exportSuccess": "Xuất báo cáo thành công",
                 "exportError": "Không thể xuất báo cáo",
                 "sampleCreated": "Đã tạo {count} giao dịch mẫu thành công",
-                "sampleError": "Không thể tạo dữ liệu mẫu"
+                "sampleError": "Không thể tạo dữ liệu mẫu",
+                "migrateSuccess": "Đã migrate {count} giao dịch thật từ {users} users",
+                "migrateError": "Không thể migrate dữ liệu thật"
             }
         }
     },

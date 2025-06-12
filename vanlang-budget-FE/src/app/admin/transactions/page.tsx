@@ -50,7 +50,8 @@ import {
     Clock,
     XCircle,
     AlertCircle,
-    Zap
+    Zap,
+    Database
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
@@ -173,7 +174,25 @@ export default function AdminTransactionsPage() {
         }
     };
 
-    // Create sample transactions (for development)
+    // Migrate real payment transactions from existing users
+    const migrateRealTransactions = async () => {
+        try {
+            setLoading(true);
+            const response = await adminService.migrateRealPaymentTransactions();
+            if (response.status === 'success') {
+                toast.success(`Đã migrate ${response.data.transactionsCreated} giao dịch thật từ ${response.data.usersProcessed} users`);
+                await loadTransactions();
+                await loadStats();
+            }
+        } catch (error: any) {
+            console.error('Error migrating real transactions:', error);
+            toast.error(error.message || 'Không thể migrate dữ liệu thật');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Create sample transactions (for development) - DEPRECATED
     const createSampleTransactions = async () => {
         try {
             setLoading(true);
@@ -182,6 +201,8 @@ export default function AdminTransactionsPage() {
                 toast.success(`Đã tạo ${response.data.count} giao dịch mẫu thành công`);
                 await loadTransactions();
                 await loadStats();
+            } else if (response.status === 'info') {
+                toast.info(response.message);
             }
         } catch (error: any) {
             console.error('Error creating sample transactions:', error);
@@ -547,12 +568,18 @@ export default function AdminTransactionsPage() {
                         </h3>
                         <p className="text-blue-700 mb-4">
                             Hệ thống quản lý giao dịch thanh toán đang được phát triển để chuẩn bị cho việc ra mắt các gói premium.
-                            Hiện tại bạn có thể xem giao diện và tạo dữ liệu mẫu để test.
+                            Bạn có thể tạo dữ liệu thật từ users hiện có hoặc dữ liệu mẫu để test.
                         </p>
-                        <Button onClick={createSampleTransactions} className="bg-blue-600 hover:bg-blue-700">
-                            <Zap className="w-4 h-4 mr-2" />
-                            Tạo dữ liệu mẫu để test
-                        </Button>
+                        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <Button onClick={migrateRealTransactions} className="bg-green-600 hover:bg-green-700" disabled={loading}>
+                                <Database className="w-4 h-4 mr-2" />
+                                {loading ? 'Đang xử lý...' : 'Tạo dữ liệu thật từ Users'}
+                            </Button>
+                            <Button onClick={createSampleTransactions} className="bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                                <Zap className="w-4 h-4 mr-2" />
+                                {loading ? 'Đang xử lý...' : 'Tạo dữ liệu mẫu (Deprecated)'}
+                            </Button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

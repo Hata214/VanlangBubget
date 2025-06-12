@@ -277,7 +277,15 @@ export const adminService = {
     },
 
     /**
-     * Tạo giao dịch mẫu (cho development/testing)
+     * Migrate dữ liệu payment transactions thật từ users hiện có
+     */
+    async migrateRealPaymentTransactions() {
+        const response = await api.post('/api/admin/transactions/migrate-real-data');
+        return response.data;
+    },
+
+    /**
+     * Tạo giao dịch mẫu (cho development/testing) - DEPRECATED
      */
     async createSampleTransactions() {
         const response = await api.post('/api/admin/transactions/create-sample');

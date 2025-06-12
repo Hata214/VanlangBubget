@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/Label'
 import { BackToHome } from '@/components/auth/BackToHome'
 import { Mail, CheckCircle } from 'lucide-react'
 import OTPVerification from '@/components/auth/OTPVerification'
+import PasswordStrengthIndicator from '@/components/auth/PasswordStrengthIndicator'
 
 interface RegisterFormData {
     name: string
@@ -72,7 +73,24 @@ export default function RegisterPage() {
             // Redux store sẽ được cập nhật sau khi xác thực OTP thành công
         } catch (error: any) {
             console.error('Register error:', error)
-            setErrorMessage(error.response?.data?.message || t('error.registrationFailed'))
+
+            // Xử lý lỗi validation từ backend
+            if (error.response?.data?.errors) {
+                const backendErrors = error.response.data.errors;
+
+                // Set lỗi cho từng field
+                Object.keys(backendErrors).forEach(field => {
+                    form.setError(field as keyof RegisterFormData, {
+                        type: 'server',
+                        message: backendErrors[field]
+                    });
+                });
+
+                setErrorMessage('Vui lòng kiểm tra và sửa các lỗi bên dưới')
+            } else {
+                setErrorMessage(error.response?.data?.message || t('error.registrationFailed'))
+            }
+
             setShowError(true)
             dispatch(setError(error.response?.data?.message || t('error.registrationFailed')))
         } finally {
@@ -150,10 +168,22 @@ export default function RegisterPage() {
                                                 value: 2,
                                                 message: 'Họ và tên phải có ít nhất 2 ký tự',
                                             },
+                                            maxLength: {
+                                                value: 100,
+                                                message: 'Họ và tên không được vượt quá 100 ký tự',
+                                            },
+                                            pattern: {
+                                                value: /^[a-zA-ZÀ-ỹ\s]+$/,
+                                                message: 'Họ và tên chỉ được chứa chữ cái và khoảng trắng',
+                                            },
                                         })}
+                                        className={form.formState.errors.name ? 'border-red-500' : ''}
                                     />
                                     {form.formState.errors.name && (
-                                        <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
+                                        <p className="text-sm text-red-500 flex items-center gap-1">
+                                            <span className="text-red-500">⚠</span>
+                                            {form.formState.errors.name.message}
+                                        </p>
                                     )}
                                 </div>
 
@@ -166,12 +196,21 @@ export default function RegisterPage() {
                                             required: 'Email là bắt buộc',
                                             pattern: {
                                                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                                message: 'Email không hợp lệ',
+                                                message: 'Email không đúng định dạng. Ví dụ: example@gmail.com',
+                                            },
+                                            maxLength: {
+                                                value: 255,
+                                                message: 'Email không được vượt quá 255 ký tự',
                                             },
                                         })}
+                                        className={form.formState.errors.email ? 'border-red-500' : ''}
+                                        placeholder="example@gmail.com"
                                     />
                                     {form.formState.errors.email && (
-                                        <p className="text-sm text-red-500">{form.formState.errors.email.message}</p>
+                                        <p className="text-sm text-red-500 flex items-center gap-1">
+                                            <span className="text-red-500">⚠</span>
+                                            {form.formState.errors.email.message}
+                                        </p>
                                     )}
                                 </div>
 
@@ -183,14 +222,37 @@ export default function RegisterPage() {
                                         {...form.register('password', {
                                             required: 'Mật khẩu là bắt buộc',
                                             minLength: {
-                                                value: 6,
-                                                message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                                                value: 8,
+                                                message: 'Mật khẩu phải có ít nhất 8 ký tự',
+                                            },
+                                            maxLength: {
+                                                value: 128,
+                                                message: 'Mật khẩu không được vượt quá 128 ký tự',
+                                            },
+                                            validate: {
+                                                hasLowerCase: (value) =>
+                                                    /[a-z]/.test(value) || 'Mật khẩu phải có ít nhất 1 chữ thường (a-z)',
+                                                hasUpperCase: (value) =>
+                                                    /[A-Z]/.test(value) || 'Mật khẩu phải có ít nhất 1 chữ hoa (A-Z)',
+                                                hasNumber: (value) =>
+                                                    /[0-9]/.test(value) || 'Mật khẩu phải có ít nhất 1 số (0-9)',
+                                                hasSpecialChar: (value) =>
+                                                    /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\?]/.test(value) || 'Mật khẩu phải có ít nhất 1 ký tự đặc biệt (!@#$%^&*)',
                                             },
                                         })}
+                                        className={form.formState.errors.password ? 'border-red-500' : ''}
+                                        placeholder="Ít nhất 8 ký tự, có chữ hoa, chữ thường, số và ký tự đặc biệt"
                                     />
                                     {form.formState.errors.password && (
-                                        <p className="text-sm text-red-500">{form.formState.errors.password.message}</p>
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-red-500 flex items-center gap-1">
+                                                <span className="text-red-500">⚠</span>
+                                                {form.formState.errors.password.message}
+                                            </p>
+                                        </div>
                                     )}
+                                    {/* Password strength indicator */}
+                                    <PasswordStrengthIndicator password={form.watch('password') || ''} />
                                 </div>
 
                                 <div className="space-y-2">
@@ -202,11 +264,31 @@ export default function RegisterPage() {
                                             required: 'Xác nhận mật khẩu là bắt buộc',
                                             validate: (value: string) =>
                                                 value === form.watch('password') ||
-                                                'Mật khẩu xác nhận không khớp',
+                                                'Mật khẩu xác nhận không khớp với mật khẩu đã nhập',
                                         })}
+                                        className={form.formState.errors.confirmPassword ? 'border-red-500' : ''}
+                                        placeholder="Nhập lại mật khẩu để xác nhận"
                                     />
                                     {form.formState.errors.confirmPassword && (
-                                        <p className="text-sm text-red-500">{form.formState.errors.confirmPassword.message}</p>
+                                        <p className="text-sm text-red-500 flex items-center gap-1">
+                                            <span className="text-red-500">⚠</span>
+                                            {form.formState.errors.confirmPassword.message}
+                                        </p>
+                                    )}
+                                    {/* Password match indicator */}
+                                    {form.watch('confirmPassword') && (
+                                        <div className={`text-xs flex items-center gap-1 ${form.watch('confirmPassword') === form.watch('password')
+                                            ? 'text-green-600'
+                                            : 'text-red-500'
+                                            }`}>
+                                            <span>
+                                                {form.watch('confirmPassword') === form.watch('password') ? '✓' : '✗'}
+                                            </span>
+                                            {form.watch('confirmPassword') === form.watch('password')
+                                                ? 'Mật khẩu khớp'
+                                                : 'Mật khẩu không khớp'
+                                            }
+                                        </div>
                                     )}
                                 </div>
                             </div>

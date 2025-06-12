@@ -15,19 +15,27 @@ export const registerSchema = Joi.object({
 
     password: Joi.string()
         .min(8)
+        .max(128)
         .required()
-        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])'))
+        .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};\':"\\|,.<>\\?])'))
         .messages({
             'string.min': 'Mật khẩu phải có ít nhất {#limit} ký tự',
+            'string.max': 'Mật khẩu không được vượt quá {#limit} ký tự',
             'string.empty': 'Mật khẩu không được để trống',
-            'string.pattern.base': 'Mật khẩu phải có ít nhất một chữ thường, một chữ hoa và một số',
+            'string.pattern.base': 'Mật khẩu phải có ít nhất: 1 chữ thường (a-z), 1 chữ hoa (A-Z), 1 số (0-9) và 1 ký tự đặc biệt (!@#$%^&*)',
             'any.required': 'Mật khẩu là bắt buộc'
         }),
 
     name: Joi.string()
+        .min(2)
+        .max(100)
         .required()
+        .pattern(new RegExp('^[a-zA-ZÀ-ỹ\\s]+$'))
         .messages({
+            'string.min': 'Họ và tên phải có ít nhất {#limit} ký tự',
+            'string.max': 'Họ và tên không được vượt quá {#limit} ký tự',
             'string.empty': 'Họ và tên không được để trống',
+            'string.pattern.base': 'Họ và tên chỉ được chứa chữ cái và khoảng trắng',
             'any.required': 'Họ và tên là bắt buộc'
         }),
 

@@ -5,7 +5,8 @@ import {
     getPaymentTransactionById,
     updateTransactionStatus,
     getPaymentTransactionStats,
-    createSampleTransactions
+    createSampleTransactions,
+    migrateRealPaymentTransactions
 } from '../controllers/paymentTransactionController.js';
 
 const router = express.Router();
@@ -24,7 +25,14 @@ router.use(restrictTo('admin', 'superadmin'));
 router.get('/stats', getPaymentTransactionStats);
 
 /**
- * @desc    Tạo giao dịch mẫu (chỉ dành cho development/testing)
+ * @desc    Migrate dữ liệu payment transactions thật từ users hiện có
+ * @route   POST /api/admin/transactions/migrate-real-data
+ * @access  Private (SuperAdmin only)
+ */
+router.post('/migrate-real-data', restrictTo('superadmin'), migrateRealPaymentTransactions);
+
+/**
+ * @desc    Tạo giao dịch mẫu (chỉ dành cho development/testing) - DEPRECATED
  * @route   POST /api/admin/transactions/create-sample
  * @access  Private (SuperAdmin only)
  */

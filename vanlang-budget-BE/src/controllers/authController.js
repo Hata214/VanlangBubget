@@ -5,6 +5,7 @@ import IncomeCategory from '../models/incomeCategoryModel.js';
 import { AppError } from '../middlewares/errorMiddleware.js';
 import { createTokenPair, blacklistToken, verifyToken } from '../utils/jwtUtils.js';
 import { sendOTPVerificationEmail, sendPasswordResetEmail, renderResetPasswordToken } from '../utils/emailUtils.js';
+import { registerSchema } from '../validations/authValidation.js';
 import mongoose from 'mongoose';
 
 /**
@@ -79,8 +80,24 @@ const createSendToken = (user, statusCode, req, res) => {
  */
 export const register = async (req, res, next) => {
     try {
-        // Lấy thông tin từ request body
-        const { email, password, name, phoneNumber, locale } = req.body;
+        // Validate dữ liệu đầu vào
+        const { error, value } = registerSchema.validate(req.body, { abortEarly: false });
+        if (error) {
+            const validationErrors = {};
+            error.details.forEach(detail => {
+                const field = detail.path[0];
+                validationErrors[field] = detail.message;
+            });
+
+            return res.status(400).json({
+                status: 'error',
+                message: 'Dữ liệu không hợp lệ',
+                errors: validationErrors
+            });
+        }
+
+        // Lấy thông tin từ request body đã được validate
+        const { email, password, name, phoneNumber, locale } = value;
 
         // Phân tách name thành firstName và lastName
         let firstName = '', lastName = '';
