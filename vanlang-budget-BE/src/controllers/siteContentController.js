@@ -153,7 +153,7 @@ export const getSiteContentByType = async (req, res, next) => {
                         content: defaultHomepageContent,
                         version: 1,
                         status: 'published',
-                        sections: Object.keys(defaultHomepageContent)
+                        sections: Object.keys(defaultHomepageContent.vi || defaultHomepageContent)
                     }
                 });
             }
@@ -307,14 +307,17 @@ export const getHomepageSection = async (req, res, next) => {
         // Nếu không có dữ liệu trong DB, sử dụng dữ liệu mặc định
         if (!homepage) {
             // Kiểm tra xem section có tồn tại trong dữ liệu mặc định không
-            if (defaultHomepageContent[section]) {
-                logger.info(`Không tìm thấy nội dung trang chủ, trả về dữ liệu mặc định cho section: ${section}`);
+            const defaultLang = language && language !== 'vi' ? language : 'vi';
+            const defaultContent = defaultHomepageContent[defaultLang];
+
+            if (defaultContent && defaultContent[section]) {
+                logger.info(`Không tìm thấy nội dung trang chủ, trả về dữ liệu mặc định cho section: ${section}, language: ${defaultLang}`);
                 return res.status(200).json({
                     status: 'success',
-                    data: defaultHomepageContent[section]
+                    data: defaultContent[section]
                 });
             } else {
-                logger.info(`Section ${section} không tồn tại trong dữ liệu mặc định`);
+                logger.info(`Section ${section} không tồn tại trong dữ liệu mặc định cho ngôn ngữ ${defaultLang}`);
                 return res.status(200).json({
                     status: 'success',
                     data: null
@@ -340,10 +343,13 @@ export const getHomepageSection = async (req, res, next) => {
         if (!content[section]) {
             // console.log(`Section ${section} không tồn tại trong nội dung trang chủ, sử dụng dữ liệu mặc định`);
             // Nếu không có trong DB, sử dụng dữ liệu mặc định
-            if (defaultHomepageContent[section]) {
+            const defaultLang = language && language !== 'vi' ? language : 'vi';
+            const defaultContent = defaultHomepageContent[defaultLang];
+
+            if (defaultContent && defaultContent[section]) {
                 return res.status(200).json({
                     status: 'success',
-                    data: defaultHomepageContent[section],
+                    data: defaultContent[section],
                     meta: {
                         source: 'fallback'
                     }
@@ -421,10 +427,10 @@ export const updateHomepageSection = async (req, res, next) => {
             status: 'success',
             data: content, // Trả về nội dung của section vừa được cập nhật
             meta: {
-                version: updatedContentDoc.version,
-                status: updatedContentDoc.status,
-                updatedAt: updatedContentDoc.updatedAt,
-                // sections: updatedContentDoc.sections // Cân nhắc trả về sections nếu cần
+                version: updatedContent.version,
+                status: updatedContent.status,
+                updatedAt: updatedContent.updatedAt,
+                // sections: updatedContent.sections // Cân nhắc trả về sections nếu cần
             }
         });
 

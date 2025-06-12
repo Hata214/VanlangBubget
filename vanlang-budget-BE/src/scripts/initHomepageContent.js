@@ -76,7 +76,7 @@ const createHomepageContent = async () => {
         const newHomepage = await SiteContent.create({
             type: 'homepage',
             content: defaultHomepageContent,
-            sections: Object.keys(defaultHomepageContent),
+            sections: Object.keys(defaultHomepageContent.vi || defaultHomepageContent),
             status: 'published',
             version: 1
         });
@@ -103,7 +103,7 @@ const updateHomepageContent = async () => {
             { type: 'homepage' },
             {
                 content: defaultHomepageContent,
-                sections: Object.keys(defaultHomepageContent),
+                sections: Object.keys(defaultHomepageContent.vi || defaultHomepageContent),
                 status: 'published'
             },
             { new: true }

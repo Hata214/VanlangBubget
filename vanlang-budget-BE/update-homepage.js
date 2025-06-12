@@ -33,18 +33,18 @@ const SiteContent = mongoose.model('SiteContent', siteContentSchema);
 const updateHomepage = async () => {
     try {
         console.log('🔄 Đang cập nhật nội dung trang chủ...');
-        
+
         const result = await SiteContent.findOneAndUpdate(
             { type: 'homepage' },
             {
                 content: defaultHomepageContent,
-                sections: Object.keys(defaultHomepageContent),
+                sections: Object.keys(defaultHomepageContent.vi || defaultHomepageContent),
                 status: 'published',
                 updatedAt: new Date(),
                 lastUpdatedBy: 'system-update'
             },
-            { 
-                new: true, 
+            {
+                new: true,
                 upsert: true // Tạo mới nếu không tồn tại
             }
         );
@@ -53,7 +53,7 @@ const updateHomepage = async () => {
         console.log('📄 ID:', result._id);
         console.log('📊 Sections:', result.sections);
         console.log('🕒 Updated at:', result.updatedAt);
-        
+
         return result;
     } catch (error) {
         console.error('❌ Lỗi khi cập nhật:', error);
