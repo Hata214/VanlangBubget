@@ -24,7 +24,7 @@ const siteContentSchema = new mongoose.Schema(
                     if (this.type === 'homepage') {
                         // Kiểm tra content phải là một object
                         if (typeof content !== 'object' || content === null) {
-                            console.log('Nội dung không phải là object');
+                            // console.log('Nội dung không phải là object'); // Removed for production
                             return false;
                         }
 
@@ -35,7 +35,7 @@ const siteContentSchema = new mongoose.Schema(
                         });
 
                         if (!hasAtLeastOneSection) {
-                            console.log('Nội dung homepage phải có ít nhất một section hợp lệ');
+                            // console.log('Nội dung homepage phải có ít nhất một section hợp lệ'); // Removed for production
                             return false;
                         }
 
@@ -171,11 +171,9 @@ siteContentSchema.statics.getHomepageContent = async function (language = 'vi') 
             status: homepageContent.status,
             sections: homepageContent.sections
         };
-
-        console.log(`[DEBUG] Returning homepage content with keys:`, Object.keys(result.content || {}));
         return result;
     } catch (error) {
-        console.error('Lỗi khi lấy nội dung trang chủ:', error);
+        // console.error('Lỗi khi lấy nội dung trang chủ:', error); // Có thể bật lại nếu cần debug
         return null;
     }
 };

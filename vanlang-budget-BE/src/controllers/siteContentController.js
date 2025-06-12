@@ -62,7 +62,7 @@ export const getSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { language } = req.query;
 
-        console.log(`getSiteContentByType được gọi với type=${type}, language=${language}`);
+        // console.log(`getSiteContentByType được gọi với type=${type}, language=${language}`);
 
         const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
@@ -107,12 +107,12 @@ export const getSiteContentByType = async (req, res, next) => {
 
         // Xử lý đặc biệt cho features, roadmap, pricing, contact, header, footer - extract language content
         if (['features', 'roadmap', 'pricing', 'contact', 'header', 'footer'].includes(type) && language) {
-            console.log(`🔍 Extracting ${language} content for ${type}`);
+            // console.log(`🔍 Extracting ${language} content for ${type}`);
             if (responseData && responseData[language]) {
                 responseData = responseData[language];
-                console.log(`✅ Found ${language} content for ${type}:`, responseData);
+                // console.log(`✅ Found ${language} content for ${type}:`, responseData);
             } else {
-                console.log(`⚠️ No ${language} content found for ${type}, returning full content`);
+                // console.log(`⚠️ No ${language} content found for ${type}, returning full content`);
             }
         }
 
@@ -136,8 +136,8 @@ export const updateSiteContentByType = async (req, res, next) => {
         const { type } = req.params;
         const { content, status } = req.body;
 
-        console.log(`🔄 updateSiteContentByType được gọi với type=${type}`);
-        console.log(`📝 Content được gửi:`, JSON.stringify(content, null, 2));
+        // console.log(`🔄 updateSiteContentByType được gọi với type=${type}`);
+        // console.log(`📝 Content được gửi:`, JSON.stringify(content, null, 2));
 
         const validTypes = ['footer', 'header', 'about', 'terms', 'privacy', 'faq', 'contact', 'homepage', 'roadmap', 'pricing', 'features'];
 
@@ -181,7 +181,7 @@ export const updateSiteContentByType = async (req, res, next) => {
 
         // Ghi log kết quả
         logger.info(`Cập nhật nội dung ${type} thành công, ID: ${updatedContent._id}`);
-        console.log(`✅ Cập nhật thành công, trả về data:`, JSON.stringify(updatedContent.content, null, 2));
+        // console.log(`✅ Cập nhật thành công, trả về data:`, JSON.stringify(updatedContent.content, null, 2));
 
         res.status(200).json({
             status: 'success',
@@ -209,12 +209,12 @@ export const getHomepageSection = async (req, res, next) => {
         const { section } = req.params;
         const { language } = req.query;
 
-        console.log(`getHomepageSection được gọi với section=${section}, language=${language}`);
+        // console.log(`getHomepageSection được gọi với section=${section}, language=${language}`);
 
         // Kiểm tra tính hợp lệ của section
         const validSections = ['hero', 'features', 'testimonials', 'pricing', 'cta', 'stats', 'footer', 'header'];
         if (!section || !validSections.includes(section)) {
-            console.log(`Section không hợp lệ: ${section}`);
+            // console.log(`Section không hợp lệ: ${section}`);
             return next(new AppError(`Section không hợp lệ: ${section}`, 400));
         }
 
@@ -242,10 +242,10 @@ export const getHomepageSection = async (req, res, next) => {
         let content = homepage.content;
 
         // Log nội dung hiện tại để debug
-        console.log(`Nội dung trang chủ hiện tại có sections: ${Object.keys(content).join(', ')}`);
+        // console.log(`Nội dung trang chủ hiện tại có sections: ${Object.keys(content).join(', ')}`);
 
         if (language && language !== 'vi' && content[language] && content[language][section]) {
-            console.log(`Trả về nội dung section ${section} cho ngôn ngữ ${language}`);
+            // console.log(`Trả về nội dung section ${section} cho ngôn ngữ ${language}`);
             return res.status(200).json({
                 status: 'success',
                 data: content[language][section]
@@ -254,7 +254,7 @@ export const getHomepageSection = async (req, res, next) => {
 
         // Kiểm tra xem section có tồn tại không
         if (!content[section]) {
-            console.log(`Section ${section} không tồn tại trong nội dung trang chủ, sử dụng dữ liệu mặc định`);
+            // console.log(`Section ${section} không tồn tại trong nội dung trang chủ, sử dụng dữ liệu mặc định`);
             // Nếu không có trong DB, sử dụng dữ liệu mặc định
             if (defaultHomepageContent[section]) {
                 return res.status(200).json({
@@ -273,7 +273,7 @@ export const getHomepageSection = async (req, res, next) => {
         }
 
         // Trả về nội dung section chỉ định
-        console.log(`Trả về nội dung section ${section} từ database`);
+        // console.log(`Trả về nội dung section ${section} từ database`);
         res.status(200).json({
             status: 'success',
             data: content[section]

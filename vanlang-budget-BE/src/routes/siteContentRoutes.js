@@ -35,7 +35,7 @@ router.get('/footer', (req, res, next) => {
 // === Routes cụ thể cho Homepage (trước route chung) ===
 // Lấy toàn bộ nội dung trang chủ
 router.get('/homepage', (req, res, next) => {
-    console.log('Route /homepage được gọi với query:', req.query);
+    // console.log('Route /homepage được gọi với query:', req.query);
     // Chuyển hướng đến route /:type với type=homepage
     req.params.type = 'homepage';
     getSiteContentByType(req, res, next);
@@ -62,19 +62,28 @@ router.get('/contact', (req, res, next) => {
     getSiteContentByType(req, res, next);
 });
 
-// Initialize routes cho các trang riêng biệt (public để test)
-router.post('/features/initialize', initializeFeaturesContent);
-router.post('/roadmap/initialize', initializeRoadmapContent);
-router.post('/pricing/initialize', initializePricingContent);
-router.post('/contact/initialize', initializeContactContent);
+// === Routes yêu cầu xác thực và quyền Admin/SuperAdmin ===
+// Middleware này sẽ được áp dụng cho các route cần bảo vệ phía dưới
+// Đặt protect và restrictTo sớm hơn nếu các route initialize cần nó ngay
+// router.use(protect); // Tạm thời comment để đặt protect cụ thể cho từng route initialize
+// router.use(restrictTo('admin', 'superadmin')); // Tạm thời comment
 
-// === Route mới: Xử lý truy cập trực tiếp đến các section của homepage ===
+// Middleware kiểm tra quyền SuperAdmin (nếu chưa có hoặc muốn dùng riêng)
+const superAdminOnlyRoute = restrictTo('superadmin');
+
+// Initialize routes cho các trang riêng biệt (CẦN BẢO VỆ)
+router.post('/features/initialize', protect, superAdminOnlyRoute, initializeFeaturesContent);
+router.post('/roadmap/initialize', protect, superAdminOnlyRoute, initializeRoadmapContent);
+router.post('/pricing/initialize', protect, superAdminOnlyRoute, initializePricingContent);
+router.post('/contact/initialize', protect, superAdminOnlyRoute, initializeContactContent);
+
+// === Route mới: Xử_lý truy_cập trực_tiếp đến các section của homepage ===
 router.get('/:sectionType', (req, res, next) => {
     const { sectionType } = req.params;
     const homepageSections = ['hero', 'testimonials', 'cta', 'stats', 'footer', 'header'];
 
     if (homepageSections.includes(sectionType)) {
-        console.log(`Chuyển hướng truy cập từ /${sectionType} sang /homepage/${sectionType}`);
+        // console.log(`Chuyển hướng truy cập từ /${sectionType} sang /homepage/${sectionType}`);
         // Chuyển hướng đến route homepage/:section
         req.params.section = sectionType;
         return getHomepageSection(req, res, next);
@@ -117,8 +126,9 @@ router.post('/homepage/initialize', superAdminOnly, initializeHomepageContent);
 router.post('/:type/restore/:version', superAdminOnly, restoreContentVersion);
 
 // Cập nhật nội dung theo loại (bao gồm homepage)
+// Route này cần được đặt sau các route PUT cụ thể hơn nếu có
+// và đảm bảo nó nằm sau middleware protect và restrictTo
 router.put('/:type', updateSiteContentByType);
-
 
 
 export default router;
