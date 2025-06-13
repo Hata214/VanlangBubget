@@ -504,7 +504,25 @@
         "markAsRead": "Đánh dấu đã đọc",
         "alreadyRead": "Đã đọc",
         "newBadge": "Mới",
-        "updateData": "Cập nhật dữ liệu"
+        "updateData": "Cập nhật dữ liệu",
+        "errors": {
+            "markAsReadError": "Không thể đánh dấu thông báo là đã đọc",
+            "markAllReadError": "Không thể đánh dấu tất cả thông báo là đã đọc",
+            "deleteError": "Không thể xóa thông báo",
+            "deleteAllError": "Không thể xóa tất cả thông báo"
+        },
+        "success": {
+            "deleted": "Thông báo đã được xóa",
+            "allDeleted": "Đã xóa tất cả thông báo đã đọc"
+        },
+        "mockData": {
+            "welcomeTitle": "Chào mừng đến với VanLang Budget",
+            "welcomeMessage": "Cảm ơn bạn đã sử dụng hệ thống quản lý tài chính cá nhân của chúng tôi.",
+            "updateTitle": "Cập nhật mới: Tính năng đầu tư",
+            "updateMessage": "Chúng tôi đã thêm tính năng quản lý đầu tư mới. Khám phá ngay!",
+            "reminderTitle": "Nhắc nhở: Thanh toán khoản vay",
+            "reminderMessage": "Bạn có khoản vay sắp đến hạn thanh toán trong tuần này."
+        }
     },
     "dashboard": {
         "financialOverview": "Tổng quan tài chính",

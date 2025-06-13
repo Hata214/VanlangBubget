@@ -646,7 +646,25 @@
         "markAsRead": "Mark as read",
         "alreadyRead": "Already read",
         "newBadge": "New",
-        "updateData": "Update data"
+        "updateData": "Update data",
+        "errors": {
+            "markAsReadError": "Unable to mark notification as read",
+            "markAllReadError": "Unable to mark all notifications as read",
+            "deleteError": "Unable to delete notification",
+            "deleteAllError": "Unable to delete all notifications"
+        },
+        "success": {
+            "deleted": "Notification has been deleted",
+            "allDeleted": "All read notifications have been deleted"
+        },
+        "mockData": {
+            "welcomeTitle": "Welcome to VanLang Budget",
+            "welcomeMessage": "Thank you for using our personal finance management system.",
+            "updateTitle": "New Update: Investment Feature",
+            "updateMessage": "We've added a new investment management feature. Explore now!",
+            "reminderTitle": "Reminder: Loan Payment",
+            "reminderMessage": "You have a loan payment due this week."
+        }
     },
     "security": {
         "title": "Security",

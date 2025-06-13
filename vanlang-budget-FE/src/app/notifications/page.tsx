@@ -78,13 +78,13 @@ const navigateToTarget = (router: any, url: string, targetId?: string) => {
     }
 };
 
-// Thêm dữ liệu mẫu
-const mockNotifications: DisplayNotification[] = [
+// Thêm dữ liệu mẫu - moved outside component
+const createMockNotifications = (t: any): DisplayNotification[] => [
     {
         _id: 'mock-1',
         id: 'mock-1',
-        title: 'Chào mừng đến với VanLang Budget',
-        message: 'Cảm ơn bạn đã sử dụng hệ thống quản lý tài chính cá nhân của chúng tôi.',
+        title: t('notifications.mockData.welcomeTitle'),
+        message: t('notifications.mockData.welcomeMessage'),
         type: 'info',
         read: false,
         isRead: false,
@@ -95,8 +95,8 @@ const mockNotifications: DisplayNotification[] = [
     {
         _id: 'mock-2',
         id: 'mock-2',
-        title: 'Cập nhật mới: Tính năng đầu tư',
-        message: 'Chúng tôi đã thêm tính năng quản lý đầu tư mới. Khám phá ngay!',
+        title: t('notifications.mockData.updateTitle'),
+        message: t('notifications.mockData.updateMessage'),
         type: 'update',
         read: false,
         isRead: false,
@@ -107,8 +107,8 @@ const mockNotifications: DisplayNotification[] = [
     {
         _id: 'mock-3',
         id: 'mock-3',
-        title: 'Nhắc nhở: Thanh toán khoản vay',
-        message: 'Bạn có khoản vay sắp đến hạn thanh toán trong tuần này.',
+        title: t('notifications.mockData.reminderTitle'),
+        message: t('notifications.mockData.reminderMessage'),
         type: 'warning',
         read: true,
         isRead: true,
@@ -126,6 +126,9 @@ export default function NotificationsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const { notifications, isLoading: reduxLoading } = useAppSelector((state) => state.notification);
     const [showMockData, setShowMockData] = useState(false);
+
+    // Create mock notifications with translations
+    const mockNotifications = createMockNotifications(t);
 
     useEffect(() => {
         // Tải thông báo từ Redux store
@@ -189,7 +192,7 @@ export default function NotificationsPage() {
             dispatch(markAsReadThunk(id));
         } catch (err: any) {
             console.error('Error marking notification as read:', err);
-            error('Lỗi', err.message || 'Không thể đánh dấu thông báo là đã đọc');
+            error('Lỗi', err.message || t('notifications.errors.markAsReadError'));
         }
     };
 
@@ -201,7 +204,7 @@ export default function NotificationsPage() {
             dispatch(markAllAsReadThunk());
         } catch (err: any) {
             console.error('Error marking all notifications as read:', err);
-            error('Lỗi', err.message || 'Không thể đánh dấu tất cả thông báo là đã đọc');
+            error('Lỗi', err.message || t('notifications.errors.markAllReadError'));
         }
     };
 
@@ -212,10 +215,10 @@ export default function NotificationsPage() {
             await notificationService.delete(id);
             // Tải lại thông báo từ server sau khi xóa
             dispatch(fetchNotifications({ page: 1, sort: 'desc' }));
-            success('Đã xóa', 'Thông báo đã được xóa');
+            success('Đã xóa', t('notifications.success.deleted'));
         } catch (err: any) {
             console.error('Error deleting notification:', err);
-            error('Lỗi', err.message || 'Không thể xóa thông báo');
+            error('Lỗi', err.message || t('notifications.errors.deleteError'));
         } finally {
             setIsLoading(false);
         }
@@ -229,10 +232,10 @@ export default function NotificationsPage() {
             console.log('Successfully deleted all read notifications');
             // Tải lại thông báo từ server sau khi xóa
             dispatch(fetchNotifications({ page: 1, sort: 'desc' }));
-            success('Hoàn tất', 'Đã xóa tất cả thông báo đã đọc');
+            success('Hoàn tất', t('notifications.success.allDeleted'));
         } catch (err: any) {
             console.error('Error in handleDeleteAll:', err);
-            error('Lỗi', err.message || 'Không thể xóa tất cả thông báo');
+            error('Lỗi', err.message || t('notifications.errors.deleteAllError'));
         } finally {
             setIsLoading(false);
         }
@@ -311,11 +314,11 @@ export default function NotificationsPage() {
                                 {notification.title}
                                 {!notification.read && (
                                     <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-800 hover:bg-indigo-200">
-                                        Mới
+                                        {t('notifications.newBadge')}
                                     </Badge>
                                 )}
                             </div>
-                            <small className="text-indigo-500 text-xs">Cập nhật hệ thống</small>
+                            <small className="text-indigo-500 text-xs">{t('notifications.updateData')}</small>
                         </div>
                         <small className="text-indigo-500 shrink-0 ml-2">
                             {formatDistanceToNow(new Date(notification.createdAt), {
@@ -336,7 +339,7 @@ export default function NotificationsPage() {
                                     className="border-indigo-200 text-indigo-700 hover:bg-indigo-100"
                                     onClick={() => navigateToTarget(router, notification.link || '/dashboard', notification.relatedId)}
                                 >
-                                    Xem chi tiết
+                                    {t('notifications.viewDetails')}
                                     <ArrowRight className="ml-1 h-4 w-4" />
                                 </Button>
                             )}
@@ -385,7 +388,7 @@ export default function NotificationsPage() {
                             {notification.title}
                             {!notification.read && (
                                 <Badge variant="secondary" className="ml-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-900/70">
-                                    Mới
+                                    {t('notifications.newBadge')}
                                 </Badge>
                             )}
                         </div>
@@ -447,7 +450,7 @@ export default function NotificationsPage() {
                                     }}
                                 >
                                     <LinkIcon className="mr-1 h-3 w-3" />
-                                    Xem chi tiết
+                                    {t('notifications.viewDetails')}
                                 </Button>
                             )}
                             {!notification.read && (
@@ -458,7 +461,7 @@ export default function NotificationsPage() {
                                     onClick={() => handleMarkAsRead(notification._id)}
                                 >
                                     <Check className="mr-1 h-3 w-3" />
-                                    Đánh dấu đã đọc
+                                    {t('notifications.markAsRead')}
                                 </Button>
                             )}
                         </div>
@@ -525,7 +528,7 @@ export default function NotificationsPage() {
                             {notification.title}
                             {!notification.read && (
                                 <Badge variant="secondary" className={`ml-2 ${bgColor} ${textColor} hover:opacity-80`}>
-                                    Mới
+                                    {t('notifications.newBadge')}
                                 </Badge>
                             )}
                         </div>
@@ -549,7 +552,7 @@ export default function NotificationsPage() {
                                     onClick={() => handleViewAction(notification)}
                                 >
                                     <ArrowRight className="mr-1 h-3 w-3" />
-                                    Xem chi tiết
+                                    {t('notifications.viewDetails')}
                                 </Button>
                             )}
                             {!notification.read && (
@@ -560,7 +563,7 @@ export default function NotificationsPage() {
                                     onClick={() => handleMarkAsRead(notification._id)}
                                 >
                                     <Check className="mr-1 h-3 w-3" />
-                                    Đánh dấu đã đọc
+                                    {t('notifications.markAsRead')}
                                 </Button>
                             )}
                         </div>
