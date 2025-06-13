@@ -20,6 +20,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import MainLayout from '@/components/layout/MainLayout'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import AuthDebug from '@/components/debug/AuthDebug'
+import ApiTest from '@/components/debug/ApiTest'
+import FormDebug from '@/components/debug/FormDebug'
+import { useAuthToken } from '@/hooks/useAuthToken'
 
 interface ProfileFormData {
     firstName: string
@@ -40,6 +44,7 @@ export default function ProfilePage() {
     const [showSuccess, setShowSuccess] = useState(false)
     const [showPasswordSuccess, setShowPasswordSuccess] = useState(false)
     const [passwordError, setPasswordError] = useState<string | null>(null)
+    const { hasToken } = useAuthToken()
 
     const form = useForm<ProfileFormData>({
         defaultValues: {
@@ -49,14 +54,29 @@ export default function ProfilePage() {
         },
     })
 
-    // Load user profile when component mounts
+    // Load user profile when component mounts and token is available
     useEffect(() => {
-        dispatch(fetchUserProfile())
-    }, [dispatch])
+        console.log('Profile page mounted, checking token and user state...')
+        console.log('Current user state:', user)
+        console.log('Has token:', hasToken)
+
+        if (hasToken) {
+            console.log('Token available, fetching user profile...')
+            dispatch(fetchUserProfile())
+        } else {
+            console.log('No token available, skipping profile fetch')
+        }
+    }, [dispatch, hasToken])
 
     // Update form when user data changes
     useEffect(() => {
+        console.log('User data changed:', user)
         if (user) {
+            console.log('Updating form with user data:', {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: user.phoneNumber
+            })
             form.reset({
                 firstName: user.firstName || '',
                 lastName: user.lastName || '',
@@ -64,6 +84,11 @@ export default function ProfilePage() {
             })
         }
     }, [user, form])
+
+    // Debug loading and error states
+    useEffect(() => {
+        console.log('Auth state changed:', { isLoading, error, user: !!user })
+    }, [isLoading, error, user])
 
     const passwordForm = useForm<PasswordFormData>({
         defaultValues: {
@@ -134,6 +159,13 @@ export default function ProfilePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
+                            {isLoading && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                    <span className="ml-2">Đang tải thông tin...</span>
+                                </div>
+                            )}
+
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                     {showSuccess && (
@@ -319,6 +351,9 @@ export default function ProfilePage() {
                     </Card>
                 </div>
             </div>
+            <AuthDebug />
+            <ApiTest />
+            <FormDebug form={form} title="Profile Form" />
         </MainLayout>
     )
-} 
+}

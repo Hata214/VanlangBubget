@@ -94,17 +94,31 @@ const saveAuthStateToStorage = (state: AuthState) => {
 // Fetch user profile from database
 export const fetchUserProfile = createAsyncThunk(
     'auth/fetchUserProfile',
-    async () => {
-        const response = await api.get('/api/auth/me')
-        return response.data.user
+    async (_, { rejectWithValue }) => {
+        try {
+            console.log('Fetching user profile...')
+            const response = await api.get('/api/auth/me')
+            console.log('User profile response:', response.data)
+            return response.data.user
+        } catch (error: any) {
+            console.error('Error fetching user profile:', error)
+            return rejectWithValue(error.response?.data?.message || 'Không thể tải thông tin người dùng')
+        }
     }
 )
 
 export const updateProfile = createAsyncThunk(
     'auth/updateProfile',
-    async (data: { firstName: string; lastName: string; phoneNumber?: string }) => {
-        const response = await api.patch('/api/auth/updateme', data)
-        return response.data.user
+    async (data: { firstName: string; lastName: string; phoneNumber?: string }, { rejectWithValue }) => {
+        try {
+            console.log('Updating user profile with data:', data)
+            const response = await api.patch('/api/auth/updateme', data)
+            console.log('Update profile response:', response.data)
+            return response.data.user
+        } catch (error: any) {
+            console.error('Error updating user profile:', error)
+            return rejectWithValue(error.response?.data?.message || 'Không thể cập nhật thông tin')
+        }
     }
 )
 
