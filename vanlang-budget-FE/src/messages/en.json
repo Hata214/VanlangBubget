@@ -1226,7 +1226,54 @@
         "confirmUpdatePrice": "Confirm Price Update",
         "currentValue": "Current Value",
         "close": "Close",
-        "interestEarned": "Interest Earned"
+        "interestEarned": "Interest Earned",
+        "stocks": {
+            "title": "Stocks",
+            "addNewStock": "Add New Stock Investment",
+            "stockSymbol": "Stock Symbol",
+            "selectStockSymbol": "Select stock symbol...",
+            "selectStockDescription": "Choose the stock symbol you invested in",
+            "purchasePrice": "Purchase Price (VND)",
+            "purchasePriceDescription": "Purchase price per share",
+            "stockQuantity": "Quantity",
+            "stockQuantityDescription": "Number of shares (must be a multiple of 100)",
+            "brokerage": "Brokerage Firm",
+            "brokerageDescription": "Transaction fee: {feePercent}%, minimum {minFee} VND",
+            "selectBrokerage": "Select brokerage firm",
+            "otherBrokerName": "Other Brokerage Name",
+            "enterBrokerName": "Enter brokerage name",
+            "brokerFeePercent": "Transaction Fee % (Other)",
+            "brokerMinFee": "Minimum Fee (VND)",
+            "purchaseDate": "Purchase Date",
+            "purchaseDateDescription": "Date of the purchase transaction",
+            "transactionFee": "Transaction Fee (VND)",
+            "feeToggleManual": "Manual",
+            "feeToggleAuto": "Auto",
+            "feeAutoDescription": "Auto fee: {feePercent}% of transaction value, minimum {minFee} VND",
+            "stockValueSummary": "Total Stock Value:",
+            "transactionFeeSummary": "Transaction Fee:",
+            "totalInvestmentCost": "Total Investment Cost:",
+            "includingFees": "Including transaction fees",
+            "investmentNotes": "Notes",
+            "investmentNotesPlaceholder": "Add any notes about your investment decision",
+            "investmentNotesDescription": "Add any notes about your investment decision",
+            "saveInvestment": "Save Investment",
+            "useCurrentPrice": "Use Current Price",
+            "stockMarketView": "View Stock Market"
+        },
+        "savings": {
+            "title": "Savings"
+        },
+        "realestate": {
+            "title": "Real Estate"
+        },
+        "closeForm": "Close Form",
+        "validation": {
+            "purchaseDateRequired": "Please select purchase date",
+            "selectDate": "Select date",
+            "manualFeeSelected": "You have chosen to manually enter transaction fees for this brokerage.",
+            "brokerageAndOtherFees": "Brokerage and other fees"
+        }
     },
     "admin": {
         "dashboard": "Dashboard",

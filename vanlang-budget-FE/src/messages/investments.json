@@ -209,5 +209,52 @@
             "insight": "Nhận định thị trường"
         },
         "addNewGold": "Thêm khoản đầu tư vàng mới"
+    },
+    "stocks": {
+        "title": "Cổ phiếu",
+        "addNewStock": "Thêm đầu tư cổ phiếu mới",
+        "stockSymbol": "Mã cổ phiếu",
+        "selectStockSymbol": "Chọn mã cổ phiếu...",
+        "selectStockDescription": "Chọn mã cổ phiếu bạn đã đầu tư",
+        "purchasePrice": "Giá mua (VND)",
+        "purchasePriceDescription": "Giá mua một cổ phiếu",
+        "stockQuantity": "Số lượng",
+        "stockQuantityDescription": "Số lượng cổ phiếu (phải là bội số của 100)",
+        "brokerage": "Công ty chứng khoán",
+        "brokerageDescription": "Phí giao dịch: {feePercent}%, tối thiểu {minFee} VND",
+        "selectBrokerage": "Chọn công ty chứng khoán",
+        "otherBrokerName": "Tên công ty chứng khoán khác",
+        "enterBrokerName": "Nhập tên công ty",
+        "brokerFeePercent": "% Phí giao dịch (Khác)",
+        "brokerMinFee": "Phí tối thiểu (VND)",
+        "purchaseDate": "Ngày mua",
+        "purchaseDateDescription": "Ngày thực hiện giao dịch mua",
+        "transactionFee": "Phí giao dịch (VND)",
+        "feeToggleManual": "Thủ công",
+        "feeToggleAuto": "Tự động",
+        "feeAutoDescription": "Phí tự động: {feePercent}% giá trị giao dịch, tối thiểu {minFee} VND",
+        "stockValueSummary": "Tổng giá trị cổ phiếu:",
+        "transactionFeeSummary": "Phí giao dịch:",
+        "totalInvestmentCost": "Tổng chi phí đầu tư:",
+        "includingFees": "Bao gồm cả phí giao dịch",
+        "investmentNotes": "Ghi chú",
+        "investmentNotesPlaceholder": "Thêm bất kỳ ghi chú nào về quyết định đầu tư của bạn",
+        "investmentNotesDescription": "Thêm bất kỳ ghi chú nào về quyết định đầu tư của bạn",
+        "saveInvestment": "Lưu đầu tư",
+        "useCurrentPrice": "Dùng giá hiện tại",
+        "stockMarketView": "Xem thị trường chứng khoán"
+    },
+    "savings": {
+        "title": "Tiết kiệm"
+    },
+    "realestate": {
+        "title": "Đất đai"
+    },
+    "closeForm": "Đóng form",
+    "validation": {
+        "purchaseDateRequired": "Vui lòng chọn ngày mua",
+        "selectDate": "Chọn ngày",
+        "manualFeeSelected": "Bạn đã chọn nhập phí giao dịch thủ công cho công ty chứng khoán này.",
+        "brokerageAndOtherFees": "Phí môi giới và các chi phí khác"
     }
 }

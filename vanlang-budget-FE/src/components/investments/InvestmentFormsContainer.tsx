@@ -32,7 +32,7 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                     <Link href="/investments/stocks" passHref>
                         <Button variant="outline" size="sm" className="flex items-center text-blue-600 border-blue-200 hover:bg-blue-50">
                             <TrendingUp className="h-4 w-4 mr-2" />
-                            Xem thị trường chứng khoán
+                            {t('stocks.stockMarketView')}
                             <ExternalLink className="h-3 w-3 ml-1" />
                         </Button>
                     </Link>
@@ -66,19 +66,19 @@ export default function InvestmentFormsContainer({ onSuccess }: InvestmentFormsC
                     <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
                         <TabsTrigger value="stock" className="flex items-center">
                             <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
-                            Cổ phiếu
+                            {t('stocks.title')}
                         </TabsTrigger>
                         <TabsTrigger value="gold" className="flex items-center">
                             <Coins className="h-4 w-4 mr-2 text-yellow-500" />
-                            Vàng
+                            {t('goldType')}
                         </TabsTrigger>
                         <TabsTrigger value="realestate" className="flex items-center">
                             <Home className="h-4 w-4 mr-2 text-green-500" />
-                            Đất đai
+                            {t('realestate.title')}
                         </TabsTrigger>
                         <TabsTrigger value="savings" className="flex items-center">
                             <PiggyBank className="h-4 w-4 mr-2 text-blue-400" />
-                            Tiết kiệm
+                            {t('savings.title')}
                         </TabsTrigger>
                     </TabsList>
 

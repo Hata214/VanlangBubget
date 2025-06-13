@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -56,9 +57,9 @@ const formSchema = z.object({
     quantity: z.coerce.number()
         .min(100, 'Số lượng phải từ 100 cổ phiếu trở lên')
         .max(100000000, 'Số lượng tối đa là 100 triệu')
-        .refine(val => val % 100 === 0, { message: 'Số lượng phải là bội số của 100' }),
+        .refine(val => val % 100 === 0, { message: 'Quantity must be a multiple of 100' }),
     purchaseDate: z.date({
-        required_error: 'Vui lòng chọn ngày mua',
+        required_error: 'Please select purchase date',
     }),
     fee: z.coerce.number()
         .min(0, 'Phí không được âm')
@@ -98,6 +99,8 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const [formattedPrice, setFormattedPrice] = useState<string>('');
     const [selectedBroker, setSelectedBroker] = useState<BrokerOption>(BROKERS[0]);
     const { toast } = useToast();
+    const t = useTranslations('Investments');
+    const tStocks = useTranslations('Investments.stocks');
 
     // Khởi tạo form
     const form = useForm<FormValues>({
@@ -415,7 +418,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-xl text-blue-800 dark:text-blue-300">Thêm đầu tư cổ phiếu mới</CardTitle>
+                        <CardTitle className="text-xl text-blue-800 dark:text-blue-300">{tStocks('addNewStock')}</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Mã cổ phiếu */}
@@ -424,7 +427,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             name="symbol"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Mã cổ phiếu</FormLabel>
+                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('stockSymbol')}</FormLabel>
                                     <FormControl>
                                         <StockAutoComplete
                                             onStockSelect={handleStockSelect}
@@ -433,7 +436,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         />
                                     </FormControl>
                                     <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                        Chọn mã cổ phiếu bạn đã đầu tư
+                                        {tStocks('selectStockDescription')}
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -447,7 +450,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 name="price"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem className="col-span-1 md:col-span-2">
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Giá mua (VND)</FormLabel>
+                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('purchasePrice')}</FormLabel>
                                         <div className="relative">
                                             <FormControl>
                                                 <CurrencyInput
@@ -487,13 +490,13 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                             }
                                                         }}
                                                     >
-                                                        Dùng giá hiện tại
+                                                        {tStocks('useCurrentPrice')}
                                                     </Button>
                                                 )}
                                             </div>
                                         </div>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Giá mua một cổ phiếu
+                                            {tStocks('purchasePriceDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -508,7 +511,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 name="quantity"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Số lượng</FormLabel>
+                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('stockQuantity')}</FormLabel>
                                         <FormControl>
                                             <CurrencyInput
                                                 placeholder="100"
@@ -537,7 +540,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Số lượng cổ phiếu (phải là bội số của 100)
+                                            {tStocks('stockQuantityDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -550,7 +553,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 name="broker"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Công ty chứng khoán</FormLabel>
+                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerage')}</FormLabel>
                                         <Select
                                             value={field.value ?? BROKERS[0].id}
                                             onValueChange={handleBrokerChange}
@@ -558,7 +561,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn công ty chứng khoán" />
+                                                    <SelectValue placeholder={tStocks('selectBrokerage')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -570,7 +573,10 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Phí giao dịch: {selectedBroker.feePercent}%, tối thiểu {selectedBroker.minFee.toLocaleString()} VND
+                                            {tStocks('brokerageDescription', {
+                                                feePercent: selectedBroker.feePercent,
+                                                minFee: selectedBroker.minFee.toLocaleString()
+                                            })}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -587,9 +593,9 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         name="otherBrokerName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Tên công ty chứng khoán khác</FormLabel>
+                                                <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('otherBrokerName')}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="Nhập tên công ty" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                    <Input placeholder={tStocks('enterBrokerName')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -602,7 +608,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                 name="otherBrokerFeePercent"
                                                 render={({ field }) => (
                                                     <FormItem>
-                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">% Phí giao dịch (Khác)</FormLabel>
+                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerFeePercent')}</FormLabel>
                                                         <FormControl>
                                                             <Input type="number" step="0.01" placeholder="0.15" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                                         </FormControl>
@@ -615,7 +621,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                 name="otherBrokerMinFee"
                                                 render={({ field, fieldState: { error } }) => (
                                                     <FormItem>
-                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Phí tối thiểu (VND - Khác)</FormLabel>
+                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerMinFee')}</FormLabel>
                                                         <FormControl>
                                                             <CurrencyInput
                                                                 placeholder="5000"
@@ -634,7 +640,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                     )}
                                     {!(form.watch('autoFee') ?? true) && (
                                         <FormDescription className="col-span-1 md:col-span-2 text-sm text-muted-foreground dark:text-muted-foreground-dark">
-                                            Bạn đã chọn nhập phí giao dịch thủ công cho công ty chứng khoán này.
+                                            {t('validation.manualFeeSelected')}
                                         </FormDescription>
                                     )}
                                 </>
@@ -648,7 +654,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 name="purchaseDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Ngày mua</FormLabel>
+                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('purchaseDate')}</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
@@ -661,7 +667,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                         {field.value ? (
                                                             format(field.value, 'dd/MM/yyyy', { locale: vi })
                                                         ) : (
-                                                            <span>Chọn ngày</span>
+                                                            <span>{t('validation.selectDate')}</span>
                                                         )}
                                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                                                     </span>
@@ -689,7 +695,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             </PopoverContent>
                                         </Popover>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Ngày thực hiện giao dịch mua
+                                            {tStocks('purchaseDateDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -699,9 +705,9 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             {/* Phí giao dịch */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Phí giao dịch (VND)</FormLabel>
+                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('transactionFee')}</FormLabel>
                                     <div className="flex items-center space-x-2 text-sm">
-                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">Thủ công</span>
+                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">{tStocks('feeToggleManual')}</span>
                                         <FormField
                                             control={form.control}
                                             name="autoFee"
@@ -716,7 +722,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                 </FormControl>
                                             )}
                                         />
-                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">Tự động</span>
+                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">{tStocks('feeToggleAuto')}</span>
                                     </div>
                                 </div>
 
@@ -737,8 +743,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             </FormControl>
                                             <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                                 {(form.getValues('autoFee') ?? true)
-                                                    ? `Phí tự động: ${(form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerFeePercent') ?? 0.15) : selectedBroker.feePercent}% giá trị giao dịch, tối thiểu ${((form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerMinFee') ?? 0) : selectedBroker.minFee).toLocaleString()} VND`
-                                                    : "Phí môi giới và các chi phí khác"}
+                                                    ? tStocks('feeAutoDescription', {
+                                                        feePercent: (form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerFeePercent') ?? 0.15) : selectedBroker.feePercent,
+                                                        minFee: ((form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerMinFee') ?? 0) : selectedBroker.minFee).toLocaleString()
+                                                    })
+                                                    : t('validation.brokerageAndOtherFees')}
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>
@@ -750,21 +759,21 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                         {/* Tổng giá trị đầu tư */}
                         <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-md space-y-2">
                             <div className="flex justify-between items-center">
-                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng giá trị cổ phiếu:</div>
+                                <div className="font-medium text-gray-700 dark:text-gray-200">{tStocks('stockValueSummary')}</div>
                                 <div className="text-xl font-bold text-blue-800 dark:text-blue-300">
                                     {totalInvestment.toLocaleString('vi-VN')} VND
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-center text-sm">
-                                <div className="text-gray-600 dark:text-gray-300">Phí giao dịch:</div>
+                                <div className="text-gray-600 dark:text-gray-300">{tStocks('transactionFeeSummary')}</div>
                                 <div className="font-medium text-gray-700 dark:text-gray-200">
                                     + {(form.watch('fee') ?? 0).toLocaleString('vi-VN')} VND
                                 </div>
                             </div>
 
                             <div className="flex justify-between items-center pt-2 border-t border-blue-200 dark:border-gray-700">
-                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng chi phí đầu tư:</div>
+                                <div className="font-medium text-gray-700 dark:text-gray-200">{tStocks('totalInvestmentCost')}</div>
                                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">
                                     {totalWithFee.toLocaleString('vi-VN')} VND
                                 </div>
@@ -772,7 +781,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
                             <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center">
                                 <Info className="h-3 w-3 mr-1" />
-                                Bao gồm cả phí giao dịch
+                                {tStocks('includingFees')}
                             </div>
                         </div>
 
@@ -782,17 +791,17 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             name="notes"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">Ghi chú</FormLabel>
+                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('investmentNotes')}</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder="Ghi chú về khoản đầu tư này..."
+                                            placeholder={tStocks('investmentNotesPlaceholder')}
                                             className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             {...field}
                                             disabled={isLoading}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                        Thêm bất kỳ ghi chú nào về quyết định đầu tư của bạn
+                                        {tStocks('investmentNotesDescription')}
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -802,11 +811,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                     <CardFooter className="flex justify-end space-x-2 pt-0">
                         {onCancel && (
                             <Button variant="outline" onClick={onCancel} disabled={isLoading} className="bg-transparent hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark">
-                                Hủy
+                                {t('cancel')}
                             </Button>
                         )}
                         <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
-                            {isLoading ? 'Đang lưu...' : 'Lưu đầu tư'}
+                            {isLoading ? t('adding') : tStocks('saveInvestment')}
                         </Button>
                     </CardFooter>
                 </Card>
