@@ -74,8 +74,8 @@ export function NotificationHandler() {
         const handleConnectSuccess = () => {
             console.log('Socket kết nối thành công!')
             // Tham gia room của user khi kết nối thành công
-            if (user.id) {
-                const userId = String(user.id)
+            if (user._id) {
+                const userId = String(user._id)
                 socketService.emit('join', userId)
                 console.log(`Đã tham gia vào room ${userId}`)
             }
@@ -174,7 +174,7 @@ export function NotificationHandler() {
                 message,
                 type: type as any, // Sửa lỗi kiểu dữ liệu bằng cách ép kiểu
                 isRead: false,
-                userId: user.id,
+                userId: user._id,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
