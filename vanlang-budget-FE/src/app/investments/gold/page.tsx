@@ -11,7 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/Alert";
 
 export default function GoldPage() {
     const t = useTranslations('Investments');
-    const goldT = useTranslations('Investments.gold');
+    const goldT = useTranslations('Investments.goldInvestment');
 
     return (
         <MainLayout>

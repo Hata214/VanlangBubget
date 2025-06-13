@@ -123,7 +123,7 @@ export default function UpdatePriceDialog({
                             onClick={onClose}
                             disabled={isLoading}
                         >
-                            {t('common.cancel')}
+                            {t('cancel')}
                         </Button>
                         <Button type="submit" disabled={isLoading} isLoading={isLoading}>
                             {t('update')}

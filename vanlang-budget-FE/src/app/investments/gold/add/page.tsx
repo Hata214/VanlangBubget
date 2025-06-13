@@ -13,7 +13,7 @@ import { useRouter } from 'next/navigation';
 
 export default function AddGoldPage() {
     const t = useTranslations('Investments');
-    const goldT = useTranslations('Investments.gold');
+    const goldT = useTranslations('Investments.goldInvestment');
     const router = useRouter();
     const [isSuccess, setIsSuccess] = useState(false);
 
