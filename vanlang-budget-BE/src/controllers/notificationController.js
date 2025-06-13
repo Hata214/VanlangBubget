@@ -547,31 +547,36 @@ export const createAdminNotification = async (req, res, next) => {
 
         // Validation
         if (!title || !message) {
+            logger.error('Missing title or message:', { title, message });
             return res.status(400).json({
                 status: 'error',
                 message: 'Tiêu đề và nội dung thông báo là bắt buộc'
             });
         }
 
+        logger.info('Creating admin notification:', { title, message, type, sentTo });
+
         let targetUsers = [];
 
         // Xử lý người nhận
         if (sentTo === 'all') {
-            // Gửi đến tất cả người dùng
-            targetUsers = await User.find({ status: 'active' }).select('_id');
+            // Gửi đến tất cả người dùng (bỏ điều kiện status vì có thể không có field này)
+            targetUsers = await User.find({}).select('_id');
+            logger.info('Found users for "all":', targetUsers.length);
         } else if (sentTo === 'admin') {
             // Gửi đến tất cả admin
             targetUsers = await User.find({
-                role: { $in: ['admin', 'superadmin'] },
-                status: 'active'
+                role: { $in: ['admin', 'superadmin'] }
             }).select('_id');
+            logger.info('Found admins:', targetUsers.length);
         } else if (Array.isArray(sentTo)) {
             // Gửi đến danh sách email cụ thể
             targetUsers = await User.find({
-                email: { $in: sentTo },
-                status: 'active'
+                email: { $in: sentTo }
             }).select('_id');
+            logger.info('Found users by email:', targetUsers.length);
         } else {
+            logger.error('Invalid sentTo value:', sentTo);
             return res.status(400).json({
                 status: 'error',
                 message: 'Người nhận không hợp lệ'
@@ -579,6 +584,7 @@ export const createAdminNotification = async (req, res, next) => {
         }
 
         if (targetUsers.length === 0) {
+            logger.error('No users found for notification');
             return res.status(400).json({
                 status: 'error',
                 message: 'Không tìm thấy người dùng nào để gửi thông báo'
