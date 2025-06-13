@@ -41,7 +41,7 @@ const app = express();
 
 // CORS middleware setup
 // Lấy danh sách origin từ biến môi trường hoặc sử dụng mặc định
-const productionOriginsFromEnv = process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
+const productionOriginsFromEnv = process.env.CORS_ORIGIN || process.env.FRONTEND_URL;
 
 const allowedOrigins = process.env.NODE_ENV === 'development'
     ? ['http://localhost:3000', 'http://localhost:4000']
