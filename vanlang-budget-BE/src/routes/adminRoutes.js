@@ -47,6 +47,9 @@ import {
     createBackup,
     restoreFromBackup
 } from '../controllers/systemSettingsController.js';
+import {
+    getAdminNotifications
+} from '../controllers/notificationController.js';
 import multer from 'multer';
 
 const router = express.Router();
@@ -247,6 +250,12 @@ router.post('/settings/backup', createBackup);
  * Khôi phục từ backup
  */
 router.post('/settings/restore', upload.single('backup'), restoreFromBackup);
+
+// === Notification Management Routes ===
+/**
+ * Lấy tất cả thông báo của tất cả người dùng (Admin only)
+ */
+router.get('/notifications', getAdminNotifications);
 
 // === Test Route ===
 router.get('/test-logs', async (req, res) => {

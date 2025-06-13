@@ -440,7 +440,12 @@
         "filterMinAmountPlaceholder": "Số tiền tối thiểu",
         "filterMaxAmountPlaceholder": "Số tiền tối đa",
         "filterDateFromPlaceholder": "Từ ngày",
-        "filterDateToPlaceholder": "Đến ngày"
+        "filterDateToPlaceholder": "Đến ngày",
+        "previous": "Trước",
+        "page": "Trang",
+        "of": "của",
+        "next": "Tiếp",
+        "view": "Xem"
     },
     "notifications": {
         "title": "Thông báo",

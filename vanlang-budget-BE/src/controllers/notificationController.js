@@ -478,4 +478,60 @@ export const checkNegativeBalance = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
+
+/**
+ * @desc    Lấy tất cả thông báo của tất cả người dùng (Admin only)
+ * @route   GET /api/admin/notifications
+ * @access  Private (Admin)
+ */
+export const getAdminNotifications = async (req, res, next) => {
+    try {
+        const { page = 1, limit = 10, search = '' } = req.query;
+        const pageNum = parseInt(page);
+        const limitNum = parseInt(limit);
+        const skip = (pageNum - 1) * limitNum;
+
+        // Tạo query filter
+        let matchQuery = {};
+
+        if (search) {
+            matchQuery = {
+                $or: [
+                    { title: { $regex: search, $options: 'i' } },
+                    { message: { $regex: search, $options: 'i' } }
+                ]
+            };
+        }
+
+        // Lấy notifications với thông tin user
+        const notifications = await Notification.find(matchQuery)
+            .populate('user', 'firstName lastName email')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNum);
+
+        // Đếm tổng số notifications
+        const totalNotifications = await Notification.countDocuments(matchQuery);
+        const totalPages = Math.ceil(totalNotifications / limitNum);
+
+        res.status(200).json({
+            status: 'success',
+            results: notifications.length,
+            pagination: {
+                currentPage: pageNum,
+                totalPages,
+                totalNotifications,
+                hasNextPage: pageNum < totalPages,
+                hasPrevPage: pageNum > 1
+            },
+            data: {
+                notifications,
+                totalPages
+            }
+        });
+    } catch (error) {
+        logger.error('Error fetching admin notifications:', error);
+        next(error);
+    }
+};
