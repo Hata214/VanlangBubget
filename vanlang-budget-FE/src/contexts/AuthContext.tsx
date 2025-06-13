@@ -72,7 +72,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (status === 'authenticated' && session?.user) {
             // Sync NextAuth session user to Redux if not already there or different
             // This assumes the structure of session.user matches what setCredentials expects
-            if (!reduxUser || reduxUser.id !== (session.user as any).id) {
+            if (!reduxUser || reduxUser._id !== (session.user as any)._id) {
                 const nextAuthUser = session.user as any;
 
                 // Get the actual token from NextAuth session or cookies
