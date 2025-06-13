@@ -1090,7 +1090,6 @@
         "pricePositive": "Price must be positive",
         "quantityPositive": "Quantity must be positive",
         "feePositive": "Fee must be positive",
-        "purchaseDateRequired": "Purchase date is required",
         "transactionType": "Transaction Type",
         "selectTransactionType": "Select transaction type",
         "buy": "Buy",
