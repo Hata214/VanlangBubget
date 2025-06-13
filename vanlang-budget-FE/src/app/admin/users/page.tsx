@@ -154,38 +154,47 @@ export default function AdminUsersPage() {
                 sortDirection: direction
             })
 
-            // Handle response format from backend
-            if (response.success && response.data) {
-                const mappedUsers = response.data.map((user: any) => ({
-                    id: user._id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    role: user.role,
-                    active: user.active !== undefined ? user.active : true, // Default to true if undefined
-                    isEmailVerified: user.isEmailVerified || false,
-                    createdAt: user.createdAt,
-                    lastLogin: user.lastLogin
-                }))
-                setUsers(mappedUsers)
-                setTotalUsers(response.total || response.data.length)
-                setTotalPages(response.totalPages || Math.ceil((response.total || response.data.length) / 10))
-            } else {
-                // Fallback for different response format
-                const mappedUsers = (response.data || []).map((user: any) => ({
+            // Handle response format from backend - ensure data is array
+            const responseData = response?.data;
+            const responseStatus = response?.status;
+
+            console.log('API Response:', { responseStatus, responseData, response });
+
+            if ((responseStatus === 'success' || response.success) && Array.isArray(responseData)) {
+                const mappedUsers = responseData.map((user: any) => ({
                     _id: user._id || user.id,
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
                     role: user.role,
-                    active: user.active !== undefined ? user.active : true, // Default to true if undefined
+                    active: user.active !== undefined ? user.active : true,
                     isEmailVerified: user.isEmailVerified || false,
                     createdAt: user.createdAt,
                     lastLogin: user.lastLogin
                 }))
                 setUsers(mappedUsers)
-                setTotalUsers(response.totalCount || response.total || response.data?.length || 0)
-                setTotalPages(Math.ceil((response.totalCount || response.total || response.data?.length || 0) / 10))
+                setTotalUsers(response.total || responseData.length || 0)
+                setTotalPages(response.totalPages || Math.ceil((response.total || responseData.length || 0) / 10))
+            } else {
+                // Fallback - ensure we handle all possible response formats
+                console.warn('Unexpected response format:', response);
+                const fallbackData = responseData || response || [];
+                const dataArray = Array.isArray(fallbackData) ? fallbackData : [];
+
+                const mappedUsers = dataArray.map((user: any) => ({
+                    _id: user._id || user.id,
+                    email: user.email || '',
+                    firstName: user.firstName || '',
+                    lastName: user.lastName || '',
+                    role: user.role || 'user',
+                    active: user.active !== undefined ? user.active : true,
+                    isEmailVerified: user.isEmailVerified || false,
+                    createdAt: user.createdAt || new Date().toISOString(),
+                    lastLogin: user.lastLogin
+                }))
+                setUsers(mappedUsers)
+                setTotalUsers(dataArray.length || 0)
+                setTotalPages(Math.ceil((dataArray.length || 0) / 10))
             }
         } catch (err: any) {
             console.error('Error fetching users:', err)
