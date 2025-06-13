@@ -9,7 +9,7 @@ import { locales, defaultLocale } from './src/i18n';
 const intlMiddleware = createIntlMiddleware({
     locales,
     defaultLocale,
-    localePrefix: 'always' // Thay đổi từ 'never' thành 'always'
+    localePrefix: 'never' // Không sử dụng prefix locale cho các trang protected
 });
 
 /**
@@ -33,6 +33,22 @@ const publicAdminPaths = [
 ];
 
 /**
+ * Danh sách các đường dẫn protected của user (sau khi đăng nhập)
+ */
+const protectedUserPaths = [
+    '/dashboard',
+    '/incomes',
+    '/expenses',
+    '/loans',
+    '/investments',
+    '/budgets',
+    '/reports',
+    '/profile',
+    '/settings',
+    '/notifications'
+];
+
+/**
  * Kiểm tra nếu đường dẫn bắt đầu bằng một giá trị trong danh sách
  */
 const pathStartsWith = (path: string, pathList: string[]): boolean => {
@@ -50,7 +66,12 @@ export function middleware(request: NextRequest) {
         return handleAdminRoutes(request);
     }
 
-    // Xử lý i18n cho các routes khác
+    // Xử lý protected user routes (không cần locale prefix)
+    if (pathStartsWith(path, protectedUserPaths)) {
+        return handleProtectedUserRoutes(request);
+    }
+
+    // Xử lý i18n cho các routes khác (public routes)
     return intlMiddleware(request);
 }
 
@@ -86,6 +107,30 @@ function handleAdminRoutes(request: NextRequest) {
     // Token được tìm thấy, nhưng không xác thực chi tiết ở đây
     // Xác thực chi tiết sẽ được thực hiện ở admin layout component
     console.log('Found auth token, allowing conditional access');
+    return NextResponse.next();
+}
+
+/**
+ * Xử lý protected user routes (dashboard, incomes, expenses, etc.)
+ */
+function handleProtectedUserRoutes(request: NextRequest) {
+    const path = request.nextUrl.pathname;
+
+    console.log('Protected user middleware running for path:', path);
+
+    // Lấy locale từ cookie nếu có
+    const localeFromCookie = request.cookies.get('NEXT_LOCALE')?.value;
+
+    // Nếu có locale trong cookie và khác với locale hiện tại trong headers
+    if (localeFromCookie && locales.includes(localeFromCookie as any)) {
+        // Tạo response với locale header
+        const response = NextResponse.next();
+        response.headers.set('x-locale', localeFromCookie);
+        return response;
+    }
+
+    // Cho phép truy cập trực tiếp mà không có locale prefix
+    // Authentication sẽ được xử lý ở client-side
     return NextResponse.next();
 }
 

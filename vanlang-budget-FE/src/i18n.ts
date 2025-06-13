@@ -8,9 +8,19 @@ export type Locale = (typeof locales)[number];
 // Ngôn ngữ mặc định
 export const defaultLocale = 'vi' as const;
 
-export default getRequestConfig(async ({ locale }) => {
-    // Nếu không có locale, sử dụng locale mặc định
-    const typedLocale = (locale || defaultLocale) as string;
+export default getRequestConfig(async ({ locale, requestLocale }) => {
+    // Xác định locale để sử dụng
+    let resolvedLocale = locale || requestLocale || defaultLocale;
+
+    // Nếu không có locale từ URL hoặc request, thử lấy từ localStorage hoặc cookie
+    if (!locale && typeof window !== 'undefined') {
+        const savedLocale = localStorage.getItem('preferred-locale');
+        if (savedLocale && locales.includes(savedLocale as Locale)) {
+            resolvedLocale = savedLocale;
+        }
+    }
+
+    const typedLocale = resolvedLocale as string;
 
     // Validate locale
     if (!locales.includes(typedLocale as Locale)) {

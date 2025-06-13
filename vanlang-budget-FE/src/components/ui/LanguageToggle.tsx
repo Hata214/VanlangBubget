@@ -8,6 +8,7 @@ import { Globe } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { locales } from '@/i18n'
+import { useLocaleContext } from '@/providers/LocaleProvider'
 
 type LanguageToggleProps = {
     className?: string
@@ -33,17 +34,48 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
         }
     ]
 
+    // Danh sách các đường dẫn protected (sau khi đăng nhập)
+    const protectedPaths = [
+        '/dashboard',
+        '/incomes',
+        '/expenses',
+        '/loans',
+        '/investments',
+        '/budgets',
+        '/reports',
+        '/profile',
+        '/settings',
+        '/notifications'
+    ];
+
+    // Kiểm tra xem có phải protected path không
+    const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
+
+    // Thử sử dụng context để thay đổi locale
+    let localeContext;
+    try {
+        localeContext = useLocaleContext();
+    } catch {
+        // Không có context, sử dụng cách cũ
+        localeContext = null;
+    }
+
     // Xử lý khi thay đổi ngôn ngữ
     const handleLanguageChange = (newLocale: string) => {
         if (newLocale === locale || isChanging) return;
 
         setIsChanging(true);
 
-        // Lấy pathname hiện tại và thay thế locale
-        const pathWithoutLocale = pathname.replace(/^\/(vi|en)/, '') || '';
-        const newPath = `/${newLocale}${pathWithoutLocale}`;
-
-        router.push(newPath);
+        if (isProtectedPath && localeContext) {
+            // Đối với protected paths, sử dụng context
+            localeContext.setLocale(newLocale as any);
+            window.location.reload(); // Vẫn cần reload để cập nhật translations
+        } else {
+            // Đối với public paths, sử dụng routing với locale prefix
+            const pathWithoutLocale = pathname.replace(/^\/(vi|en)/, '') || '';
+            const newPath = `/${newLocale}${pathWithoutLocale}`;
+            router.push(newPath);
+        }
 
         // Reset loading state sau một khoảng thời gian
         setTimeout(() => setIsChanging(false), 1000);

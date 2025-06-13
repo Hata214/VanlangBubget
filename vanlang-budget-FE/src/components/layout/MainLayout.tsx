@@ -39,6 +39,7 @@ import notificationService from '@/services/notificationService'
 import { socketService, SocketEvent } from '@/services/socketService'
 import EnhancedChatPopup from '@/components/chatbot/EnhancedChatPopup'
 import AgentChatPopup from '@/components/agent/AgentChatPopup'
+import { LocaleProvider } from '@/providers/LocaleProvider'
 
 interface MainLayoutProps {
     children: React.ReactNode
@@ -182,7 +183,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
     console.log("MainLayout rendering - Chatbot should be included here.");
 
     return (
-        <>
+        <LocaleProvider initialLocale={locale as any}>
             <div className="min-h-screen bg-background">
                 {/* Backdrop for mobile */}
                 {isSidebarOpen && (
@@ -383,6 +384,6 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
             {/* <EnhancedChatPopup mode="enhanced" useEnhanced={true} /> */}
             <AgentChatPopup />
-        </>
+        </LocaleProvider>
     )
 }
