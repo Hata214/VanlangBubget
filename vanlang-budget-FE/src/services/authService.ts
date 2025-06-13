@@ -161,7 +161,7 @@ class AuthService {
      */
     async getUserProfile(): Promise<any> {
         try {
-            const response = await api.get('/api/auth/profile');
+            const response = await api.get('/api/auth/me');
             console.log('getUserProfile response:', response.data);
             return response.data;
         } catch (error: any) {
