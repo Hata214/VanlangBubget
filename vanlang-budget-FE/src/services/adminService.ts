@@ -412,7 +412,7 @@ export const adminService = {
         sortOrder?: string;
     }) {
         const params = options || {};
-        const response = await api.get('/api/admin/manage/users', { params });
+        const response = await api.get('/api/admin/users', { params });
         return response.data;
     },
 
@@ -420,7 +420,7 @@ export const adminService = {
      * Cập nhật role của user
      */
     async updateUserRole(userId: string, role: 'user' | 'admin' | 'superadmin') {
-        const response = await api.put(`/api/admin/manage/users/${userId}`, { role });
+        const response = await api.put(`/api/admin/users/${userId}`, { role });
         return response.data;
     },
 
