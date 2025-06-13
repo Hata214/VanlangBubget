@@ -535,3 +535,89 @@ export const getAdminNotifications = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Tạo thông báo mới từ admin
+ * @route   POST /api/admin/notifications
+ * @access  Private (Admin)
+ */
+export const createAdminNotification = async (req, res, next) => {
+    try {
+        const { title, message, type = 'info', sentTo } = req.body;
+
+        // Validation
+        if (!title || !message) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Tiêu đề và nội dung thông báo là bắt buộc'
+            });
+        }
+
+        let targetUsers = [];
+
+        // Xử lý người nhận
+        if (sentTo === 'all') {
+            // Gửi đến tất cả người dùng
+            targetUsers = await User.find({ status: 'active' }).select('_id');
+        } else if (sentTo === 'admin') {
+            // Gửi đến tất cả admin
+            targetUsers = await User.find({
+                role: { $in: ['admin', 'superadmin'] },
+                status: 'active'
+            }).select('_id');
+        } else if (Array.isArray(sentTo)) {
+            // Gửi đến danh sách email cụ thể
+            targetUsers = await User.find({
+                email: { $in: sentTo },
+                status: 'active'
+            }).select('_id');
+        } else {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Người nhận không hợp lệ'
+            });
+        }
+
+        if (targetUsers.length === 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Không tìm thấy người dùng nào để gửi thông báo'
+            });
+        }
+
+        // Tạo thông báo cho từng người dùng
+        const notifications = [];
+        const emailPromises = [];
+
+        for (const user of targetUsers) {
+            const notification = new Notification({
+                user: user._id,
+                title,
+                message,
+                type,
+                read: false,
+                createdBy: req.user.id // Lưu thông tin admin tạo thông báo
+            });
+
+            await notification.save();
+            notifications.push(notification);
+
+            // Gửi thông báo realtime qua socket nếu có
+            if (req.socketManager) {
+                req.socketManager.to(user._id.toString()).emit('notification', notification);
+            }
+        }
+
+        res.status(201).json({
+            status: 'success',
+            data: {
+                message: `Đã tạo và gửi ${notifications.length} thông báo thành công`,
+                count: notifications.length,
+                sentTo: sentTo
+            }
+        });
+    } catch (error) {
+        logger.error('Error creating admin notification:', error);
+        next(error);
+    }
+};
