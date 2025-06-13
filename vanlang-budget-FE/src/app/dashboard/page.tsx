@@ -358,11 +358,11 @@ export default function DashboardPage() {
                     <Alert className="mb-6 bg-purple-50 text-purple-700 border-purple-200 animate-pulse">
                         <AlertCircle className="h-5 w-5 text-purple-500" />
                         <AlertDescription className="flex flex-col gap-2">
-                            <div className="font-medium text-lg">Cảnh báo số dư âm!</div>
-                            <div>Số dư tài khoản của bạn hiện đang âm: <span className="font-bold text-purple-800">{formatCurrency(balance)} VND</span>. Vui lòng cân đối thu chi.</div>
+                            <div className="font-medium text-lg">{t('dashboard.negativeBalanceAlert')}</div>
+                            <div>{t('dashboard.negativeBalanceMessage', { amount: formatCurrency(balance) })}</div>
                             {lastNotificationTime && (
                                 <div className="text-xs text-purple-600">
-                                    Thông báo đã được gửi lúc: {lastNotificationTime}
+                                    {t('dashboard.notificationSentAt', { time: lastNotificationTime })}
                                 </div>
                             )}
                             <div className="mt-2 flex flex-wrap gap-2">
@@ -374,7 +374,7 @@ export default function DashboardPage() {
                                     }}
                                     className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
                                 >
-                                    Xem chi tiêu
+                                    {t('dashboard.viewExpenses')}
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -384,7 +384,7 @@ export default function DashboardPage() {
                                     }}
                                     className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
                                 >
-                                    Thêm thu nhập
+                                    {t('dashboard.addIncome')}
                                 </Button>
                             </div>
                         </AlertDescription>

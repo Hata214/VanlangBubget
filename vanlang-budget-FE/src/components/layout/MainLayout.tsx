@@ -41,6 +41,7 @@ import EnhancedChatPopup from '@/components/chatbot/EnhancedChatPopup'
 import AgentChatPopup from '@/components/agent/AgentChatPopup'
 import { LocaleProvider } from '@/providers/LocaleProvider'
 
+
 interface MainLayoutProps {
     children: React.ReactNode
 }
@@ -380,10 +381,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
                     {/* Page Content */}
                     <main>{children}</main>
                 </div>
-            </div>
 
-            {/* <EnhancedChatPopup mode="enhanced" useEnhanced={true} /> */}
-            <AgentChatPopup />
+                {/* <EnhancedChatPopup mode="enhanced" useEnhanced={true} /> */}
+                <AgentChatPopup />
+            </div>
         </LocaleProvider>
     )
 }

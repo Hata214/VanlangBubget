@@ -497,7 +497,14 @@
         "unread": "Chưa đọc",
         "read": "Đã đọc",
         "sortNewest": "Sắp xếp theo mới nhất",
-        "sortOldest": "Sắp xếp theo cũ nhất"
+        "sortOldest": "Sắp xếp theo cũ nhất",
+        "noNotifications": "Không có thông báo",
+        "emptyMessage": "Hiện tại không có thông báo mới. Bạn sẽ thấy các cập nhật quan trọng về tài chính của mình tại đây.",
+        "viewDetails": "Xem chi tiết",
+        "markAsRead": "Đánh dấu đã đọc",
+        "alreadyRead": "Đã đọc",
+        "newBadge": "Mới",
+        "updateData": "Cập nhật dữ liệu"
     },
     "dashboard": {
         "financialOverview": "Tổng quan tài chính",
@@ -513,6 +520,9 @@
         "negativeBalanceWarning": "Số dư của bạn đang âm. Hãy cân nhắc giảm chi tiêu hoặc tăng thu nhập!",
         "negativeBalanceAlert": "Cảnh báo số dư âm",
         "negativeBalanceMessage": "Số dư tài khoản của bạn hiện tại là {amount}. Hãy cân nhắc giảm chi tiêu hoặc tăng thu nhập!",
+        "notificationSentAt": "Thông báo đã được gửi lúc: {time}",
+        "viewExpenses": "Xem chi tiêu",
+        "addIncome": "Thêm thu nhập",
         "resetAllData": "Xóa tất cả dữ liệu",
         "resetAllDataTitle": "Xóa toàn bộ dữ liệu",
         "resetAllDataConfirmation": "Hành động này sẽ xóa tất cả dữ liệu thu nhập, chi tiêu, khoản vay và không thể khôi phục. Để xác nhận, vui lòng nhập \"resetdata\" vào ô bên dưới.",

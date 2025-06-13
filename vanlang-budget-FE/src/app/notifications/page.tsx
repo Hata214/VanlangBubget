@@ -592,11 +592,11 @@ export default function NotificationsPage() {
                                 {notification.title}
                                 {!notification.read && (
                                     <Badge variant="secondary" className="ml-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/70">
-                                        Mới
+                                        {t('notifications.newBadge')}
                                     </Badge>
                                 )}
                             </div>
-                            <small className="text-green-500 dark:text-green-400 text-xs">Cập nhật dữ liệu</small>
+                            <small className="text-green-500 dark:text-green-400 text-xs">{t('notifications.updateData')}</small>
                         </div>
                         <small className="text-green-500 dark:text-green-400 shrink-0 ml-2">
                             {formatDistanceToNow(new Date(notification.createdAt), {
@@ -615,7 +615,7 @@ export default function NotificationsPage() {
                             onClick={() => navigateToTarget(router, notification.link as string, notification.relatedId)}
                         >
                             <LinkIcon className="h-3 w-3 mr-1" />
-                            <span className="text-xs">Xem chi tiết</span>
+                            <span className="text-xs">{t('notifications.viewDetails')}</span>
                         </Button>
                     )}
                     <div className="flex items-center mt-2 gap-2">
@@ -627,7 +627,7 @@ export default function NotificationsPage() {
                             disabled={notification.read}
                         >
                             <Check className="h-3 w-3 mr-1" />
-                            {notification.read ? 'Đã đọc' : 'Đánh dấu đã đọc'}
+                            {notification.read ? t('notifications.alreadyRead') : t('notifications.markAsRead')}
                         </Button>
                     </div>
                 </div>
