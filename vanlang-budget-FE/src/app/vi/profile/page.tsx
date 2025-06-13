@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { useAppDispatch, useAppSelector } from '@/redux/hooks'
-import { updateProfile, changePassword } from '@/redux/features/authSlice'
+import { updateProfile, changePassword, fetchUserProfile } from '@/redux/features/authSlice'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import {
@@ -48,6 +48,22 @@ export default function ProfilePage() {
             phoneNumber: user?.phoneNumber || '',
         },
     })
+
+    // Load user profile when component mounts
+    useEffect(() => {
+        dispatch(fetchUserProfile())
+    }, [dispatch])
+
+    // Update form when user data changes
+    useEffect(() => {
+        if (user) {
+            form.reset({
+                firstName: user.firstName || '',
+                lastName: user.lastName || '',
+                phoneNumber: user.phoneNumber || '',
+            })
+        }
+    }, [user, form])
 
     const passwordForm = useForm<PasswordFormData>({
         defaultValues: {
@@ -182,11 +198,21 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>Số điện thoại</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} type="tel" />
+                                                    <Input
+                                                        {...field}
+                                                        type="tel"
+                                                        placeholder="Nhập số điện thoại (10-11 số)"
+                                                    />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
+                                        rules={{
+                                            pattern: {
+                                                value: /^[0-9]{10,11}$/,
+                                                message: 'Số điện thoại phải có 10-11 số'
+                                            }
+                                        }}
                                     />
 
                                     <Button

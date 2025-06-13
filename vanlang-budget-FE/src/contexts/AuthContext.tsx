@@ -80,6 +80,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                         email: nextAuthUser.email,
                         firstName: nextAuthUser.firstName || (nextAuthUser.name?.split(' ')[0] || ''),
                         lastName: nextAuthUser.lastName || (nextAuthUser.name?.split(' ').slice(1).join(' ') || ''),
+                        phoneNumber: nextAuthUser.phoneNumber || '',
                         role: nextAuthUser.role || 'user',
                         isEmailVerified: nextAuthUser.isEmailVerified || false,
                     },

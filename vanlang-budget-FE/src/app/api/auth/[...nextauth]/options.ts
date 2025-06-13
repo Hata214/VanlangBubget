@@ -38,7 +38,11 @@ export const authOptions: NextAuthOptions = {
                         id: userData.user.id || userData.user._id,
                         email: userData.user.email,
                         name: userData.user.name || `${userData.user.firstName || ''} ${userData.user.lastName || ''}`.trim() || userData.user.email,
+                        firstName: userData.user.firstName || '',
+                        lastName: userData.user.lastName || '',
+                        phoneNumber: userData.user.phoneNumber || '',
                         role: userData.user.role || "user",
+                        isEmailVerified: userData.user.isEmailVerified || false,
                     };
 
                     // Lưu token vào cookie nếu có

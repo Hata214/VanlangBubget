@@ -91,11 +91,20 @@ const saveAuthStateToStorage = (state: AuthState) => {
     }
 };
 
+// Fetch user profile from database
+export const fetchUserProfile = createAsyncThunk(
+    'auth/fetchUserProfile',
+    async () => {
+        const response = await api.get('/api/auth/me')
+        return response.data.user
+    }
+)
+
 export const updateProfile = createAsyncThunk(
     'auth/updateProfile',
     async (data: { firstName: string; lastName: string; phoneNumber?: string }) => {
-        const response = await api.put('/api/auth/profile', data)
-        return response.data
+        const response = await api.patch('/api/auth/updateme', data)
+        return response.data.user
     }
 )
 
@@ -151,6 +160,21 @@ const authSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(fetchUserProfile.pending, (state) => {
+                state.isLoading = true
+                state.error = null
+            })
+            .addCase(fetchUserProfile.fulfilled, (state, action) => {
+                state.isLoading = false
+                state.user = action.payload
+
+                // Lưu trạng thái cập nhật vào localStorage
+                saveAuthStateToStorage(state);
+            })
+            .addCase(fetchUserProfile.rejected, (state, action) => {
+                state.isLoading = false
+                state.error = action.error.message || 'Không thể tải thông tin người dùng'
+            })
             .addCase(updateProfile.pending, (state) => {
                 state.isLoading = true
                 state.error = null

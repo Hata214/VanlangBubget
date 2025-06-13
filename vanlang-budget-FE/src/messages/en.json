@@ -561,6 +561,8 @@
         "email": "Email",
         "emailDesc": "Email cannot be changed",
         "phoneNumber": "Phone Number",
+        "phoneNumberPlaceholder": "Enter phone number (10-11 digits)",
+        "phoneNumberError": "Phone number must be 10-11 digits",
         "saveChanges": "Save Changes",
         "updateSuccess": "Profile updated successfully"
     },

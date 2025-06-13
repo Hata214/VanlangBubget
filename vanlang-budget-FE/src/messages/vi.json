@@ -268,6 +268,8 @@
         "email": "Email",
         "emailDesc": "Email không thể thay đổi",
         "phoneNumber": "Số điện thoại",
+        "phoneNumberPlaceholder": "Nhập số điện thoại (10-11 số)",
+        "phoneNumberError": "Số điện thoại phải có 10-11 số",
         "saveChanges": "Lưu thay đổi",
         "updateSuccess": "Cập nhật thông tin thành công"
     },
