@@ -202,7 +202,7 @@ export default function AdminTransactionsPage() {
                 await loadTransactions();
                 await loadStats();
             } else if (response.status === 'info') {
-                toast.info(response.message);
+                toast(response.message);
             }
         } catch (error: any) {
             console.error('Error creating sample transactions:', error);
