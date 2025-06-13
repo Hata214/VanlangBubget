@@ -48,7 +48,7 @@ export default function UpdatePriceDialog({
     const formSchema = z.object({
         currentPrice: z.coerce.number()
             .min(0, t('pricePositive'))
-            .max(100000000000, 'Giá tối đa là 100 tỷ'),
+            .max(100000000000, t('maxPriceLimit')),
     });
 
     // Khởi tạo form
@@ -104,7 +104,7 @@ export default function UpdatePriceDialog({
                                 <FormLabel>{t('enterPrice')}</FormLabel>
                                 <FormControl>
                                     <CurrencyInput
-                                        placeholder="0"
+                                        placeholder={t('pricePlaceholder')}
                                         value={field.value}
                                         onChange={field.onChange}
                                         onBlur={field.onBlur}

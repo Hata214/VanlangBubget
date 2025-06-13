@@ -33,6 +33,16 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
+                    // Lưu token vào cookie nếu có
+                    let accessToken = '';
+                    let refreshToken = '';
+                    if (userData.token) {
+                        // Sử dụng hàm saveTokenToCookie từ api.ts
+                        accessToken = userData.token.accessToken || userData.token;
+                        refreshToken = userData.token.refreshToken || '';
+                        saveTokenToCookie(accessToken, refreshToken);
+                    }
+
                     // Định dạng dữ liệu người dùng trả về
                     const user = {
                         id: userData.user.id || userData.user._id,
@@ -43,15 +53,9 @@ export const authOptions: NextAuthOptions = {
                         phoneNumber: userData.user.phoneNumber || '',
                         role: userData.user.role || "user",
                         isEmailVerified: userData.user.isEmailVerified || false,
+                        accessToken: accessToken,
+                        refreshToken: refreshToken,
                     };
-
-                    // Lưu token vào cookie nếu có
-                    if (userData.token) {
-                        // Sử dụng hàm saveTokenToCookie từ api.ts
-                        const accessToken = userData.token.accessToken || userData.token;
-                        const refreshToken = userData.token.refreshToken || '';
-                        saveTokenToCookie(accessToken, refreshToken);
-                    }
 
                     return user;
                 } catch (error: any) {

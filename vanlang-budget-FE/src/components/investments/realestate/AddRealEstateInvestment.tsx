@@ -747,9 +747,11 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                     </CardContent>
                 </Card>
 
-                <Button type="submit" className="w-full bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark" disabled={isLoading}>
-                    {isLoading ? "Đang thêm..." : "Thêm đầu tư đất đai"}
-                </Button>
+                <div className="flex justify-end items-center mt-6">
+                    <Button type="submit" className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark" disabled={isLoading}>
+                        {isLoading ? "Đang thêm..." : "Thêm đầu tư đất đai"}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

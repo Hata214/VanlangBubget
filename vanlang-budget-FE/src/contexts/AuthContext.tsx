@@ -74,6 +74,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // This assumes the structure of session.user matches what setCredentials expects
             if (!reduxUser || reduxUser.id !== (session.user as any).id) {
                 const nextAuthUser = session.user as any;
+
+                // Get the actual token from NextAuth session or cookies
+                const actualAccessToken = nextAuthUser.accessToken || getCookie('token') || localStorage.getItem('token');
+                const actualRefreshToken = nextAuthUser.refreshToken || getCookie('refreshToken') || localStorage.getItem('refreshToken');
+
+                console.log('AuthContext: Syncing NextAuth session to Redux', {
+                    user: nextAuthUser.email,
+                    hasAccessToken: !!actualAccessToken,
+                    hasRefreshToken: !!actualRefreshToken
+                });
+
+                // Store tokens in localStorage for API calls
+                if (actualAccessToken) {
+                    localStorage.setItem('token', actualAccessToken);
+                }
+                if (actualRefreshToken) {
+                    localStorage.setItem('refreshToken', actualRefreshToken);
+                }
+
                 dispatch(setCredentials({
                     user: {
                         _id: nextAuthUser.id,
@@ -84,17 +103,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
                         role: nextAuthUser.role || 'user',
                         isEmailVerified: nextAuthUser.isEmailVerified || false,
                     },
-                    // Token from NextAuth session is not directly available here.
-                    // The actual backend token is in HttpOnly cookie managed by NextAuth backend
-                    // or the cookie set by CredentialsProvider.
-                    // For Redux, we might store a marker or rely on NextAuth session.
-                    token: { accessToken: "next-auth-session", refreshToken: "next-auth-session" } // Placeholder
+                    token: {
+                        accessToken: actualAccessToken || "next-auth-session",
+                        refreshToken: actualRefreshToken || "next-auth-session"
+                    }
                 }));
             }
         } else if (status === 'unauthenticated') {
             // Clear Redux auth state if NextAuth session is lost
             if (reduxUser) {
+                console.log('AuthContext: NextAuth unauthenticated, clearing Redux state');
                 dispatch(logout());
+                // Also clear localStorage tokens
+                localStorage.removeItem('token');
+                localStorage.removeItem('refreshToken');
             }
         }
     }, [session, status, dispatch, reduxUser]);

@@ -423,12 +423,12 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
                                     <FormItem>
                                         <FormLabel className="flex items-center">
                                             {t('currentPrice')}
-                                            <HelpTooltip text="Giá hiện tại của một đơn vị tài sản (VND)" />
+                                            <HelpTooltip text={t('currentPriceTooltip')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                placeholder="0.00"
+                                                placeholder={t('priceInputPlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                             />
@@ -457,12 +457,12 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
                                     <FormItem>
                                         <FormLabel className="flex items-center">
                                             {t('quantity')}
-                                            <HelpTooltip text="Số lượng tài sản đã mua" />
+                                            <HelpTooltip text={t('quantityTooltip')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                placeholder="0.00"
+                                                placeholder={t('priceInputPlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                             />
@@ -479,12 +479,12 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
                                     <FormItem>
                                         <FormLabel className="flex items-center">
                                             {t('fee')}
-                                            <HelpTooltip text="Phí giao dịch khi mua tài sản (VND)" />
+                                            <HelpTooltip text={t('feeTooltip')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
-                                                placeholder="0.00"
+                                                placeholder={t('priceInputPlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                             />
@@ -542,9 +542,11 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
                     </CardContent>
                 </Card>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                    {isLoading ? t('adding') : t('addInvestment')}
-                </Button>
+                <div className="flex justify-end items-center mt-6">
+                    <Button type="submit" disabled={isLoading}>
+                        {isLoading ? t('adding') : t('addInvestment')}
+                    </Button>
+                </div>
             </form>
         </Form>
     );

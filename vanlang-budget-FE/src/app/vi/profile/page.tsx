@@ -23,6 +23,8 @@ import { ArrowLeft } from 'lucide-react'
 import AuthDebug from '@/components/debug/AuthDebug'
 import ApiTest from '@/components/debug/ApiTest'
 import FormDebug from '@/components/debug/FormDebug'
+import ProfileDebug from '@/components/debug/ProfileDebug'
+import TokenSync from '@/components/debug/TokenSync'
 import { useAuthToken } from '@/hooks/useAuthToken'
 
 interface ProfileFormData {
@@ -351,9 +353,11 @@ export default function ProfilePage() {
                     </Card>
                 </div>
             </div>
+            <TokenSync />
             <AuthDebug />
             <ApiTest />
             <FormDebug form={form} title="Profile Form" />
+            <ProfileDebug />
         </MainLayout>
     )
 }

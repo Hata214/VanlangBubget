@@ -99,10 +99,16 @@ export const fetchUserProfile = createAsyncThunk(
             console.log('Fetching user profile...')
             const response = await api.get('/api/auth/me')
             console.log('User profile response:', response.data)
-            return response.data.user
+
+            // Backend trả về { status: "success", user: {...} }
+            if (response.data.status === 'success' && response.data.user) {
+                return response.data.user
+            } else {
+                throw new Error('Invalid response format')
+            }
         } catch (error: any) {
             console.error('Error fetching user profile:', error)
-            return rejectWithValue(error.response?.data?.message || 'Không thể tải thông tin người dùng')
+            return rejectWithValue(error.response?.data?.message || error.message || 'Không thể tải thông tin người dùng')
         }
     }
 )
@@ -114,10 +120,18 @@ export const updateProfile = createAsyncThunk(
             console.log('Updating user profile with data:', data)
             const response = await api.patch('/api/auth/updateme', data)
             console.log('Update profile response:', response.data)
-            return response.data.user
+
+            // Backend có thể trả về { status: "success", user: {...} } hoặc { user: {...} }
+            if (response.data.status === 'success' && response.data.user) {
+                return response.data.user
+            } else if (response.data.user) {
+                return response.data.user
+            } else {
+                throw new Error('Invalid response format')
+            }
         } catch (error: any) {
             console.error('Error updating user profile:', error)
-            return rejectWithValue(error.response?.data?.message || 'Không thể cập nhật thông tin')
+            return rejectWithValue(error.response?.data?.message || error.message || 'Không thể cập nhật thông tin')
         }
     }
 )
