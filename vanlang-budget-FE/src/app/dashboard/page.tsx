@@ -71,7 +71,7 @@ export default function DashboardPage() {
         // 2. Số dư thực sự âm
         // 3. Người dùng đã đăng nhập và có id
         // 4. Chưa gửi thông báo trong phiên làm việc hiện tại
-        if (!isLoading && balance < 0 && user && user.id && !hasNotifiedNegativeBalance) {
+        if (!isLoading && balance < 0 && user && user._id && !hasNotifiedNegativeBalance) {
             // Gửi thông báo qua API mà không cần kiểm tra thời gian 24 giờ
             const checkNegativeBalance = async () => {
                 try {
