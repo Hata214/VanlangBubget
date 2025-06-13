@@ -445,7 +445,8 @@
         "page": "Trang",
         "of": "của",
         "next": "Tiếp",
-        "view": "Xem"
+        "view": "Xem",
+        "processing": "Đang xử lý..."
     },
     "notifications": {
         "title": "Thông báo",
