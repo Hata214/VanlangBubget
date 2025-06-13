@@ -42,31 +42,33 @@ interface AddSavingsInvestmentProps {
 
 export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestmentProps) {
     const t = useTranslations('Investments');
+    const tSavings = useTranslations('Investments.savings');
+    const tValidation = useTranslations('Investments.validation');
     const { toast } = useToast();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
 
     // Định nghĩa schema xác thực cho tiết kiệm
     const formSchema = z.object({
-        bankName: z.string().min(1, 'Vui lòng chọn ngân hàng'),
+        bankName: z.string().min(1, tSavings('bankNameDescription')),
         otherBankName: z.string().optional(),
         accountNumber: z.string().optional(),
-        amount: z.coerce.number().min(1, 'Số tiền gửi phải lớn hơn 0').max(100000000000, 'Số tiền tối đa là 100 tỷ'),
-        startDate: z.string().min(1, 'Ngày gửi tiền là bắt buộc'),
-        term: z.string().min(1, 'Vui lòng chọn kỳ hạn gửi'),
-        interestRate: z.coerce.number().min(0, 'Lãi suất không được âm'),
-        interestPaymentType: z.string().min(1, 'Vui lòng chọn hình thức nhận lãi'),
+        amount: z.coerce.number().min(1, t('pricePositive')).max(100000000000, tValidation('maxPriceLimit')),
+        startDate: z.string().min(1, t('purchaseDateRequired')),
+        term: z.string().min(1, tSavings('termDescription')),
+        interestRate: z.coerce.number().min(0, t('pricePositive')),
+        interestPaymentType: z.string().min(1, tSavings('interestPaymentTypeDescription')),
         interestCalculationType: z.enum(['simple', 'compound']),
         autoRenewal: z.boolean(),
-        depositMethod: z.string().min(1, 'Vui lòng chọn hình thức gửi'),
-        notes: z.string().max(500, 'Ghi chú không được vượt quá 500 ký tự').optional(),
+        depositMethod: z.string().min(1, tSavings('depositMethodDescription')),
+        notes: z.string().max(500, t('notesTooLong')).optional(),
     }).refine(data => {
         if (data.bankName === 'Khác' && (!data.otherBankName || data.otherBankName.trim() === '')) {
             return false;
         }
         return true;
     }, {
-        message: 'Vui lòng nhập tên ngân hàng khác',
+        message: tSavings('otherBankPlaceholder'),
         path: ['otherBankName'],
     });
 
@@ -79,12 +81,12 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
             accountNumber: '',
             amount: 0,
             startDate: new Date().toISOString().slice(0, 10),
-            term: '',
+            term: tSavings('terms.12'),
             interestRate: 0,
-            interestPaymentType: '',
+            interestPaymentType: tSavings('interestPaymentTypes.end'),
             interestCalculationType: 'simple',
             autoRenewal: false,
-            depositMethod: '',
+            depositMethod: tSavings('depositMethods.online'),
             notes: '',
         },
     });
@@ -98,7 +100,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
             const actualBankName = values.bankName === 'Khác' ? values.otherBankName?.trim() : values.bankName;
 
             if (values.bankName === 'Khác' && !actualBankName) {
-                form.setError('otherBankName', { type: 'manual', message: 'Vui lòng nhập tên ngân hàng khác.' });
+                form.setError('otherBankName', { type: 'manual', message: tSavings('otherBankPlaceholder') });
                 setIsLoading(false);
                 return;
             }
@@ -164,9 +166,9 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
             // Chuẩn bị dữ liệu
             const investmentData = {
                 type: 'savings',
-                name: `Tiết kiệm ${actualBankName}`,
+                name: `${tSavings('buyTransaction')} ${actualBankName}`,
                 symbol: `SAVE-${actualBankName}`,
-                category: 'Tiết kiệm ngân hàng',
+                category: tSavings('category'),
                 initialInvestment: principal,    // Vốn ban đầu
                 currentValue: principal,        // Giá trị hiện tại ban đầu bằng vốn gốc
                 startDate: startDate.toISOString(),
@@ -193,8 +195,8 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
             if (response.status === 201 || response.status === 200) {
                 toast({
                     type: 'success',
-                    title: 'Thêm khoản tiết kiệm thành công',
-                    description: 'Khoản tiết kiệm đã được thêm vào danh sách đầu tư của bạn',
+                    title: t('addSuccess'),
+                    description: t('addSuccessDescription'),
                     duration: 5000
                 });
 
@@ -203,27 +205,27 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                     onSuccess();
                 }, 500);
             } else {
+                throw new Error(tValidation('dataError'));
+            }
+        } catch (error: any) {
+            console.error('Error creating savings investment:', error);
+
+            if (error.response?.status === 401) {
                 toast({
                     type: 'error',
-                    title: 'Lỗi khi thêm khoản tiết kiệm',
-                    description: response.data?.message || 'Đã xảy ra lỗi khi thêm khoản tiết kiệm',
+                    title: tValidation('authError'),
+                    description: tValidation('loginAgain'),
+                    duration: 5000
+                });
+                router.push('/login');
+            } else {
+                toast({
+                    type: 'error',
+                    title: t('addError'),
+                    description: t('addErrorDescription'),
                     duration: 5000
                 });
             }
-        } catch (error) {
-            console.error('Error creating savings investment:', error);
-            let errorMessage = 'Đã xảy ra lỗi khi thêm khoản tiết kiệm';
-
-            if (error instanceof Error) {
-                errorMessage = `${errorMessage}: ${error.message}`;
-            }
-
-            toast({
-                type: 'error',
-                title: 'Lỗi khi thêm khoản tiết kiệm',
-                description: errorMessage,
-                duration: 5000
-            });
         } finally {
             setIsLoading(false);
         }
@@ -272,28 +274,29 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
 
     // Danh sách kỳ hạn
     const terms = [
-        { value: '1', label: '1 tháng' },
-        { value: '3', label: '3 tháng' },
-        { value: '6', label: '6 tháng' },
-        { value: '9', label: '9 tháng' },
-        { value: '12', label: '12 tháng' },
-        { value: '13', label: '13 tháng' },
-        { value: '18', label: '18 tháng' },
-        { value: '24', label: '24 tháng' },
-        { value: '36', label: '36 tháng' }
+        { value: '1', label: tSavings('terms.1') },
+        { value: '3', label: tSavings('terms.3') },
+        { value: '6', label: tSavings('terms.6') },
+        { value: '9', label: tSavings('terms.9') },
+        { value: '12', label: tSavings('terms.12') },
+        { value: '18', label: tSavings('terms.18') },
+        { value: '24', label: tSavings('terms.24') },
+        { value: '36', label: tSavings('terms.36') }
     ];
 
     // Danh sách hình thức nhận lãi
     const interestPaymentTypes = [
-        { value: 'end', label: 'Cuối kỳ' },
-        { value: 'monthly', label: 'Hàng tháng' },
-        { value: 'prepaid', label: 'Trả trước' }
+        { value: tSavings('interestPaymentTypes.end'), label: tSavings('interestPaymentTypes.end') },
+        { value: tSavings('interestPaymentTypes.monthly'), label: tSavings('interestPaymentTypes.monthly') },
+        { value: tSavings('interestPaymentTypes.prepaid'), label: tSavings('interestPaymentTypes.prepaid') }
     ];
 
     // Danh sách hình thức gửi
     const depositMethods = [
-        { value: 'online', label: 'Trực tuyến' },
-        { value: 'counter', label: 'Tại quầy' }
+        { value: tSavings('depositMethods.online'), label: tSavings('depositMethods.online') },
+        { value: tSavings('depositMethods.counter'), label: tSavings('depositMethods.counter') },
+        { value: tSavings('depositMethods.atm'), label: tSavings('depositMethods.atm') },
+        { value: tSavings('depositMethods.transfer'), label: tSavings('depositMethods.transfer') }
     ];
 
     return (
@@ -302,15 +305,15 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-xl text-green-700 dark:text-green-400">Thông tin tiết kiệm ngân hàng</CardTitle>
+                            <CardTitle className="text-xl text-green-700 dark:text-green-400">{tSavings('savingsInfo')}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <Alert variant="info" className="mb-4 bg-green-100 dark:bg-green-900 border-green-300 dark:border-green-700 text-green-800 dark:text-green-200">
                             <AlertCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                            <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
+                            <AlertTitle className="font-semibold">{tSavings('noteInterest')}</AlertTitle>
                             <AlertDescription>
-                                Vui lòng nhập thông tin chính xác về khoản tiết kiệm của bạn để theo dõi hiệu quả hơn.
+                                {tSavings('noteInterest')}
                             </AlertDescription>
                         </Alert>
 
@@ -320,18 +323,18 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="bankName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngân hàng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('bankName')}</FormLabel>
                                         <FormControl>
                                             <BankCombobox
                                                 banks={banks}
                                                 value={field.value}
                                                 onChange={field.onChange}
-                                                placeholder="Chọn ngân hàng"
+                                                placeholder={tSavings('selectBank')}
                                                 disabled={isLoading}
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Ngân hàng nơi bạn gửi tiết kiệm
+                                            {tSavings('bankNameDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -344,9 +347,9 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                     name="otherBankName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tên ngân hàng khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('otherBankLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập tên ngân hàng" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tSavings('otherBankPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -359,12 +362,12 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="accountNumber"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số tài khoản tiết kiệm</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('accountNumber')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Nhập số tài khoản tiết kiệm (nếu có)" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <Input placeholder={tSavings('accountNumberPlaceholder')} {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Số sổ tiết kiệm hoặc mã định danh (không bắt buộc)
+                                            {tSavings('accountNumberDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>

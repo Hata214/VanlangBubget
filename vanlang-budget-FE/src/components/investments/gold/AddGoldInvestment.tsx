@@ -39,6 +39,8 @@ interface AddGoldInvestmentProps {
 
 export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps) {
     const t = useTranslations('Investments');
+    const tGold = useTranslations('Investments.goldInvestment.addGold');
+    const tValidation = useTranslations('Investments.validation');
     const { toast } = useToast();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -59,13 +61,13 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
             .max(20, t('symbolTooLong')),
         currentPrice: z.coerce.number()
             .min(0, t('pricePositive'))
-            .max(100000000000, 'Giá tối đa là 100 tỷ'),
+            .max(100000000000, tValidation('maxPriceLimit')),
         quantity: z.coerce.number()
             .min(0, t('quantityPositive'))
-            .max(1000000000, 'Số lượng tối đa là 1 tỷ'),
+            .max(1000000000, tValidation('maxQuantityLimit')),
         fee: z.coerce.number()
             .min(0, t('feePositive'))
-            .max(100000000000, 'Phí tối đa là 100 tỷ')
+            .max(100000000000, tValidation('maxFeeLimit'))
             .optional(), // Bỏ .default(0)
         notes: z.string().max(500, t('notesTooLong')).optional(),
         purchaseDate: z.string().min(1, t('purchaseDateRequired')),
@@ -75,28 +77,28 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         otherBrand: z.string().optional(),
         weightUnit: z.string(), // Made weightUnit a required string
     }).refine(data => {
-        if (data.brand === 'Khác' && (!data.otherBrand || data.otherBrand.trim() === '')) {
+        if (data.brand === tGold('brands.other') && (!data.otherBrand || data.otherBrand.trim() === '')) {
             return false;
         }
         return true;
     }, {
-        message: 'Vui lòng nhập tên thương hiệu khác',
+        message: tValidation('enterOtherBrand'),
         path: ['otherBrand'],
     }).refine(data => {
-        if (data.assetName === 'Khác' && (!data.otherAssetName || data.otherAssetName.trim() === '')) {
+        if (data.assetName === tGold('assetTypes.other') && (!data.otherAssetName || data.otherAssetName.trim() === '')) {
             return false;
         }
         return true;
     }, {
-        message: 'Vui lòng nhập loại vàng khác',
+        message: tValidation('enterOtherAssetType'),
         path: ['otherAssetName'],
     }).refine(data => {
-        if (data.purity === 'Khác' && (!data.otherPurity || data.otherPurity.trim() === '')) {
+        if (data.purity === tGold('purities.other') && (!data.otherPurity || data.otherPurity.trim() === '')) {
             return false;
         }
         return true;
     }, {
-        message: 'Vui lòng nhập độ tinh khiết khác',
+        message: tValidation('enterOtherPurity'),
         path: ['otherPurity'],
     });
 
@@ -104,7 +106,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            assetName: 'Vàng miếng',
+            assetName: tGold('assetTypes.goldBar'),
             otherAssetName: '',
             symbol: '',
             currentPrice: 0,
@@ -114,9 +116,9 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
             purchaseDate: new Date().toISOString().slice(0, 10),
             purity: '9999',
             otherPurity: '',
-            brand: 'SJC',
+            brand: tGold('brands.SJC'),
             otherBrand: '',
-            weightUnit: 'gram',
+            weightUnit: tGold('gram'),
         },
     });
 
@@ -125,22 +127,22 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
         setIsLoading(true);
 
         try {
-            const actualBrand = values.brand === 'Khác' ? values.otherBrand?.trim() : values.brand;
-            const actualAssetName = values.assetName === 'Khác' ? values.otherAssetName?.trim() : values.assetName;
-            const actualPurity = values.purity === 'Khác' ? values.otherPurity?.trim() : values.purity;
+            const actualBrand = values.brand === tGold('brands.other') ? values.otherBrand?.trim() : values.brand;
+            const actualAssetName = values.assetName === tGold('assetTypes.other') ? values.otherAssetName?.trim() : values.assetName;
+            const actualPurity = values.purity === tGold('purities.other') ? values.otherPurity?.trim() : values.purity;
 
-            if (values.brand === 'Khác' && !actualBrand) {
-                form.setError('otherBrand', { type: 'manual', message: 'Vui lòng nhập tên thương hiệu khác.' });
+            if (values.brand === tGold('brands.other') && !actualBrand) {
+                form.setError('otherBrand', { type: 'manual', message: tValidation('enterOtherBrand') });
                 setIsLoading(false);
                 return;
             }
-            if (values.assetName === 'Khác' && !actualAssetName) {
-                form.setError('otherAssetName', { type: 'manual', message: 'Vui lòng nhập loại vàng khác.' });
+            if (values.assetName === tGold('assetTypes.other') && !actualAssetName) {
+                form.setError('otherAssetName', { type: 'manual', message: tValidation('enterOtherAssetType') });
                 setIsLoading(false);
                 return;
             }
-            if (values.purity === 'Khác' && !actualPurity) {
-                form.setError('otherPurity', { type: 'manual', message: 'Vui lòng nhập độ tinh khiết khác.' });
+            if (values.purity === tGold('purities.other') && !actualPurity) {
+                form.setError('otherPurity', { type: 'manual', message: tValidation('enterOtherPurity') });
                 setIsLoading(false);
                 return;
             }
@@ -177,8 +179,8 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
 
             if (!token) {
                 toast({
-                    title: 'Lỗi xác thực',
-                    description: 'Vui lòng đăng nhập lại để thêm khoản đầu tư',
+                    title: tValidation('authError'),
+                    description: tValidation('loginAgain'),
                     type: 'error',
                     duration: 5000
                 });
@@ -227,8 +229,8 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
             } else if (response.status === 401) {
                 // Xử lý lỗi xác thực
                 toast({
-                    title: 'Lỗi xác thực',
-                    description: 'Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.',
+                    title: tValidation('authError'),
+                    description: tValidation('sessionExpired'),
                     type: 'error',
                     duration: 5000
                 });
@@ -239,7 +241,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                 }, 1500);
             } else if (response.status === 400) {
                 // Xử lý lỗi Bad Request
-                let errorMessage = result.message || 'Dữ liệu không hợp lệ';
+                let errorMessage = result.message || tValidation('invalidData');
 
                 // Hiển thị thông tin chi tiết về lỗi nếu có
                 if (result.errors && typeof result.errors === 'object') {
@@ -253,7 +255,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                 }
 
                 toast({
-                    title: 'Lỗi dữ liệu',
+                    title: tValidation('dataError'),
                     description: errorMessage,
                     type: 'error',
                     duration: 7000
@@ -286,30 +288,30 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
     };
 
     const goldBrands = [
-        { label: 'SJC', value: 'SJC' },
-        { label: 'DOJI', value: 'DOJI' },
-        { label: 'PNJ', value: 'PNJ' },
-        { label: 'Bảo Tín Minh Châu', value: 'Bảo Tín Minh Châu' },
+        { label: tGold('brands.SJC'), value: tGold('brands.SJC') },
+        { label: tGold('brands.DOJI'), value: tGold('brands.DOJI') },
+        { label: tGold('brands.PNJ'), value: tGold('brands.PNJ') },
+        { label: tGold('brands.BTMC'), value: tGold('brands.BTMC') },
         { label: 'Mi Hồng', value: 'Mi Hồng' },
         { label: 'Phú Quý', value: 'Phú Quý' },
-        { label: 'Khác', value: 'Khác' },
+        { label: tGold('brands.other'), value: tGold('brands.other') },
     ];
 
     const goldTypes = [
-        { label: 'Vàng miếng', value: 'Vàng miếng' },
-        { label: 'Vàng nhẫn', value: 'Vàng nhẫn' },
-        { label: 'Vàng trang sức', value: 'Vàng trang sức' },
-        { label: 'Khác', value: 'Khác' },
+        { label: tGold('assetTypes.goldBar'), value: tGold('assetTypes.goldBar') },
+        { label: tGold('assetTypes.goldJewelry'), value: tGold('assetTypes.goldJewelry') },
+        { label: tGold('assetTypes.goldCoin'), value: tGold('assetTypes.goldCoin') },
+        { label: tGold('assetTypes.other'), value: tGold('assetTypes.other') },
     ];
 
     const goldPurities = [
-        { label: '9999 (24K)', value: '9999' },
-        { label: '999 (23.9K)', value: '999' },
-        { label: '916 (22K)', value: '916' },
-        { label: '750 (18K)', value: '750' },
-        { label: '585 (14K)', value: '585' },
-        { label: '417 (10K)', value: '417' },
-        { label: 'Khác', value: 'Khác' },
+        { label: tGold('purities.9999'), value: '9999' },
+        { label: tGold('purities.999'), value: '999' },
+        { label: tGold('purities.916'), value: '916' },
+        { label: tGold('purities.750'), value: '750' },
+        { label: tGold('purities.585'), value: '585' },
+        { label: tGold('purities.417'), value: '417' },
+        { label: tGold('purities.other'), value: tGold('purities.other') },
     ];
 
     return (
@@ -318,15 +320,15 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
                         <div className="flex justify-between items-center">
-                            <CardTitle className="text-xl text-yellow-800 dark:text-yellow-300">Thông tin vàng</CardTitle>
+                            <CardTitle className="text-xl text-yellow-800 dark:text-yellow-300">{tGold('goldInfo')}</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <Alert variant="info" className="mb-4 bg-yellow-100 dark:bg-yellow-900 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200">
                             <AlertCircle className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
-                            <AlertTitle className="font-semibold">Lưu ý</AlertTitle>
+                            <AlertTitle className="font-semibold">{t('notes')}</AlertTitle>
                             <AlertDescription>
-                                Vui lòng nhập thông tin chính xác về khoản đầu tư vàng của bạn để theo dõi hiệu quả hơn.
+                                {tGold('notePrice')}
                             </AlertDescription>
                         </Alert>
 
@@ -336,7 +338,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="brand"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Thương hiệu</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('brand')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -344,7 +346,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn thương hiệu vàng" />
+                                                    <SelectValue placeholder={tGold('selectBrand')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -356,21 +358,21 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Thương hiệu vàng bạn đã mua
+                                            {tGold('brandDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('brand') === 'Khác' && (
+                            {form.watch('brand') === tGold('brands.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherBrand"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tên thương hiệu khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('otherBrandLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập tên thương hiệu" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tGold('otherBrandPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -383,7 +385,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="assetName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Loại vàng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('goldType')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -391,7 +393,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn loại vàng" />
+                                                    <SelectValue placeholder={tGold('selectAssetType')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -403,21 +405,21 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Loại vàng bạn đã mua
+                                            {tGold('assetTypeDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('assetName') === 'Khác' && (
+                            {form.watch('assetName') === tGold('assetTypes.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherAssetName"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Loại vàng khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('otherAssetLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập loại vàng" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tGold('otherAssetPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -430,7 +432,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="purity"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Độ tinh khiết</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('purity')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -438,7 +440,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn độ tinh khiết" />
+                                                    <SelectValue placeholder={tGold('selectPurity')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -450,21 +452,21 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Độ tinh khiết của vàng
+                                            {tGold('purityDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('purity') === 'Khác' && (
+                            {form.watch('purity') === tGold('purities.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherPurity"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Độ tinh khiết khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('otherPurityLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập độ tinh khiết" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tGold('otherPurityPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -477,12 +479,12 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="symbol"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Mã định danh</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('symbolLabel')}</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Ví dụ: SJC1L" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                            <Input placeholder={tGold('symbolPlaceholder')} {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Mã hoặc ký hiệu của sản phẩm vàng (không bắt buộc)
+                                            {t('symbolDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -496,10 +498,10 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="quantity"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số lượng</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('quantityLabel')}</FormLabel>
                                         <FormControl>
                                             <CurrencyInput
-                                                placeholder="Nhập số lượng"
+                                                placeholder={tGold('quantityPlaceholder')}
                                                 value={field.value}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
@@ -507,7 +509,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Số lượng vàng bạn đã mua (gam, chỉ, lượng,...)
+                                            {tGold('quantityDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -519,7 +521,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="weightUnit"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Đơn vị</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('weightUnitLabel')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
@@ -527,19 +529,19 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn đơn vị" />
+                                                    <SelectValue placeholder={tGold('selectWeightUnit')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
-                                                <SelectItem value="gram" className="hover:bg-accent dark:hover:bg-accent-dark">Gram</SelectItem>
+                                                <SelectItem value={tGold('gram')} className="hover:bg-accent dark:hover:bg-accent-dark">{tGold('gram')}</SelectItem>
                                                 <SelectItem value="chỉ" className="hover:bg-accent dark:hover:bg-accent-dark">Chỉ (3.75g)</SelectItem>
-                                                <SelectItem value="lượng" className="hover:bg-accent dark:hover:bg-accent-dark">Lượng (37.5g)</SelectItem>
+                                                <SelectItem value={tGold('tael')} className="hover:bg-accent dark:hover:bg-accent-dark">{tGold('tael')}</SelectItem>
                                                 <SelectItem value="cây" className="hover:bg-accent dark:hover:bg-accent-dark">Cây (37.5g)</SelectItem>
                                                 <SelectItem value="phân" className="hover:bg-accent dark:hover:bg-accent-dark">Phân (0.375g)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Đơn vị khối lượng vàng
+                                            {tGold('weightUnitDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -551,10 +553,10 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="currentPrice"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Giá mua (đồng/đơn vị)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('purchasePriceLabel')}</FormLabel>
                                         <FormControl>
                                             <CurrencyInput
-                                                placeholder="Nhập giá mua"
+                                                placeholder={t('pricePlaceholder')}
                                                 value={field.value}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
@@ -562,7 +564,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Giá vàng khi bạn mua (VND)
+                                            {t('currentPriceDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -574,10 +576,10 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="fee"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Phí giao dịch</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{t('fee')}</FormLabel>
                                         <FormControl>
                                             <CurrencyInput
-                                                placeholder="Nhập phí giao dịch"
+                                                placeholder={t('feeDescription')}
                                                 value={field.value ?? 0}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
@@ -585,7 +587,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Phí mua vàng (nếu có)
+                                            {t('feeDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -599,12 +601,12 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="purchaseDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngày mua</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{t('date')}</FormLabel>
                                         <FormControl>
                                             <Input type="date" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Ngày bạn mua vàng
+                                            {tValidation('selectDate')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -616,16 +618,16 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                 name="notes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ghi chú</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{t('notes')}</FormLabel>
                                         <FormControl>
                                             <Textarea
-                                                placeholder="Thêm ghi chú về khoản đầu tư vàng này"
+                                                placeholder={t('notesPlaceholder')}
                                                 className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 {...field}
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Thông tin bổ sung về khoản đầu tư vàng của bạn
+                                            {tGold('goldInfo')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -635,7 +637,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
 
                         <div className="flex justify-end items-center mt-6">
                             <Button type="submit" disabled={isLoading} className="bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white dark:text-gray-900">
-                                {isLoading ? 'Đang xử lý...' : 'Thêm khoản đầu tư vàng'}
+                                {isLoading ? t('adding') : tGold('addNewGold')}
                             </Button>
                         </div>
                     </CardContent>

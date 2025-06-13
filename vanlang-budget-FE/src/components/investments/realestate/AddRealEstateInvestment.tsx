@@ -40,6 +40,8 @@ interface AddRealEstateInvestmentProps {
 
 export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInvestmentProps) {
     const t = useTranslations('Investments');
+    const tRealEstate = useTranslations('Investments.realestate');
+    const tValidation = useTranslations('Investments.validation');
     const { toast } = useToast();
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
@@ -49,38 +51,38 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
         assetName: z.string()
             .min(1, t('assetNameRequired'))
             .max(100, t('assetNameTooLong')),
-        propertyType: z.string().min(1, "Loại đất là bắt buộc"),
+        propertyType: z.string().min(1, tValidation('enterOtherAssetType')),
         otherPropertyType: z.string().optional(),
-        address: z.string().min(1, "Địa chỉ là bắt buộc"),
-        legalStatus: z.string().min(1, "Tình trạng pháp lý là bắt buộc"),
+        address: z.string().min(1, tRealEstate('addressDescription')),
+        legalStatus: z.string().min(1, tRealEstate('legalStatusDescription')),
         otherLegalStatus: z.string().optional(),
-        area: z.coerce.number().min(0, "Diện tích phải là số dương"),
-        frontWidth: z.coerce.number().min(0, "Mặt tiền phải là số dương").optional(),
-        depth: z.coerce.number().min(0, "Chiều sâu phải là số dương").optional(),
-        purchasePrice: z.coerce.number().min(0, "Giá mua phải là số dương").max(100000000000, 'Giá mua tối đa là 100 tỷ'),
-        additionalFees: z.coerce.number().min(0, "Phí phát sinh phải là số dương").max(100000000000, 'Phí tối đa là 100 tỷ').optional(),
-        purchaseDate: z.string().min(1, "Ngày mua là bắt buộc"),
-        ownershipType: z.string().min(1, "Hình thức sở hữu là bắt buộc"),
+        area: z.coerce.number().min(0, t('quantityPositive')),
+        frontWidth: z.coerce.number().min(0, t('quantityPositive')).optional(),
+        depth: z.coerce.number().min(0, t('quantityPositive')).optional(),
+        purchasePrice: z.coerce.number().min(0, t('pricePositive')).max(100000000000, tValidation('maxPriceLimit')),
+        additionalFees: z.coerce.number().min(0, t('feePositive')).max(100000000000, tValidation('maxFeeLimit')).optional(),
+        purchaseDate: z.string().min(1, t('purchaseDateRequired')),
+        ownershipType: z.string().min(1, tRealEstate('ownershipTypeDescription')),
         otherOwnershipType: z.string().optional(),
         investmentPurpose: z.string().optional(),
         otherInvestmentPurpose: z.string().optional(),
         currentStatus: z.string().optional(),
         otherCurrentStatus: z.string().optional(),
         notes: z.string().max(500, t('notesTooLong')).optional(),
-    }).refine(data => !(data.propertyType === 'other' && (!data.otherPropertyType || data.otherPropertyType.trim() === '')), {
-        message: "Vui lòng nhập loại đất khác",
+    }).refine(data => !(data.propertyType === tRealEstate('propertyTypes.other') && (!data.otherPropertyType || data.otherPropertyType.trim() === '')), {
+        message: tRealEstate('otherPropertyTypePlaceholder'),
         path: ['otherPropertyType'],
-    }).refine(data => !(data.legalStatus === 'other' && (!data.otherLegalStatus || data.otherLegalStatus.trim() === '')), {
-        message: "Vui lòng nhập tình trạng pháp lý khác",
+    }).refine(data => !(data.legalStatus === tRealEstate('legalStatuses.other') && (!data.otherLegalStatus || data.otherLegalStatus.trim() === '')), {
+        message: tRealEstate('otherLegalStatusPlaceholder'),
         path: ['otherLegalStatus'],
-    }).refine(data => !(data.ownershipType === 'other' && (!data.otherOwnershipType || data.otherOwnershipType.trim() === '')), {
-        message: "Vui lòng nhập hình thức sở hữu khác",
+    }).refine(data => !(data.ownershipType === tRealEstate('ownershipTypes.other') && (!data.otherOwnershipType || data.otherOwnershipType.trim() === '')), {
+        message: tRealEstate('otherOwnershipTypePlaceholder'),
         path: ['otherOwnershipType'],
-    }).refine(data => !(data.investmentPurpose === 'other' && (!data.otherInvestmentPurpose || data.otherInvestmentPurpose.trim() === '')), {
-        message: "Vui lòng nhập mục đích đầu tư khác",
+    }).refine(data => !(data.investmentPurpose === tRealEstate('investmentPurposes.other') && (!data.otherInvestmentPurpose || data.otherInvestmentPurpose.trim() === '')), {
+        message: tRealEstate('otherInvestmentPurposePlaceholder'),
         path: ['otherInvestmentPurpose'],
-    }).refine(data => !(data.currentStatus === 'other' && (!data.otherCurrentStatus || data.otherCurrentStatus.trim() === '')), {
-        message: "Vui lòng nhập tình trạng hiện tại khác",
+    }).refine(data => !(data.currentStatus === tRealEstate('currentStatuses.other') && (!data.otherCurrentStatus || data.otherCurrentStatus.trim() === '')), {
+        message: tRealEstate('otherCurrentStatusPlaceholder'),
         path: ['otherCurrentStatus'],
     });
 
@@ -89,10 +91,10 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
         resolver: zodResolver(formSchema),
         defaultValues: {
             assetName: '',
-            propertyType: 'residential',
+            propertyType: tRealEstate('propertyTypes.residential'),
             otherPropertyType: '',
             address: '',
-            legalStatus: 'redbook',
+            legalStatus: tRealEstate('legalStatuses.redbook'),
             otherLegalStatus: '',
             area: 0,
             frontWidth: undefined,
@@ -100,11 +102,11 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
             purchasePrice: 0,
             additionalFees: 0,
             purchaseDate: new Date().toISOString().slice(0, 10),
-            ownershipType: 'personal',
+            ownershipType: tRealEstate('ownershipTypes.personal'),
             otherOwnershipType: '',
-            investmentPurpose: 'holding',
+            investmentPurpose: tRealEstate('investmentPurposes.holding'),
             otherInvestmentPurpose: '',
-            currentStatus: 'holding',
+            currentStatus: tRealEstate('currentStatuses.holding'),
             otherCurrentStatus: '',
             notes: '',
         },
@@ -114,32 +116,32 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
         setIsLoading(true);
 
-        const actualPropertyType = values.propertyType === 'other' ? values.otherPropertyType?.trim() : values.propertyType;
-        const actualLegalStatus = values.legalStatus === 'other' ? values.otherLegalStatus?.trim() : values.legalStatus;
-        const actualOwnershipType = values.ownershipType === 'other' ? values.otherOwnershipType?.trim() : values.ownershipType;
-        const actualInvestmentPurpose = values.investmentPurpose === 'other' ? values.otherInvestmentPurpose?.trim() : values.investmentPurpose;
-        const actualCurrentStatus = values.currentStatus === 'other' ? values.otherCurrentStatus?.trim() : values.currentStatus;
+        const actualPropertyType = values.propertyType === tRealEstate('propertyTypes.other') ? values.otherPropertyType?.trim() : values.propertyType;
+        const actualLegalStatus = values.legalStatus === tRealEstate('legalStatuses.other') ? values.otherLegalStatus?.trim() : values.legalStatus;
+        const actualOwnershipType = values.ownershipType === tRealEstate('ownershipTypes.other') ? values.otherOwnershipType?.trim() : values.ownershipType;
+        const actualInvestmentPurpose = values.investmentPurpose === tRealEstate('investmentPurposes.other') ? values.otherInvestmentPurpose?.trim() : values.investmentPurpose;
+        const actualCurrentStatus = values.currentStatus === tRealEstate('currentStatuses.other') ? values.otherCurrentStatus?.trim() : values.currentStatus;
 
         // Validate other fields if 'other' is selected
         let hasError = false;
-        if (values.propertyType === 'other' && !actualPropertyType) {
-            form.setError('otherPropertyType', { type: 'manual', message: 'Vui lòng nhập loại đất khác.' });
+        if (values.propertyType === tRealEstate('propertyTypes.other') && !actualPropertyType) {
+            form.setError('otherPropertyType', { type: 'manual', message: tRealEstate('otherPropertyTypePlaceholder') });
             hasError = true;
         }
-        if (values.legalStatus === 'other' && !actualLegalStatus) {
-            form.setError('otherLegalStatus', { type: 'manual', message: 'Vui lòng nhập tình trạng pháp lý khác.' });
+        if (values.legalStatus === tRealEstate('legalStatuses.other') && !actualLegalStatus) {
+            form.setError('otherLegalStatus', { type: 'manual', message: tRealEstate('otherLegalStatusPlaceholder') });
             hasError = true;
         }
-        if (values.ownershipType === 'other' && !actualOwnershipType) {
-            form.setError('otherOwnershipType', { type: 'manual', message: 'Vui lòng nhập hình thức sở hữu khác.' });
+        if (values.ownershipType === tRealEstate('ownershipTypes.other') && !actualOwnershipType) {
+            form.setError('otherOwnershipType', { type: 'manual', message: tRealEstate('otherOwnershipTypePlaceholder') });
             hasError = true;
         }
-        if (values.investmentPurpose === 'other' && !actualInvestmentPurpose) {
-            form.setError('otherInvestmentPurpose', { type: 'manual', message: 'Vui lòng nhập mục đích đầu tư khác.' });
+        if (values.investmentPurpose === tRealEstate('investmentPurposes.other') && !actualInvestmentPurpose) {
+            form.setError('otherInvestmentPurpose', { type: 'manual', message: tRealEstate('otherInvestmentPurposePlaceholder') });
             hasError = true;
         }
-        if (values.currentStatus === 'other' && !actualCurrentStatus) {
-            form.setError('otherCurrentStatus', { type: 'manual', message: 'Vui lòng nhập tình trạng hiện tại khác.' });
+        if (values.currentStatus === tRealEstate('currentStatuses.other') && !actualCurrentStatus) {
+            form.setError('otherCurrentStatus', { type: 'manual', message: tRealEstate('otherCurrentStatusPlaceholder') });
             hasError = true;
         }
 
@@ -154,7 +156,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                 type: 'realestate',
                 name: values.assetName,
                 symbol: 'LAND',
-                category: 'Đất đai',
+                category: tRealEstate('category'),
                 currentPrice: Number(values.purchasePrice),
                 initialInvestment: Number(values.purchasePrice) + Number(values.additionalFees || 0),
                 startDate: new Date(values.purchaseDate).toISOString(),
@@ -175,7 +177,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                     quantity: 1,
                     fee: Number(values.additionalFees || 0),
                     date: new Date(values.purchaseDate).toISOString(),
-                    notes: `Mua bất động sản: ${values.assetName}`
+                    notes: `${tRealEstate('buyTransaction')}: ${values.assetName}`
                 }
             };
 
@@ -190,55 +192,65 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                 });
                 onSuccess();
             } else {
-                throw new Error('Lỗi khi thêm khoản đầu tư đất đai');
+                throw new Error(tValidation('dataError'));
             }
-        } catch (error) {
-            console.error('Lỗi khi thêm khoản đầu tư đất đai:', error);
-            toast({
-                type: 'error',
-                title: t('addError'),
-                description: t('addErrorDescription')
-            });
+        } catch (error: any) {
+            console.error(tRealEstate('realEstateError'), error);
+
+            if (error.response?.status === 401) {
+                toast({
+                    type: 'error',
+                    title: tValidation('authError'),
+                    description: tValidation('loginAgain')
+                });
+                router.push('/login');
+            } else {
+                toast({
+                    type: 'error',
+                    title: t('addError'),
+                    description: t('addErrorDescription')
+                });
+            }
         } finally {
             setIsLoading(false);
         }
     };
 
     const propertyTypes = [
-        { label: 'Đất thổ cư', value: 'residential' },
-        { label: 'Đất nông nghiệp', value: 'agricultural' },
-        { label: 'Đất thương mại/dịch vụ', value: 'commercial' },
-        { label: 'Đất dự án', value: 'project' },
-        { label: 'Khác', value: 'other' },
+        { label: tRealEstate('propertyTypes.residential'), value: tRealEstate('propertyTypes.residential') },
+        { label: tRealEstate('propertyTypes.agricultural'), value: tRealEstate('propertyTypes.agricultural') },
+        { label: tRealEstate('propertyTypes.commercial'), value: tRealEstate('propertyTypes.commercial') },
+        { label: tRealEstate('propertyTypes.project'), value: tRealEstate('propertyTypes.project') },
+        { label: tRealEstate('propertyTypes.other'), value: tRealEstate('propertyTypes.other') },
     ];
 
     const legalStatuses = [
-        { label: 'Sổ đỏ chính chủ', value: 'redbook' },
-        { label: 'Sổ hồng', value: 'pinkbook' },
-        { label: 'Giấy tay', value: 'handwritten' },
-        { label: 'Đang chờ cấp sổ', value: 'pending' },
-        { label: 'Khác', value: 'other' },
+        { label: tRealEstate('legalStatuses.redbook'), value: tRealEstate('legalStatuses.redbook') },
+        { label: tRealEstate('legalStatuses.pinkbook'), value: tRealEstate('legalStatuses.pinkbook') },
+        { label: tRealEstate('legalStatuses.handwritten'), value: tRealEstate('legalStatuses.handwritten') },
+        { label: tRealEstate('legalStatuses.pending'), value: tRealEstate('legalStatuses.pending') },
+        { label: tRealEstate('legalStatuses.other'), value: tRealEstate('legalStatuses.other') },
     ];
 
     const ownershipTypes = [
-        { label: 'Cá nhân', value: 'personal' },
-        { label: 'Đồng sở hữu', value: 'shared' },
-        { label: 'Doanh nghiệp', value: 'business' },
-        { label: 'Khác', value: 'other' },
+        { label: tRealEstate('ownershipTypes.personal'), value: tRealEstate('ownershipTypes.personal') },
+        { label: tRealEstate('ownershipTypes.shared'), value: tRealEstate('ownershipTypes.shared') },
+        { label: tRealEstate('ownershipTypes.business'), value: tRealEstate('ownershipTypes.business') },
+        { label: tRealEstate('ownershipTypes.other'), value: tRealEstate('ownershipTypes.other') },
     ];
 
     const investmentPurposes = [
-        { label: 'Giữ tài sản', value: 'holding' },
-        { label: 'Chờ tăng giá', value: 'appreciation' },
-        { label: 'Xây nhà/cho thuê', value: 'development' },
-        { label: 'Khác', value: 'other' },
+        { label: tRealEstate('investmentPurposes.holding'), value: tRealEstate('investmentPurposes.holding') },
+        { label: tRealEstate('investmentPurposes.appreciation'), value: tRealEstate('investmentPurposes.appreciation') },
+        { label: tRealEstate('investmentPurposes.development'), value: tRealEstate('investmentPurposes.development') },
+        { label: tRealEstate('investmentPurposes.other'), value: tRealEstate('investmentPurposes.other') },
     ];
 
     const currentStatuses = [
-        { label: 'Đang giữ', value: 'holding' },
-        { label: 'Đã bán', value: 'sold' },
-        { label: 'Đang cho thuê', value: 'renting' },
-        { label: 'Khác', value: 'other' },
+        { label: tRealEstate('currentStatuses.holding'), value: tRealEstate('currentStatuses.holding') },
+        { label: tRealEstate('currentStatuses.sold'), value: tRealEstate('currentStatuses.sold') },
+        { label: tRealEstate('currentStatuses.renting'), value: tRealEstate('currentStatuses.renting') },
+        { label: tRealEstate('currentStatuses.other'), value: tRealEstate('currentStatuses.other') },
     ];
 
     return (
@@ -246,7 +258,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">Thông tin bất động sản</CardTitle>
+                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">{tRealEstate('realEstateInfo')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -256,18 +268,18 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Tên bất động sản
-                                            <HelpTooltip text="Tên mô tả bất động sản của bạn" />
+                                            {tRealEstate('assetName')}
+                                            <HelpTooltip text={tRealEstate('assetNameDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Ví dụ: Đất nền khu dân cư An Phú, Lô B5..."
+                                                placeholder={tRealEstate('assetNamePlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Tên để nhận diện khoản đầu tư</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('assetNameDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -279,8 +291,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Loại đất
-                                            <HelpTooltip text="Loại bất động sản đầu tư" />
+                                            {tRealEstate('propertyType')}
+                                            <HelpTooltip text={tRealEstate('propertyTypeDescription')} />
                                         </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
@@ -289,7 +301,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn loại đất" />
+                                                    <SelectValue placeholder={tRealEstate('selectPropertyType')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -300,20 +312,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Loại bất động sản bạn đầu tư</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('propertyTypeDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('propertyType') === 'other' && (
+                            {form.watch('propertyType') === tRealEstate('propertyTypes.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherPropertyType"
                                     render={({ field }) => (
                                         <FormItem className="md:col-span-2">
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Loại đất khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tRealEstate('otherPropertyTypeLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập loại đất" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tRealEstate('otherPropertyTypePlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -329,18 +341,18 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Địa chỉ cụ thể
-                                            <HelpTooltip text="Địa chỉ đầy đủ của bất động sản" />
+                                            {tRealEstate('address')}
+                                            <HelpTooltip text={tRealEstate('addressDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
-                                                placeholder="Số, đường, phường/xã, quận/huyện, tỉnh/thành"
+                                                placeholder={tRealEstate('addressPlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Địa chỉ đầy đủ của bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('addressDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -351,7 +363,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
 
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">Pháp lý và diện tích</CardTitle>
+                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">{tRealEstate('legalAndArea')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -361,8 +373,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Tình trạng pháp lý
-                                            <HelpTooltip text="Tình trạng giấy tờ pháp lý của bất động sản" />
+                                            {tRealEstate('legalStatus')}
+                                            <HelpTooltip text={tRealEstate('legalStatusDescription')} />
                                         </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
@@ -371,7 +383,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn tình trạng pháp lý" />
+                                                    <SelectValue placeholder={tRealEstate('selectLegalStatus')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -382,20 +394,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Tình trạng giấy tờ pháp lý</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('legalStatusDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('legalStatus') === 'other' && (
+                            {form.watch('legalStatus') === tRealEstate('legalStatuses.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherLegalStatus"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tình trạng pháp lý khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tRealEstate('otherLegalStatusLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập tình trạng pháp lý" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tRealEstate('otherLegalStatusPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -409,8 +421,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Diện tích (m²)
-                                            <HelpTooltip text="Diện tích đất tính bằng mét vuông" />
+                                            {tRealEstate('area')}
+                                            <HelpTooltip text={tRealEstate('areaDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
@@ -421,7 +433,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Diện tích đất tính bằng mét vuông</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('areaDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -435,8 +447,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Mặt tiền (m)
-                                            <HelpTooltip text="Chiều rộng mặt tiền tính bằng mét" />
+                                            {tRealEstate('frontWidth')}
+                                            <HelpTooltip text={tRealEstate('frontWidthDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
@@ -449,7 +461,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Chiều rộng mặt tiền (tùy chọn)</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('frontWidthDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -461,8 +473,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Chiều sâu (m)
-                                            <HelpTooltip text="Chiều sâu của lô đất tính bằng mét" />
+                                            {tRealEstate('depth')}
+                                            <HelpTooltip text={tRealEstate('depthDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
@@ -475,7 +487,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Chiều sâu của lô đất (tùy chọn)</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('depthDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -486,7 +498,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
 
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">Tài chính và giao dịch</CardTitle>
+                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">{tRealEstate('financialAndTransaction')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -496,8 +508,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Giá mua (VNĐ)
-                                            <HelpTooltip text="Giá mua bất động sản" />
+                                            {t('purchasePrice')}
+                                            <HelpTooltip text={t('purchasePriceDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <CurrencyInput
@@ -509,7 +521,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Giá mua bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{t('purchasePriceDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -521,8 +533,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Phí phát sinh
-                                            <HelpTooltip text="Các khoản phí phát sinh như công chứng, môi giới..." />
+                                            {t('additionalFees')}
+                                            <HelpTooltip text={t('additionalFeesDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <CurrencyInput
@@ -534,7 +546,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Phí công chứng, môi giới, thuế...</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{t('additionalFeesDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -548,8 +560,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Ngày mua
-                                            <HelpTooltip text="Ngày mua bất động sản" />
+                                            {t('purchaseDate')}
+                                            <HelpTooltip text={t('purchaseDateDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Input
@@ -559,7 +571,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Ngày mua bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{t('purchaseDateDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -571,8 +583,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Hình thức sở hữu
-                                            <HelpTooltip text="Hình thức sở hữu bất động sản" />
+                                            {tRealEstate('ownershipType')}
+                                            <HelpTooltip text={tRealEstate('ownershipTypeDescription')} />
                                         </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
@@ -581,7 +593,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn hình thức sở hữu" />
+                                                    <SelectValue placeholder={tRealEstate('selectOwnershipType')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -592,20 +604,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Hình thức sở hữu bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('ownershipTypeDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('ownershipType') === 'other' && (
+                            {form.watch('ownershipType') === tRealEstate('ownershipTypes.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherOwnershipType"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Hình thức sở hữu khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tRealEstate('otherOwnershipTypeLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập hình thức sở hữu" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tRealEstate('otherOwnershipTypePlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -618,7 +630,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
 
                 <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
                     <CardHeader className="pb-2">
-                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">Thông tin khác</CardTitle>
+                        <CardTitle className="text-xl text-orange-800 dark:text-orange-400">{tRealEstate('otherInfo')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -628,8 +640,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Mục đích đầu tư
-                                            <HelpTooltip text="Mục đích đầu tư bất động sản" />
+                                            {tRealEstate('investmentPurpose')}
+                                            <HelpTooltip text={tRealEstate('investmentPurposeDescription')} />
                                         </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
@@ -638,7 +650,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn mục đích đầu tư" />
+                                                    <SelectValue placeholder={tRealEstate('selectInvestmentPurpose')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -649,20 +661,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Mục đích đầu tư bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('investmentPurposeDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('investmentPurpose') === 'other' && (
+                            {form.watch('investmentPurpose') === tRealEstate('investmentPurposes.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherInvestmentPurpose"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Mục đích đầu tư khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tRealEstate('otherInvestmentPurposeLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập mục đích đầu tư" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tRealEstate('otherInvestmentPurposePlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -676,8 +688,8 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Tình trạng hiện tại
-                                            <HelpTooltip text="Tình trạng hiện tại của bất động sản" />
+                                            {tRealEstate('currentStatus')}
+                                            <HelpTooltip text={tRealEstate('currentStatusDescription')} />
                                         </FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
@@ -686,7 +698,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn tình trạng hiện tại" />
+                                                    <SelectValue placeholder={tRealEstate('selectCurrentStatus')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -697,20 +709,20 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                                 ))}
                                             </SelectContent>
                                         </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Tình trạng hiện tại của bất động sản</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{tRealEstate('currentStatusDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                            {form.watch('currentStatus') === 'other' && (
+                            {form.watch('currentStatus') === tRealEstate('currentStatuses.other') && (
                                 <FormField
                                     control={form.control}
                                     name="otherCurrentStatus"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel className="text-foreground dark:text-foreground-dark">Tình trạng hiện tại khác</FormLabel>
+                                            <FormLabel className="text-foreground dark:text-foreground-dark">{tRealEstate('otherCurrentStatusLabel')}</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Nhập tình trạng hiện tại" {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                <Input placeholder={tRealEstate('otherCurrentStatusPlaceholder')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -726,19 +738,19 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="flex items-center text-foreground dark:text-foreground-dark">
-                                            Ghi chú
-                                            <HelpTooltip text="Ghi chú thêm về khoản đầu tư bất động sản" />
+                                            {t('notes')}
+                                            <HelpTooltip text={t('notesDescription')} />
                                         </FormLabel>
                                         <FormControl>
                                             <Textarea
-                                                placeholder="Nhập ghi chú về khoản đầu tư này..."
+                                                placeholder={t('notesPlaceholder')}
                                                 {...field}
                                                 disabled={isLoading}
                                                 rows={3}
                                                 className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark resize-none"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">Thông tin bổ sung về khoản đầu tư</FormDescription>
+                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">{t('notesDescription')}</FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -749,7 +761,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
 
                 <div className="flex justify-end items-center mt-6">
                     <Button type="submit" className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark" disabled={isLoading}>
-                        {isLoading ? "Đang thêm..." : "Thêm đầu tư đất đai"}
+                        {isLoading ? t('adding') : tRealEstate('addNewRealEstate')}
                     </Button>
                 </div>
             </form>
