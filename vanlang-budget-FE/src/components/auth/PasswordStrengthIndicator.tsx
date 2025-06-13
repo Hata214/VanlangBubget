@@ -13,9 +13,9 @@ interface PasswordRequirement {
     description: string;
 }
 
-const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({ 
-    password, 
-    className = '' 
+const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
+    password,
+    className = ''
 }) => {
     const requirements: PasswordRequirement[] = [
         {
@@ -69,17 +69,16 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-600">Độ mạnh mật khẩu:</span>
-                        <span className={`text-xs font-medium ${
-                            strengthPercentage < 40 ? 'text-red-600' :
-                            strengthPercentage < 60 ? 'text-yellow-600' :
-                            strengthPercentage < 80 ? 'text-blue-600' :
-                            'text-green-600'
-                        }`}>
+                        <span className={`text-xs font-medium ${strengthPercentage < 40 ? 'text-red-600' :
+                                strengthPercentage < 60 ? 'text-yellow-600' :
+                                    strengthPercentage < 80 ? 'text-blue-600' :
+                                        'text-green-600'
+                            }`}>
                             {getStrengthText()}
                         </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                             className={`h-2 rounded-full transition-all duration-300 ${getStrengthColor()}`}
                             style={{ width: `${strengthPercentage}%` }}
                         />
@@ -94,11 +93,10 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
                     {requirements.map((requirement, index) => {
                         const isMet = requirement.test(password);
                         return (
-                            <div 
+                            <div
                                 key={index}
-                                className={`flex items-center gap-2 transition-colors duration-200 ${
-                                    isMet ? 'text-green-600' : 'text-gray-400'
-                                }`}
+                                className={`flex items-center gap-2 transition-colors duration-200 ${isMet ? 'text-green-600' : 'text-gray-400'
+                                    }`}
                             >
                                 <span className="flex-shrink-0 w-4 h-4 flex items-center justify-center">
                                     {isMet ? (
@@ -122,8 +120,8 @@ const PasswordStrengthIndicator: React.FC<PasswordStrengthIndicatorProps> = ({
             {password && strengthPercentage < 100 && (
                 <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md">
                     <p className="text-xs text-blue-700 dark:text-blue-300">
-                        💡 <strong>Gợi ý:</strong> Sử dụng cụm từ dễ nhớ kết hợp với số và ký tự đặc biệt. 
-                        Ví dụ: "MyPassword123!"
+                        💡 <strong>Gợi ý:</strong> Sử dụng cụm từ dễ nhớ kết hợp với số và ký tự đặc biệt.
+                        Ví dụ: &quot;MyPassword123!&quot;
                     </p>
                 </div>
             )}
