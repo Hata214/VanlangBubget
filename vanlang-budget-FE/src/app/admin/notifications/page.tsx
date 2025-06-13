@@ -88,7 +88,7 @@ export default function AdminNotificationsPage() {
         title: '',
         message: '',
         type: 'info',
-        sendToAll: false,
+        sendToAll: true,  // Default to sending to all users
         sendToAdmins: false,
         specificUsers: ''
     })
@@ -214,7 +214,7 @@ export default function AdminNotificationsPage() {
                 title: '',
                 message: '',
                 type: 'info',
-                sendToAll: false,
+                sendToAll: true,  // Default to sending to all users
                 sendToAdmins: false,
                 specificUsers: ''
             })
