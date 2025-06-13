@@ -66,7 +66,7 @@ import { toast } from 'react-hot-toast';
 import { adminService } from '@/services/adminService';
 
 interface User {
-    id: string;
+    _id: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -490,7 +490,7 @@ export default function ManageAdminsPage() {
                                     </TableRow>
                                 ) : (
                                     users.map((user) => (
-                                        <TableRow key={user.id}>
+                                        <TableRow key={user._id}>
                                             <TableCell className="font-medium">
                                                 {user.firstName} {user.lastName}
                                             </TableCell>
@@ -518,43 +518,43 @@ export default function ManageAdminsPage() {
                                                         {/* Thăng cấp User lên Admin */}
                                                         {user.role === 'user' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handlePromoteToAdmin(user.id)}
-                                                                disabled={processingUser === user.id}
+                                                                onClick={() => handlePromoteToAdmin(user._id)}
+                                                                disabled={processingUser === user._id}
                                                                 className="text-green-600 focus:text-green-600 focus:bg-green-50"
                                                             >
                                                                 <UserPlus className="mr-2 h-4 w-4" />
-                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Thăng cấp lên Admin'}
+                                                                {processingUser === user._id ? 'Đang xử lý...' : 'Thăng cấp lên Admin'}
                                                             </DropdownMenuItem>
                                                         )}
 
                                                         {/* Hạ cấp Admin xuống User */}
                                                         {user.role === 'admin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleDemoteToUser(user.id)}
-                                                                disabled={processingUser === user.id}
+                                                                onClick={() => handleDemoteToUser(user._id)}
+                                                                disabled={processingUser === user._id}
                                                                 className="text-orange-600 focus:text-orange-600 focus:bg-orange-50"
                                                             >
                                                                 <UserMinus className="mr-2 h-4 w-4" />
-                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
+                                                                {processingUser === user._id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
                                                             </DropdownMenuItem>
                                                         )}
 
                                                         {/* Kích hoạt/Vô hiệu hóa tài khoản - Không áp dụng cho SuperAdmin */}
                                                         {user.role !== 'superadmin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleToggleActive(user.id, user.active)}
-                                                                disabled={processingUser === user.id}
+                                                                onClick={() => handleToggleActive(user._id, user.active)}
+                                                                disabled={processingUser === user._id}
                                                                 className={user.active ? "text-red-600 focus:text-red-600 focus:bg-red-50" : "text-green-600 focus:text-green-600 focus:bg-green-50"}
                                                             >
                                                                 {user.active ? (
                                                                     <>
                                                                         <Ban className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
                                                                     </>
                                                                 ) : (
                                                                     <>
                                                                         <CheckCircle className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
                                                                     </>
                                                                 )}
                                                             </DropdownMenuItem>
@@ -563,12 +563,12 @@ export default function ManageAdminsPage() {
                                                         {/* Xóa người dùng - Không áp dụng cho SuperAdmin */}
                                                         {user.role !== 'superadmin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => confirmDeleteUser(user.id)}
-                                                                disabled={processingUser === user.id}
+                                                                onClick={() => confirmDeleteUser(user._id)}
+                                                                disabled={processingUser === user._id}
                                                                 className="text-red-600 focus:text-red-600 focus:bg-red-50"
                                                             >
                                                                 <AlertTriangle className="mr-2 h-4 w-4" />
-                                                                {processingUser === user.id ? 'Đang xử lý...' : 'Xóa người dùng'}
+                                                                {processingUser === user._id ? 'Đang xử lý...' : 'Xóa người dùng'}
                                                             </DropdownMenuItem>
                                                         )}
                                                     </DropdownMenuContent>

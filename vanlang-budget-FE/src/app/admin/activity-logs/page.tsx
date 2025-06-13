@@ -64,8 +64,7 @@ interface ActivityLog {
 }
 
 interface AdminUser {
-    id: string;
-    _id?: string; // Thêm _id như một trường tùy chọn
+    _id: string;
     email: string;
     firstName: string;
     lastName: string;
@@ -89,7 +88,7 @@ export default function ActivityLogsPage() {
         // Lấy thông tin người dùng hiện tại từ localStorage
         const userRole = localStorage.getItem('user_role');
         setCurrentUser({
-            id: localStorage.getItem('user_id') || '',
+            _id: localStorage.getItem('user_id') || '',
             name: localStorage.getItem('user_name') || '',
             email: localStorage.getItem('user_email') || '',
             role: userRole
@@ -280,7 +279,7 @@ export default function ActivityLogsPage() {
     };
 
     const getAdminName = (adminId: string) => {
-        const admin = admins.find(a => a.id === adminId || a._id === adminId);
+        const admin = admins.find(a => a._id === adminId);
         if (admin) {
             return `${admin.firstName} ${admin.lastName}`;
         }
@@ -357,7 +356,7 @@ export default function ActivityLogsPage() {
                                     <SelectContent>
                                         <SelectItem value="all">Tất cả Admin</SelectItem>
                                         {admins.map((admin) => (
-                                            <SelectItem key={admin.id} value={admin.id}>
+                                            <SelectItem key={admin._id} value={admin._id}>
                                                 {admin.firstName} {admin.lastName}
                                             </SelectItem>
                                         ))}

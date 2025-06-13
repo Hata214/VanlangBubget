@@ -26,7 +26,7 @@ import InlineEditor from './InlineEditor';
 import ContentDebugPanel from '../debug/ContentDebugPanel';
 
 interface User {
-    id: string;
+    _id: string;
     email: string;
     role: string;
     firstName?: string;

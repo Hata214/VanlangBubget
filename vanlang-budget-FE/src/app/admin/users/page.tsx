@@ -73,7 +73,7 @@ import userService from '@/services/userService'
 import { toast } from 'react-hot-toast'
 
 interface UserData {
-    id: string
+    _id: string
     email: string
     firstName: string
     lastName: string
@@ -173,7 +173,7 @@ export default function AdminUsersPage() {
             } else {
                 // Fallback for different response format
                 const mappedUsers = (response.data || []).map((user: any) => ({
-                    id: user._id || user.id,
+                    _id: user._id || user.id,
                     email: user.email,
                     firstName: user.firstName,
                     lastName: user.lastName,
@@ -260,12 +260,12 @@ export default function AdminUsersPage() {
         if (!selectedUser || !selectedUser.role) return
 
         try {
-            await api.patch(`/api/users/${selectedUser.id}/role`, { role: selectedUser.role })
+            await api.patch(`/api/users/${selectedUser._id}/role`, { role: selectedUser.role })
 
             // Cập nhật local state
             setUsers(prevUsers =>
                 prevUsers.map(user =>
-                    user.id === selectedUser.id ? { ...user, role: selectedUser.role } : user
+                    user._id === selectedUser._id ? { ...user, role: selectedUser.role } : user
                 )
             )
 
@@ -310,7 +310,7 @@ export default function AdminUsersPage() {
         if (selectedUsers.length === users.length) {
             setSelectedUsers([])
         } else {
-            setSelectedUsers(users.map(user => user.id))
+            setSelectedUsers(users.map(user => user._id))
         }
     }
 
@@ -321,7 +321,7 @@ export default function AdminUsersPage() {
     const handleRoleChange = (userId: string, newRole: string) => {
         console.log(`Thay đổi role của người dùng ${userId} thành ${newRole}`)
         setUsers(prev => prev.map(user =>
-            user.id === userId ? { ...user, role: newRole } : user
+            user._id === userId ? { ...user, role: newRole } : user
         ))
         setDropdownOpen(null)
     }
@@ -329,7 +329,7 @@ export default function AdminUsersPage() {
     const handleToggleActive = (userId: string) => {
         console.log(`Thay đổi trạng thái active của người dùng ${userId}`)
         setUsers(prev => prev.map(user =>
-            user.id === userId ? { ...user, active: !user.active } : user
+            user._id === userId ? { ...user, active: !user.active } : user
         ))
         setDropdownOpen(null)
     }
@@ -744,7 +744,7 @@ export default function AdminUsersPage() {
                                     </TableRow>
                                 ) : (
                                     users.map((user) => (
-                                        <TableRow key={user.id}>
+                                        <TableRow key={user._id}>
                                             <TableCell>
                                                 {user.firstName} {user.lastName}
                                             </TableCell>
@@ -800,20 +800,20 @@ export default function AdminUsersPage() {
                                                             <>
                                                                 {user.role === 'user' && (
                                                                     <DropdownMenuItem
-                                                                        onClick={() => handlePromoteUser(user.id)}
-                                                                        disabled={processingUser === user.id}
+                                                                        onClick={() => handlePromoteUser(user._id)}
+                                                                        disabled={processingUser === user._id}
                                                                     >
                                                                         <UserCheck className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Nâng cấp lên Admin'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Nâng cấp lên Admin'}
                                                                     </DropdownMenuItem>
                                                                 )}
                                                                 {user.role === 'admin' && (
                                                                     <DropdownMenuItem
-                                                                        onClick={() => handleDemoteAdmin(user.id)}
-                                                                        disabled={processingUser === user.id}
+                                                                        onClick={() => handleDemoteAdmin(user._id)}
+                                                                        disabled={processingUser === user._id}
                                                                     >
                                                                         <UserMinus className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Hạ cấp xuống User'}
                                                                     </DropdownMenuItem>
                                                                 )}
                                                             </>
@@ -822,18 +822,18 @@ export default function AdminUsersPage() {
                                                         {/* Kích hoạt/Vô hiệu hóa tài khoản - không áp dụng cho SuperAdmin */}
                                                         {user.role !== 'superadmin' && (
                                                             <DropdownMenuItem
-                                                                onClick={() => handleToggleUserStatus(user.id, user.active)}
-                                                                disabled={processingUser === user.id}
+                                                                onClick={() => handleToggleUserStatus(user._id, user.active)}
+                                                                disabled={processingUser === user._id}
                                                             >
                                                                 {user.active ? (
                                                                     <>
                                                                         <Ban className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Vô hiệu hóa tài khoản'}
                                                                     </>
                                                                 ) : (
                                                                     <>
                                                                         <CheckCircle className="mr-2 h-4 w-4" />
-                                                                        {processingUser === user.id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
+                                                                        {processingUser === user._id ? 'Đang xử lý...' : 'Kích hoạt tài khoản'}
                                                                     </>
                                                                 )}
                                                             </DropdownMenuItem>
@@ -990,7 +990,7 @@ export default function AdminUsersPage() {
                             <div className="col-span-3">
                                 <select
                                     value={selectedUser?.role || 'user'}
-                                    onChange={(e) => handleRoleChange(selectedUser?.id || '', e.target.value)}
+                                    onChange={(e) => handleRoleChange(selectedUser?._id || '', e.target.value)}
                                     className="w-full rounded-md border border-input bg-background px-3 py-2"
                                 >
                                     <option value="user">{t('admin.users.roleUser')}</option>
