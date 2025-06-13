@@ -76,8 +76,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const nextAuthUser = session.user as any;
 
                 // Get the actual token from NextAuth session or cookies
-                const actualAccessToken = nextAuthUser.accessToken || getCookie('token') || localStorage.getItem('token');
-                const actualRefreshToken = nextAuthUser.refreshToken || getCookie('refreshToken') || localStorage.getItem('refreshToken');
+                const actualAccessToken = nextAuthUser.accessToken || Cookies.get('token') || localStorage.getItem('token');
+                const actualRefreshToken = nextAuthUser.refreshToken || Cookies.get('refreshToken') || localStorage.getItem('refreshToken');
 
                 console.log('AuthContext: Syncing NextAuth session to Redux', {
                     user: nextAuthUser.email,
