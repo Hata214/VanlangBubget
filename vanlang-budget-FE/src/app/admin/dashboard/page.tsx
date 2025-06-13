@@ -655,8 +655,8 @@ export default function AdminDashboardPage() {
                                         </div>
                                         <div className="text-right">
                                             <div className={`font-bold ${transaction.type === 'income' ? 'text-green-600' :
-                                                    transaction.type === 'expense' ? 'text-red-600' :
-                                                        'text-blue-600'
+                                                transaction.type === 'expense' ? 'text-red-600' :
+                                                    'text-blue-600'
                                                 }`}>
                                                 {transaction.amount.toLocaleString('vi-VN')} ₫
                                             </div>
