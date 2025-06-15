@@ -168,7 +168,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                 type: 'savings',
                 name: `${tSavings('buyTransaction')} ${actualBankName}`,
                 symbol: `SAVE-${actualBankName}`,
-                category: tSavings('category'),
+                category: 'Tiết kiệm ngân hàng',
                 initialInvestment: principal,    // Vốn ban đầu
                 currentValue: principal,        // Giá trị hiện tại ban đầu bằng vốn gốc
                 startDate: startDate.toISOString(),

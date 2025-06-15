@@ -156,7 +156,7 @@ export default function AddRealEstateInvestment({ onSuccess }: AddRealEstateInve
                 type: 'realestate',
                 name: values.assetName,
                 symbol: 'LAND',
-                category: tRealEstate('category'),
+                category: 'Bất động sản',
                 currentPrice: Number(values.purchasePrice),
                 initialInvestment: Number(values.purchasePrice) + Number(values.additionalFees || 0),
                 startDate: new Date(values.purchaseDate).toISOString(),
