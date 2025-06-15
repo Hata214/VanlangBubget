@@ -569,51 +569,107 @@ export const resetPassword = async (req, res, next) => {
         const { password, passwordConfirm } = req.body;
         const { tokenId } = req.params;
 
+        console.log('Reset password request:', {
+            tokenId: tokenId ? tokenId.substring(0, 8) + '...' : 'null',
+            hasPassword: !!password,
+            hasPasswordConfirm: !!passwordConfirm,
+            timestamp: new Date().toISOString()
+        });
+
         if (!tokenId || !password) {
+            console.log('Missing tokenId or password');
             return next(new AppError('Vui lòng cung cấp token và mật khẩu mới', 400));
         }
 
         if (!passwordConfirm) {
+            console.log('Missing passwordConfirm');
             return next(new AppError('Vui lòng xác nhận mật khẩu mới', 400));
         }
 
         if (password !== passwordConfirm) {
+            console.log('Password mismatch');
             return next(new AppError('Mật khẩu xác nhận không khớp', 400));
         }
 
-        // Tìm người dùng với token chưa hết hạn và có passwordResetToken
-        const users = await User.find({
-            passwordResetExpires: { $gt: Date.now() },
-            passwordResetToken: { $exists: true }
-        });
+        // Tìm tất cả người dùng có token reset chưa hết hạn - sử dụng findOne để tránh middleware
+        const currentTime = Date.now();
+        console.log('Current time:', new Date(currentTime).toISOString());
 
-        if (!users || users.length === 0) {
+        // Sử dụng aggregate để tránh middleware can thiệp
+        const usersWithActiveTokens = await User.aggregate([
+            {
+                $match: {
+                    passwordResetExpires: { $gt: new Date(currentTime) },
+                    passwordResetToken: { $exists: true, $ne: null }
+                }
+            },
+            {
+                $project: {
+                    email: 1,
+                    firstName: 1,
+                    lastName: 1,
+                    passwordResetToken: 1,
+                    passwordResetExpires: 1,
+                    password: 1,
+                    role: 1,
+                    isEmailVerified: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                }
+            }
+        ]);
+
+        console.log(`Found ${usersWithActiveTokens.length} users with active reset tokens`);
+
+        if (!usersWithActiveTokens || usersWithActiveTokens.length === 0) {
+            console.log('No users found with active reset tokens');
             return next(new AppError('Token không hợp lệ hoặc đã hết hạn', 400));
         }
 
         // Tìm user có token khớp
         let matchedUser = null;
-        for (const user of users) {
-            const tokenMatches = await bcrypt.compare(tokenId, user.passwordResetToken);
-            if (tokenMatches) {
-                matchedUser = user;
-                break;
+        for (let i = 0; i < usersWithActiveTokens.length; i++) {
+            const userData = usersWithActiveTokens[i];
+            try {
+                console.log(`Checking user ${i + 1}/${usersWithActiveTokens.length}: ${userData.email}`);
+                console.log(`Token expires at: ${new Date(userData.passwordResetExpires).toISOString()}`);
+
+                const tokenMatches = await bcrypt.compare(tokenId, userData.passwordResetToken);
+                console.log(`Token matches: ${tokenMatches}`);
+
+                if (tokenMatches) {
+                    // Lấy user object đầy đủ từ database
+                    matchedUser = await User.findById(userData._id);
+                    console.log(`Found matching user: ${userData.email}`);
+                    break;
+                }
+            } catch (compareError) {
+                console.error(`Error comparing token for user ${userData.email}:`, compareError);
+                continue;
             }
         }
 
         if (!matchedUser) {
+            console.log('No matching user found for token');
             return next(new AppError('Token không hợp lệ', 400));
         }
+
+        console.log(`Resetting password for user: ${matchedUser.email}`);
 
         // Cập nhật mật khẩu và xóa token
         matchedUser.password = password;
         matchedUser.passwordResetToken = undefined;
         matchedUser.passwordResetExpires = undefined;
+        matchedUser.passwordChangedAt = new Date();
+
         await matchedUser.save();
+
+        console.log(`Password reset successful for user: ${matchedUser.email}`);
 
         // Đăng nhập người dùng
         createSendToken(matchedUser, 200, req, res);
     } catch (error) {
+        console.error('Reset password error:', error);
         next(error);
     }
 };
