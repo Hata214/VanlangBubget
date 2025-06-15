@@ -123,18 +123,23 @@ userSchema.pre('save', async function (next) {
 
 /**
  * Middleware trước khi lưu: xử lý user không active
- * Chỉ áp dụng cho truy vấn find() thông thường, không áp dụng cho truy vấn trong auth
+ * CHỈ áp dụng cho các truy vấn không liên quan đến authentication
  */
-userSchema.pre(/^find(?!One)/, function (next) {
-    // Chỉ áp dụng filter này nếu không phải truy vấn trong context auth
-    // 'this' points to the current query
+userSchema.pre(/^find/, function (next) {
+    // Bỏ qua filter active cho các truy vấn authentication
+    const skipActiveFilter = this.getOptions().skipActiveFilter ||
+        this.getQuery().email || // Nếu query theo email (thường là login)
+        this.getQuery()._id ||    // Nếu query theo ID
+        this.getQuery().passwordResetToken; // Nếu query reset password
 
-    console.log('Middleware find query called, adding active filter');
-
-    // Chỉ khi không có select('+active') trong query
-    if (!this._fields || !this._fields.active) {
-        this.find({ active: { $ne: false } });
+    if (skipActiveFilter) {
+        console.log('Skipping active filter for auth-related query');
+        return next();
     }
+
+    // Chỉ áp dụng filter active cho các truy vấn khác
+    console.log('Applying active filter for non-auth query');
+    this.find({ active: { $ne: false } });
 
     next();
 });

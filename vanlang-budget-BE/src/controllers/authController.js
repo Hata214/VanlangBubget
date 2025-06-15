@@ -710,9 +710,24 @@ export const resetPassword = async (req, res, next) => {
         matchedUser.passwordResetExpires = undefined;
         matchedUser.passwordChangedAt = new Date();
 
+        // IMPORTANT: Kích hoạt lại user account khi reset password
+        if (!matchedUser.active) {
+            console.log(`🔓 Activating user account: ${matchedUser.email}`);
+            matchedUser.active = true;
+        }
+
+        // Đảm bảo email được verify khi reset password thành công
+        if (!matchedUser.isEmailVerified) {
+            console.log(`✅ Verifying email for user: ${matchedUser.email}`);
+            matchedUser.isEmailVerified = true;
+        }
+
+        console.log('💾 Saving user with new password and active status...');
         await matchedUser.save();
 
         console.log(`✅ Password reset successful for user: ${matchedUser.email}`);
+        console.log(`✅ User account activated: ${matchedUser.active}`);
+        console.log(`✅ Email verified: ${matchedUser.isEmailVerified}`);
 
         // Đăng nhập người dùng
         createSendToken(matchedUser, 200, req, res);
