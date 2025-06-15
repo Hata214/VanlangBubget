@@ -1153,8 +1153,22 @@
             "deposit": "Deposit",
             "withdraw": "Withdraw",
             "interest": "Interest",
-            "amount": "Amount"
+            "amount": "Amount",
+            "no": "No",
+            "autoRenewal": "Auto Renewal",
+            "bankName": "Bank Name",
+            "accountNumber": "Account Number",
+            "depositAmount": "Deposit Amount",
+            "currentValue": "Current Value",
+            "interestEarned": "Interest Earned",
+            "interestPaymentMethod": "Interest Payment Method",
+            "maturityDate": "Maturity Date"
         },
+        "stock": "Stocks",
+        "gold": {
+            "title": "Gold"
+        },
+        "savings": "Savings",
         "goldInvestment": {
             "title": "Today's Gold Prices",
             "description": "Latest gold price updates from trusted brands",

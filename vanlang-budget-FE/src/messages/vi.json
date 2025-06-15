@@ -1488,8 +1488,22 @@
             "deposit": "Gửi tiền",
             "withdraw": "Rút tiền",
             "interest": "Lãi suất",
-            "amount": "Số tiền"
+            "amount": "Số tiền",
+            "no": "Không",
+            "autoRenewal": "Tự động gia hạn",
+            "bankName": "Ngân hàng",
+            "accountNumber": "Số tài khoản",
+            "depositAmount": "Số tiền gửi",
+            "currentValue": "Giá trị hiện tại",
+            "interestEarned": "Tiền lãi",
+            "interestPaymentMethod": "Phương thức trả lãi",
+            "maturityDate": "Ngày đáo hạn"
         },
+        "stock": "Cổ phiếu",
+        "gold": {
+            "title": "Vàng"
+        },
+        "savings": "Tiết kiệm",
         "goldInvestment": {
             "title": "Giá vàng hôm nay",
             "description": "Cập nhật giá vàng mới nhất từ các thương hiệu uy tín",
