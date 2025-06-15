@@ -4,7 +4,6 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import ClientWrapper from '@/components/layout/ClientWrapper'
 import { Toaster } from "@/components/ui/Toaster";
-import { Providers } from '../components/providers/Providers';
 import { SiteContentProvider } from '@/components/SiteContentProvider';
 
 const inter = Inter({ subsets: ['latin'] })
@@ -40,13 +39,11 @@ export default function RootLayout({
                 {/* ...existing head content... */}
             </head>
             <body className={inter.className}>
-                <Providers>
-                    <ClientWrapper>
-                        <SiteContentProvider initialLanguage={defaultLanguage}>
-                            {children}
-                        </SiteContentProvider>
-                    </ClientWrapper>
-                </Providers>
+                <ClientWrapper>
+                    <SiteContentProvider initialLanguage={defaultLanguage}>
+                        {children}
+                    </SiteContentProvider>
+                </ClientWrapper>
                 <Toaster />
             </body>
         </html>
