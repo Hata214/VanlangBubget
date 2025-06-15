@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
         try {
             dispatch(setLoading(true))
             setShowError(false)
-            await authService.resetPassword(token, data.password)
+            await authService.resetPassword(token, data.password, data.confirmPassword)
             setShowSuccess(true)
             setTimeout(() => {
                 router.push('/login')
@@ -108,9 +108,13 @@ export default function ResetPasswordPage() {
                                         {...form.register('password', {
                                             required: 'Mật khẩu là bắt buộc',
                                             minLength: {
-                                                value: 6,
-                                                message: 'Mật khẩu phải có ít nhất 6 ký tự',
+                                                value: 8,
+                                                message: 'Mật khẩu phải có ít nhất 8 ký tự',
                                             },
+                                            pattern: {
+                                                value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])/,
+                                                message: 'Mật khẩu phải có ít nhất một chữ thường, một chữ hoa và một số'
+                                            }
                                         })}
                                     />
                                     {form.formState.errors.password && (

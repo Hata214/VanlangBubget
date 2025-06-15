@@ -551,7 +551,7 @@ router.post('/forgotpassword', validateBody(forgotPasswordSchema), forgotPasswor
 /**
  * @swagger
  * /api/auth/resetpassword/:tokenId:
- *   patch:
+ *   post:
  *     summary: Đặt lại mật khẩu
  *     description: Đặt lại mật khẩu bằng token được gửi qua email
  *     tags: [Authentication]
@@ -611,7 +611,7 @@ router.post('/forgotpassword', validateBody(forgotPasswordSchema), forgotPasswor
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.patch('/resetpassword/:tokenId', validateBody(resetPasswordSchema), resetPassword);
+router.post('/resetpassword/:tokenId', validateBody(resetPasswordSchema), resetPassword);
 
 /**
  * @swagger

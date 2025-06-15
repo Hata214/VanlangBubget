@@ -234,11 +234,15 @@ class AuthService {
      * Đặt lại mật khẩu
      * @param token Token đặt lại mật khẩu
      * @param password Mật khẩu mới
+     * @param passwordConfirm Xác nhận mật khẩu mới
      * @returns Thông báo thành công
      */
-    async resetPassword(token: string, password: string) {
+    async resetPassword(token: string, password: string, passwordConfirm: string) {
         try {
-            const response = await api.post(`/api/auth/resetpassword/${token}`, { password });
+            const response = await api.post(`/api/auth/resetpassword/${token}`, {
+                password,
+                passwordConfirm
+            });
             return response.data;
         } catch (error: any) {
             console.error('Reset password error:', error.response?.data || error.message);

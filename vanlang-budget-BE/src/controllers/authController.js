@@ -458,7 +458,7 @@ export const updatePassword = async (req, res, next) => {
 
 /**
  * @desc    Quên mật khẩu - yêu cầu token đặt lại
- * @route   POST /api/auth/forgot-password
+ * @route   POST /api/auth/forgotpassword
  * @access  Public
  */
 export const forgotPassword = async (req, res, next) => {
@@ -486,8 +486,8 @@ export const forgotPassword = async (req, res, next) => {
         user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 phút
         await user.save({ validateBeforeSave: false });
 
-        // Tạo URL đặt lại mật khẩu 
-        const resetURL = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password/${resetToken}`;
+        // Tạo URL đặt lại mật khẩu với query parameter
+        const resetURL = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
         // Biến môi trường để bỏ qua việc gửi email (thường dùng khi test)
         const skipEmailSending = process.env.SKIP_EMAIL_SENDING === 'true';
@@ -561,41 +561,58 @@ export const forgotPassword = async (req, res, next) => {
 
 /**
  * @desc    Đặt lại mật khẩu với token
- * @route   POST /api/auth/reset-password
+ * @route   POST /api/auth/resetpassword/:tokenId
  * @access  Public
  */
 export const resetPassword = async (req, res, next) => {
     try {
-        const { password } = req.body;
+        const { password, passwordConfirm } = req.body;
         const { tokenId } = req.params;
 
         if (!tokenId || !password) {
             return next(new AppError('Vui lòng cung cấp token và mật khẩu mới', 400));
         }
 
-        // Tìm người dùng với token chưa hết hạn
-        const user = await User.findOne({
+        if (!passwordConfirm) {
+            return next(new AppError('Vui lòng xác nhận mật khẩu mới', 400));
+        }
+
+        if (password !== passwordConfirm) {
+            return next(new AppError('Mật khẩu xác nhận không khớp', 400));
+        }
+
+        // Tìm người dùng với token chưa hết hạn và có passwordResetToken
+        const users = await User.find({
             passwordResetExpires: { $gt: Date.now() },
+            passwordResetToken: { $exists: true }
         });
 
-        if (!user) {
+        if (!users || users.length === 0) {
             return next(new AppError('Token không hợp lệ hoặc đã hết hạn', 400));
         }
 
-        // Kiểm tra token hợp lệ
-        const tokenMatches = await bcrypt.compare(tokenId, user.passwordResetToken);
-        if (!tokenMatches) {
+        // Tìm user có token khớp
+        let matchedUser = null;
+        for (const user of users) {
+            const tokenMatches = await bcrypt.compare(tokenId, user.passwordResetToken);
+            if (tokenMatches) {
+                matchedUser = user;
+                break;
+            }
+        }
+
+        if (!matchedUser) {
             return next(new AppError('Token không hợp lệ', 400));
         }
 
         // Cập nhật mật khẩu và xóa token
-        user.password = password;
-        user.passwordResetToken = undefined;
-        user.passwordResetExpires = undefined;
-        await user.save();
+        matchedUser.password = password;
+        matchedUser.passwordResetToken = undefined;
+        matchedUser.passwordResetExpires = undefined;
+        await matchedUser.save();
 
         // Đăng nhập người dùng
-        createSendToken(user, 200, req, res);
+        createSendToken(matchedUser, 200, req, res);
     } catch (error) {
         next(error);
     }
