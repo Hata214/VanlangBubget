@@ -1483,6 +1483,9 @@
             "dataError": "Data Error",
             "invalidData": "Invalid data"
         },
+        "quantityMinimum": "Quantity must be at least 100 shares",
+        "quantityMultiple": "Quantity must be a multiple of 100",
+        "unknownError": "Unknown error",
         "goldInvestmentGuide": {
             "title": "Gold Investment Guide",
             "bullet1": "Gold is considered a safe haven asset during economic uncertainty",

@@ -49,48 +49,46 @@ const BROKERS: BrokerOption[] = [
 ];
 
 // Schema xác thực form
-const formSchema = z.object({
-    symbol: z.string().min(1, 'Vui lòng chọn mã cổ phiếu'),
+const createFormSchema = (t: any, tValidation: any) => z.object({
+    symbol: z.string().min(1, t('symbolRequired')),
     price: z.coerce.number()
-        .min(1, 'Giá mua phải lớn hơn 0')
-        .max(100000000000, 'Giá tối đa là 100 tỷ'),
+        .min(1, t('pricePositive'))
+        .max(100000000000, tValidation('maxPriceLimit')),
     quantity: z.coerce.number()
-        .min(100, 'Số lượng phải từ 100 cổ phiếu trở lên')
-        .max(100000000, 'Số lượng tối đa là 100 triệu')
-        .refine(val => val % 100 === 0, { message: 'Quantity must be a multiple of 100' }),
+        .min(100, t('quantityMinimum'))
+        .max(100000000, tValidation('maxQuantityLimit'))
+        .refine(val => val % 100 === 0, { message: t('quantityMultiple') }),
     purchaseDate: z.date({
-        required_error: 'Please select purchase date',
+        required_error: t('purchaseDateRequired'),
     }),
     fee: z.coerce.number()
-        .min(0, 'Phí không được âm')
-        .max(100000000000, 'Phí tối đa là 100 tỷ')
+        .min(0, t('feePositive'))
+        .max(100000000000, tValidation('maxFeeLimit'))
         .optional(),
     broker: z.string().optional(),
     otherBrokerName: z.string().optional(),
     otherBrokerFeePercent: z.coerce.number().min(0).max(100).optional(),
-    otherBrokerMinFee: z.coerce.number().min(0).max(100000000000, 'Phí tối đa là 100 tỷ').optional(),
-    autoFee: z.boolean().optional(), // Thay đổi: autoFee cũng là optional
-    notes: z.string().max(500, 'Ghi chú không quá 500 ký tự').optional(),
+    otherBrokerMinFee: z.coerce.number().min(0).max(100000000000, tValidation('maxFeeLimit')).optional(),
+    autoFee: z.boolean().optional(),
+    notes: z.string().max(500, t('notesTooLong')).optional(),
 }).refine(data => {
     if (data.broker === 'other') {
         if (!data.otherBrokerName || data.otherBrokerName.trim() === '') {
             return false;
         }
-        if (data.autoFee ?? true) { // Sử dụng ?? true vì autoFee giờ là optional
-            // Nếu tự động tính phí và là broker 'Khác', các trường phí phải được cung cấp
+        if (data.autoFee ?? true) {
             if (data.otherBrokerFeePercent === undefined || data.otherBrokerFeePercent === null) return false;
             if (data.otherBrokerMinFee === undefined || data.otherBrokerMinFee === null) return false;
         }
     }
     return true;
 }, {
-    message: 'Vui lòng nhập đầy đủ thông tin cho công ty chứng khoán khác (Tên, và % phí, Phí tối thiểu nếu bật tự động tính phí).',
-    // Cân nhắc việc trỏ path đến một trường cụ thể hơn hoặc một path chung nếu lỗi phức tạp
-    path: ['otherBrokerName'], // Hoặc một path chung hơn như 'brokerDetails' nếu có
+    message: 'Vui lòng nhập đầy đủ thông tin cho công ty chứng khoán khác',
+    path: ['otherBrokerName'],
 });
 
 // Kiểu dữ liệu của form
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
 
 export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const [isLoading, setIsLoading] = useState(false);
@@ -101,6 +99,10 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const { toast } = useToast();
     const t = useTranslations('Investments');
     const tStocks = useTranslations('Investments.stocks');
+    const tValidation = useTranslations('Investments.validation');
+
+    // Tạo schema với translations
+    const formSchema = createFormSchema(t, tValidation);
 
     // Khởi tạo form
     const form = useForm<FormValues>({
@@ -306,15 +308,15 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         try {
             // Đảm bảo dữ liệu hợp lệ
             if (!values.symbol) {
-                throw new Error('Vui lòng chọn mã cổ phiếu');
+                throw new Error(t('symbolRequired'));
             }
 
             if (!values.price || values.price <= 0) {
-                throw new Error('Vui lòng nhập giá hợp lệ');
+                throw new Error(t('pricePositive'));
             }
 
             if (!values.quantity || values.quantity <= 0) {
-                throw new Error('Vui lòng nhập số lượng hợp lệ');
+                throw new Error(t('quantityPositive'));
             }
 
             const currentBrokerId = values.broker ?? BROKERS[0].id;
@@ -323,7 +325,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
             if (currentBrokerId === 'other') {
                 if (!values.otherBrokerName || values.otherBrokerName.trim() === '') {
-                    form.setError('otherBrokerName', { type: 'manual', message: 'Vui lòng nhập tên công ty chứng khoán.' });
+                    form.setError('otherBrokerName', { type: 'manual', message: tStocks('enterBrokerName') });
                     setIsLoading(false);
                     return;
                 }
@@ -362,8 +364,8 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
             // Hiển thị thông báo thành công
             toast({
-                title: 'Thành công',
-                description: 'Đã thêm đầu tư cổ phiếu thành công!',
+                title: t('addSuccess'),
+                description: t('addSuccessDescription'),
                 type: 'success'
             });
 
@@ -380,7 +382,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             console.error('Lỗi khi lưu đầu tư:', error);
 
             // Xử lý lỗi từ API
-            let errorMessage = 'Lỗi không xác định';
+            let errorMessage = t('unknownError');
 
             if (error instanceof Error) {
                 errorMessage = error.message;
@@ -399,8 +401,8 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
             // Hiển thị thông báo lỗi
             toast({
-                title: 'Lỗi',
-                description: `Đã xảy ra lỗi khi lưu đầu tư: ${errorMessage}`,
+                title: t('error'),
+                description: `${t('addError')}: ${errorMessage}`,
                 type: 'error'
             });
         } finally {

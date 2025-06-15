@@ -1818,6 +1818,9 @@
             "dataError": "Lỗi dữ liệu",
             "invalidData": "Dữ liệu không hợp lệ"
         },
+        "quantityMinimum": "Số lượng phải từ 100 cổ phiếu trở lên",
+        "quantityMultiple": "Số lượng phải là bội số của 100",
+        "unknownError": "Lỗi không xác định",
         "goldInvestmentGuide": {
             "title": "Hướng dẫn đầu tư vàng",
             "bullet1": "Vàng được coi là tài sản trú ẩn an toàn trong thời kỳ bất ổn kinh tế",
