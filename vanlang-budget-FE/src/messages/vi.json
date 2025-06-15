@@ -1814,8 +1814,8 @@
             "realEstateError": "Lỗi khi thêm khoản đầu tư bất động sản"
         },
         "closeForm": "Đóng form",
+        "purchaseDateRequired": "Vui lòng chọn ngày mua",
         "validation": {
-            "purchaseDateRequired": "Vui lòng chọn ngày mua",
             "selectDate": "Chọn ngày",
             "manualFeeSelected": "Bạn đã chọn nhập phí giao dịch thủ công cho công ty chứng khoán này.",
             "brokerageAndOtherFees": "Phí môi giới và các chi phí khác",
@@ -1856,6 +1856,7 @@
         "backToPortfolio": "Quay lại Danh mục đầu tư",
         "marketChart": "Biểu đồ thị trường",
         "stockList": "Danh sách cổ phiếu",
-        "loadingStockList": "Đang tải danh sách cổ phiếu..."
+        "loadingStockList": "Đang tải danh sách cổ phiếu...",
+        "errorStockList": "Lỗi khi tải danh sách cổ phiếu"
     }
 }

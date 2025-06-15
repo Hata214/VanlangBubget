@@ -1479,8 +1479,8 @@
             "realEstateError": "Error adding real estate investment"
         },
         "closeForm": "Close Form",
+        "purchaseDateRequired": "Please select purchase date",
         "validation": {
-            "purchaseDateRequired": "Please select purchase date",
             "selectDate": "Select Date",
             "manualFeeSelected": "You have selected to manually enter transaction fee for this brokerage.",
             "brokerageAndOtherFees": "Brokerage and other fees",
@@ -1688,6 +1688,8 @@
         "featuredStocks": "Featured Stocks",
         "backToPortfolio": "Back to Portfolio",
         "marketChart": "Market Chart",
-        "stockList": "Stock List"
+        "stockList": "Stock List",
+        "loadingStockList": "Loading stock list...",
+        "errorStockList": "Error loading stock list"
     }
 }
