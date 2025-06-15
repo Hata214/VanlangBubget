@@ -1155,6 +1155,7 @@
             "interest": "Interest",
             "amount": "Amount",
             "no": "No",
+            "yes": "Yes",
             "autoRenewal": "Auto Renewal",
             "bankName": "Bank Name",
             "accountNumber": "Account Number",

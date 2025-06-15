@@ -1490,6 +1490,7 @@
             "interest": "Lãi suất",
             "amount": "Số tiền",
             "no": "Không",
+            "yes": "Có",
             "autoRenewal": "Tự động gia hạn",
             "bankName": "Ngân hàng",
             "accountNumber": "Số tài khoản",

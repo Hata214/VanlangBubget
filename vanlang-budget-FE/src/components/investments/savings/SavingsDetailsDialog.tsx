@@ -62,7 +62,6 @@ export default function SavingsDetailsDialog({
     onRefresh,
 }: SavingsDetailsDialogProps) {
     const t = useTranslations('Investments');
-    const common_t = useTranslations('common');
 
     if (!isOpen || !investment) {
         return null;
@@ -125,7 +124,7 @@ export default function SavingsDetailsDialog({
                         <p><strong>Ngày đáo hạn:</strong> {investment.endDate ? formatDate(investment.endDate) : 'N/A'}</p>
                         <p><strong>Hình thức trả lãi:</strong> {getInterestPaymentTypeLabel(investment.interestPaymentType)}</p>
                         <p><strong>Phương thức tính lãi:</strong> {getInterestCalculationTypeLabel(investment.interestCalculationType)}</p>
-                        <p><strong>Tự động tái tục:</strong> {investment.autoRenewal ? common_t('yes', { defaultValue: 'Có' }) : common_t('no', { defaultValue: 'Không' })}</p>
+                        <p><strong>Tự động tái tục:</strong> {investment.autoRenewal ? t('common.yes', { defaultValue: 'Có' }) : t('common.no', { defaultValue: 'Không' })}</p>
                     </div>
                 </div>
 
