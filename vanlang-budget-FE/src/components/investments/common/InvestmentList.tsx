@@ -208,7 +208,7 @@ export default function InvestmentList({ investments, onRefresh }: InvestmentLis
             case 'realestate':
                 return <Badge variant="outline" className="bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700">{t('realestate.title')}</Badge>;
             case 'savings':
-                return <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">{t('savings')}</Badge>;
+                return <Badge variant="outline" className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border-green-300 dark:border-green-700">{t('savings.title')}</Badge>;
             case 'crypto':
                 return <Badge variant="outline" className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-700">{t('crypto')}</Badge>;
             case 'fund':

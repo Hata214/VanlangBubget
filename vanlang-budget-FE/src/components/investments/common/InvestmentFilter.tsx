@@ -16,7 +16,7 @@ export default function InvestmentFilter({ activeFilter, onFilterChange }: Inves
         { key: 'stock', label: t('stock'), color: 'blue' },
         { key: 'gold', label: t('gold.title'), color: 'yellow' },
         { key: 'realestate', label: t('realestate.title'), color: 'orange' },
-        { key: 'savings', label: t('savings'), color: 'green' },
+        { key: 'savings', label: t('savings.title'), color: 'green' },
     ];
 
     const getColorClasses = (color: string, isActive: boolean) => {

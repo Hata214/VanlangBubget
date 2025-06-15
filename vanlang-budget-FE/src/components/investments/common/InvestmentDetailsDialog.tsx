@@ -169,7 +169,7 @@ export default function InvestmentDetailsDialog({
             case 'crypto':
                 return <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-700">{t('crypto')}</Badge>;
             case 'savings':
-                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">{t('savings')}</Badge>;
+                return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900 dark:text-green-300 dark:border-green-700">{t('savings.title')}</Badge>;
             case 'realestate':
                 return <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-700">{t('realestate.title')}</Badge>;
             case 'fund':
