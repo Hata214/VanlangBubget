@@ -1484,6 +1484,12 @@
         "targetPrice": "Giá mục tiêu",
         "noAlertsYet": "Bạn chưa có cảnh báo giá nào",
         "addAlertDescription": "Thêm cảnh báo để được thông báo khi giá đạt mục tiêu",
+        "common": {
+            "deposit": "Gửi tiền",
+            "withdraw": "Rút tiền",
+            "interest": "Lãi suất",
+            "amount": "Số tiền"
+        },
         "goldInvestment": {
             "title": "Giá vàng hôm nay",
             "description": "Cập nhật giá vàng mới nhất từ các thương hiệu uy tín",
@@ -1796,6 +1802,13 @@
             "sessionExpired": "Phiên đăng nhập của bạn đã hết hạn. Vui lòng đăng nhập lại.",
             "dataError": "Lỗi dữ liệu",
             "invalidData": "Dữ liệu không hợp lệ"
+        },
+        "goldInvestmentGuide": {
+            "title": "Hướng dẫn đầu tư vàng",
+            "bullet1": "Vàng được coi là tài sản trú ẩn an toàn trong thời kỳ bất ổn kinh tế",
+            "bullet2": "Theo dõi giá vàng thường xuyên để đưa ra quyết định đầu tư sáng suốt",
+            "bullet3": "Cân nhắc đa dạng hóa đầu tư vàng qua nhiều hình thức khác nhau (vàng vật chất, ETF, cổ phiếu khai thác)",
+            "bullet4": "Lưu ý chi phí lưu trữ và vấn đề bảo mật với vàng vật chất"
         }
     },
     "StockMarketPage": {
