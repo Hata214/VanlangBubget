@@ -10,6 +10,7 @@ import { getAllStocks, StocksListResponse } from '@/services/stockApiService';
 import { Badge } from '@/components/ui/Badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { toast } from '@/components/ui/use-toast';
+import { useTranslations } from 'next-intl';
 
 interface StockOption {
     symbol: string;
@@ -34,6 +35,7 @@ interface StockAutoCompleteProps {
 const FAVORITE_STOCKS_KEY = 'vanlang-budget-favorite-stocks';
 
 export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading = false }: StockAutoCompleteProps) {
+    const t = useTranslations('Investments.stocks');
     const [open, setOpen] = React.useState(false);
     const [value, setValue] = React.useState(defaultValue);
     const [options, setOptions] = React.useState<StockOption[]>([]);
@@ -269,7 +271,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                         {isPopular && (
                             <Badge variant="outline" className="ml-2 py-0 h-5 text-xs">
                                 <Tag className="h-3 w-3 mr-1" />
-                                Phổ biến
+                                {t('popular')}
                             </Badge>
                         )}
                     </div>
@@ -282,7 +284,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 <button
                     className="hidden group-hover:flex h-6 w-6 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none"
                     onClick={(e) => toggleFavorite(stock.symbol, e)}
-                    aria-label={isFavorite ? "Xóa khỏi yêu thích" : "Thêm vào yêu thích"}
+                    aria-label={isFavorite ? t('removeFromFavorites') : t('addToFavorites')}
                 >
                     {isFavorite ? (
                         <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -300,7 +302,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
             return (
                 <div className="flex items-center justify-center p-6 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Đang tải danh sách cổ phiếu...
+                    {t('loadingStocks')}
                 </div>
             );
         }
@@ -310,15 +312,15 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 return (
                     <div className="py-6 px-4 text-center text-sm text-muted-foreground">
                         <Star className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-                        <p>Bạn chưa có cổ phiếu yêu thích nào.</p>
-                        <p className="text-xs mt-1">Hãy chuyển sang tab khác và nhấn vào biểu tượng ngôi sao để thêm vào mục yêu thích.</p>
+                        <p>{t('noFavoriteStocks')}</p>
+                        <p className="text-xs mt-1">{t('addFavoriteStocks')}</p>
                     </div>
                 );
             }
 
             return (
                 <div className="py-6 text-center text-sm text-muted-foreground">
-                    Không tìm thấy kết quả.
+                    {t('noResults')}
                 </div>
             );
         }
@@ -328,7 +330,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 {filteredOptions.map(renderStockItem)}
             </div>
         );
-    }, [filteredOptions, loading, renderStockItem, selectedTab, favoriteStocks.length]);
+    }, [filteredOptions, loading, renderStockItem, selectedTab, favoriteStocks.length, t]);
 
     // Hiển thị danh sách ngành
     const renderIndustriesList = React.useCallback(() => {
@@ -370,7 +372,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                     ) : value ? (
                         getSelectedStockInfo()
                     ) : (
-                        "Chọn mã cổ phiếu..."
+                        t('selectStock')
                     )}
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
@@ -379,7 +381,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 <div className="px-3 pt-3">
                     <input
                         className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                        placeholder="Tìm kiếm mã cổ phiếu..."
+                        placeholder={t('searchPlaceholder')}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -394,7 +396,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                             )}
                             onClick={() => setSelectedTab('all')}
                         >
-                            Tất cả
+                            {t('all')}
                         </button>
                         <button
                             className={cn(
@@ -404,7 +406,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                             onClick={() => setSelectedTab('favorite')}
                         >
                             <Star className="h-3 w-3 mr-1" />
-                            Yêu thích
+                            {t('favorite')}
                         </button>
                         <button
                             className={cn(
@@ -413,7 +415,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                             )}
                             onClick={() => setSelectedTab('industries')}
                         >
-                            <span>Ngành</span>
+                            <span>{t('industry')}</span>
                             <ChevronRight className="ml-1 h-3 w-3" />
                         </button>
                     </div>
@@ -432,7 +434,7 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                                     onClick={() => setSelectedTab('all')}
                                 >
                                     <ChevronRight className="rotate-180 h-4 w-4 mr-1" />
-                                    <span>Quay lại</span>
+                                    <span>{t('backToAll')}</span>
                                 </Button>
                                 <span className="ml-2 font-medium">{selectedTab}</span>
                             </div>

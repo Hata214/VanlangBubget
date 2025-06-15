@@ -381,10 +381,10 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="amount"
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Số tiền gửi (VNĐ)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('amount')} (VNĐ)</FormLabel>
                                         <FormControl>
                                             <CurrencyInput
-                                                placeholder="Nhập số tiền gửi"
+                                                placeholder={tSavings('amountDescription')}
                                                 value={field.value}
                                                 onChange={field.onChange}
                                                 onBlur={field.onBlur}
@@ -392,7 +392,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Số tiền bạn gửi vào ngân hàng
+                                            {tSavings('amountDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -404,12 +404,12 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="startDate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ngày gửi tiền</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('startDate')}</FormLabel>
                                         <FormControl>
                                             <Input type="date" {...field} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Ngày bắt đầu gửi tiết kiệm
+                                            {tSavings('startDateDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -423,14 +423,14 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="term"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Kỳ hạn gửi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('term')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn kỳ hạn" />
+                                                    <SelectValue placeholder={tSavings('selectTerm')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -442,7 +442,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Thời gian gửi tiết kiệm
+                                            {tSavings('termDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -454,12 +454,12 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestRate"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Lãi suất áp dụng (%/năm)</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('interestRate')}</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
                                                 step="0.01"
-                                                placeholder="Nhập lãi suất"
+                                                placeholder={tSavings('interestRateDescription')}
                                                 {...field}
                                                 min="0"
                                                 onChange={(e) => {
@@ -473,7 +473,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Lãi suất cố định theo kỳ hạn đã chọn
+                                            {tSavings('interestRateDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -487,14 +487,14 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestPaymentType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Hình thức nhận lãi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('interestPaymentType')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn hình thức nhận lãi" />
+                                                    <SelectValue placeholder={tSavings('selectInterestPaymentType')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -506,7 +506,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Cách thức nhận lãi từ khoản tiết kiệm
+                                            {tSavings('interestPaymentTypeDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -518,23 +518,23 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="interestCalculationType"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Phương thức tính lãi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('interestCalculationType')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn phương thức tính lãi" />
+                                                    <SelectValue placeholder={tSavings('interestCalculationTypeDescription')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
-                                                <SelectItem value="simple" className="hover:bg-accent dark:hover:bg-accent-dark">Lãi đơn</SelectItem>
-                                                <SelectItem value="compound" className="hover:bg-accent dark:hover:bg-accent-dark">Lãi kép</SelectItem>
+                                                <SelectItem value="simple" className="hover:bg-accent dark:hover:bg-accent-dark">{tSavings('calculationTypes.simple')}</SelectItem>
+                                                <SelectItem value="compound" className="hover:bg-accent dark:hover:bg-accent-dark">{tSavings('calculationTypes.compound')}</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Phương thức tính lãi áp dụng cho khoản tiết kiệm
+                                            {tSavings('interestCalculationTypeDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -548,14 +548,14 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="depositMethod"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Hình thức gửi</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{tSavings('depositMethod')}</FormLabel>
                                         <Select
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder="Chọn hình thức gửi" />
+                                                    <SelectValue placeholder={tSavings('selectDepositMethod')} />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
@@ -567,7 +567,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                             </SelectContent>
                                         </Select>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Phương thức bạn đã sử dụng để gửi tiết kiệm
+                                            {tSavings('depositMethodDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -582,9 +582,9 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 render={({ field }) => (
                                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4 bg-background dark:bg-background-dark border-border dark:border-border-dark">
                                         <div className="space-y-0.5">
-                                            <FormLabel className="text-base text-foreground dark:text-foreground-dark">Tự động tái tục</FormLabel>
+                                            <FormLabel className="text-base text-foreground dark:text-foreground-dark">{tSavings('autoRenewal')}</FormLabel>
                                             <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                                Khi đến hạn, khoản tiết kiệm sẽ tự động gia hạn theo kỳ hạn đã chọn
+                                                {tSavings('autoRenewalDescription')}
                                             </FormDescription>
                                         </div>
                                         <FormControl>
@@ -605,16 +605,16 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                 name="notes"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-foreground dark:text-foreground-dark">Ghi chú</FormLabel>
+                                        <FormLabel className="text-foreground dark:text-foreground-dark">{t('notes')}</FormLabel>
                                         <FormControl>
                                             <Textarea
-                                                placeholder="Thêm ghi chú về khoản tiết kiệm này"
+                                                placeholder={t('notesPlaceholder')}
                                                 className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 {...field}
                                             />
                                         </FormControl>
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            Thông tin bổ sung về khoản tiết kiệm của bạn
+                                            {t('notesDescription')}
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -624,7 +624,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
 
                         <div className="grid grid-cols-1 gap-4 mb-4 mt-6">
                             <div className="p-4 border rounded-lg bg-green-50 dark:bg-gray-800 border-green-200 dark:border-gray-700">
-                                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-4">Thông tin dự kiến</h3>
+                                <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-4">{tSavings('estimatedProfit')}</h3>
 
                                 {(() => {
                                     const principalInput = form.watch('amount');
@@ -703,28 +703,28 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
                                     return (
                                         <div className="space-y-4">
                                             <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tiền gốc:</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{tSavings('amount')}:</div>
                                                 <div className="text-lg font-semibold text-gray-900 dark:text-white">
                                                     {formatCurrency(principal)}
                                                 </div>
                                             </div>
 
                                             <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm">
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tiền lãi dự kiến:</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{t('common.interestEarned')}:</div>
                                                 <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                                                     {formatCurrency(interest)}
                                                 </div>
                                             </div>
 
                                             <div className="flex justify-between items-center p-3 bg-white dark:bg-gray-700 rounded-md shadow-sm border-2 border-green-200 dark:border-green-500">
-                                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng tiền nhận:</div>
+                                                <div className="font-medium text-gray-700 dark:text-gray-200">{tSavings('maturityAmount')}:</div>
                                                 <div className="text-lg font-semibold text-green-600 dark:text-green-400">
                                                     {formatCurrency(total)}
                                                 </div>
                                             </div>
 
                                             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                * Số tiền dự kiến có thể thay đổi tùy theo chính sách của ngân hàng
+                                                * {tSavings('noteInterest')}
                                             </div>
                                         </div>
                                     );
@@ -734,7 +734,7 @@ export default function AddSavingsInvestment({ onSuccess }: AddSavingsInvestment
 
                         <div className="flex justify-end items-center mt-6">
                             <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
-                                {isLoading ? 'Đang xử lý...' : 'Thêm khoản tiết kiệm'}
+                                {isLoading ? t('adding') : tSavings('addNewSavings')}
                             </Button>
                         </div>
                     </CardContent>
