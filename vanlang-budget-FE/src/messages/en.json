@@ -1254,7 +1254,9 @@
                 "weightUnitLabel": "Unit",
                 "selectWeightUnit": "Select unit",
                 "weightUnitDescription": "Gold weight unit",
-                "purchasePriceLabel": "Purchase Price (VND/unit)"
+                "purchasePriceLabel": "Purchase Price (VND/unit)",
+                "addNewGold": "Add New Gold Investment",
+                "goldType": "Gold Type"
             },
             "priceInfo": {
                 "averagePrice": "Average Price",
