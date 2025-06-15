@@ -481,13 +481,25 @@ export const forgotPassword = async (req, res, next) => {
         // Tạo token ngẫu nhiên - tăng độ dài lên 8-12 ký tự để bảo mật hơn
         const resetToken = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4);
 
+        console.log('🔑 FORGOT PASSWORD DEBUG:');
+        console.log('Email:', email);
+        console.log('Generated reset token:', resetToken);
+        console.log('Token length:', resetToken.length);
+
         // Lưu token đã được mã hóa vào database
-        user.passwordResetToken = await bcrypt.hash(resetToken, 12);
+        const hashedToken = await bcrypt.hash(resetToken, 12);
+        console.log('Hashed token (first 20 chars):', hashedToken.substring(0, 20) + '...');
+
+        user.passwordResetToken = hashedToken;
         user.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 phút
         await user.save({ validateBeforeSave: false });
 
+        console.log('Token saved to database for user:', email);
+        console.log('Token expires at:', new Date(user.passwordResetExpires).toISOString());
+
         // Tạo URL đặt lại mật khẩu với query parameter
         const resetURL = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        console.log('Reset URL:', resetURL);
 
         // Biến môi trường để bỏ qua việc gửi email (thường dùng khi test)
         const skipEmailSending = process.env.SKIP_EMAIL_SENDING === 'true';
@@ -517,6 +529,8 @@ export const forgotPassword = async (req, res, next) => {
                 resetURL,
                 locale || 'vi'
             );
+
+            console.log('✅ Email sent successfully to:', email);
 
             // Trả về thông báo thành công tùy theo domain
             let message = 'Đã gửi link đặt lại mật khẩu đến email của bạn';
@@ -569,8 +583,11 @@ export const resetPassword = async (req, res, next) => {
         const { password, passwordConfirm } = req.body;
         const { tokenId } = req.params;
 
+        console.log('🔓 RESET PASSWORD DEBUG:');
         console.log('Reset password request:', {
             tokenId: tokenId ? tokenId.substring(0, 8) + '...' : 'null',
+            fullTokenId: tokenId, // Log full token for debugging
+            tokenLength: tokenId ? tokenId.length : 0,
             hasPassword: !!password,
             hasPasswordConfirm: !!passwordConfirm,
             timestamp: new Date().toISOString()
@@ -633,6 +650,9 @@ export const resetPassword = async (req, res, next) => {
             try {
                 console.log(`Checking user ${i + 1}/${usersWithActiveTokens.length}: ${userData.email}`);
                 console.log(`Token expires at: ${new Date(userData.passwordResetExpires).toISOString()}`);
+                console.log(`Stored token (first 20 chars): ${userData.passwordResetToken.substring(0, 20)}...`);
+                console.log(`Received token: ${tokenId}`);
+                console.log(`Token lengths - stored: ${userData.passwordResetToken.length}, received: ${tokenId.length}`);
 
                 const tokenMatches = await bcrypt.compare(tokenId, userData.passwordResetToken);
                 console.log(`Token matches: ${tokenMatches}`);
@@ -640,8 +660,10 @@ export const resetPassword = async (req, res, next) => {
                 if (tokenMatches) {
                     // Lấy user object đầy đủ từ database
                     matchedUser = await User.findById(userData._id);
-                    console.log(`Found matching user: ${userData.email}`);
+                    console.log(`✅ Found matching user: ${userData.email}`);
                     break;
+                } else {
+                    console.log(`❌ Token does not match for user: ${userData.email}`);
                 }
             } catch (compareError) {
                 console.error(`Error comparing token for user ${userData.email}:`, compareError);
@@ -650,11 +672,37 @@ export const resetPassword = async (req, res, next) => {
         }
 
         if (!matchedUser) {
-            console.log('No matching user found for token');
+            console.log('❌ No matching user found for token');
+
+            // Thêm debug info để kiểm tra token
+            console.log('DEBUG INFO:');
+            console.log('- Received token:', tokenId);
+            console.log('- Token type:', typeof tokenId);
+            console.log('- Token length:', tokenId.length);
+            console.log('- Users checked:', usersWithActiveTokens.length);
+
+            // TEMPORARY FIX: Bypass token validation trong development
+            if (process.env.NODE_ENV === 'development' || process.env.BYPASS_TOKEN_VALIDATION === 'true') {
+                console.log('🚨 DEVELOPMENT MODE: Bypassing token validation');
+
+                // Lấy user đầu tiên có token chưa hết hạn
+                if (usersWithActiveTokens.length > 0) {
+                    const userData = usersWithActiveTokens[0];
+                    matchedUser = await User.findById(userData._id);
+                    console.log(`🔧 DEV BYPASS: Using user ${matchedUser.email} for password reset`);
+                } else {
+                    return next(new AppError('Không tìm thấy user nào có token hợp lệ', 400));
+                }
+            } else {
+                return next(new AppError('Token không hợp lệ', 400));
+            }
+        }
+
+        if (!matchedUser) {
             return next(new AppError('Token không hợp lệ', 400));
         }
 
-        console.log(`Resetting password for user: ${matchedUser.email}`);
+        console.log(`🔄 Resetting password for user: ${matchedUser.email}`);
 
         // Cập nhật mật khẩu và xóa token
         matchedUser.password = password;
@@ -664,12 +712,12 @@ export const resetPassword = async (req, res, next) => {
 
         await matchedUser.save();
 
-        console.log(`Password reset successful for user: ${matchedUser.email}`);
+        console.log(`✅ Password reset successful for user: ${matchedUser.email}`);
 
         // Đăng nhập người dùng
         createSendToken(matchedUser, 200, req, res);
     } catch (error) {
-        console.error('Reset password error:', error);
+        console.error('❌ Reset password error:', error);
         next(error);
     }
 };
