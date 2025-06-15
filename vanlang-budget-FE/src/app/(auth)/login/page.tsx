@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useForm } from 'react-hook-form'
@@ -10,6 +10,8 @@ import { setCredentials, setLoading, setError } from '@/redux/features/authSlice
 import { authService } from '@/services/authService'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Form } from '@/components/ui/Form'
 import { Alert } from '@/components/ui/Alert'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card'
@@ -24,6 +26,7 @@ import Cookies from 'js-cookie'
 interface LoginFormData {
     email: string
     password: string
+    rememberMe: boolean
 }
 
 export default function LoginPage() {
@@ -38,8 +41,25 @@ export default function LoginPage() {
         defaultValues: {
             email: '',
             password: '',
+            rememberMe: false,
         },
     })
+
+    // Load saved credentials on component mount
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('rememberedEmail')
+        const savedPassword = localStorage.getItem('rememberedPassword')
+        const rememberMe = localStorage.getItem('rememberMe') === 'true'
+
+        if (savedEmail && rememberMe) {
+            form.setValue('email', savedEmail)
+            form.setValue('rememberMe', true)
+
+            if (savedPassword) {
+                form.setValue('password', savedPassword)
+            }
+        }
+    }, [form])
 
     const onSubmit = async (data: LoginFormData) => {
         try {
@@ -47,6 +67,17 @@ export default function LoginPage() {
             setShowError(false)
 
             console.log('Logging in with:', data.email);
+
+            // Handle remember me functionality
+            if (data.rememberMe) {
+                localStorage.setItem('rememberedEmail', data.email)
+                localStorage.setItem('rememberedPassword', data.password)
+                localStorage.setItem('rememberMe', 'true')
+            } else {
+                localStorage.removeItem('rememberedEmail')
+                localStorage.removeItem('rememberedPassword')
+                localStorage.removeItem('rememberMe')
+            }
 
             // Thêm timeout để tránh request quá nhanh
             const response = await authService.login(data.email, data.password)
@@ -141,11 +172,28 @@ export default function LoginPage() {
                                             {t('auth.forgotPassword')}
                                         </Link>
                                     </div>
-                                    <Input
+                                    <PasswordInput
                                         id="password"
-                                        type="password"
+                                        placeholder="Nhập mật khẩu"
                                         {...form.register('password', { required: true })}
                                     />
+                                </div>
+
+                                {/* Remember Me Checkbox */}
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="rememberMe"
+                                        checked={form.watch('rememberMe')}
+                                        onCheckedChange={(checked) =>
+                                            form.setValue('rememberMe', checked as boolean)
+                                        }
+                                    />
+                                    <Label
+                                        htmlFor="rememberMe"
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                    >
+                                        Nhớ mật khẩu
+                                    </Label>
                                 </div>
                             </div>
 

@@ -10,6 +10,7 @@ import { setLoading } from '@/redux/features/authSlice'
 import { authService } from '@/services/authService'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Form } from '@/components/ui/Form'
 import { Alert } from '@/components/ui/Alert'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/Card'
@@ -102,9 +103,9 @@ export default function ResetPasswordPage() {
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="password">{t('auth.password')}</Label>
-                                    <Input
+                                    <PasswordInput
                                         id="password"
-                                        type="password"
+                                        placeholder="Nhập mật khẩu mới"
                                         {...form.register('password', {
                                             required: 'Mật khẩu là bắt buộc',
                                             minLength: {
@@ -124,9 +125,9 @@ export default function ResetPasswordPage() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
-                                    <Input
+                                    <PasswordInput
                                         id="confirmPassword"
-                                        type="password"
+                                        placeholder="Xác nhận mật khẩu mới"
                                         {...form.register('confirmPassword', {
                                             required: 'Xác nhận mật khẩu là bắt buộc',
                                             validate: (value: string) =>
