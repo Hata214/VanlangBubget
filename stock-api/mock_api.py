@@ -10,11 +10,18 @@ app = FastAPI()
 frontend_url_env = os.getenv("FRONTEND_URL")
 
 # Mặc định cho local development nếu FRONTEND_URL không được set
-default_local_origins = ["http://localhost:3000", "http://127.0.0.1:3000"]
+default_local_origins = [
+    "http://localhost:3000", 
+    "http://127.0.0.1:3000",
+    "https://vlb-vanlang-budget.vercel.app"  # Thêm frontend Vercel
+]
 
 allowed_origins = []
 if frontend_url_env:
     allowed_origins.extend([origin.strip() for origin in frontend_url_env.split(',')])
+    # Luôn thêm Vercel URL để đảm bảo
+    if "https://vlb-vanlang-budget.vercel.app" not in allowed_origins:
+        allowed_origins.append("https://vlb-vanlang-budget.vercel.app")
 else:
     allowed_origins.extend(default_local_origins)
     print("Cảnh báo: Biến môi trường FRONTEND_URL không được đặt trong mock_api. Sử dụng origin mặc định cho local development.")
