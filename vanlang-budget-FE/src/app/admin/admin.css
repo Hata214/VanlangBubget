@@ -8,6 +8,12 @@
     display: flex;
 }
 
+/* Dark mode support for admin layout */
+.dark .admin-layout {
+    background-color: hsl(220 13% 9%);
+    color: hsl(213 31% 91%);
+}
+
 /* Admin login page specific styles */
 .admin-login-layout {
     min-height: 100vh;
@@ -62,6 +68,11 @@
     top: 0;
     z-index: 30;
     transition: all 0.3s ease;
+}
+
+.dark .admin-layout .admin-sidebar {
+    background-color: hsl(220 13% 12%);
+    border-right: 1px solid hsl(215 14% 22%);
 }
 
 .admin-layout .admin-sidebar.closed {

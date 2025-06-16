@@ -1,0 +1,274 @@
+/* Dark Mode Optimizations for Pricing Cards and Landing Pages */
+
+/* ==== Pricing Cards Dark Mode ==== */
+.dark .pricing-card {
+    background: linear-gradient(145deg, hsl(220 13% 12%), hsl(220 13% 14%));
+    border: 1px solid hsl(215 14% 22%);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+}
+
+.dark .pricing-card:hover {
+    background: linear-gradient(145deg, hsl(220 13% 14%), hsl(220 13% 16%));
+    border: 1px solid hsl(215 14% 28%);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Premium/Popular Pricing Card */
+.dark .pricing-card.popular {
+    background: linear-gradient(145deg, hsl(212 100% 8%), hsl(212 100% 12%));
+    border: 2px solid hsl(212 100% 47%);
+    box-shadow: 0 8px 25px rgba(9, 105, 218, 0.3);
+}
+
+.dark .pricing-card.popular:hover {
+    background: linear-gradient(145deg, hsl(212 100% 10%), hsl(212 100% 14%));
+    box-shadow: 0 12px 35px rgba(9, 105, 218, 0.4);
+}
+
+/* Free Plan - Special styling */
+.dark .pricing-card.free {
+    background: linear-gradient(145deg, hsl(142 71% 8%), hsl(142 71% 10%));
+    border: 1px solid hsl(142 71% 20%);
+}
+
+.dark .pricing-card.free:hover {
+    background: linear-gradient(145deg, hsl(142 71% 10%), hsl(142 71% 12%));
+    border: 1px solid hsl(142 71% 25%);
+}
+
+/* Enterprise Plan - Premium styling */
+.dark .pricing-card.enterprise {
+    background: linear-gradient(145deg, hsl(271 81% 8%), hsl(271 81% 12%));
+    border: 1px solid hsl(271 81% 25%);
+}
+
+.dark .pricing-card.enterprise:hover {
+    background: linear-gradient(145deg, hsl(271 81% 10%), hsl(271 81% 14%));
+    border: 1px solid hsl(271 81% 30%);
+}
+
+/* ==== Pricing Card Content ==== */
+.dark .pricing-card .card-header {
+    border-bottom: 1px solid hsl(215 14% 22%);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent);
+}
+
+.dark .pricing-card.popular .card-header {
+    border-bottom: 1px solid hsl(212 100% 30%);
+    background: linear-gradient(180deg, rgba(9, 105, 218, 0.1), transparent);
+}
+
+.dark .pricing-card .price-amount {
+    color: hsl(213 31% 91%);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.dark .pricing-card.popular .price-amount {
+    color: hsl(212 100% 70%);
+}
+
+.dark .pricing-card .feature-list {
+    color: hsl(213 13% 75%);
+}
+
+.dark .pricing-card .feature-check {
+    color: hsl(142 71% 60%);
+}
+
+.dark .pricing-card.popular .feature-check {
+    color: hsl(212 100% 70%);
+}
+
+/* ==== CTA Buttons ==== */
+.dark .pricing-card .cta-button {
+    background: linear-gradient(135deg, hsl(215 14% 22%), hsl(215 14% 18%));
+    border: 1px solid hsl(215 14% 28%);
+    color: hsl(213 31% 91%);
+    transition: all 0.3s ease;
+}
+
+.dark .pricing-card .cta-button:hover {
+    background: linear-gradient(135deg, hsl(215 14% 28%), hsl(215 14% 24%));
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dark .pricing-card.popular .cta-button {
+    background: linear-gradient(135deg, hsl(212 100% 47%), hsl(212 100% 42%));
+    border: 1px solid hsl(212 100% 52%);
+    color: white;
+}
+
+.dark .pricing-card.popular .cta-button:hover {
+    background: linear-gradient(135deg, hsl(212 100% 52%), hsl(212 100% 47%));
+    box-shadow: 0 4px 12px rgba(9, 105, 218, 0.4);
+}
+
+/* ==== Landing Page Hero Section ==== */
+.dark .hero-section {
+    background: linear-gradient(135deg, hsl(220 13% 9%) 0%, hsl(220 13% 12%) 100%);
+    color: hsl(213 31% 91%);
+}
+
+.dark .hero-title {
+    background: linear-gradient(135deg, hsl(213 31% 91%) 0%, hsl(212 100% 70%) 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dark .hero-subtitle {
+    color: hsl(213 13% 75%);
+}
+
+/* ==== Features Section ==== */
+.dark .feature-card {
+    background: hsl(220 13% 12%);
+    border: 1px solid hsl(215 14% 22%);
+    transition: all 0.3s ease;
+}
+
+.dark .feature-card:hover {
+    background: hsl(220 13% 14%);
+    border: 1px solid hsl(215 14% 28%);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.dark .feature-icon {
+    color: hsl(212 100% 60%);
+}
+
+/* ==== Navigation Bar ==== */
+.dark .navbar {
+    background: rgba(22, 27, 34, 0.95);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid hsl(215 14% 22%);
+}
+
+.dark .navbar-brand {
+    color: hsl(213 31% 91%);
+}
+
+.dark .navbar-nav .nav-link {
+    color: hsl(213 13% 75%);
+    transition: color 0.3s ease;
+}
+
+.dark .navbar-nav .nav-link:hover {
+    color: hsl(212 100% 70%);
+}
+
+.dark .navbar-nav .nav-link.active {
+    color: hsl(212 100% 60%);
+}
+
+/* ==== Footer ==== */
+.dark .footer {
+    background: hsl(220 13% 8%);
+    border-top: 1px solid hsl(215 14% 22%);
+    color: hsl(213 13% 65%);
+}
+
+.dark .footer-link {
+    color: hsl(213 13% 75%);
+    transition: color 0.3s ease;
+}
+
+.dark .footer-link:hover {
+    color: hsl(212 100% 70%);
+}
+
+/* ==== Form Elements ==== */
+.dark .form-input {
+    background: hsl(220 13% 12%);
+    border: 1px solid hsl(215 14% 22%);
+    color: hsl(213 31% 91%);
+}
+
+.dark .form-input:focus {
+    border-color: hsl(212 100% 47%);
+    box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+}
+
+.dark .form-input::placeholder {
+    color: hsl(213 13% 55%);
+}
+
+/* ==== Testimonials ==== */
+.dark .testimonial-card {
+    background: hsl(220 13% 12%);
+    border: 1px solid hsl(215 14% 22%);
+}
+
+.dark .testimonial-avatar {
+    border: 2px solid hsl(215 14% 28%);
+}
+
+.dark .testimonial-rating {
+    color: hsl(48 100% 67%);
+}
+
+/* ==== Stats Section ==== */
+.dark .stats-card {
+    background: linear-gradient(145deg, hsl(220 13% 12%), hsl(220 13% 14%));
+    border: 1px solid hsl(215 14% 22%);
+}
+
+.dark .stats-number {
+    color: hsl(212 100% 70%);
+}
+
+.dark .stats-label {
+    color: hsl(213 13% 75%);
+}
+
+/* ==== Mobile Optimizations ==== */
+@media (max-width: 768px) {
+    .dark .pricing-card {
+        margin-bottom: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .dark .hero-section {
+        padding: 2rem 1rem;
+    }
+
+    .dark .navbar {
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* ==== Accessibility ==== */
+.dark .focus\:ring-offset-dark {
+    --tw-ring-offset-color: hsl(220 13% 9%);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .dark .pricing-card {
+        border-width: 2px;
+        border-color: hsl(213 31% 91%);
+    }
+
+    .dark .pricing-card .price-amount {
+        color: white;
+    }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+
+    .dark .pricing-card,
+    .dark .feature-card,
+    .dark .cta-button {
+        transition: none;
+    }
+
+    .dark .pricing-card:hover,
+    .dark .feature-card:hover {
+        transform: none;
+    }
+}
