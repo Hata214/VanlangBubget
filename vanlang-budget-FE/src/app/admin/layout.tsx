@@ -17,12 +17,35 @@ import {
     X,
     ChevronDown,
     Shield,
-    Activity
+    Activity,
+    Sun,
+    Moon,
+    Monitor
 } from 'lucide-react';
+import { ThemeProvider } from 'next-themes';
+import { useTheme } from 'next-themes';
+import { AdminThemeToggle } from '@/components/admin/AdminThemeToggle';
 import './admin.css';
 
 // Trang không yêu cầu kiểm tra quyền admin
 const PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'];
+
+// Tạo hàm riêng để xóa dữ liệu người dùng để tránh lặp code
+const clearUserData = () => {
+    // Xóa tất cả các token từ localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user_role');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_name');
+
+    // Xóa tất cả các cookie
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+    console.log('Đã xóa tất cả dữ liệu người dùng');
+};
 
 // Layout riêng cho khu vực admin
 export default function AdminLayout({
@@ -199,41 +222,31 @@ export default function AdminLayout({
                                 router.push('/admin/login?error=unauthorized');
                             }
                         } else {
+                            console.log("Backend direct verify failed");
                             clearUserData();
-                            router.push('/admin/login?error=backend_error');
+                            router.push('/admin/login?error=token_verification_failed');
                         }
                     } catch (directError) {
-                        console.error("Lỗi khi gọi backend trực tiếp:", directError);
+                        console.error("Lỗi backend direct API:", directError);
                         clearUserData();
-                        router.push('/admin/login?error=connection');
+                        router.push('/admin/login?error=connection_error');
                     }
                 }
             } catch (error) {
-                console.error("Lỗi khi xác thực quyền admin:", error);
+                console.error("Lỗi chung khi kiểm tra quyền admin:", error);
                 clearUserData();
-                router.push('/admin/login?error=unknown');
-            } finally {
-                setIsLoading(false);
+                router.push('/admin/login?error=general_error');
             }
+
+            setIsLoading(false);
         };
 
         checkAdminAccess();
     }, [pathname, router, isPublicPage]);
 
     const handleLogout = () => {
-        // Xóa tất cả các token từ localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_role');
-        localStorage.removeItem('user_email');
-        localStorage.removeItem('user_name');
-
-        // Xóa tất cả các cookie
-        document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-        console.log('Đã đăng xuất và xóa tất cả token');
+        clearUserData();
+        console.log('Đăng xuất admin');
         router.push('/admin/login');
     };
 
@@ -271,167 +284,172 @@ export default function AdminLayout({
     // Hiển thị chỉ children cho trang không yêu cầu xác thực
     if (isPublicPage) {
         return (
-            <div className="admin-login-layout">
-                {wrappedChildren}
-            </div>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                storageKey="admin-theme"
+            >
+                <div className="admin-login-layout">
+                    {wrappedChildren}
+                </div>
+            </ThemeProvider>
         );
     }
 
     // Hiển thị loading khi đang kiểm tra xác thực
     if (isLoading) {
         return (
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100vh',
-                width: '100%',
-                backgroundColor: '#f9fafb'
-            }}>
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                storageKey="admin-theme"
+            >
                 <div style={{
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '50%',
-                    border: '4px solid #e5e7eb',
-                    borderTopColor: '#4f46e5',
-                    animation: 'spin 1s linear infinite'
-                }} />
-                <style jsx>{`
-                    @keyframes spin {
-                        to { transform: rotate(360deg); }
-                    }
-                `}</style>
-                <p style={{ marginTop: '16px', color: '#6b7280', fontSize: '14px' }}>
-                    Đang tải...
-                </p>
-            </div>
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100vh',
+                    width: '100%',
+                    backgroundColor: '#f9fafb'
+                }}>
+                    <div style={{
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '50%',
+                        border: '4px solid #e5e7eb',
+                        borderTopColor: '#4f46e5',
+                        animation: 'spin 1s linear infinite'
+                    }} />
+                    <style jsx>{`
+                        @keyframes spin {
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
+                    <p style={{ marginTop: '16px', color: '#6b7280', fontSize: '14px' }}>
+                        Đang tải...
+                    </p>
+                </div>
+            </ThemeProvider>
         );
     }
 
     // Phần layout chính cho admin dashboard khi đã xác thực
     if (isAuthorized) {
         return (
-            <div className="admin-layout">
-                {/* Sidebar */}
-                <div className={`admin-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
-                    <div className="admin-sidebar-header">
-                        <h1 className="admin-logo">VangLang Budget</h1>
-                        <button className="admin-sidebar-toggle" onClick={toggleSidebar}>
-                            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-                        </button>
-                    </div>
-
-                    <nav className="admin-sidebar-nav">
-                        <ul>
-                            {menuItems.map((item, index) => (
-                                <li key={index}>
-                                    <Link href={item.path} className={`admin-sidebar-link ${item.active ? 'active' : ''}`}>
-                                        <item.icon size={20} />
-                                        <span className="admin-sidebar-label">{item.label}</span>
-                                    </Link>
-                                </li>
-                            ))}
-
-                            {/* Hiện thị menu đặc biệt chỉ dành cho SuperAdmin */}
-                            {userInfo && userInfo.role === 'superadmin' && (
-                                <>
-                                    <li className="admin-sidebar-separator">
-                                        <div className="admin-sidebar-separator-text">Quản trị viên cao cấp</div>
-                                    </li>
-                                    {superAdminItems.map((item, index) => (
-                                        <li key={`super-admin-${index}`}>
-                                            <Link href={item.path} className={`admin-sidebar-link admin-superadmin-link ${item.active ? 'active' : ''}`}>
-                                                <item.icon size={20} />
-                                                <span className="admin-sidebar-label">{item.label}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </>
-                            )}
-                        </ul>
-                    </nav>
-
-                    <div className="admin-sidebar-footer">
-                        <button className="admin-sidebar-link" onClick={handleLogout}>
-                            <LogOut size={20} />
-                            <span className="admin-sidebar-label">Đăng xuất</span>
-                        </button>
-                    </div>
-                </div>
-
-                {/* Main content */}
-                <div className={`admin-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                    {/* Header */}
-                    <header className="admin-header">
-                        <button className="admin-mobile-sidebar-toggle" onClick={toggleSidebar}>
-                            <Menu size={24} />
-                        </button>
-
-                        <div className="admin-header-actions">
-                            {userInfo && (
-                                <div className="admin-user-menu">
-                                    <button className="admin-user-button" onClick={toggleUserMenu}>
-                                        <div className="admin-user-avatar">
-                                            {userInfo.name?.charAt(0) || userInfo.email.charAt(0)}
-                                        </div>
-                                        <div className="admin-user-info">
-                                            <span className="admin-user-name">{userInfo.name || userInfo.email}</span>
-                                            <span className="admin-user-role">
-                                                {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                                            </span>
-                                        </div>
-                                        <ChevronDown size={16} />
-                                    </button>
-
-                                    {userMenuOpen && (
-                                        <div className="admin-user-dropdown">
-                                            <div className="admin-user-dropdown-header">
-                                                <div className="admin-user-dropdown-name">{userInfo.name || userInfo.email}</div>
-                                                <div className="admin-user-dropdown-email">{userInfo.email}</div>
-                                                <div className={`admin-user-dropdown-role ${userInfo.role === 'superadmin' ? 'superadmin' : 'admin'}`}>
-                                                    {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
-                                                </div>
-                                            </div>
-                                            <div className="admin-user-dropdown-items">
-                                                <button className="admin-user-dropdown-item" onClick={handleLogout}>
-                                                    <LogOut size={16} />
-                                                    <span>Đăng xuất</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+            <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                storageKey="admin-theme"
+            >
+                <div className="admin-layout">
+                    {/* Sidebar */}
+                    <div className={`admin-sidebar ${isSidebarOpen ? 'open' : 'closed'}`}>
+                        <div className="admin-sidebar-header">
+                            <h1 className="admin-logo">VangLang Budget</h1>
+                            <button className="admin-sidebar-toggle" onClick={toggleSidebar}>
+                                {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                            </button>
                         </div>
-                    </header>
+
+                        <nav className="admin-sidebar-nav">
+                            <ul>
+                                {menuItems.map((item, index) => (
+                                    <li key={index}>
+                                        <Link href={item.path} className={`admin-sidebar-link ${item.active ? 'active' : ''}`}>
+                                            <item.icon size={20} />
+                                            <span className="admin-sidebar-label">{item.label}</span>
+                                        </Link>
+                                    </li>
+                                ))}
+
+                                {/* Hiện thị menu đặc biệt chỉ dành cho SuperAdmin */}
+                                {userInfo && userInfo.role === 'superadmin' && (
+                                    <>
+                                        <li className="admin-sidebar-separator">
+                                            <div className="admin-sidebar-separator-text">Quản trị viên cao cấp</div>
+                                        </li>
+                                        {superAdminItems.map((item, index) => (
+                                            <li key={`super-admin-${index}`}>
+                                                <Link href={item.path} className={`admin-sidebar-link admin-superadmin-link ${item.active ? 'active' : ''}`}>
+                                                    <item.icon size={20} />
+                                                    <span className="admin-sidebar-label">{item.label}</span>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </>
+                                )}
+                            </ul>
+                        </nav>
+
+                        <div className="admin-sidebar-footer">
+                            <button className="admin-sidebar-link" onClick={handleLogout}>
+                                <LogOut size={20} />
+                                <span className="admin-sidebar-label">Đăng xuất</span>
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Main content */}
-                    <main className="admin-main">
-                        {wrappedChildren}
-                    </main>
+                    <div className={`admin-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+                        {/* Header */}
+                        <header className="admin-header">
+                            <button className="admin-mobile-sidebar-toggle" onClick={toggleSidebar}>
+                                <Menu size={24} />
+                            </button>
+
+                            <div className="admin-header-actions">
+                                <AdminThemeToggle />
+                                {userInfo && (
+                                    <div className="admin-user-menu">
+                                        <button className="admin-user-button" onClick={toggleUserMenu}>
+                                            <div className="admin-user-avatar">
+                                                {userInfo.name?.charAt(0) || userInfo.email.charAt(0)}
+                                            </div>
+                                            <div className="admin-user-info">
+                                                <span className="admin-user-name">{userInfo.name || userInfo.email}</span>
+                                                <span className="admin-user-role">
+                                                    {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                                </span>
+                                            </div>
+                                            <ChevronDown size={16} />
+                                        </button>
+
+                                        {userMenuOpen && (
+                                            <div className="admin-user-dropdown">
+                                                <div className="admin-user-dropdown-header">
+                                                    <div className="admin-user-dropdown-name">{userInfo.name || userInfo.email}</div>
+                                                    <div className="admin-user-dropdown-email">{userInfo.email}</div>
+                                                    <div className={`admin-user-dropdown-role ${userInfo.role === 'superadmin' ? 'superadmin' : 'admin'}`}>
+                                                        {userInfo.role === 'superadmin' ? 'Super Admin' : 'Admin'}
+                                                    </div>
+                                                </div>
+                                                <div className="admin-user-dropdown-items">
+                                                    <button className="admin-user-dropdown-item" onClick={handleLogout}>
+                                                        <LogOut size={16} />
+                                                        <span>Đăng xuất</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </header>
+
+                        {/* Main content */}
+                        <main className="admin-main">
+                            {wrappedChildren}
+                        </main>
+                    </div>
                 </div>
-            </div>
+            </ThemeProvider>
         );
     }
 
     // Fallback - không nên đến đây nhưng để phòng ngừa
     return null;
 }
-
-// Tạo hàm riêng để xóa dữ liệu người dùng để tránh lặp code
-const clearUserData = () => {
-    // Xóa tất cả các token từ localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_role');
-    localStorage.removeItem('user_email');
-    localStorage.removeItem('user_name');
-
-    // Xóa tất cả các cookie
-    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'user_role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-    console.log('Đã xóa tất cả dữ liệu người dùng');
-};
