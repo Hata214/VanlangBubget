@@ -303,44 +303,45 @@ export default function NotificationsPage() {
     // Render item thông báo cập nhật
     const renderUpdateNotification = (notification: DisplayNotification) => {
         return (
-            <div className={`flex items-start gap-3 p-4 rounded-lg border border-indigo-100 ${notification.read ? 'bg-indigo-50 bg-opacity-30' : 'bg-indigo-50'}`}>
+            <div className={`flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-indigo-100 ${notification.read ? 'bg-indigo-50 bg-opacity-30' : 'bg-indigo-50'}`}>
                 <div className="flex-shrink-0 mt-1">
-                    <RefreshCw className="text-indigo-600" />
+                    <RefreshCw className="text-indigo-600 h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <div className="font-medium text-indigo-900">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-indigo-900 text-sm sm:text-base">
                                 {notification.title}
                                 {!notification.read && (
-                                    <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-800 hover:bg-indigo-200">
+                                    <Badge variant="secondary" className="ml-2 bg-indigo-100 text-indigo-800 hover:bg-indigo-200 text-xs">
                                         {t('notifications.newBadge')}
                                     </Badge>
                                 )}
                             </div>
                             <small className="text-indigo-500 text-xs">{t('notifications.updateData')}</small>
                         </div>
-                        <small className="text-indigo-500 shrink-0 ml-2">
+                        <small className="text-indigo-500 text-xs sm:shrink-0">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className="text-sm text-indigo-700 mt-1">
+                    <p className="text-xs sm:text-sm text-indigo-700 mt-1">
                         {notification.message}
                     </p>
-                    <div className="flex items-center justify-between mt-2">
-                        <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {notification.link && notification.link !== '#' && (
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+                                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-100 h-7 px-2 text-xs"
                                     onClick={() => navigateToTarget(router, notification.link || '/dashboard', notification.relatedId)}
                                 >
-                                    {t('notifications.viewDetails')}
-                                    <ArrowRight className="ml-1 h-4 w-4" />
+                                    <span className="hidden sm:inline">{t('notifications.viewDetails')}</span>
+                                    <span className="sm:hidden">Xem</span>
+                                    <ArrowRight className="ml-1 h-3 w-3" />
                                 </Button>
                             )}
                         </div>
@@ -350,18 +351,20 @@ export default function NotificationsPage() {
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleMarkAsRead(notification._id)}
-                                    className="text-indigo-600 hover:text-indigo-700"
+                                    className="text-indigo-600 hover:text-indigo-700 h-7 px-2"
                                 >
-                                    <Check className="h-4 w-4" />
+                                    <Check className="h-3 w-3" />
+                                    <span className="hidden sm:inline ml-1 text-xs">Đánh dấu</span>
                                 </Button>
                             )}
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleDelete(notification._id)}
-                                className="text-indigo-600 hover:text-indigo-700"
+                                className="text-indigo-600 hover:text-indigo-700 h-7 px-2"
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3 w-3" />
+                                <span className="hidden sm:inline ml-1 text-xs">Xóa</span>
                             </Button>
                         </div>
                     </div>
@@ -383,32 +386,34 @@ export default function NotificationsPage() {
                     {getNotificationTypeIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div className="font-medium text-foreground">
-                            {notification.title}
-                            {!notification.read && (
-                                <Badge variant="secondary" className="ml-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-900/70">
-                                    {t('notifications.newBadge')}
-                                </Badge>
-                            )}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-foreground text-sm sm:text-base">
+                                {notification.title}
+                                {!notification.read && (
+                                    <Badge variant="secondary" className="ml-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 hover:bg-blue-200 dark:hover:bg-blue-900/70 text-xs">
+                                        {t('notifications.newBadge')}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
-                        <small className="text-muted-foreground shrink-0 ml-2">
+                        <small className="text-muted-foreground text-xs sm:shrink-0">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                         {notification.message}
                     </p>
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-2 gap-2">
                         <div className="flex space-x-2">
                             {notification.link && notification.link !== '#' && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 h-7 px-2 text-xs"
                                     onClick={() => {
                                         try {
                                             console.log('Navigating to detail link:', notification.link);
@@ -457,7 +462,7 @@ export default function NotificationsPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50"
+                                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/50 h-7 px-2 text-xs"
                                     onClick={() => handleMarkAsRead(notification._id)}
                                 >
                                     <Check className="mr-1 h-3 w-3" />
@@ -523,57 +528,62 @@ export default function NotificationsPage() {
                     {getNotificationTypeIcon(notification.type)}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div className={`font-medium ${textColor}`}>
-                            {notification.title}
-                            {!notification.read && (
-                                <Badge variant="secondary" className={`ml-2 ${bgColor} ${textColor} hover:opacity-80`}>
-                                    {t('notifications.newBadge')}
-                                </Badge>
-                            )}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                        <div className="flex-1">
+                            <div className={`font-medium ${textColor} text-sm sm:text-base`}>
+                                {notification.title}
+                                {!notification.read && (
+                                    <Badge variant="secondary" className={`ml-2 ${bgColor} ${textColor} hover:opacity-80 text-xs`}>
+                                        {t('notifications.newBadge')}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
-                        <small className="text-muted-foreground shrink-0 ml-2">
+                        <small className="text-muted-foreground text-xs sm:shrink-0">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className={`text-sm ${textColor} mt-1`}>
+                    <p className={`text-xs sm:text-sm ${textColor} mt-1`}>
                         {notification.message}
                     </p>
-                    <div className="flex items-center justify-between mt-4">
-                        <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-3 gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {notification.link && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className={buttonColor}
+                                    className={`${buttonColor} h-7 px-2 text-xs`}
                                     onClick={() => handleViewAction(notification)}
                                 >
                                     <ArrowRight className="mr-1 h-3 w-3" />
-                                    {t('notifications.viewDetails')}
+                                    <span className="hidden sm:inline">{t('notifications.viewDetails')}</span>
+                                    <span className="sm:hidden">Xem</span>
                                 </Button>
                             )}
                             {!notification.read && (
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className={buttonColor}
+                                    className={`${buttonColor} h-7 px-2 text-xs`}
                                     onClick={() => handleMarkAsRead(notification._id)}
                                 >
                                     <Check className="mr-1 h-3 w-3" />
-                                    {t('notifications.markAsRead')}
+                                    <span className="hidden sm:inline">{t('notifications.markAsRead')}</span>
+                                    <span className="sm:hidden">Đánh dấu</span>
                                 </Button>
                             )}
                         </div>
                         <Button
                             variant="ghost"
                             size="sm"
-                            className={buttonColor}
+                            className={`${buttonColor} h-7 px-2 self-start sm:self-auto`}
                             onClick={() => handleDelete(notification._id)}
                         >
                             <Trash2 className="h-3 w-3" />
+                            <span className="hidden sm:inline ml-1 text-xs">Xóa</span>
                         </Button>
                     </div>
                 </div>
@@ -584,53 +594,54 @@ export default function NotificationsPage() {
     // Render thông báo thành công
     const renderSuccessNotification = (notification: DisplayNotification) => {
         return (
-            <div className={`flex items-start gap-3 p-4 rounded-lg border border-green-200 dark:border-green-800 transition-colors ${notification.read ? 'bg-green-50 dark:bg-green-950/20 opacity-70' : 'bg-green-50 dark:bg-green-950/30'}`}>
+            <div className={`flex items-start gap-3 p-3 sm:p-4 rounded-lg border border-green-200 dark:border-green-800 transition-colors ${notification.read ? 'bg-green-50 dark:bg-green-950/20 opacity-70' : 'bg-green-50 dark:bg-green-950/30'}`}>
                 <div className="flex-shrink-0 mt-1">
-                    <CheckCheck className="text-green-600 dark:text-green-400" />
+                    <CheckCheck className="text-green-600 dark:text-green-400 h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-start">
-                        <div>
-                            <div className="font-medium text-green-900 dark:text-green-100">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                        <div className="flex-1">
+                            <div className="font-medium text-green-900 dark:text-green-100 text-sm sm:text-base">
                                 {notification.title}
                                 {!notification.read && (
-                                    <Badge variant="secondary" className="ml-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/70">
+                                    <Badge variant="secondary" className="ml-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-900/70 text-xs">
                                         {t('notifications.newBadge')}
                                     </Badge>
                                 )}
                             </div>
                             <small className="text-green-500 dark:text-green-400 text-xs">{t('notifications.updateData')}</small>
                         </div>
-                        <small className="text-green-500 dark:text-green-400 shrink-0 ml-2">
+                        <small className="text-green-500 dark:text-green-400 text-xs sm:shrink-0">
                             {formatDistanceToNow(new Date(notification.createdAt), {
                                 addSuffix: true,
                                 locale: vi
                             })}
                         </small>
                     </div>
-                    <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                    <p className="text-xs sm:text-sm text-green-700 dark:text-green-300 mt-1">
                         {notification.message}
                     </p>
-                    {notification.link && notification.link !== '#' && (
-                        <Button
-                            variant="link"
-                            className="p-0 mt-1 h-auto text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100"
-                            onClick={() => navigateToTarget(router, notification.link as string, notification.relatedId)}
-                        >
-                            <LinkIcon className="h-3 w-3 mr-1" />
-                            <span className="text-xs">{t('notifications.viewDetails')}</span>
-                        </Button>
-                    )}
-                    <div className="flex items-center mt-2 gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
+                        {notification.link && notification.link !== '#' && (
+                            <Button
+                                variant="link"
+                                className="p-0 h-auto text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 self-start"
+                                onClick={() => navigateToTarget(router, notification.link as string, notification.relatedId)}
+                            >
+                                <LinkIcon className="h-3 w-3 mr-1" />
+                                <span className="text-xs">{t('notifications.viewDetails')}</span>
+                            </Button>
+                        )}
                         <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-xs text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 bg-green-50 dark:bg-green-950/50 hover:bg-green-100 dark:hover:bg-green-950/70"
+                            className="h-7 px-2 text-xs text-green-700 dark:text-green-300 hover:text-green-900 dark:hover:text-green-100 bg-green-50 dark:bg-green-950/50 hover:bg-green-100 dark:hover:bg-green-950/70 self-start sm:self-auto"
                             onClick={() => handleMarkAsRead(notification._id)}
                             disabled={notification.read}
                         >
                             <Check className="h-3 w-3 mr-1" />
-                            {notification.read ? t('notifications.alreadyRead') : t('notifications.markAsRead')}
+                            <span className="hidden sm:inline">{notification.read ? t('notifications.alreadyRead') : t('notifications.markAsRead')}</span>
+                            <span className="sm:hidden">{notification.read ? 'Đã đọc' : 'Đánh dấu'}</span>
                         </Button>
                     </div>
                 </div>
@@ -733,26 +744,30 @@ export default function NotificationsPage() {
                 </div>
 
                 <Card>
-                    <CardHeader className="flex flex-row items-center justify-between">
-                        <CardTitle>{t('notifications.yourNotifications')}</CardTitle>
-                        <div className="flex gap-2">
+                    <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <CardTitle className="text-lg sm:text-xl">{t('notifications.yourNotifications')}</CardTitle>
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={handleMarkAllAsRead}
                                 disabled={displayNotifications.length === 0 || displayNotifications.every(n => n.read)}
+                                className="w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
                             >
-                                <Check className="h-4 w-4 mr-1" />
-                                {t('notifications.markAllRead')}
+                                <Check className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <span className="hidden sm:inline">{t('notifications.markAllRead')}</span>
+                                <span className="sm:hidden">Đánh dấu đã đọc</span>
                             </Button>
                             <Button
                                 variant="outline"
                                 size="sm"
                                 onClick={handleDeleteAll}
                                 disabled={displayNotifications.length === 0 || displayNotifications.every(n => !n.read)}
+                                className="w-full sm:w-auto text-xs sm:text-sm px-2 sm:px-3 h-8 sm:h-9"
                             >
-                                <Trash2 className="h-4 w-4 mr-1" />
-                                {t('notifications.deleteRead')}
+                                <Trash2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                                <span className="hidden sm:inline">{t('notifications.deleteRead')}</span>
+                                <span className="sm:hidden">Xóa đã đọc</span>
                             </Button>
                         </div>
                     </CardHeader>

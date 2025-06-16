@@ -333,7 +333,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                                         width={24}
                                         height={24}
                                     />
-                                    <h1 className="ml-2 text-lg font-semibold text-foreground">{t('app.name')}</h1>
+                                    <h1 className="ml-2 text-base sm:text-lg font-semibold text-foreground truncate max-w-[120px] sm:max-w-none">{t('app.name')}</h1>
                                 </Link>
                             </div>
 
