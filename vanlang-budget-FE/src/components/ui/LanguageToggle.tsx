@@ -95,13 +95,14 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
                         handleLanguageChange(newLocale);
                     }}
                     disabled={isChanging}
+                    className="h-8 w-8 sm:h-10 sm:w-10"
                 >
-                    <Globe className="h-5 w-5" />
+                    <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
                     <span className="sr-only">{t('label')}</span>
                 </Button>
 
                 {locale && (
-                    <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    <span className="absolute -bottom-1 -right-1 sm:-bottom-1 sm:-right-1 flex h-3 w-3 sm:h-4 sm:w-4 items-center justify-center rounded-full bg-primary text-[8px] sm:text-[10px] font-bold text-primary-foreground">
                         {locale.toUpperCase()}
                     </span>
                 )}

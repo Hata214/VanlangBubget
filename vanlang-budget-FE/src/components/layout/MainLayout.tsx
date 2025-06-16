@@ -56,10 +56,10 @@ function SimpleBell({ unreadCount = 0 }) {
     };
 
     return (
-        <Button variant="ghost" size="icon" onClick={handleClick} className="relative">
-            <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="icon" onClick={handleClick} className="relative h-8 w-8 sm:h-10 sm:w-10">
+            <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
             {unreadCount > 0 && (
-                <span className="absolute -top-2 -right-2 flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+                <span className="absolute -top-1 -right-1 sm:-top-2 sm:-right-2 flex items-center justify-center w-3 h-3 sm:w-4 sm:h-4 text-[8px] sm:text-[10px] font-bold text-white bg-red-500 rounded-full">
                     {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
             )}
@@ -338,14 +338,14 @@ export default function MainLayout({ children }: MainLayoutProps) {
                             </div>
 
                             {/* Các điều khiển ở header */}
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center space-x-1 sm:space-x-3">
                                 <LanguageToggle variant="icon" />
                                 <ThemeToggle />
                                 <SimpleBell unreadCount={unreadCount} />
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <UserIcon className="h-6 w-6" />
+                                        <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                                            <UserIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
