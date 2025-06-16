@@ -40,6 +40,7 @@ import { socketService, SocketEvent } from '@/services/socketService'
 import EnhancedChatPopup from '@/components/chatbot/EnhancedChatPopup'
 import AgentChatPopup from '@/components/agent/AgentChatPopup'
 import { LocaleProvider } from '@/providers/LocaleProvider'
+import { ThemeDebug } from '@/components/debug/ThemeDebug'
 
 
 interface MainLayoutProps {
@@ -475,6 +476,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
                 {/* <EnhancedChatPopup mode="enhanced" useEnhanced={true} /> */}
                 <AgentChatPopup />
+
+                {/* Debug component - chỉ hiện trong development */}
+                {process.env.NODE_ENV === 'development' && <ThemeDebug />}
             </div>
         </LocaleProvider>
     )

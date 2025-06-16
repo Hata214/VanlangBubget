@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Providers } from '@/redux/provider'
-// import { ThemeProvider } from '@/components/ThemeProvider' // Removed duplicate ThemeProvider
+import { Providers } from '@/components/providers/Providers' // Use the correct Providers with ThemeProvider
 import Cookies from 'js-cookie'
 import { locales } from '@/i18n'
 import { LanguageProvider } from '@/contexts/LanguageContext'
@@ -60,7 +59,6 @@ export default function ClientWrapper({ children }: { children: React.ReactNode 
         // hoặc bao bọc trực tiếp children nếu các provider khác không cần session context
         <NextAuthProvider>
             <Providers>
-                {/* Removed duplicate ThemeProvider - using the one from Providers component */}
                 <ToastProvider>
                     {/* AuthProvider tùy chỉnh có thể cần hoặc không cần nằm trong NextAuthProvider */}
                     {/* Nếu AuthProvider tùy chỉnh cũng dùng session, nó nên nằm trong NextAuthProvider */}

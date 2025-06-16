@@ -17,8 +17,10 @@ export function Providers({ children }: ProvidersProps) {
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="light"
-                    enableSystem
-                    disableTransitionOnChange
+                    enableSystem={true}
+                    disableTransitionOnChange={false}
+                    storageKey="vanlang-budget-theme"
+                    themes={['light', 'dark', 'system']}
                 >
                     {children}
                 </ThemeProvider>
