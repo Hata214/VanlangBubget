@@ -74,10 +74,72 @@ export default function MainLayout({ children }: MainLayoutProps) {
     const router = useRouter();
     const dispatch = useAppDispatch();
     const { token, user } = useAppSelector((state) => state.auth);
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mặc định đóng trên mobile
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
     const [open, setOpen] = useState(false);
+
+    // Effect để xử lý responsive sidebar behavior
+    useEffect(() => {
+        const handleResize = () => {
+            // Trên desktop (>= 768px), sidebar có thể mở mặc định
+            // Trên mobile (< 768px), sidebar luôn đóng khi resize hoặc load trang
+            if (window.innerWidth >= 768) {
+                // Desktop: có thể để sidebar mở
+                // Nhưng vẫn đóng khi chuyển trang để tránh gây khó chịu
+                setIsSidebarOpen(false);
+            } else {
+                // Mobile: luôn đóng sidebar
+                setIsSidebarOpen(false);
+            }
+        };
+
+        // Gọi ngay khi component mount
+        handleResize();
+
+        // Lắng nghe sự kiện resize
+        window.addEventListener('resize', handleResize);
+
+        // Cleanup
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Effect để đóng sidebar khi chuyển trang (đặc biệt quan trọng cho mobile UX)
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
+
+    // Effect để xử lý keyboard shortcuts và focus management
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            // ESC để đóng sidebar
+            if (event.key === 'Escape' && isSidebarOpen) {
+                setIsSidebarOpen(false);
+            }
+        };
+
+        // Thêm event listener
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Cleanup
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isSidebarOpen]);
+
+    // Effect để prevent body scroll khi sidebar mở trên mobile
+    useEffect(() => {
+        if (isSidebarOpen && window.innerWidth < 768) {
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        } else {
+            // Restore body scroll
+            document.body.style.overflow = 'unset';
+        }
+
+        // Cleanup khi component unmount
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isSidebarOpen]);
 
     // Cấu hình thông tin điều hướng từ các file dịch
     const navigation = [
@@ -189,15 +251,37 @@ export default function MainLayout({ children }: MainLayoutProps) {
                 {/* Backdrop for mobile */}
                 {isSidebarOpen && (
                     <div
-                        className="fixed inset-0 z-40 bg-black/50 md:hidden"
+                        className="fixed inset-0 z-40 bg-black/50 md:hidden transition-opacity duration-300"
                         onClick={() => setIsSidebarOpen(false)}
+                        onTouchStart={(e) => {
+                            // Thêm touch support để đóng sidebar khi swipe
+                            const touch = e.touches[0];
+                            const startX = touch.clientX;
+
+                            const handleTouchMove = (moveEvent: TouchEvent) => {
+                                const currentTouch = moveEvent.touches[0];
+                                const deltaX = currentTouch.clientX - startX;
+
+                                // Nếu swipe từ phải sang trái > 50px thì đóng sidebar
+                                if (deltaX < -50) {
+                                    setIsSidebarOpen(false);
+                                    document.removeEventListener('touchmove', handleTouchMove);
+                                }
+                            };
+
+                            document.addEventListener('touchmove', handleTouchMove, { once: true });
+                        }}
                     ></div>
                 )}
 
                 {/* Sidebar */}
                 <div
-                    className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-                        }`}
+                    className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-all duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+                        } md:shadow-none`}
+                    style={{
+                        // Thêm will-change để tối ưu performance animation
+                        willChange: 'transform',
+                    }}
                 >
                     <div className="flex flex-col h-full">
                         {/* Logo and Close Button */}
@@ -227,7 +311,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
                                     <Link
                                         key={item.name}
                                         href={item.href}
-                                        className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${isActive
+                                        onClick={() => {
+                                            // Đóng sidebar khi click vào navigation link trên mobile
+                                            if (window.innerWidth < 768) {
+                                                setIsSidebarOpen(false);
+                                            }
+                                        }}
+                                        className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${isActive
                                             ? 'bg-primary/10 text-primary'
                                             : 'text-foreground hover:bg-muted hover:text-foreground'
                                             }`}
@@ -322,7 +412,8 @@ export default function MainLayout({ children }: MainLayoutProps) {
                             <div className="flex items-center">
                                 <button
                                     onClick={() => setIsSidebarOpen(true)}
-                                    className="p-2 mr-2 text-foreground rounded-md hover:bg-muted focus:outline-none"
+                                    className="p-2 mr-2 text-foreground rounded-md hover:bg-muted focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors active:scale-95"
+                                    aria-label="Mở menu điều hướng"
                                 >
                                     <Bars3Icon className="w-6 h-6" />
                                 </button>
