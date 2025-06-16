@@ -49,35 +49,77 @@ function CustomTable<T>({ data, columns, isLoading, emptyMessage = 'Không có d
     }
 
     return (
-        <div className="w-full overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-                <thead>
-                    <tr className="border-b bg-muted/50">
-                        {columns.map((column, index) => (
-                            <th
-                                key={index}
-                                className={`px-4 py-3 font-medium text-foreground ${column.className || ''}`}
-                            >
-                                {column.header}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.map((item, rowIndex) => (
-                        <tr key={rowIndex} className="border-b hover:bg-muted/50">
-                            {columns.map((column, colIndex) => (
-                                <td key={colIndex} className={`px-4 py-3 ${column.className || ''}`}>
-                                    {typeof column.accessor === 'function'
-                                        ? column.accessor(item)
-                                        : item[column.accessor] as React.ReactNode}
-                                </td>
+        <>
+            {/* Desktop Table */}
+            <div className="hidden md:block w-full overflow-x-auto">
+                <table className="w-full border-collapse text-left text-sm">
+                    <thead>
+                        <tr className="border-b bg-muted/50">
+                            {columns.map((column, index) => (
+                                <th
+                                    key={index}
+                                    className={`px-4 py-3 font-medium text-foreground ${column.className || ''}`}
+                                >
+                                    {column.header}
+                                </th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {data.map((item, rowIndex) => (
+                            <tr key={rowIndex} className="border-b hover:bg-muted/50">
+                                {columns.map((column, colIndex) => (
+                                    <td key={colIndex} className={`px-4 py-3 ${column.className || ''}`}>
+                                        {typeof column.accessor === 'function'
+                                            ? column.accessor(item)
+                                            : item[column.accessor] as React.ReactNode}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {/* Mobile Card Layout */}
+            <div className="md:hidden space-y-3">
+                {data.map((item, index) => (
+                    <div key={index} className="bg-card border rounded-lg p-4 space-y-3">
+                        <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                                <div className="font-medium text-sm">
+                                    {typeof columns[3]?.accessor === 'function'
+                                        ? columns[3].accessor(item)
+                                        : item[columns[3]?.accessor as keyof T] as React.ReactNode}
+                                </div>
+                                <div className="text-xs text-muted-foreground mt-1">
+                                    {typeof columns[0]?.accessor === 'function'
+                                        ? columns[0].accessor(item)
+                                        : item[columns[0]?.accessor as keyof T] as React.ReactNode}
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="font-bold text-sm">
+                                    {typeof columns[4]?.accessor === 'function'
+                                        ? columns[4].accessor(item)
+                                        : item[columns[4]?.accessor as keyof T] as React.ReactNode}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
+                                {typeof columns[1]?.accessor === 'function'
+                                    ? columns[1].accessor(item)
+                                    : item[columns[1]?.accessor as keyof T] as React.ReactNode}
+                                {typeof columns[2]?.accessor === 'function'
+                                    ? columns[2].accessor(item)
+                                    : item[columns[2]?.accessor as keyof T] as React.ReactNode}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </>
     );
 }
 

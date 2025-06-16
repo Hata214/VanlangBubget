@@ -355,24 +355,24 @@ export default function DashboardPage() {
             <div className="container pb-12 pt-4">
                 {/* Thêm cảnh báo số dư âm */}
                 {balance < 0 && (
-                    <Alert className="mb-6 bg-purple-50 text-purple-700 border-purple-200 animate-pulse">
-                        <AlertCircle className="h-5 w-5 text-purple-500" />
-                        <AlertDescription className="flex flex-col gap-2">
-                            <div className="font-medium text-lg">{t('dashboard.negativeBalanceAlert')}</div>
-                            <div>{t('dashboard.negativeBalanceMessage', { amount: formatCurrency(balance) })}</div>
+                    <Alert className="mb-4 sm:mb-6 bg-purple-50 text-purple-700 border-purple-200 animate-pulse">
+                        <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500 mt-0.5" />
+                        <AlertDescription className="flex flex-col gap-2 sm:gap-3">
+                            <div className="font-medium text-base sm:text-lg">{t('dashboard.negativeBalanceAlert')}</div>
+                            <div className="text-sm sm:text-base">{t('dashboard.negativeBalanceMessage', { amount: formatCurrency(balance) })}</div>
                             {lastNotificationTime && (
                                 <div className="text-xs text-purple-600">
                                     {t('dashboard.notificationSentAt', { time: lastNotificationTime })}
                                 </div>
                             )}
-                            <div className="mt-2 flex flex-wrap gap-2">
+                            <div className="mt-2 flex flex-col sm:flex-row gap-2">
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => {
                                         router.push('/expenses');
                                     }}
-                                    className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
+                                    className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 w-full sm:w-auto text-xs sm:text-sm"
                                 >
                                     {t('dashboard.viewExpenses')}
                                 </Button>
@@ -382,7 +382,7 @@ export default function DashboardPage() {
                                     onClick={() => {
                                         router.push('/incomes');
                                     }}
-                                    className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200"
+                                    className="bg-purple-100 text-purple-700 border-purple-300 hover:bg-purple-200 w-full sm:w-auto text-xs sm:text-sm"
                                 >
                                     {t('dashboard.addIncome')}
                                 </Button>
@@ -392,17 +392,18 @@ export default function DashboardPage() {
                 )}
 
                 <div className="space-y-6">
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-3xl font-bold">{t('dashboard.financialOverview')}</h1>
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <h1 className="text-2xl sm:text-3xl font-bold">{t('dashboard.financialOverview')}</h1>
 
                         {/* Nút Reset Data */}
                         <Button
                             variant="destructive"
                             onClick={() => setShowResetDialog(true)}
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 w-full sm:w-auto text-xs sm:text-sm px-3 py-2"
                         >
-                            <RefreshCw size={16} />
-                            {t('dashboard.resetAllData', { defaultMessage: 'Xóa tất cả dữ liệu' })}
+                            <RefreshCw size={14} className="sm:w-4 sm:h-4" />
+                            <span className="hidden sm:inline">{t('dashboard.resetAllData', { defaultMessage: 'Xóa tất cả dữ liệu' })}</span>
+                            <span className="sm:hidden">Xóa dữ liệu</span>
                         </Button>
                     </div>
 
@@ -448,14 +449,14 @@ export default function DashboardPage() {
                         </div>
                     </Modal>
 
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.balance')}</CardTitle>
+                    <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <Card className="p-4 sm:p-6">
+                            <CardHeader className="pb-2 sm:pb-3">
+                                <CardTitle className="text-sm sm:text-base font-medium text-muted-foreground">{t('dashboard.balance')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
+                            <CardContent className="pt-0">
                                 <p
-                                    className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'
+                                    className={`text-xl sm:text-2xl font-bold ${balance >= 0 ? 'text-green-600' : 'text-red-600'
                                         }`}
                                 >
                                     {formatCurrency(balance)}
@@ -463,69 +464,69 @@ export default function DashboardPage() {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.totalIncome')}</CardTitle>
+                        <Card className="p-4 sm:p-6">
+                            <CardHeader className="pb-2 sm:pb-3">
+                                <CardTitle className="text-sm sm:text-base font-medium text-muted-foreground">{t('dashboard.totalIncome')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-bold text-green-600">
+                            <CardContent className="pt-0">
+                                <p className="text-xl sm:text-2xl font-bold text-green-600">
                                     {formatCurrency(totalIncome)}
                                 </p>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.totalExpense')}</CardTitle>
+                        <Card className="p-4 sm:p-6">
+                            <CardHeader className="pb-2 sm:pb-3">
+                                <CardTitle className="text-sm sm:text-base font-medium text-muted-foreground">{t('dashboard.totalExpense')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-bold text-red-600">
+                            <CardContent className="pt-0">
+                                <p className="text-xl sm:text-2xl font-bold text-red-600">
                                     {formatCurrency(totalExpense)}
                                 </p>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.totalLoan')}</CardTitle>
+                        <Card className="p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+                            <CardHeader className="pb-2 sm:pb-3">
+                                <CardTitle className="text-sm sm:text-base font-medium text-muted-foreground">{t('dashboard.totalLoan')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <p className="text-2xl font-bold text-purple-600">
+                            <CardContent className="pt-0">
+                                <p className="text-xl sm:text-2xl font-bold text-purple-600">
                                     {formatCurrency(totalLoanWithInterest)}
                                 </p>
                             </CardContent>
                         </Card>
                     </div>
 
-                    <div className="grid gap-6 lg:grid-cols-2">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.monthlyIncomeExpense')}</CardTitle>
+                    <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+                        <Card className="p-4 sm:p-6">
+                            <CardHeader className="pb-3 sm:pb-4">
+                                <CardTitle className="text-lg sm:text-xl">{t('dashboard.monthlyIncomeExpense')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="h-[280px] sm:h-[300px]">
+                            <CardContent className="pt-0">
+                                <div className="h-[250px] sm:h-[280px] lg:h-[300px]">
                                     <BarChart data={monthlyData} />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('dashboard.financialDistribution')}</CardTitle>
+                        <Card className="p-4 sm:p-6">
+                            <CardHeader className="pb-3 sm:pb-4">
+                                <CardTitle className="text-lg sm:text-xl">{t('dashboard.financialDistribution')}</CardTitle>
                             </CardHeader>
-                            <CardContent>
-                                <div className="h-[350px] sm:h-[400px] md:h-[450px] relative">
+                            <CardContent className="pt-0">
+                                <div className="h-[250px] sm:h-[280px] lg:h-[300px] relative">
                                     <PieChart data={transactionsByCategory} />
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('dashboard.recentTransactions')}</CardTitle>
+                    <Card className="p-4 sm:p-6">
+                        <CardHeader className="pb-3 sm:pb-4">
+                            <CardTitle className="text-lg sm:text-xl">{t('dashboard.recentTransactions')}</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-0">
                             <RecentTransactions transactions={recentTransactions} />
                         </CardContent>
                     </Card>
