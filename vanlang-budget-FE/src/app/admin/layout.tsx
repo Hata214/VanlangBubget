@@ -286,9 +286,10 @@ export default function AdminLayout({
         return (
             <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
-                enableSystem
+                defaultTheme="light"
+                enableSystem={false}
                 storageKey="admin-theme"
+                themes={['light', 'dark']}
             >
                 <div className="admin-login-layout">
                     {wrappedChildren}
@@ -302,9 +303,10 @@ export default function AdminLayout({
         return (
             <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
-                enableSystem
+                defaultTheme="light"
+                enableSystem={false}
                 storageKey="admin-theme"
+                themes={['light', 'dark']}
             >
                 <div style={{
                     display: 'flex',
@@ -341,9 +343,10 @@ export default function AdminLayout({
         return (
             <ThemeProvider
                 attribute="class"
-                defaultTheme="system"
-                enableSystem
+                defaultTheme="light"
+                enableSystem={false}
                 storageKey="admin-theme"
+                themes={['light', 'dark']}
             >
                 <div className="admin-layout">
                     {/* Sidebar */}
