@@ -54,7 +54,7 @@ class AdminActivityLogger {
             });
 
             const activityLog = await AdminActivityLog.createLog(logData);
-            
+
             logger.info(`Admin activity logged: ${actionType} by ${adminId}`, {
                 logId: activityLog._id,
                 actionType,
@@ -184,6 +184,9 @@ class AdminActivityLogger {
             const startDate = new Date();
             startDate.setDate(startDate.getDate() - days);
 
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
             const matchStage = {
                 timestamp: { $gte: startDate }
             };
@@ -192,37 +195,87 @@ class AdminActivityLogger {
                 matchStage.adminId = adminId;
             }
 
-            const stats = await AdminActivityLog.aggregate([
+            // Tổng số logs
+            const totalLogs = await AdminActivityLog.countDocuments(matchStage);
+
+            // Logs hôm nay
+            const todayLogs = await AdminActivityLog.countDocuments({
+                ...matchStage,
+                timestamp: { $gte: today }
+            });
+
+            // Logs thành công và thất bại
+            const successfulActions = await AdminActivityLog.countDocuments({
+                ...matchStage,
+                result: 'SUCCESS'
+            });
+
+            const failedActions = await AdminActivityLog.countDocuments({
+                ...matchStage,
+                result: 'FAILED'
+            });
+
+            // Top actions
+            const topActions = await AdminActivityLog.aggregate([
                 { $match: matchStage },
                 {
                     $group: {
-                        _id: {
-                            actionType: '$actionType',
-                            result: '$result'
-                        },
+                        _id: '$actionType',
                         count: { $sum: 1 }
                     }
                 },
+                { $sort: { count: -1 } },
+                { $limit: 5 },
                 {
-                    $group: {
-                        _id: '$_id.actionType',
-                        total: { $sum: '$count' },
-                        success: {
-                            $sum: {
-                                $cond: [{ $eq: ['$_id.result', 'SUCCESS'] }, '$count', 0]
-                            }
-                        },
-                        failed: {
-                            $sum: {
-                                $cond: [{ $eq: ['$_id.result', 'FAILED'] }, '$count', 0]
-                            }
-                        }
+                    $project: {
+                        action: '$_id',
+                        count: 1,
+                        _id: 0
                     }
-                },
-                { $sort: { total: -1 } }
+                }
             ]);
 
-            return stats;
+            // Admin activity (chỉ cho superadmin)
+            let adminActivity = [];
+            if (!adminId) {
+                adminActivity = await AdminActivityLog.aggregate([
+                    { $match: matchStage },
+                    {
+                        $lookup: {
+                            from: 'users',
+                            localField: 'adminId',
+                            foreignField: '_id',
+                            as: 'admin'
+                        }
+                    },
+                    { $unwind: '$admin' },
+                    {
+                        $group: {
+                            _id: '$adminId',
+                            count: { $sum: 1 },
+                            adminName: { $first: { $concat: ['$admin.firstName', ' ', '$admin.lastName'] } }
+                        }
+                    },
+                    { $sort: { count: -1 } },
+                    { $limit: 5 },
+                    {
+                        $project: {
+                            adminName: 1,
+                            count: 1,
+                            _id: 0
+                        }
+                    }
+                ]);
+            }
+
+            return {
+                totalLogs,
+                todayLogs,
+                successfulActions,
+                failedActions,
+                topActions,
+                adminActivity
+            };
         } catch (error) {
             logger.error('Failed to get activity stats:', error);
             throw error;

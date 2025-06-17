@@ -115,21 +115,23 @@ export const getAdminActivityLogs = catchAsync(async (req, res, next) => {
  * @access  Private (Admin, Superadmin)
  */
 export const getActivityStats = catchAsync(async (req, res, next) => {
-    const { days = 30 } = req.query;
+    const { days = 30, adminId: requestedAdminId } = req.query;
 
     // Admin chỉ có thể xem stats của chính mình
-    const adminId = req.user.role === 'admin' ? req.user.id : null;
+    // SuperAdmin có thể xem stats của tất cả hoặc admin cụ thể
+    let targetAdminId = null;
+    if (req.user.role === 'admin') {
+        targetAdminId = req.user.id;
+    } else if (req.user.role === 'superadmin' && requestedAdminId && requestedAdminId !== 'all') {
+        targetAdminId = requestedAdminId;
+    }
 
     try {
-        const stats = await AdminActivityLogger.getActivityStats(adminId, parseInt(days));
+        const stats = await AdminActivityLogger.getActivityStats(targetAdminId, parseInt(days));
 
         res.status(200).json({
             status: 'success',
-            data: {
-                stats,
-                period: `${days} ngày qua`,
-                adminId: adminId || 'all'
-            }
+            data: stats
         });
     } catch (error) {
         logger.error('Error fetching activity stats:', error);
@@ -217,5 +219,91 @@ export const getLogsByDateRange = catchAsync(async (req, res, next) => {
     } catch (error) {
         logger.error('Error fetching logs by date range:', error);
         return next(new AppError('Không thể lấy logs theo khoảng thời gian', 500));
+    }
+});
+
+/**
+ * @desc    Xuất activity logs ra CSV
+ * @route   GET /api/admin/activity-logs/export
+ * @access  Private (Admin, Superadmin)
+ */
+export const exportActivityLogs = catchAsync(async (req, res, next) => {
+    const {
+        adminId,
+        actionType,
+        targetType,
+        startDate,
+        endDate,
+        search
+    } = req.query;
+
+    // Admin chỉ có thể xuất logs của chính mình
+    // SuperAdmin có thể xuất tất cả logs
+    const filterAdminId = req.user.role === 'admin' ? req.user.id : adminId;
+
+    try {
+        // Lấy tất cả logs phù hợp (không phân trang)
+        const result = await AdminActivityLogger.getLogs({
+            adminId: filterAdminId,
+            actionType,
+            targetType,
+            startDate,
+            endDate,
+            search,
+            page: 1,
+            limit: 10000 // Lấy nhiều records để export
+        });
+
+        // Tạo CSV content
+        const csvHeader = [
+            'Thời gian',
+            'Admin',
+            'Email Admin',
+            'Hành động',
+            'Loại đối tượng',
+            'Đối tượng',
+            'IP Address',
+            'Kết quả',
+            'Chi tiết'
+        ].join(',');
+
+        const csvRows = result.logs.map(log => {
+            const row = [
+                `"${new Date(log.timestamp).toLocaleString('vi-VN')}"`,
+                `"${log.admin?.firstName || ''} ${log.admin?.lastName || ''}"`,
+                `"${log.admin?.email || ''}"`,
+                `"${log.actionType || ''}"`,
+                `"${log.targetType || ''}"`,
+                `"${log.targetId ? 'Có' : 'Không'}"`,
+                `"${log.ipAddress || ''}"`,
+                `"${log.result || ''}"`,
+                `"${log.inputData ? JSON.stringify(log.inputData).replace(/"/g, '""') : ''}"`
+            ];
+            return row.join(',');
+        });
+
+        const csvContent = [csvHeader, ...csvRows].join('\n');
+
+        // Log việc xuất dữ liệu
+        await AdminActivityLogger.logSystemAction(
+            req.user.id,
+            'EXPORT_DATA',
+            {
+                section: 'activity-logs',
+                filters: req.query,
+                exportedRecords: result.logs.length
+            },
+            'SUCCESS',
+            req
+        );
+
+        // Set headers và trả về CSV
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="activity-logs-${new Date().toISOString().slice(0, 10)}.csv"`);
+        res.status(200).send('\uFEFF' + csvContent); // \uFEFF là BOM cho UTF-8
+
+    } catch (error) {
+        logger.error('Error exporting activity logs:', error);
+        return next(new AppError('Không thể xuất dữ liệu', 500));
     }
 });
