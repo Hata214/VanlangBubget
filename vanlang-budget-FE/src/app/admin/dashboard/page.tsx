@@ -233,49 +233,98 @@ export default function AdminDashboardPage() {
             )}
 
             {/* Statistics Cards - Chỉ có 8 cards như trong hình */}
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                {loading ? (
-                    // Loading skeleton
-                    [...Array(8)].map((_, index) => (
-                        <Card key={index} className="border-0 shadow-sm bg-white">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
-                                        <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
-                                        <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
+            <div className="space-y-6">
+                {/* Hàng thứ nhất - 4 cards */}
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    {loading ? (
+                        // Loading skeleton hàng 1
+                        [...Array(4)].map((_, index) => (
+                            <Card key={index} className="border-0 shadow-sm bg-white">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
+                                            <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
+                                            <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
+                                        </div>
+                                        <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
                                     </div>
-                                    <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                ) : (
-                    stats_cards.map((card, index) => (
-                        <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium text-gray-600 mb-3">
-                                            {card.title}
-                                        </p>
-                                        <div className="space-y-1">
-                                            <p className="text-3xl font-bold text-gray-900">
-                                                {card.value}
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : (
+                        stats_cards.slice(0, 4).map((card, index) => (
+                            <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-600 mb-3">
+                                                {card.title}
                                             </p>
-                                            <p className="text-xs text-gray-500">
-                                                {card.description}
-                                            </p>
+                                            <div className="space-y-1">
+                                                <p className="text-3xl font-bold text-gray-900">
+                                                    {card.value}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {card.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className={`p-3 rounded-full ${card.iconBg}`}>
+                                            <card.icon className="h-4 w-4 text-white" />
                                         </div>
                                     </div>
-                                    <div className={`p-3 rounded-full ${card.iconBg}`}>
-                                        <card.icon className="h-4 w-4 text-white" />
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
+
+                {/* Hàng thứ hai - 4 cards */}
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+                    {loading ? (
+                        // Loading skeleton hàng 2
+                        [...Array(4)].map((_, index) => (
+                            <Card key={index + 4} className="border-0 shadow-sm bg-white">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
+                                            <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
+                                            <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
+                                        </div>
+                                        <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
+                                </CardContent>
+                            </Card>
+                        ))
+                    ) : (
+                        stats_cards.slice(4, 8).map((card, index) => (
+                            <Card key={index + 4} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                                <CardContent className="p-6">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-gray-600 mb-3">
+                                                {card.title}
+                                            </p>
+                                            <div className="space-y-1">
+                                                <p className="text-3xl font-bold text-gray-900">
+                                                    {card.value}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {card.description}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className={`p-3 rounded-full ${card.iconBg}`}>
+                                            <card.icon className="h-4 w-4 text-white" />
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))
+                    )}
+                </div>
             </div>
 
             {/* Bottom Section - User Roles and Admin Activity */}
@@ -304,7 +353,7 @@ export default function AdminDashboardPage() {
                                     <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
                                         <div className="flex items-center space-x-3">
                                             <div className={`w-4 h-4 rounded-full ${role._id === 'superadmin' ? 'bg-red-500' :
-                                                    role._id === 'admin' ? 'bg-blue-500' : 'bg-gray-500'
+                                                role._id === 'admin' ? 'bg-blue-500' : 'bg-gray-500'
                                                 }`}></div>
                                             <span className="font-medium">
                                                 {role._id === 'superadmin' ? 'Super Admin' :
