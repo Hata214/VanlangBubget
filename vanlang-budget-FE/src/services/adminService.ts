@@ -38,9 +38,16 @@ export const adminService = {
     /**
      * Lấy thống kê hoạt động admin
      */
-    async getActivityStats(days: number = 30) {
+    async getActivityStats(options?: {
+        days?: number;
+        adminId?: string;
+    }) {
+        const params = {
+            days: options?.days || 30,
+            ...(options?.adminId && { adminId: options.adminId })
+        };
         const response = await api.get('/api/admin/activity-logs/stats', {
-            params: { days }
+            params
         });
         return response.data;
     },

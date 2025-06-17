@@ -166,6 +166,8 @@ adminActivityLogSchema.statics.getLogsPaginated = async function (options = {}) 
         adminId,
         actionType,
         targetType,
+        result,
+        search,
         page = 1,
         limit = 20,
         startDate,
@@ -175,8 +177,21 @@ adminActivityLogSchema.statics.getLogsPaginated = async function (options = {}) 
     const filter = {};
 
     if (adminId) filter.adminId = adminId;
-    if (actionType) filter.actionType = actionType;
+    if (actionType) {
+        // Hỗ trợ tìm kiếm theo actionType chứa từ khóa
+        filter.actionType = { $regex: actionType, $options: 'i' };
+    }
     if (targetType) filter.targetType = targetType;
+    if (result) filter.result = result;
+
+    // Tìm kiếm theo IP address hoặc actionType
+    if (search) {
+        filter.$or = [
+            { actionType: { $regex: search, $options: 'i' } },
+            { ipAddress: { $regex: search, $options: 'i' } },
+            { userAgent: { $regex: search, $options: 'i' } }
+        ];
+    }
 
     if (startDate || endDate) {
         filter.timestamp = {};
@@ -188,7 +203,8 @@ adminActivityLogSchema.statics.getLogsPaginated = async function (options = {}) 
 
     const [logs, total] = await Promise.all([
         this.find(filter)
-            .populate('admin', 'firstName lastName email role')
+            .populate('adminId', 'firstName lastName email role')
+            .populate('targetId', 'firstName lastName email')
             .sort({ timestamp: -1 })
             .skip(skip)
             .limit(limit),

@@ -15,6 +15,8 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
         adminId,
         actionType,
         targetType,
+        result: resultFilter,
+        search,
         startDate,
         endDate
     } = req.query;
@@ -29,6 +31,8 @@ export const getActivityLogs = catchAsync(async (req, res, next) => {
             adminId: filterAdminId,
             actionType,
             targetType,
+            result: resultFilter,
+            search,
             startDate,
             endDate,
             page: parseInt(page),
@@ -115,20 +119,26 @@ export const getAdminActivityLogs = catchAsync(async (req, res, next) => {
  * @access  Private (Admin, Superadmin)
  */
 export const getActivityStats = catchAsync(async (req, res, next) => {
-    const { days = 30 } = req.query;
+    const { days = 30, adminId: requestedAdminId } = req.query;
 
     // Admin chỉ có thể xem stats của chính mình
-    const adminId = req.user.role === 'admin' ? req.user.id : null;
+    // SuperAdmin có thể xem stats của admin cụ thể hoặc tất cả
+    let filterAdminId = null;
+    if (req.user.role === 'admin') {
+        filterAdminId = req.user.id;
+    } else if (req.user.role === 'superadmin' && requestedAdminId && requestedAdminId !== 'all') {
+        filterAdminId = requestedAdminId;
+    }
 
     try {
-        const stats = await AdminActivityLogger.getActivityStats(adminId, parseInt(days));
+        const stats = await AdminActivityLogger.getActivityStats(filterAdminId, parseInt(days));
 
         res.status(200).json({
             status: 'success',
             data: {
                 stats,
                 period: `${days} ngày qua`,
-                adminId: adminId || 'all'
+                adminId: filterAdminId || 'all'
             }
         });
     } catch (error) {
@@ -217,5 +227,93 @@ export const getLogsByDateRange = catchAsync(async (req, res, next) => {
     } catch (error) {
         logger.error('Error fetching logs by date range:', error);
         return next(new AppError('Không thể lấy logs theo khoảng thời gian', 500));
+    }
+});
+
+/**
+ * @desc    Xuất activity logs ra file CSV
+ * @route   GET /api/admin/activity-logs/export
+ * @access  Private (Admin, Superadmin)
+ */
+export const exportActivityLogs = catchAsync(async (req, res, next) => {
+    const {
+        adminId,
+        actionType,
+        result,
+        startDate,
+        endDate
+    } = req.query;
+
+    // Admin chỉ có thể xuất logs của chính mình
+    const filterAdminId = req.user.role === 'admin' ? req.user.id : adminId;
+
+    try {
+        // Lấy tất cả logs không phân trang để export
+        const result_data = await AdminActivityLogger.getLogs({
+            adminId: filterAdminId,
+            actionType,
+            result,
+            startDate,
+            endDate,
+            page: 1,
+            limit: 10000 // Lấy nhiều records để export
+        });
+
+        // Tạo CSV content
+        const csvHeaders = [
+            'Thời gian',
+            'Admin',
+            'Email Admin',
+            'Hành động',
+            'Kết quả',
+            'Đối tượng',
+            'Email đối tượng',
+            'Địa chỉ IP',
+            'User Agent',
+            'Chi tiết'
+        ];
+
+        const csvRows = result_data.logs.map(log => [
+            new Date(log.timestamp).toLocaleString('vi-VN'),
+            log.adminId ? `${log.adminId.firstName} ${log.adminId.lastName}` : 'N/A',
+            log.adminId ? log.adminId.email : 'N/A',
+            log.action || 'N/A',
+            log.result || 'N/A',
+            log.targetId ? `${log.targetId.firstName} ${log.targetId.lastName}` : 'N/A',
+            log.targetId ? log.targetId.email : 'N/A',
+            log.ipAddress || 'N/A',
+            log.userAgent || 'N/A',
+            log.details ? JSON.stringify(log.details).replace(/"/g, '""') : 'N/A'
+        ]);
+
+        // Tạo CSV string
+        const csvContent = [csvHeaders, ...csvRows]
+            .map(row => row.map(field => `"${field}"`).join(','))
+            .join('\n');
+
+        // Log việc export
+        await AdminActivityLogger.logSystemAction(
+            req.user.id,
+            'EXPORT_DATA',
+            {
+                type: 'activity-logs',
+                filters: req.query,
+                recordCount: result_data.logs.length
+            },
+            'SUCCESS',
+            req
+        );
+
+        // Set headers để download file
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="activity-logs-${new Date().toISOString().slice(0, 10)}.csv"`);
+
+        // Thêm BOM để Excel hiển thị đúng tiếng Việt
+        res.write('\uFEFF');
+        res.end(csvContent);
+
+    } catch (error) {
+        logger.error('Error exporting activity logs:', error);
+        return next(new AppError('Không thể xuất dữ liệu', 500));
     }
 });
