@@ -109,8 +109,6 @@ export default function ActivityLogsPage() {
     const [dateRange, setDateRange] = useState<{ start?: string, end?: string }>({});
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
-    const [viewedLogsCount, setViewedLogsCount] = useState(0);
-    const [viewedLogIds, setViewedLogIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         // Lấy thông tin người dùng hiện tại từ localStorage
@@ -383,12 +381,6 @@ export default function ActivityLogsPage() {
     const handleOpenDialog = (log: ActivityLog) => {
         setSelectedLog(log);
         setIsDialogOpen(true);
-
-        // Đếm logs đã xem
-        if (!viewedLogIds.has(log._id)) {
-            setViewedLogIds(prev => new Set(prev).add(log._id));
-            setViewedLogsCount(prev => prev + 1);
-        }
     };
 
     const handleCloseDialog = () => {
@@ -471,65 +463,6 @@ ${logInfo.metadata}
                         Xuất CSV
                     </Button>
                 </div>
-            </div>
-
-            {/* Thống kê tổng quan */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                <Card>
-                    <CardContent className="flex items-center p-6">
-                        <Activity className="h-8 w-8 text-blue-600" />
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-muted-foreground">Tổng hoạt động</p>
-                            <p className="text-2xl font-bold">{activityLogs.length}</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="flex items-center p-6">
-                        <User className="h-8 w-8 text-green-600" />
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-muted-foreground">Admin hoạt động</p>
-                            <p className="text-2xl font-bold">
-                                {new Set(activityLogs.map(log => log.adminId)).size}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="flex items-center p-6">
-                        <Calendar className="h-8 w-8 text-purple-600" />
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-muted-foreground">Hôm nay</p>
-                            <p className="text-2xl font-bold">
-                                {activityLogs.filter(log => {
-                                    const today = new Date();
-                                    const logDate = new Date(log.timestamp);
-                                    return logDate.toDateString() === today.toDateString();
-                                }).length}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="flex items-center p-6">
-                        <Info className="h-8 w-8 text-cyan-600" />
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-muted-foreground">Đã xem chi tiết</p>
-                            <p className="text-2xl font-bold">{viewedLogsCount}</p>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent className="flex items-center p-6">
-                        <Filter className="h-8 w-8 text-orange-600" />
-                        <div className="ml-4">
-                            <p className="text-sm font-medium text-muted-foreground">Đang lọc</p>
-                            <p className="text-2xl font-bold">
-                                {filterAction !== 'all' || selectedAdminId !== 'all' ? 'Có' : 'Không'}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
             </div>
 
             <Card>
