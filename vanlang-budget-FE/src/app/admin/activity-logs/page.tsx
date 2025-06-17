@@ -38,9 +38,32 @@ import {
     Download,
     RefreshCw,
     Filter,
+    Clock,
+    Globe,
+    Monitor,
+    Target,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    Copy,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import adminService from '@/services/adminService';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/Dialog';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from '@/components/ui/Tooltip';
 
 interface ActivityLog {
     _id: string;
@@ -84,6 +107,10 @@ export default function ActivityLogsPage() {
     const [filterAction, setFilterAction] = useState<string>('all');
     const [searchTerm, setSearchTerm] = useState('');
     const [dateRange, setDateRange] = useState<{ start?: string, end?: string }>({});
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
+    const [viewedLogsCount, setViewedLogsCount] = useState(0);
+    const [viewedLogIds, setViewedLogIds] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         // Lấy thông tin người dùng hiện tại từ localStorage
@@ -226,14 +253,24 @@ export default function ActivityLogsPage() {
     };
 
     const formatDate = (dateString: string) => {
-        if (!dateString) return 'N/A';
         const date = new Date(dateString);
-        return date.toLocaleDateString('vi-VN', {
+        const now = new Date();
+        const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+        // Hiển thị thời gian relative nếu trong vòng 24h
+        if (diffInSeconds < 86400) { // 24 hours
+            if (diffInSeconds < 60) return `${diffInSeconds} giây trước`;
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} phút trước`;
+            return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+        }
+
+        return date.toLocaleString('vi-VN', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
-            minute: '2-digit'
+            minute: '2-digit',
+            second: '2-digit'
         });
     };
 
@@ -343,6 +380,70 @@ export default function ActivityLogsPage() {
         return 'bg-gray-100 text-gray-800 border-gray-300';
     };
 
+    const handleOpenDialog = (log: ActivityLog) => {
+        setSelectedLog(log);
+        setIsDialogOpen(true);
+
+        // Đếm logs đã xem
+        if (!viewedLogIds.has(log._id)) {
+            setViewedLogIds(prev => new Set(prev).add(log._id));
+            setViewedLogsCount(prev => prev + 1);
+        }
+    };
+
+    const handleCloseDialog = () => {
+        setSelectedLog(null);
+        setIsDialogOpen(false);
+    };
+
+    const handleCopyLogInfo = async () => {
+        if (!selectedLog) return;
+
+        const logInfo = {
+            id: selectedLog._id,
+            action: getActionLabel(selectedLog.actionType),
+            timestamp: formatDate(selectedLog.timestamp),
+            result: selectedLog.result,
+            admin: selectedLog.admin ? `${selectedLog.admin.firstName} ${selectedLog.admin.lastName}` : 'N/A',
+            targetType: selectedLog.targetType || 'N/A',
+            targetId: selectedLog.targetId || 'N/A',
+            ipAddress: selectedLog.ipAddress || 'N/A',
+            userAgent: selectedLog.userAgent || 'N/A',
+            inputData: selectedLog.inputData ? JSON.stringify(selectedLog.inputData, null, 2) : 'N/A',
+            resultDetails: selectedLog.resultDetails || 'N/A',
+            metadata: selectedLog.metadata ? JSON.stringify(selectedLog.metadata, null, 2) : 'N/A'
+        };
+
+        const textToCopy = `
+=== CHI TIẾT HOẠT ĐỘNG ===
+ID: ${logInfo.id}
+Hành động: ${logInfo.action}
+Thời gian: ${logInfo.timestamp}
+Kết quả: ${logInfo.result}
+Quản trị viên: ${logInfo.admin}
+Loại đối tượng: ${logInfo.targetType}
+ID đối tượng: ${logInfo.targetId}
+Địa chỉ IP: ${logInfo.ipAddress}
+User Agent: ${logInfo.userAgent}
+
+=== DỮ LIỆU ĐẦU VÀO ===
+${logInfo.inputData}
+
+=== CHI TIẾT KẾT QUẢ ===
+${logInfo.resultDetails}
+
+=== METADATA ===
+${logInfo.metadata}
+        `.trim();
+
+        try {
+            await navigator.clipboard.writeText(textToCopy);
+            toast.success('Đã copy thông tin vào clipboard');
+        } catch (error) {
+            toast.error('Không thể copy thông tin');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -373,7 +474,7 @@ export default function ActivityLogsPage() {
             </div>
 
             {/* Thống kê tổng quan */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <Card>
                     <CardContent className="flex items-center p-6">
                         <Activity className="h-8 w-8 text-blue-600" />
@@ -406,6 +507,15 @@ export default function ActivityLogsPage() {
                                     return logDate.toDateString() === today.toDateString();
                                 }).length}
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <Info className="h-8 w-8 text-cyan-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-muted-foreground">Đã xem chi tiết</p>
+                            <p className="text-2xl font-bold">{viewedLogsCount}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -615,68 +725,24 @@ export default function ActivityLogsPage() {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-8 w-8 p-0"
-                                                    onClick={() => {
-                                                        // Hiển thị chi tiết trong toast
-                                                        toast((t) => (
-                                                            <div className="max-w-md">
-                                                                <h3 className="font-bold mb-2">Chi tiết hoạt động</h3>
-                                                                <div className="text-sm">
-                                                                    <p><span className="font-semibold">Hành động:</span> {getActionLabel(log.actionType)}</p>
-                                                                    <p><span className="font-semibold">Thời gian:</span> {formatDate(log.timestamp)}</p>
-                                                                    {log.ipAddress && <p><span className="font-semibold">IP:</span> {log.ipAddress}</p>}
-                                                                    {log.resultDetails && (
-                                                                        <div className="mt-2">
-                                                                            <p className="font-semibold">Chi tiết kết quả:</p>
-                                                                            <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
-                                                                                {log.resultDetails}
-                                                                            </pre>
-                                                                        </div>
-                                                                    )}
-                                                                    {log.inputData && Object.keys(log.inputData).length > 0 && (
-                                                                        <div className="mt-2">
-                                                                            <p className="font-semibold">Dữ liệu đầu vào:</p>
-                                                                            <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
-                                                                                {JSON.stringify(log.inputData, null, 2)}
-                                                                            </pre>
-                                                                        </div>
-                                                                    )}
-                                                                    {log.targetType && (
-                                                                        <p><span className="font-semibold">Loại đối tượng:</span> {log.targetType}</p>
-                                                                    )}
-                                                                    {log.result && (
-                                                                        <p><span className="font-semibold">Kết quả:</span>
-                                                                            <span className={`ml-1 px-2 py-1 rounded text-xs ${log.result === 'SUCCESS' ? 'bg-green-100 text-green-800' :
-                                                                                log.result === 'FAILED' ? 'bg-red-100 text-red-800' :
-                                                                                    'bg-yellow-100 text-yellow-800'
-                                                                                }`}>
-                                                                                {log.result === 'SUCCESS' ? 'Thành công' :
-                                                                                    log.result === 'FAILED' ? 'Thất bại' : 'Một phần'}
-                                                                            </span>
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                                <Button
-                                                                    onClick={() => toast.dismiss(t.id)}
-                                                                    className="mt-2"
-                                                                    variant="outline"
-                                                                    size="sm"
-                                                                >
-                                                                    Đóng
-                                                                </Button>
-                                                            </div>
-                                                        ), {
-                                                            duration: 10000,
-                                                            position: 'bottom-center'
-                                                        });
-                                                    }}
-                                                >
-                                                    <Info className="h-4 w-4" />
-                                                    <span className="sr-only">Chi tiết</span>
-                                                </Button>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                                                                onClick={() => handleOpenDialog(log)}
+                                                                aria-label={`Xem chi tiết hoạt động ${getActionLabel(log.actionType)}`}
+                                                            >
+                                                                <Info className="h-4 w-4" />
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>Xem chi tiết hoạt động</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -713,6 +779,179 @@ export default function ActivityLogsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Dialog for displaying activity log details */}
+            {isDialogOpen && selectedLog && (
+                <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
+                    <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-blue-600" />
+                                Chi tiết hoạt động
+                            </DialogTitle>
+                            <DialogDescription>
+                                Thông tin chi tiết về hoạt động được thực hiện bởi quản trị viên
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-6">
+                            {/* Basic Information */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b pb-2">Thông tin cơ bản</h3>
+
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <Activity className="h-5 w-5 text-blue-600" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">Hành động</p>
+                                            <p className="text-sm text-gray-600">{getActionLabel(selectedLog.actionType)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <Clock className="h-5 w-5 text-purple-600" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">Thời gian thực hiện</p>
+                                            <p className="text-sm text-gray-600">{formatDate(selectedLog.timestamp)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                        {selectedLog.result === 'SUCCESS' ? (
+                                            <CheckCircle className="h-5 w-5 text-green-600" />
+                                        ) : selectedLog.result === 'FAILED' ? (
+                                            <XCircle className="h-5 w-5 text-red-600" />
+                                        ) : (
+                                            <AlertCircle className="h-5 w-5 text-yellow-600" />
+                                        )}
+                                        <div>
+                                            <p className="font-medium text-gray-900">Kết quả</p>
+                                            <Badge
+                                                variant="outline"
+                                                className={
+                                                    selectedLog.result === 'SUCCESS' ? 'bg-green-100 text-green-800 border-green-300' :
+                                                        selectedLog.result === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                                            'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                                }
+                                            >
+                                                {selectedLog.result === 'SUCCESS' ? '✓ Thành công' :
+                                                    selectedLog.result === 'FAILED' ? '✗ Thất bại' : '⚠ Một phần'}
+                                            </Badge>
+                                        </div>
+                                    </div>
+
+                                    {selectedLog.admin && (
+                                        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                                            <User className="h-5 w-5 text-indigo-600" />
+                                            <div>
+                                                <p className="font-medium text-gray-900">Quản trị viên</p>
+                                                <p className="text-sm text-gray-600">
+                                                    {selectedLog.admin.firstName} {selectedLog.admin.lastName}
+                                                </p>
+                                                <p className="text-xs text-gray-500">{selectedLog.admin.email}</p>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Target Information */}
+                            {selectedLog.targetType && (
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold border-b pb-2">Đối tượng tác động</h3>
+                                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                                        <Target className="h-5 w-5 text-blue-600" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">Loại đối tượng</p>
+                                            <p className="text-sm text-gray-600">
+                                                {selectedLog.targetType === 'User' ? 'Người dùng' :
+                                                    selectedLog.targetType === 'Admin' ? 'Quản trị viên' :
+                                                        selectedLog.targetType === 'SiteContent' ? 'Nội dung site' :
+                                                            selectedLog.targetType === 'System' ? 'Hệ thống' :
+                                                                selectedLog.targetType}
+                                            </p>
+                                            {selectedLog.targetId && (
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    ID: {selectedLog.targetId}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Technical Information */}
+                            <div className="space-y-4">
+                                <h3 className="text-lg font-semibold border-b pb-2">Thông tin kỹ thuật</h3>
+
+                                {selectedLog.ipAddress && (
+                                    <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                                        <Globe className="h-5 w-5 text-orange-600" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">Địa chỉ IP</p>
+                                            <p className="text-sm text-gray-600 font-mono">{selectedLog.ipAddress}</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedLog.userAgent && (
+                                    <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                                        <Monitor className="h-5 w-5 text-gray-600 mt-1" />
+                                        <div>
+                                            <p className="font-medium text-gray-900">User Agent</p>
+                                            <p className="text-xs text-gray-600 break-all">{selectedLog.userAgent}</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Input Data */}
+                            {selectedLog.inputData && Object.keys(selectedLog.inputData).length > 0 && (
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold border-b pb-2">Dữ liệu đầu vào</h3>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <pre className="text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify(selectedLog.inputData, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Result Details */}
+                            {selectedLog.resultDetails && (
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold border-b pb-2">Chi tiết kết quả</h3>
+                                    <div className="bg-blue-50 rounded-lg p-4">
+                                        <p className="text-sm text-gray-700">{selectedLog.resultDetails}</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Metadata */}
+                            {selectedLog.metadata && Object.keys(selectedLog.metadata).length > 0 && (
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold border-b pb-2">Metadata</h3>
+                                    <div className="bg-gray-50 rounded-lg p-4">
+                                        <pre className="text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap">
+                                            {JSON.stringify(selectedLog.metadata, null, 2)}
+                                        </pre>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button variant="outline" onClick={handleCloseDialog}>
+                                Đóng
+                            </Button>
+                            <Button variant="outline" onClick={handleCopyLogInfo}>
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy thông tin
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
         </div>
     );
 }
