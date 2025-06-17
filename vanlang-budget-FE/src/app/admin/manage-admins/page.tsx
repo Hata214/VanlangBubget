@@ -157,18 +157,29 @@ export default function ManageAdminsPage() {
             // Gọi API thực để lấy danh sách tất cả người dùng từ MongoDB
             const response = await adminService.getAllUsers(filterParams);
 
-            if (response.status === 'success' && response.data) {
+            if (response.status === 'success' && response.data && Array.isArray(response.data.users)) {
                 setUsers(response.data.users);
                 setTotalPages(response.pagination?.totalPages || 1);
                 console.log('Đã tải danh sách người dùng từ database:', response.data.users);
                 toast.success(`Tải thành công ${response.data.users.length} người dùng`);
             } else {
-                throw new Error('Invalid response format');
+                console.warn('Unexpected response format:', response);
+                // Safe fallback
+                const users = response?.data?.users || response?.data || [];
+                const safeUsers = Array.isArray(users) ? users : [];
+                setUsers(safeUsers);
+                setTotalPages(1);
+
+                if (safeUsers.length === 0) {
+                    toast.success('Không tìm thấy người dùng nào');
+                } else {
+                    toast.success(`Tải thành công ${safeUsers.length} người dùng`);
+                }
             }
         } catch (error: any) {
             console.error('Lỗi khi tải danh sách người dùng:', error);
             toast.error(error.response?.data?.message || 'Không thể tải danh sách người dùng từ database');
-            setUsers([]);
+            setUsers([]); // Set empty array as fallback
         } finally {
             setLoading(false);
         }

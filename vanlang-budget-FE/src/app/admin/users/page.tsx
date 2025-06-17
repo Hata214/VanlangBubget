@@ -154,48 +154,62 @@ export default function AdminUsersPage() {
                 sortDirection: direction
             })
 
-            // Handle response format from backend - ensure data is array
-            const responseData = response?.data;
-            const responseStatus = response?.status;
+            const responseStatus = response?.status
+            const responseData = response?.data
 
             console.log('API Response:', { responseStatus, responseData, response });
 
-            if ((responseStatus === 'success' || response.success) && Array.isArray(responseData)) {
-                const mappedUsers = responseData.map((user: any) => ({
-                    _id: user._id || user.id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    role: user.role,
-                    active: user.active !== undefined ? user.active : true,
-                    isEmailVerified: user.isEmailVerified || false,
-                    createdAt: user.createdAt,
-                    lastLogin: user.lastLogin
-                }))
-                setUsers(mappedUsers)
-                setTotalUsers(response.total || responseData.length || 0)
-                setTotalPages(response.totalPages || Math.ceil((response.total || responseData.length || 0) / 10))
-            } else {
-                // Fallback - ensure we handle all possible response formats
-                console.warn('Unexpected response format:', response);
-                const fallbackData = responseData || response || [];
-                const dataArray = Array.isArray(fallbackData) ? fallbackData : [];
+            // Handle different response formats from backend
+            let users = [];
+            let totalUsers = 0;
+            let totalPages = 1;
 
-                const mappedUsers = dataArray.map((user: any) => ({
-                    _id: user._id || user.id,
-                    email: user.email || '',
-                    firstName: user.firstName || '',
-                    lastName: user.lastName || '',
-                    role: user.role || 'user',
-                    active: user.active !== undefined ? user.active : true,
-                    isEmailVerified: user.isEmailVerified || false,
-                    createdAt: user.createdAt || new Date().toISOString(),
-                    lastLogin: user.lastLogin
-                }))
-                setUsers(mappedUsers)
-                setTotalUsers(dataArray.length || 0)
-                setTotalPages(Math.ceil((dataArray.length || 0) / 10))
+            if (responseStatus === 'success' || response.success) {
+                if (Array.isArray(responseData)) {
+                    // Format 1: { status: 'success', data: [users] }
+                    users = responseData;
+                    totalUsers = response.total || response.results || responseData.length;
+                    totalPages = response.totalPages || response.pagination?.totalPages || Math.ceil(totalUsers / 10);
+                } else if (responseData && Array.isArray(responseData.users)) {
+                    // Format 2: { status: 'success', data: { users: [users] } }
+                    users = responseData.users;
+                    totalUsers = response.pagination?.total || responseData.users.length;
+                    totalPages = response.pagination?.totalPages || Math.ceil(totalUsers / 10);
+                } else {
+                    // Fallback: try to extract users from various possible structures
+                    users = responseData?.users || responseData || [];
+                    totalUsers = users.length;
+                    totalPages = 1;
+                }
+            } else {
+                // Handle error or unexpected format
+                console.warn('Unexpected response format:', response);
+                users = [];
+                totalUsers = 0;
+                totalPages = 1;
             }
+
+            // Ensure users is an array
+            if (!Array.isArray(users)) {
+                users = [];
+            }
+
+            // Map users to consistent format
+            const mappedUsers = users.map((user: any) => ({
+                _id: user?._id || user?.id || '',
+                email: user?.email || '',
+                firstName: user?.firstName || '',
+                lastName: user?.lastName || '',
+                role: user?.role || 'user',
+                active: user?.active !== undefined ? user.active : true,
+                isEmailVerified: user?.isEmailVerified || false,
+                createdAt: user?.createdAt || new Date().toISOString(),
+                lastLogin: user?.lastLogin
+            }))
+
+            setUsers(mappedUsers)
+            setTotalUsers(totalUsers)
+            setTotalPages(totalPages)
         } catch (err: any) {
             console.error('Error fetching users:', err)
             setError('Không thể tải danh sách người dùng')

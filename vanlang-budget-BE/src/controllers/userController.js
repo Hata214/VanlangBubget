@@ -318,9 +318,13 @@ export const getAdminUserList = catchAsync(async (req, res, next) => {
     res.status(200).json({
         status: 'success',
         results: users.length,
-        totalPages: Math.ceil(total / parseInt(limit)),
-        currentPage: parseInt(page),
-        total,
+        pagination: {
+            totalPages: Math.ceil(total / parseInt(limit)),
+            currentPage: parseInt(page),
+            total,
+            hasNext: parseInt(page) < Math.ceil(total / parseInt(limit)),
+            hasPrev: parseInt(page) > 1
+        },
         data: users
     });
 });
