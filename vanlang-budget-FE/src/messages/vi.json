@@ -1589,7 +1589,9 @@
                 "weightUnitLabel": "Đơn vị",
                 "selectWeightUnit": "Chọn đơn vị",
                 "weightUnitDescription": "Đơn vị khối lượng vàng",
-                "purchasePriceLabel": "Giá mua (đồng/đơn vị)"
+                "purchasePriceLabel": "Giá mua (đồng/đơn vị)",
+                "addNewGold": "Thêm khoản đầu tư vàng mới",
+                "goldType": "Loại vàng"
             },
             "priceInfo": {
                 "averagePrice": "Giá trung bình",
@@ -1602,8 +1604,7 @@
                 "prices": "Bảng giá vàng",
                 "chart": "Biểu đồ giá",
                 "insight": "Nhận định thị trường"
-            },
-            "addNewGold": "Thêm khoản đầu tư vàng mới"
+            }
         },
         "stocks": {
             "title": "Cổ phiếu",
