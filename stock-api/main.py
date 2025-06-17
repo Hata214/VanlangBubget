@@ -1,8 +1,7 @@
 from fastapi import FastAPI
-from vnstock import stock_intraday_data
+from vnstock import stock_intraday_data, listing_companies
 from fastapi.middleware.cors import CORSMiddleware
 import os # Quan trọng: import os để truy cập biến môi trường
-import random
 from datetime import datetime
 
 app = FastAPI()
@@ -41,26 +40,6 @@ app.add_middleware(
     allow_headers=["*"], # Hoặc chỉ định cụ thể
 )
 
-# Dữ liệu giả lập cho các mã chứng khoán Việt Nam
-MOCK_STOCKS = {
-    "VCB": {"name": "Vietcombank", "base_price": 85000, "industry": "Ngân hàng"},
-    "BID": {"name": "BIDV", "base_price": 45000, "industry": "Ngân hàng"},
-    "CTG": {"name": "VietinBank", "base_price": 30000, "industry": "Ngân hàng"},
-    "TCB": {"name": "Techcombank", "base_price": 45000, "industry": "Ngân hàng"},
-    "MBB": {"name": "MB Bank", "base_price": 25000, "industry": "Ngân hàng"},
-    "VIC": {"name": "Vingroup", "base_price": 60000, "industry": "Bất động sản"},
-    "NVL": {"name": "Novaland", "base_price": 15000, "industry": "Bất động sản"},
-    "VNM": {"name": "Vinamilk", "base_price": 80000, "industry": "Thực phẩm & Đồ uống"},
-    "SAB": {"name": "Sabeco", "base_price": 155000, "industry": "Đồ uống"},
-    "MSN": {"name": "Masan Group", "base_price": 92000, "industry": "Thực phẩm & Hàng tiêu dùng"},
-    "HPG": {"name": "Hòa Phát Group", "base_price": 25000, "industry": "Thép & Kim loại"},
-    "GAS": {"name": "PV Gas", "base_price": 95000, "industry": "Năng lượng"},
-    "PLX": {"name": "Petrolimex", "base_price": 50000, "industry": "Năng lượng"},
-    "FPT": {"name": "FPT Corporation", "base_price": 90000, "industry": "Công nghệ thông tin"},
-    "MWG": {"name": "Mobile World", "base_price": 45000, "industry": "Bán lẻ"},
-    "PNJ": {"name": "Phú Nhuận Jewelry", "base_price": 110000, "industry": "Bán lẻ"}
-}
-
 @app.get("/api/price")
 def get_stock_price(symbol: str = "VNM"):
     """
@@ -73,29 +52,14 @@ def get_stock_price(symbol: str = "VNM"):
         Giá đóng cửa mới nhất của mã chứng khoán
     """
     try:
-        # Thử lấy dữ liệu thật từ vnstock
+        # Lấy dữ liệu thực từ vnstock
         df = stock_intraday_data(symbol=symbol, page_size=1)
         if not df.empty:
             return {"symbol": symbol, "price": float(df.iloc[-1]['close'])}
-        
-        # Nếu không có dữ liệu thật, dùng mock data
-        symbol_upper = symbol.upper()
-        if symbol_upper in MOCK_STOCKS:
-            variation = random.uniform(-0.05, 0.05)
-            base_price = MOCK_STOCKS[symbol_upper]["base_price"]
-            current_price = base_price * (1 + variation)
-            return {"symbol": symbol_upper, "price": round(current_price, 2)}
-        
-        return {"symbol": symbol, "price": None, "error": "Không tìm thấy dữ liệu"}
+        else:
+            return {"symbol": symbol, "price": None, "error": "Không tìm thấy dữ liệu cho mã này"}
     except Exception as e:
-        # Fallback to mock data nếu có lỗi
-        symbol_upper = symbol.upper()
-        if symbol_upper in MOCK_STOCKS:
-            variation = random.uniform(-0.05, 0.05)
-            base_price = MOCK_STOCKS[symbol_upper]["base_price"]
-            current_price = base_price * (1 + variation)
-            return {"symbol": symbol_upper, "price": round(current_price, 2)}
-        return {"symbol": symbol, "price": None, "error": str(e)}
+        return {"symbol": symbol, "price": None, "error": f"Lỗi khi lấy dữ liệu: {str(e)}"}
 
 @app.get("/api/stocks")
 def get_all_stocks():
@@ -105,35 +69,63 @@ def get_all_stocks():
     Returns:
         Danh sách các mã cổ phiếu và thông tin cơ bản
     """
-    stocks = []
-    for symbol, data in MOCK_STOCKS.items():
-        # Tạo biến động giá ngẫu nhiên ±5%
-        variation = random.uniform(-0.05, 0.05)
-        base_price = data["base_price"]
-        current_price = base_price * (1 + variation)
+    try:
+        # Lấy danh sách công ty niêm yết từ vnstock
+        df = listing_companies()
         
-        stocks.append({
-            "symbol": symbol,
-            "name": data["name"],
-            "price": round(current_price, 2),
-            "industry": data["industry"]
-        })
-    
-    # Sắp xếp theo mã chứng khoán
-    stocks.sort(key=lambda x: x["symbol"])
-    
-    return {
-        "stocks": stocks,
-        "count": len(stocks),
-        "timestamp": datetime.now().isoformat()
-    }
+        stocks = []
+        # Chỉ lấy một số cổ phiếu phổ biến để tránh quá tải
+        popular_symbols = ["VCB", "BID", "CTG", "TCB", "MBB", "VIC", "NVL", 
+                          "VNM", "SAB", "MSN", "HPG", "GAS", "PLX", "FPT", "MWG", "PNJ"]
+        
+        for symbol in popular_symbols:
+            try:
+                price_data = stock_intraday_data(symbol=symbol, page_size=1)
+                if not price_data.empty:
+                    price = float(price_data.iloc[-1]['close'])
+                    
+                    # Tìm thông tin công ty từ danh sách
+                    company_info = df[df['ticker'] == symbol]
+                    if not company_info.empty:
+                        name = company_info.iloc[0]['organName']
+                        industry = company_info.iloc[0]['industryName']
+                    else:
+                        name = symbol
+                        industry = "Chưa phân loại"
+                    
+                    stocks.append({
+                        "symbol": symbol,
+                        "name": name,
+                        "price": price,
+                        "industry": industry
+                    })
+            except Exception as e:
+                print(f"Lỗi khi lấy dữ liệu cho {symbol}: {str(e)}")
+                continue
+        
+        # Sắp xếp theo mã chứng khoán
+        stocks.sort(key=lambda x: x["symbol"])
+        
+        return {
+            "stocks": stocks,
+            "count": len(stocks),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        return {
+            "stocks": [],
+            "count": 0,
+            "error": f"Lỗi khi lấy danh sách cổ phiếu: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }
 
 @app.get("/")
 def read_root():
     return {
         "message": "Stock API Service", 
         "endpoints": ["/api/price?symbol=CODE", "/api/stocks"],
-        "available_symbols": list(MOCK_STOCKS.keys()),
+        "available_symbols": ["VCB", "BID", "CTG", "TCB", "MBB", "VIC", "NVL", 
+                             "VNM", "SAB", "MSN", "HPG", "GAS", "PLX", "FPT", "MWG", "PNJ"],
         "cors_origins": allowed_origins
     }
 
