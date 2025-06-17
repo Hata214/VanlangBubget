@@ -360,7 +360,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
             <ContentSidebar
                 selectedPage={selectedPage}
                 currentLanguage={currentLanguage}
@@ -369,48 +369,48 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 hasChanges={hasChanges}
             />
             <div className="flex-1 flex flex-col min-h-screen">
-                <div className="bg-white border-b border-gray-200 px-6 py-4">
+                <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <h1 className="text-2xl font-bold text-gray-900">
+                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                                 {getPageTitle(selectedPage)}
                             </h1>
                             <div className="flex items-center space-x-2">
-                                <Globe className="h-4 w-4 text-gray-500" />
-                                <span className="text-sm text-gray-600">
+                                <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                                <span className="text-sm text-gray-600 dark:text-gray-300">
                                     {currentLanguage === 'vi' ? 'Tiếng Việt' : 'English'}
                                 </span>
                             </div>
                         </div>
                         <div className="flex items-center space-x-3">
-                            <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                                 <button
                                     onClick={() => setViewMode('desktop')}
-                                    className={`p-2 rounded ${viewMode === 'desktop' ? 'bg-white shadow-sm' : ''}`}
+                                    className={`p-2 rounded ${viewMode === 'desktop' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''}`}
                                     title="Desktop View"
                                 >
-                                    <Monitor className="h-4 w-4" />
+                                    <Monitor className="h-4 w-4 dark:text-gray-300" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('tablet')}
-                                    className={`p-2 rounded ${viewMode === 'tablet' ? 'bg-white shadow-sm' : ''}`}
+                                    className={`p-2 rounded ${viewMode === 'tablet' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''}`}
                                     title="Tablet View"
                                 >
-                                    <Tablet className="h-4 w-4" />
+                                    <Tablet className="h-4 w-4 dark:text-gray-300" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('mobile')}
-                                    className={`p-2 rounded ${viewMode === 'mobile' ? 'bg-white shadow-sm' : ''}`}
+                                    className={`p-2 rounded ${viewMode === 'mobile' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''}`}
                                     title="Mobile View"
                                 >
-                                    <Smartphone className="h-4 w-4" />
+                                    <Smartphone className="h-4 w-4 dark:text-gray-300" />
                                 </button>
                             </div>
                             <button
                                 onClick={toggleEditMode}
                                 className={`flex items-center px-4 py-2 rounded-lg ${isEditMode
                                     ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                                     }`}
                             >
                                 <Edit3 className="h-4 w-4 mr-2" />
@@ -419,7 +419,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                             {isEditMode && (
                                 <button
                                     onClick={highlightEditableElements}
-                                    className="flex items-center px-3 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200"
+                                    className="flex items-center px-3 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/50"
                                 >
                                     <Eye className="h-4 w-4 mr-2" />
                                     Làm nổi bật
@@ -428,7 +428,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                             <button
                                 onClick={() => { loadContent(); setPreviewKey(prev => prev + 1); }}
                                 disabled={isLoading}
-                                className="flex items-center px-3 py-2 bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 disabled:opacity-50"
+                                className="flex items-center px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50"
                                 title="Làm mới preview"
                             >
                                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
@@ -437,7 +437,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                             <button
                                 onClick={handleResetToDefault}
                                 disabled={isSaving || isLoading}
-                                className="flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 disabled:opacity-50"
+                                className="flex items-center px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-lg hover:bg-yellow-200 dark:hover:bg-yellow-900/50 disabled:opacity-50"
                             >
                                 <RefreshCw className="h-4 w-4 mr-2" />
                                 Khôi phục
@@ -447,7 +447,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     <button
                                         onClick={handleApproveContent}
                                         disabled={isSaving || isLoading}
-                                        className="flex items-center px-4 py-2 bg-green-100 text-green-800 rounded-lg hover:bg-green-200 disabled:opacity-50"
+                                        className="flex items-center px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-lg hover:bg-green-200 dark:hover:bg-green-900/50 disabled:opacity-50"
                                     >
                                         <CheckCircle className="h-4 w-4 mr-2" />
                                         Phê duyệt
@@ -455,7 +455,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                                     <button
                                         onClick={handleRejectContent}
                                         disabled={isSaving || isLoading}
-                                        className="flex items-center px-4 py-2 bg-red-100 text-red-800 rounded-lg hover:bg-red-200 disabled:opacity-50"
+                                        className="flex items-center px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 disabled:opacity-50"
                                     >
                                         <XCircle className="h-4 w-4 mr-2" />
                                         Từ chối
@@ -484,7 +484,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                 </div>
                 <div
                     ref={previewAreaRef}
-                    className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative"
+                    className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth relative bg-gray-100 dark:bg-gray-900"
                 >
                     <NextIntlClientProvider
                         locale={currentLanguage}
@@ -506,7 +506,7 @@ export default function FullPageContentManager({ user }: FullPageContentManagerP
                     {showScrollTop && (
                         <button
                             onClick={scrollToTop}
-                            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+                            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white p-3 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
                             title="Cuộn lên đầu trang"
                         >
                             <ArrowUp className="h-5 w-5" />

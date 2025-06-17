@@ -8,7 +8,7 @@ export default function SiteContentPage() {
     const { user } = useAppSelector((state) => state.auth);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <FullPageContentManager user={user} />
         </div>
     );
