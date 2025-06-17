@@ -212,26 +212,6 @@ export default function AdminDashboardPage() {
                 </Card>
             )}
 
-            {/* Connection Status */}
-            {!loading && dashboardData && (
-                <Card className="border-green-200 bg-green-50">
-                    <CardContent className="pt-6">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2 text-green-800">
-                                <CheckCircle className="h-4 w-4" />
-                                <span>Kết nối thành công với MongoDB Database - Dữ liệu thời gian thực</span>
-                            </div>
-                            {lastRefresh && (
-                                <div className="flex items-center gap-1 text-green-600 text-sm">
-                                    <Clock className="h-3 w-3" />
-                                    <span>Cập nhật: {lastRefresh.toLocaleTimeString()}</span>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
-
             {/* Statistics Cards - Chỉ có 8 cards như trong hình */}
             <div className="space-y-6">
                 {/* Hàng thứ nhất - 4 cards */}
