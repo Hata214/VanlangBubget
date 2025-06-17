@@ -217,16 +217,16 @@ export default function AdminDashboardPage() {
                 {loading ? (
                     // Loading skeleton cho tất cả 8 cards
                     [...Array(8)].map((_, index) => (
-                        <Card key={index} className="border-0 shadow-sm bg-white">
+                        <Card key={index} className="border-0 shadow-sm bg-white dark:bg-gray-800">
                             <CardContent className="p-3">
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <div className="h-2 w-12 bg-gray-200 animate-pulse rounded"></div>
-                                        <div className="h-5 w-5 bg-gray-200 animate-pulse rounded-full"></div>
+                                        <div className="h-2 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                                        <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 animate-pulse rounded-full"></div>
                                     </div>
                                     <div>
-                                        <div className="h-5 w-8 bg-gray-200 animate-pulse rounded mb-1"></div>
-                                        <div className="h-2 w-10 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-5 w-8 bg-gray-200 dark:bg-gray-700 animate-pulse rounded mb-1"></div>
+                                        <div className="h-2 w-10 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -234,11 +234,11 @@ export default function AdminDashboardPage() {
                     ))
                 ) : (
                     stats_cards.map((card, index) => (
-                        <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                        <Card key={index} className="border-0 shadow-sm bg-white dark:bg-gray-800 hover:shadow-md dark:hover:shadow-lg transition-shadow">
                             <CardContent className="p-3">
                                 <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <p className="text-xs font-medium text-gray-600 truncate">
+                                        <p className="text-xs font-medium text-gray-600 dark:text-gray-300 truncate">
                                             {card.title}
                                         </p>
                                         <div className={`p-1.5 rounded-full ${card.iconBg}`}>
@@ -246,10 +246,10 @@ export default function AdminDashboardPage() {
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-xl font-bold text-gray-900 mb-1">
+                                        <p className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                                             {card.value}
                                         </p>
-                                        <p className="text-xs text-gray-500 truncate">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                             {card.description}
                                         </p>
                                     </div>
@@ -263,9 +263,9 @@ export default function AdminDashboardPage() {
             {/* Bottom Section - User Roles and Admin Activity */}
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 {/* Phân bố vai trò người dùng */}
-                <Card className="border-0 shadow-sm bg-white">
+                <Card className="border-0 shadow-sm bg-white dark:bg-gray-800">
                     <CardHeader>
-                        <CardTitle>Phân bố vai trò người dùng</CardTitle>
+                        <CardTitle className="text-foreground">Phân bố vai trò người dùng</CardTitle>
                         <CardDescription>
                             Thống kê người dùng theo vai trò
                         </CardDescription>
@@ -275,20 +275,20 @@ export default function AdminDashboardPage() {
                             <div className="space-y-3">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="flex items-center justify-between">
-                                        <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
-                                        <div className="h-4 w-12 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-4 w-20 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                                        <div className="h-4 w-12 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
                                     </div>
                                 ))}
                             </div>
                         ) : dashboardData ? (
                             <div className="space-y-4">
                                 {dashboardData.users.byRole.map((role, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
                                         <div className="flex items-center space-x-3">
                                             <div className={`w-4 h-4 rounded-full ${role._id === 'superadmin' ? 'bg-red-500' :
                                                 role._id === 'admin' ? 'bg-blue-500' : 'bg-gray-500'
                                                 }`}></div>
-                                            <span className="font-medium">
+                                            <span className="font-medium text-foreground">
                                                 {role._id === 'superadmin' ? 'Super Admin' :
                                                     role._id === 'admin' ? 'Admin' : 'Người dùng'}
                                             </span>
@@ -308,9 +308,9 @@ export default function AdminDashboardPage() {
                 </Card>
 
                 {/* Hoạt động quản trị */}
-                <Card className="border-0 shadow-sm bg-white">
+                <Card className="border-0 shadow-sm bg-white dark:bg-gray-800">
                     <CardHeader>
-                        <CardTitle>Hoạt động quản trị</CardTitle>
+                        <CardTitle className="text-foreground">Hoạt động quản trị</CardTitle>
                         <CardDescription>
                             {dashboardData?.adminActivity.period || 'Thống kê hoạt động'}
                         </CardDescription>
@@ -320,18 +320,18 @@ export default function AdminDashboardPage() {
                             <div className="space-y-3">
                                 {[...Array(4)].map((_, i) => (
                                     <div key={i} className="flex items-center justify-between">
-                                        <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
-                                        <div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
+                                        <div className="h-4 w-8 bg-gray-200 dark:bg-gray-700 animate-pulse rounded"></div>
                                     </div>
                                 ))}
                             </div>
                         ) : dashboardData && dashboardData.adminActivity.recent.length > 0 ? (
                             <div className="space-y-4">
                                 {dashboardData.adminActivity.recent.slice(0, 5).map((activity, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-700">
                                         <div className="flex items-center space-x-3">
                                             <Activity className="h-4 w-4 text-blue-500" />
-                                            <span className="font-medium">
+                                            <span className="font-medium text-foreground">
                                                 {activity._id}
                                             </span>
                                         </div>
@@ -339,7 +339,7 @@ export default function AdminDashboardPage() {
                                             <Badge variant="outline" className="font-bold">
                                                 {activity.total}
                                             </Badge>
-                                            <div className="text-xs text-green-600 mt-1">
+                                            <div className="text-xs text-green-600 dark:text-green-400 mt-1">
                                                 {activity.success} thành công
                                             </div>
                                         </div>
