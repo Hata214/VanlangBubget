@@ -1,6 +1,5 @@
 import AdminActivityLog from '../models/adminActivityLogModel.js';
 import logger from './logger.js';
-import mongoose from 'mongoose';
 
 /**
  * Utility để ghi log hoạt động của admin
@@ -185,93 +184,45 @@ class AdminActivityLogger {
             const startDate = new Date();
             startDate.setDate(startDate.getDate() - days);
 
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
             const matchStage = {
                 timestamp: { $gte: startDate }
             };
 
-            const todayMatchStage = {
-                timestamp: { $gte: today }
-            };
-
             if (adminId) {
-                matchStage.adminId = new mongoose.Types.ObjectId(adminId);
-                todayMatchStage.adminId = new mongoose.Types.ObjectId(adminId);
+                matchStage.adminId = adminId;
             }
 
-            // Thống kê tổng quan
-            const [totalStats, todayStats, topActions, activeAdmins] = await Promise.all([
-                // Tổng hoạt động và tỷ lệ thành công
-                AdminActivityLog.aggregate([
-                    { $match: matchStage },
-                    {
-                        $group: {
-                            _id: null,
-                            totalActivities: { $sum: 1 },
-                            successCount: {
-                                $sum: { $cond: [{ $eq: ['$result', 'SUCCESS'] }, 1, 0] }
+            const stats = await AdminActivityLog.aggregate([
+                { $match: matchStage },
+                {
+                    $group: {
+                        _id: {
+                            actionType: '$actionType',
+                            result: '$result'
+                        },
+                        count: { $sum: 1 }
+                    }
+                },
+                {
+                    $group: {
+                        _id: '$_id.actionType',
+                        total: { $sum: '$count' },
+                        success: {
+                            $sum: {
+                                $cond: [{ $eq: ['$_id.result', 'SUCCESS'] }, '$count', 0]
+                            }
+                        },
+                        failed: {
+                            $sum: {
+                                $cond: [{ $eq: ['$_id.result', 'FAILED'] }, '$count', 0]
                             }
                         }
                     }
-                ]),
-
-                // Hoạt động hôm nay
-                AdminActivityLog.aggregate([
-                    { $match: todayMatchStage },
-                    {
-                        $group: {
-                            _id: null,
-                            todayActivities: { $sum: 1 }
-                        }
-                    }
-                ]),
-
-                // Top actions
-                AdminActivityLog.aggregate([
-                    { $match: matchStage },
-                    {
-                        $group: {
-                            _id: '$actionType',
-                            count: { $sum: 1 }
-                        }
-                    },
-                    { $sort: { count: -1 } },
-                    { $limit: 5 }
-                ]),
-
-                // Số admin hoạt động
-                AdminActivityLog.aggregate([
-                    { $match: matchStage },
-                    {
-                        $group: {
-                            _id: '$adminId'
-                        }
-                    },
-                    {
-                        $group: {
-                            _id: null,
-                            activeAdmins: { $sum: 1 }
-                        }
-                    }
-                ])
+                },
+                { $sort: { total: -1 } }
             ]);
 
-            const totalActivities = totalStats[0]?.totalActivities || 0;
-            const successCount = totalStats[0]?.successCount || 0;
-            const successRate = totalActivities > 0 ? (successCount / totalActivities) * 100 : 0;
-
-            return {
-                totalActivities,
-                todayActivities: todayStats[0]?.todayActivities || 0,
-                successRate,
-                topActions: topActions.map(item => ({
-                    action: item._id,
-                    count: item.count
-                })),
-                activeAdmins: activeAdmins[0]?.activeAdmins || 0
-            };
+            return stats;
         } catch (error) {
             logger.error('Failed to get activity stats:', error);
             throw error;

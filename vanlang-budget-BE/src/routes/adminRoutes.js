@@ -31,8 +31,7 @@ import {
     getActivityLogs,
     getActivityStats,
     getLogsByAction,
-    getLogsByDateRange,
-    exportActivityLogs
+    getLogsByDateRange
 } from '../controllers/activityLogController.js';
 import {
     getAllTransactions,
@@ -148,11 +147,6 @@ router.get('/activity-logs/by-action/:actionType', restrictTo('superadmin'), get
  * Lấy logs trong khoảng thời gian
  */
 router.get('/activity-logs/by-date', getLogsByDateRange);
-
-/**
- * Xuất activity logs ra file CSV
- */
-router.get('/activity-logs/export', exportActivityLogs);
 
 /**
  * Lấy lịch sử hoạt động của admin cụ thể
