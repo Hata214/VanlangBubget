@@ -213,20 +213,20 @@ export default function AdminDashboardPage() {
             )}
 
             {/* Statistics Cards - 8 cards nằm ngang trên một hàng */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
                 {loading ? (
                     // Loading skeleton cho tất cả 8 cards
                     [...Array(8)].map((_, index) => (
                         <Card key={index} className="border-0 shadow-sm bg-white">
-                            <CardContent className="p-4">
-                                <div className="space-y-3">
+                            <CardContent className="p-3">
+                                <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <div className="h-3 w-16 bg-gray-200 animate-pulse rounded"></div>
-                                        <div className="h-6 w-6 bg-gray-200 animate-pulse rounded-full"></div>
+                                        <div className="h-2 w-12 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-5 w-5 bg-gray-200 animate-pulse rounded-full"></div>
                                     </div>
                                     <div>
-                                        <div className="h-6 w-10 bg-gray-200 animate-pulse rounded mb-1"></div>
-                                        <div className="h-2 w-14 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-5 w-8 bg-gray-200 animate-pulse rounded mb-1"></div>
+                                        <div className="h-2 w-10 bg-gray-200 animate-pulse rounded"></div>
                                     </div>
                                 </div>
                             </CardContent>
@@ -235,21 +235,21 @@ export default function AdminDashboardPage() {
                 ) : (
                     stats_cards.map((card, index) => (
                         <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-                            <CardContent className="p-4">
-                                <div className="space-y-3">
+                            <CardContent className="p-3">
+                                <div className="space-y-2">
                                     <div className="flex items-center justify-between">
-                                        <p className="text-xs font-medium text-gray-600">
+                                        <p className="text-xs font-medium text-gray-600 truncate">
                                             {card.title}
                                         </p>
-                                        <div className={`p-2 rounded-full ${card.iconBg}`}>
+                                        <div className={`p-1.5 rounded-full ${card.iconBg}`}>
                                             <card.icon className="h-3 w-3 text-white" />
                                         </div>
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-gray-900 mb-1">
+                                        <p className="text-xl font-bold text-gray-900 mb-1">
                                             {card.value}
                                         </p>
-                                        <p className="text-xs text-gray-500">
+                                        <p className="text-xs text-gray-500 truncate">
                                             {card.description}
                                         </p>
                                     </div>
