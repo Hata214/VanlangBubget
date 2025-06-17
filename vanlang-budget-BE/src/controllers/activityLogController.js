@@ -281,3 +281,64 @@ export const getLogsByDateRange = catchAsync(async (req, res, next) => {
         return next(new AppError('Không thể lấy logs theo khoảng thời gian', 500));
     }
 });
+
+/**
+ * @desc    Xóa tất cả activity logs
+ * @route   DELETE /api/admin/activity-logs/delete-all
+ * @access  Private (SuperAdmin only)
+ */
+export const deleteAllActivityLogs = catchAsync(async (req, res, next) => {
+    // Chỉ SuperAdmin mới có thể xóa tất cả logs
+    if (req.user.role !== 'superadmin') {
+        return next(new AppError('Chỉ SuperAdmin mới có thể xóa tất cả lịch sử hoạt động', 403));
+    }
+
+    try {
+        // Đếm số logs trước khi xóa
+        const countResult = await AdminActivityLogger.countAllLogs();
+        const totalLogs = countResult.total || 0;
+
+        // Xóa tất cả logs
+        const result = await AdminActivityLogger.deleteAllLogs();
+
+        // Log hành động xóa
+        await AdminActivityLogger.logSystemAction(
+            req.user.id,
+            'SYSTEM_MAINTENANCE',
+            {
+                action: 'DELETE_ALL_ACTIVITY_LOGS',
+                deletedCount: totalLogs,
+                timestamp: new Date()
+            },
+            'SUCCESS',
+            req
+        );
+
+        logger.info(`SuperAdmin ${req.user.id} deleted all activity logs (${totalLogs} records)`);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Đã xóa thành công ${totalLogs} bản ghi lịch sử hoạt động`,
+            data: {
+                deletedCount: totalLogs,
+                deletedAt: new Date()
+            }
+        });
+    } catch (error) {
+        logger.error('Error deleting all activity logs:', error);
+
+        // Log lỗi
+        await AdminActivityLogger.logSystemAction(
+            req.user.id,
+            'SYSTEM_MAINTENANCE',
+            {
+                action: 'DELETE_ALL_ACTIVITY_LOGS',
+                error: error.message
+            },
+            'FAILED',
+            req
+        );
+
+        return next(new AppError('Không thể xóa lịch sử hoạt động', 500));
+    }
+});

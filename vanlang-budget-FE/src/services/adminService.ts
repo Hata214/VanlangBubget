@@ -175,6 +175,14 @@ export const adminService = {
         return { success: true, message: 'Xuất dữ liệu thành công' };
     },
 
+    /**
+     * Xóa tất cả activity logs (SuperAdmin only)
+     */
+    async deleteAllActivityLogs() {
+        const response = await api.delete('/api/admin/activity-logs/delete-all');
+        return response.data;
+    },
+
     // === Transaction Management ===
     /**
      * Lấy danh sách tất cả giao dịch

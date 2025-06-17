@@ -46,6 +46,7 @@ import {
     XCircle,
     AlertCircle,
     Copy,
+    Trash2,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import adminService from '@/services/adminService';
@@ -109,6 +110,9 @@ export default function ActivityLogsPage() {
     const [dateRange, setDateRange] = useState<{ start?: string, end?: string }>({});
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [selectedLog, setSelectedLog] = useState<ActivityLog | null>(null);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         // Lấy thông tin người dùng hiện tại từ localStorage
@@ -436,6 +440,38 @@ ${logInfo.metadata}
         }
     };
 
+    const handleDeleteAllLogs = async () => {
+        if (deleteConfirmText !== 'XÓA TẤT CẢ') {
+            toast.error('Vui lòng nhập chính xác "XÓA TẤT CẢ" để xác nhận');
+            return;
+        }
+
+        setIsDeleting(true);
+        try {
+            const response = await adminService.deleteAllActivityLogs();
+
+            if (response.success || response.status === 'success') {
+                toast.success('Đã xóa tất cả lịch sử hoạt động thành công');
+                setActivityLogs([]);
+                setIsDeleteDialogOpen(false);
+                setDeleteConfirmText('');
+            } else {
+                toast.error(response.message || 'Không thể xóa dữ liệu');
+            }
+        } catch (error: any) {
+            console.error('Lỗi khi xóa activity logs:', error);
+            const errorMessage = error?.response?.data?.message || 'Đã xảy ra lỗi khi xóa dữ liệu';
+            toast.error(errorMessage);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const handleCloseDeleteDialog = () => {
+        setIsDeleteDialogOpen(false);
+        setDeleteConfirmText('');
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
@@ -462,6 +498,16 @@ ${logInfo.metadata}
                         <Download className="h-4 w-4 mr-2" />
                         Xuất CSV
                     </Button>
+                    {currentUser?.role === 'superadmin' && (
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setIsDeleteDialogOpen(true)}
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Xóa dữ liệu
+                        </Button>
+                    )}
                 </div>
             </div>
 
@@ -880,6 +926,78 @@ ${logInfo.metadata}
                             <Button variant="outline" onClick={handleCopyLogInfo}>
                                 <Copy className="h-4 w-4 mr-2" />
                                 Copy thông tin
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            )}
+
+            {/* Dialog for delete confirmation */}
+            {isDeleteDialogOpen && (
+                <Dialog open={isDeleteDialogOpen} onOpenChange={handleCloseDeleteDialog}>
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-red-600">
+                                <Trash2 className="h-5 w-5" />
+                                Xác nhận xóa dữ liệu
+                            </DialogTitle>
+                            <DialogDescription>
+                                Hành động này sẽ xóa vĩnh viễn tất cả lịch sử hoạt động và không thể hoàn tác.
+                            </DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-4">
+                            <div className="bg-red-50 border border-red-200 p-4 rounded-lg">
+                                <div className="flex items-start gap-3">
+                                    <AlertCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                                    <div>
+                                        <h4 className="font-medium text-red-800">Cảnh báo nghiêm trọng</h4>
+                                        <p className="text-sm text-red-700 mt-1">
+                                            Việc xóa tất cả lịch sử hoạt động sẽ:
+                                        </p>
+                                        <ul className="text-sm text-red-700 mt-2 list-disc list-inside space-y-1">
+                                            <li>Xóa vĩnh viễn tất cả bản ghi hoạt động của admin</li>
+                                            <li>Không thể khôi phục dữ liệu đã xóa</li>
+                                            <li>Ảnh hưởng đến khả năng audit và theo dõi hệ thống</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-900">
+                                    Để xác nhận, vui lòng nhập chính xác: <span className="font-bold text-red-600">XÓA TẤT CẢ</span>
+                                </label>
+                                <Input
+                                    type="text"
+                                    placeholder="Nhập: XÓA TẤT CẢ"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="w-full"
+                                />
+                            </div>
+                        </div>
+
+                        <DialogFooter className="mt-6">
+                            <Button variant="outline" onClick={handleCloseDeleteDialog}>
+                                Hủy bỏ
+                            </Button>
+                            <Button
+                                variant="destructive"
+                                onClick={handleDeleteAllLogs}
+                                disabled={deleteConfirmText !== 'XÓA TẤT CẢ' || isDeleting}
+                            >
+                                {isDeleting ? (
+                                    <>
+                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                        Đang xóa...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Trash2 className="h-4 w-4 mr-2" />
+                                        Xóa tất cả
+                                    </>
+                                )}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

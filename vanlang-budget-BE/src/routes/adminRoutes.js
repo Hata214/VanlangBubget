@@ -31,7 +31,8 @@ import {
     getActivityLogs,
     getActivityStats,
     getLogsByAction,
-    getLogsByDateRange
+    getLogsByDateRange,
+    deleteAllActivityLogs
 } from '../controllers/activityLogController.js';
 import {
     getAllTransactions,
@@ -147,6 +148,11 @@ router.get('/activity-logs/by-action/:actionType', restrictTo('superadmin'), get
  * Lấy logs trong khoảng thời gian
  */
 router.get('/activity-logs/by-date', getLogsByDateRange);
+
+/**
+ * Xóa tất cả activity logs (SuperAdmin only)
+ */
+router.delete('/activity-logs/delete-all', restrictTo('superadmin'), deleteAllActivityLogs);
 
 /**
  * Lấy lịch sử hoạt động của admin cụ thể

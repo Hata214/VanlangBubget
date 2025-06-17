@@ -228,6 +228,36 @@ class AdminActivityLogger {
             throw error;
         }
     }
+
+    /**
+     * Đếm tổng số logs
+     */
+    static async countAllLogs() {
+        try {
+            const total = await AdminActivityLog.countDocuments();
+            return { total };
+        } catch (error) {
+            logger.error('Failed to count activity logs:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Xóa tất cả logs
+     */
+    static async deleteAllLogs() {
+        try {
+            const result = await AdminActivityLog.deleteMany({});
+            logger.info(`Deleted ${result.deletedCount} activity logs`);
+            return {
+                success: true,
+                deletedCount: result.deletedCount
+            };
+        } catch (error) {
+            logger.error('Failed to delete all activity logs:', error);
+            throw error;
+        }
+    }
 }
 
 export default AdminActivityLogger;
