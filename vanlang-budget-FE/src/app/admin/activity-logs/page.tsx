@@ -144,15 +144,17 @@ export default function ActivityLogsPage() {
             const response = await adminService.getAdminList();
 
             console.log('🔍 Admin list response:', response);
-            if (response.success) {
-                setAdmins(response.data || []);
-                console.log('✅ Admin list loaded:', response.data?.length, 'admins');
-                console.log('🔍 First admin sample:', response.data?.[0]);
+            if (response.success && Array.isArray(response.data)) {
+                setAdmins(response.data);
+                console.log('✅ Admin list loaded:', response.data.length, 'admins');
+                console.log('🔍 First admin sample:', response.data[0]);
             } else {
                 console.error('Lỗi khi lấy danh sách admin:', response.message);
+                setAdmins([]); // Set empty array as fallback
             }
         } catch (error) {
             console.error('Lỗi khi tải danh sách admin:', error);
+            setAdmins([]); // Set empty array as fallback
         }
     };
 
@@ -187,13 +189,16 @@ export default function ActivityLogsPage() {
             const response = await adminService.getActivityLogs(options);
 
             if (response.status === 'success') {
-                setActivityLogs(response.data || []);
+                setActivityLogs(Array.isArray(response.data) ? response.data : []);
                 setTotalPages(response.pagination?.totalPages || 1);
             } else {
+                console.error('Activity logs response error:', response);
+                setActivityLogs([]);
                 toast.error('Không thể tải lịch sử hoạt động');
             }
         } catch (error: any) {
             console.error('Lỗi khi tải lịch sử hoạt động:', error);
+            setActivityLogs([]); // Set empty array as fallback
             const errorMessage = error?.response?.data?.message || 'Đã xảy ra lỗi khi tải dữ liệu';
             toast.error(errorMessage);
         } finally {
@@ -225,6 +230,12 @@ export default function ActivityLogsPage() {
 
     const handleExport = async () => {
         try {
+            // Kiểm tra có dữ liệu để xuất không
+            if (!Array.isArray(activityLogs) || activityLogs.length === 0) {
+                toast.error('Không có dữ liệu để xuất');
+                return;
+            }
+
             // Xây dựng filters cho export
             const exportFilters: any = {};
 
@@ -244,7 +255,6 @@ export default function ActivityLogsPage() {
                 exportFilters.endDate = dateRange.end;
             }
 
-            // Sử dụng adminService để xuất CSV
             await adminService.exportActivityLogsCSV(exportFilters);
             toast.success('Đã xuất dữ liệu thành công');
         } catch (error: any) {
@@ -357,17 +367,25 @@ export default function ActivityLogsPage() {
     };
 
     const getAdminName = (adminId: string) => {
+        // Kiểm tra activityLogs có phải array và không rỗng
+        if (!Array.isArray(activityLogs) || activityLogs.length === 0) {
+            return adminId;
+        }
+
         // Tìm log có admin data được populate
-        const logWithAdmin = activityLogs.find(log => log.adminId === adminId && log.admin);
+        const logWithAdmin = activityLogs.find(log => log && log.adminId === adminId && log.admin);
         if (logWithAdmin?.admin) {
             return `${logWithAdmin.admin.firstName} ${logWithAdmin.admin.lastName}`;
         }
 
         // Fallback: tìm trong danh sách admins
-        const admin = admins.find(a => a._id === adminId);
-        if (admin) {
-            return `${admin.firstName} ${admin.lastName}`;
+        if (Array.isArray(admins) && admins.length > 0) {
+            const admin = admins.find(a => a && a._id === adminId);
+            if (admin) {
+                return `${admin.firstName} ${admin.lastName}`;
+            }
         }
+
         return adminId; // Fallback to ID if not found
     };
 
@@ -560,10 +578,12 @@ ${logInfo.metadata}
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">Tất cả Admin</SelectItem>
-                                        {admins.map((admin) => (
-                                            <SelectItem key={admin._id} value={admin._id}>
-                                                {admin.firstName} {admin.lastName}
-                                            </SelectItem>
+                                        {Array.isArray(admins) && admins.map((admin) => (
+                                            admin && admin._id ? (
+                                                <SelectItem key={admin._id} value={admin._id}>
+                                                    {admin.firstName} {admin.lastName}
+                                                </SelectItem>
+                                            ) : null
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -622,108 +642,115 @@ ${logInfo.metadata}
                                             ))}
                                         </TableRow>
                                     ))
-                                ) : activityLogs.length === 0 ? (
+                                ) : !Array.isArray(activityLogs) || activityLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={currentUser?.role === 'superadmin' ? 6 : 5} className="text-center py-8">
-                                            Không tìm thấy bản ghi hoạt động nào
+                                        <TableCell
+                                            colSpan={currentUser?.role === 'superadmin' ? 6 : 5}
+                                            className="text-center py-8"
+                                        >
+                                            Không có dữ liệu hoạt động
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     activityLogs.map((log) => (
-                                        <TableRow key={log._id}>
-                                            <TableCell className="font-medium whitespace-nowrap">
-                                                <div className="flex items-center">
-                                                    <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-                                                    <div>
-                                                        <div>{formatDate(log.timestamp)}</div>
-                                                        {log.ipAddress && (
-                                                            <div className="text-xs text-gray-500">
-                                                                IP: {log.ipAddress}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </TableCell>
-                                            {currentUser?.role === 'superadmin' && (
-                                                <TableCell>
+                                        log && log._id ? (
+                                            <TableRow key={log._id}>
+                                                <TableCell className="font-medium whitespace-nowrap">
                                                     <div className="flex items-center">
-                                                        <User className="mr-2 h-4 w-4 text-gray-500" />
-                                                        {log.admin ? (
-                                                            <span>
-                                                                {log.admin.firstName} {log.admin.lastName}
-                                                            </span>
-                                                        ) : (
-                                                            <span>
-                                                                {getAdminName(log.adminId)}
-                                                            </span>
-                                                        )}
+                                                        <Calendar className="mr-2 h-4 w-4 text-gray-500" />
+                                                        <div>
+                                                            <div>{formatDate(log.timestamp)}</div>
+                                                            {log.ipAddress && (
+                                                                <div className="text-xs text-gray-500">
+                                                                    IP: {log.ipAddress}
+                                                                </div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </TableCell>
-                                            )}
-                                            <TableCell>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={getActionBadgeColor(log.actionType)}
-                                                >
-                                                    <Activity className="mr-1 h-3 w-3" />
-                                                    {getActionLabel(log.actionType)}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {log.targetType ? (
-                                                    <div className="flex items-center">
-                                                        <User className="mr-2 h-4 w-4 text-gray-500" />
-                                                        <span className="capitalize">
-                                                            {log.targetType === 'User' ? 'Người dùng' :
-                                                                log.targetType === 'Admin' ? 'Quản trị viên' :
-                                                                    log.targetType === 'SiteContent' ? 'Nội dung site' :
-                                                                        log.targetType === 'System' ? 'Hệ thống' :
-                                                                            log.targetType}
-                                                        </span>
-                                                        {log.targetId && (
-                                                            <span className="ml-1 text-xs text-gray-500">
-                                                                ({log.targetId.slice(-6)})
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-gray-500">-</span>
+
+                                                {currentUser?.role === 'superadmin' && (
+                                                    <TableCell>
+                                                        <div className="flex items-center">
+                                                            <User className="mr-2 h-4 w-4 text-gray-500" />
+                                                            {log.admin ? (
+                                                                <span>
+                                                                    {log.admin.firstName} {log.admin.lastName}
+                                                                </span>
+                                                            ) : (
+                                                                <span>
+                                                                    {getAdminName(log.adminId)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
                                                 )}
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={
-                                                        log.result === 'SUCCESS' ? 'bg-green-100 text-green-800 border-green-300' :
-                                                            log.result === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
-                                                                'bg-yellow-100 text-yellow-800 border-yellow-300'
-                                                    }
-                                                >
-                                                    {log.result === 'SUCCESS' ? '✓ Thành công' :
-                                                        log.result === 'FAILED' ? '✗ Thất bại' : '⚠ Một phần'}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                <TooltipProvider>
-                                                    <Tooltip>
-                                                        <TooltipTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
-                                                                onClick={() => handleOpenDialog(log)}
-                                                                aria-label={`Xem chi tiết hoạt động ${getActionLabel(log.actionType)}`}
-                                                            >
-                                                                <Info className="h-4 w-4" />
-                                                            </Button>
-                                                        </TooltipTrigger>
-                                                        <TooltipContent>
-                                                            <p>Xem chi tiết hoạt động</p>
-                                                        </TooltipContent>
-                                                    </Tooltip>
-                                                </TooltipProvider>
-                                            </TableCell>
-                                        </TableRow>
+
+                                                <TableCell>
+                                                    <div className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 border hover:bg-accent hover:text-accent-foreground ${getActionBadgeColor(log.actionType)}`}>
+                                                        <Activity className="mr-1 h-3 w-3" />
+                                                        {getActionLabel(log.actionType)}
+                                                    </div>
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    {log.targetType ? (
+                                                        <div className="flex items-center">
+                                                            <User className="mr-2 h-4 w-4 text-gray-500" />
+                                                            <span className="capitalize">
+                                                                {log.targetType === 'User' ? 'Người dùng' :
+                                                                    log.targetType === 'Admin' ? 'Quản trị viên' :
+                                                                        log.targetType === 'SiteContent' ? 'Nội dung site' :
+                                                                            log.targetType === 'System' ? 'Hệ thống' :
+                                                                                log.targetType}
+                                                                {log.targetId && (
+                                                                    <span className="text-xs text-gray-500 ml-1">
+                                                                        (ID: {log.targetId.slice(-6)})
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-400">-</span>
+                                                    )}
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className={
+                                                            log.result === 'SUCCESS' ? 'bg-green-100 text-green-800 border-green-300' :
+                                                                log.result === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                                                    'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                                        }
+                                                    >
+                                                        {log.result === 'SUCCESS' ? '✓ Thành công' :
+                                                            log.result === 'FAILED' ? '✗ Thất bại' : '⚠ Một phần'}
+                                                    </Badge>
+                                                </TableCell>
+
+                                                <TableCell>
+                                                    <TooltipProvider>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-600"
+                                                                    onClick={() => handleOpenDialog(log)}
+                                                                    aria-label={`Xem chi tiết hoạt động ${getActionLabel(log.actionType)}`}
+                                                                >
+                                                                    <Info className="h-4 w-4" />
+                                                                </Button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Xem chi tiết hoạt động</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : null
                                     ))
                                 )}
                             </TableBody>
