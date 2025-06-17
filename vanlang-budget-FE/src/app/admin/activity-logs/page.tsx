@@ -44,23 +44,24 @@ import adminService from '@/services/adminService';
 
 interface ActivityLog {
     _id: string;
-    adminId: {
+    adminId: string;
+    admin?: {
         _id: string;
         firstName: string;
         lastName: string;
         email: string;
+        role: string;
     };
-    action: string;
-    targetId?: {
-        _id: string;
-        firstName: string;
-        lastName: string;
-        email: string;
-    };
-    details: any;
-    result: any;
+    actionType: string;
+    targetId?: string;
+    targetType?: string;
+    inputData?: any;
+    result: string;
+    resultDetails?: string;
     timestamp: string;
     ipAddress?: string;
+    userAgent?: string;
+    metadata?: any;
 }
 
 interface AdminUser {
@@ -238,47 +239,92 @@ export default function ActivityLogsPage() {
 
     const getActionLabel = (action: string) => {
         const actionLabels: Record<string, string> = {
-            // Dashboard Actions
-            DASHBOARD_VIEW: 'Xem dashboard',
-            VIEW_DASHBOARD: 'Xem dashboard',
+            // User Management Actions
+            'USER_CREATE': 'Tạo người dùng',
+            'USER_UPDATE': 'Cập nhật người dùng',
+            'USER_DELETE': 'Xóa người dùng',
+            'USER_ACTIVATE': 'Kích hoạt người dùng',
+            'USER_DEACTIVATE': 'Vô hiệu hóa người dùng',
+            'USER_PROMOTE': 'Thăng cấp người dùng',
+            'USER_DEMOTE': 'Hạ cấp người dùng',
+            'USER_RESET_PASSWORD': 'Đặt lại mật khẩu',
+            'USER_VIEW': 'Xem người dùng',
 
-            // Admin Management
-            VIEW_ADMIN_LIST: 'Xem danh sách admin',
-            CREATE_ADMIN: 'Tạo admin mới',
-            UPDATE_ADMIN: 'Cập nhật admin',
-            DELETE_ADMIN: 'Xóa admin',
-            ACTIVATE_ADMIN: 'Kích hoạt admin',
-            DEACTIVATE_ADMIN: 'Vô hiệu hóa admin',
+            // Content Management Actions
+            'CONTENT_CREATE': 'Tạo nội dung',
+            'CONTENT_UPDATE': 'Cập nhật nội dung',
+            'CONTENT_DELETE': 'Xóa nội dung',
+            'CONTENT_APPROVE': 'Phê duyệt nội dung',
+            'CONTENT_REJECT': 'Từ chối nội dung',
+            'CONTENT_PUBLISH': 'Xuất bản nội dung',
+            'CONTENT_RESTORE': 'Khôi phục nội dung',
 
-            // Content Management
-            VIEW_SITE_CONTENT: 'Xem nội dung site',
-            UPDATE_SITE_CONTENT: 'Cập nhật nội dung site',
-            APPROVE_CONTENT: 'Phê duyệt nội dung',
-            REJECT_CONTENT: 'Từ chối nội dung',
-            RESTORE_CONTENT_VERSION: 'Khôi phục phiên bản',
+            // Transaction Management Actions
+            'TRANSACTIONS_VIEW': 'Xem giao dịch',
+            'TRANSACTIONS_EXPORT': 'Xuất giao dịch',
+            'TRANSACTION_VIEW': 'Xem chi tiết giao dịch',
+            'TRANSACTION_UPDATE': 'Cập nhật giao dịch',
+            'TRANSACTION_DELETE': 'Xóa giao dịch',
 
-            // User Management
-            VIEW_USER_LIST: 'Xem danh sách người dùng',
-            UPDATE_USER: 'Cập nhật người dùng',
-            DELETE_USER: 'Xóa người dùng',
-            RESET_USER_PASSWORD: 'Đặt lại mật khẩu',
-            ACTIVATE_USER: 'Kích hoạt người dùng',
-            DEACTIVATE_USER: 'Vô hiệu hóa người dùng',
+            // Admin Management Actions
+            'ADMIN_CREATE': 'Tạo admin',
+            'ADMIN_UPDATE': 'Cập nhật admin',
+            'ADMIN_DELETE': 'Xóa admin',
+            'ADMIN_TOGGLE_STATUS': 'Thay đổi trạng thái admin',
+            'ADMIN_LIST_VIEW': 'Xem danh sách admin',
 
-            // Authentication
-            LOGIN: 'Đăng nhập',
-            LOGOUT: 'Đăng xuất',
-            FAILED_LOGIN: 'Đăng nhập thất bại',
+            // System Actions
+            'LOGIN': 'Đăng nhập',
+            'LOGOUT': 'Đăng xuất',
+            'DASHBOARD_VIEW': 'Xem dashboard',
+            'EXPORT_DATA': 'Xuất dữ liệu',
+            'IMPORT_DATA': 'Nhập dữ liệu',
 
-            // System
-            SYSTEM_CONFIG: 'Cấu hình hệ thống',
-            OTHER: 'Hoạt động khác'
+            // Dashboard Actions (legacy)
+            'VIEW_DASHBOARD': 'Xem dashboard',
+
+            // Admin Management (legacy)
+            'VIEW_ADMIN_LIST': 'Xem danh sách admin',
+            'CREATE_ADMIN': 'Tạo admin mới',
+            'UPDATE_ADMIN': 'Cập nhật admin',
+            'DELETE_ADMIN': 'Xóa admin',
+            'ACTIVATE_ADMIN': 'Kích hoạt admin',
+            'DEACTIVATE_ADMIN': 'Vô hiệu hóa admin',
+
+            // Content Management (legacy)
+            'VIEW_SITE_CONTENT': 'Xem nội dung site',
+            'UPDATE_SITE_CONTENT': 'Cập nhật nội dung site',
+            'APPROVE_CONTENT': 'Phê duyệt nội dung',
+            'REJECT_CONTENT': 'Từ chối nội dung',
+            'RESTORE_CONTENT_VERSION': 'Khôi phục phiên bản',
+
+            // User Management (legacy)
+            'VIEW_USER_LIST': 'Xem danh sách người dùng',
+            'UPDATE_USER': 'Cập nhật người dùng',
+            'DELETE_USER': 'Xóa người dùng',
+            'RESET_USER_PASSWORD': 'Đặt lại mật khẩu',
+            'ACTIVATE_USER': 'Kích hoạt người dùng',
+            'DEACTIVATE_USER': 'Vô hiệu hóa người dùng',
+
+            // Authentication (legacy)
+            'FAILED_LOGIN': 'Đăng nhập thất bại',
+
+            // System (legacy)
+            'SYSTEM_CONFIG': 'Cấu hình hệ thống',
+            'OTHER': 'Hoạt động khác'
         };
 
         return actionLabels[action] || action;
     };
 
     const getAdminName = (adminId: string) => {
+        // Tìm log có admin data được populate
+        const logWithAdmin = activityLogs.find(log => log.adminId === adminId && log.admin);
+        if (logWithAdmin?.admin) {
+            return `${logWithAdmin.admin.firstName} ${logWithAdmin.admin.lastName}`;
+        }
+
+        // Fallback: tìm trong danh sách admins
         const admin = admins.find(a => a._id === adminId);
         if (admin) {
             return `${admin.firstName} ${admin.lastName}`;
@@ -326,6 +372,56 @@ export default function ActivityLogsPage() {
                 </div>
             </div>
 
+            {/* Thống kê tổng quan */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <Activity className="h-8 w-8 text-blue-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-muted-foreground">Tổng hoạt động</p>
+                            <p className="text-2xl font-bold">{activityLogs.length}</p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <User className="h-8 w-8 text-green-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-muted-foreground">Admin hoạt động</p>
+                            <p className="text-2xl font-bold">
+                                {new Set(activityLogs.map(log => log.adminId)).size}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <Calendar className="h-8 w-8 text-purple-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-muted-foreground">Hôm nay</p>
+                            <p className="text-2xl font-bold">
+                                {activityLogs.filter(log => {
+                                    const today = new Date();
+                                    const logDate = new Date(log.timestamp);
+                                    return logDate.toDateString() === today.toDateString();
+                                }).length}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="flex items-center p-6">
+                        <Filter className="h-8 w-8 text-orange-600" />
+                        <div className="ml-4">
+                            <p className="text-sm font-medium text-muted-foreground">Đang lọc</p>
+                            <p className="text-2xl font-bold">
+                                {filterAction !== 'all' || selectedAdminId !== 'all' ? 'Có' : 'Không'}
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Lịch sử hoạt động quản trị viên</CardTitle>
@@ -340,6 +436,26 @@ export default function ActivityLogsPage() {
                                 placeholder="Tìm kiếm hành động..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full"
+                            />
+                        </div>
+
+                        <div className="w-full md:w-48">
+                            <Input
+                                type="date"
+                                placeholder="Từ ngày"
+                                value={dateRange.start || ''}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, start: e.target.value }))}
+                                className="w-full"
+                            />
+                        </div>
+
+                        <div className="w-full md:w-48">
+                            <Input
+                                type="date"
+                                placeholder="Đến ngày"
+                                value={dateRange.end || ''}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, end: e.target.value }))}
                                 className="w-full"
                             />
                         </div>
@@ -375,12 +491,13 @@ export default function ActivityLogsPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Tất cả hành động</SelectItem>
-                                    <SelectItem value="CREATE">Tạo mới</SelectItem>
-                                    <SelectItem value="UPDATE">Cập nhật</SelectItem>
-                                    <SelectItem value="DELETE">Xóa</SelectItem>
-                                    <SelectItem value="VIEW">Xem</SelectItem>
-                                    <SelectItem value="ACTIVATE">Kích hoạt</SelectItem>
-                                    <SelectItem value="DEACTIVATE">Vô hiệu hóa</SelectItem>
+                                    <SelectItem value="USER_">Quản lý người dùng</SelectItem>
+                                    <SelectItem value="ADMIN_">Quản lý admin</SelectItem>
+                                    <SelectItem value="CONTENT_">Quản lý nội dung</SelectItem>
+                                    <SelectItem value="TRANSACTION">Quản lý giao dịch</SelectItem>
+                                    <SelectItem value="LOGIN">Đăng nhập</SelectItem>
+                                    <SelectItem value="DASHBOARD_VIEW">Xem dashboard</SelectItem>
+                                    <SelectItem value="EXPORT_DATA">Xuất dữ liệu</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -400,6 +517,7 @@ export default function ActivityLogsPage() {
                                     {currentUser?.role === 'superadmin' && <TableHead>Admin</TableHead>}
                                     <TableHead>Hành động</TableHead>
                                     <TableHead>Đối tượng</TableHead>
+                                    <TableHead>Kết quả</TableHead>
                                     <TableHead>Chi tiết</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -408,7 +526,7 @@ export default function ActivityLogsPage() {
                                     // Loading skeleton
                                     [...Array(5)].map((_, index) => (
                                         <TableRow key={index}>
-                                            {[...Array(currentUser?.role === 'superadmin' ? 5 : 4)].map((_, cellIndex) => (
+                                            {[...Array(currentUser?.role === 'superadmin' ? 6 : 5)].map((_, cellIndex) => (
                                                 <TableCell key={cellIndex}>
                                                     <div className="h-4 bg-muted animate-pulse rounded"></div>
                                                 </TableCell>
@@ -417,7 +535,7 @@ export default function ActivityLogsPage() {
                                     ))
                                 ) : activityLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={currentUser?.role === 'superadmin' ? 5 : 4} className="text-center py-8">
+                                        <TableCell colSpan={currentUser?.role === 'superadmin' ? 6 : 5} className="text-center py-8">
                                             Không tìm thấy bản ghi hoạt động nào
                                         </TableCell>
                                     </TableRow>
@@ -427,39 +545,74 @@ export default function ActivityLogsPage() {
                                             <TableCell className="font-medium whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-                                                    {formatDate(log.timestamp)}
+                                                    <div>
+                                                        <div>{formatDate(log.timestamp)}</div>
+                                                        {log.ipAddress && (
+                                                            <div className="text-xs text-gray-500">
+                                                                IP: {log.ipAddress}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </TableCell>
                                             {currentUser?.role === 'superadmin' && (
                                                 <TableCell>
                                                     <div className="flex items-center">
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
-                                                        {log.adminId ? (
+                                                        {log.admin ? (
                                                             <span>
-                                                                {getAdminName(log.adminId._id)}
+                                                                {log.admin.firstName} {log.admin.lastName}
                                                             </span>
-                                                        ) : 'N/A'}
+                                                        ) : (
+                                                            <span>
+                                                                {getAdminName(log.adminId)}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 </TableCell>
                                             )}
                                             <TableCell>
                                                 <Badge
                                                     variant="outline"
-                                                    className={getActionBadgeColor(log.action)}
+                                                    className={getActionBadgeColor(log.actionType)}
                                                 >
                                                     <Activity className="mr-1 h-3 w-3" />
-                                                    {getActionLabel(log.action)}
+                                                    {getActionLabel(log.actionType)}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {log.targetId ? (
+                                                {log.targetType ? (
                                                     <div className="flex items-center">
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
-                                                        {log.targetId.firstName} {log.targetId.lastName}
+                                                        <span className="capitalize">
+                                                            {log.targetType === 'User' ? 'Người dùng' :
+                                                                log.targetType === 'Admin' ? 'Quản trị viên' :
+                                                                    log.targetType === 'SiteContent' ? 'Nội dung site' :
+                                                                        log.targetType === 'System' ? 'Hệ thống' :
+                                                                            log.targetType}
+                                                        </span>
+                                                        {log.targetId && (
+                                                            <span className="ml-1 text-xs text-gray-500">
+                                                                ({log.targetId.slice(-6)})
+                                                            </span>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <span className="text-gray-500">-</span>
                                                 )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant="outline"
+                                                    className={
+                                                        log.result === 'SUCCESS' ? 'bg-green-100 text-green-800 border-green-300' :
+                                                            log.result === 'FAILED' ? 'bg-red-100 text-red-800 border-red-300' :
+                                                                'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                                    }
+                                                >
+                                                    {log.result === 'SUCCESS' ? '✓ Thành công' :
+                                                        log.result === 'FAILED' ? '✗ Thất bại' : '⚠ Một phần'}
+                                                </Badge>
                                             </TableCell>
                                             <TableCell>
                                                 <Button
@@ -472,16 +625,38 @@ export default function ActivityLogsPage() {
                                                             <div className="max-w-md">
                                                                 <h3 className="font-bold mb-2">Chi tiết hoạt động</h3>
                                                                 <div className="text-sm">
-                                                                    <p><span className="font-semibold">Hành động:</span> {getActionLabel(log.action)}</p>
+                                                                    <p><span className="font-semibold">Hành động:</span> {getActionLabel(log.actionType)}</p>
                                                                     <p><span className="font-semibold">Thời gian:</span> {formatDate(log.timestamp)}</p>
                                                                     {log.ipAddress && <p><span className="font-semibold">IP:</span> {log.ipAddress}</p>}
-                                                                    {log.details && Object.keys(log.details).length > 0 && (
+                                                                    {log.resultDetails && (
                                                                         <div className="mt-2">
-                                                                            <p className="font-semibold">Chi tiết:</p>
+                                                                            <p className="font-semibold">Chi tiết kết quả:</p>
                                                                             <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
-                                                                                {JSON.stringify(log.details, null, 2)}
+                                                                                {log.resultDetails}
                                                                             </pre>
                                                                         </div>
+                                                                    )}
+                                                                    {log.inputData && Object.keys(log.inputData).length > 0 && (
+                                                                        <div className="mt-2">
+                                                                            <p className="font-semibold">Dữ liệu đầu vào:</p>
+                                                                            <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto">
+                                                                                {JSON.stringify(log.inputData, null, 2)}
+                                                                            </pre>
+                                                                        </div>
+                                                                    )}
+                                                                    {log.targetType && (
+                                                                        <p><span className="font-semibold">Loại đối tượng:</span> {log.targetType}</p>
+                                                                    )}
+                                                                    {log.result && (
+                                                                        <p><span className="font-semibold">Kết quả:</span>
+                                                                            <span className={`ml-1 px-2 py-1 rounded text-xs ${log.result === 'SUCCESS' ? 'bg-green-100 text-green-800' :
+                                                                                log.result === 'FAILED' ? 'bg-red-100 text-red-800' :
+                                                                                    'bg-yellow-100 text-yellow-800'
+                                                                                }`}>
+                                                                                {log.result === 'SUCCESS' ? 'Thành công' :
+                                                                                    log.result === 'FAILED' ? 'Thất bại' : 'Một phần'}
+                                                                            </span>
+                                                                        </p>
                                                                     )}
                                                                 </div>
                                                                 <Button
