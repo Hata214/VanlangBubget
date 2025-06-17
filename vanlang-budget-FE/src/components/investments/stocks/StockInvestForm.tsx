@@ -515,21 +515,26 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                     <FormItem>
                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('stockQuantity')}</FormLabel>
                                         <FormControl>
-                                            <CurrencyInput
+                                            <Input
+                                                type="number"
+                                                step="100"
                                                 placeholder="100"
                                                 value={field.value}
-                                                onChange={(value: number | undefined) => {
-                                                    let finalValue = value;
-                                                    if (value !== undefined) {
-                                                        const roundedValue = Math.floor(value / 100) * 100;
-                                                        if (roundedValue === 0 && value > 0) {
-                                                            finalValue = 100;
-                                                        } else {
-                                                            finalValue = roundedValue;
-                                                        }
+                                                onChange={(e) => {
+                                                    let value = parseInt(e.target.value, 10);
+                                                    if (isNaN(value)) value = 0;
+
+                                                    // Đảm bảo số lượng là bội số của 100
+                                                    const roundedValue = Math.floor(value / 100) * 100;
+                                                    let finalValue = roundedValue;
+                                                    if (roundedValue === 0 && value > 0) {
+                                                        finalValue = 100;
                                                     }
+
                                                     field.onChange(finalValue);
-                                                    if (finalValue !== undefined && (form.getValues('autoFee') ?? true)) {
+
+                                                    // Cập nhật phí nếu cần
+                                                    if (form.getValues('autoFee') ?? true) {
                                                         const price = form.getValues('price');
                                                         const brokerId = form.getValues('broker');
                                                         const fee = calculateFee(price, finalValue, brokerId, form.getValues());

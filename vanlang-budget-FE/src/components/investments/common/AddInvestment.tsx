@@ -44,7 +44,7 @@ export default function AddInvestment({ onSuccess }: AddInvestmentProps) {
     const [selectedType, setSelectedType] = useState<string | undefined>(undefined);
 
     // API URL for fetch requests
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
     // Đảm bảo URL kết thúc với /api để phù hợp với cấu hình API server
     const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
 

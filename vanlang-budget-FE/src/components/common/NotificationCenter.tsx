@@ -47,7 +47,7 @@ export function NotificationCenter() {
         loadNotifications();
 
         // Kết nối Socket.io để nhận thông báo mới
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
 
         try {
             // Lấy token từ cookie

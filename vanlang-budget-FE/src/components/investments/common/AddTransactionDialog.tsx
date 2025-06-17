@@ -287,13 +287,34 @@ export default function AddTransactionDialog({
                                     <FormItem>
                                         <FormLabel>{t('quantity')}</FormLabel>
                                         <FormControl>
-                                            <CurrencyInput
-                                                placeholder="0"
-                                                value={field.value ?? 0}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                disabled={isLoading}
-                                            />
+                                            {investment.type === 'stock' ? (
+                                                <Input
+                                                    type="number"
+                                                    step="100"
+                                                    placeholder="100"
+                                                    value={field.value ?? 0}
+                                                    onChange={(e) => {
+                                                        let value = parseInt(e.target.value, 10);
+                                                        if (isNaN(value)) value = 0;
+
+                                                        // Đảm bảo số lượng cổ phiếu là bội số của 100
+                                                        const roundedValue = Math.floor(value / 100) * 100;
+                                                        const finalValue = roundedValue === 0 && value > 0 ? 100 : roundedValue;
+
+                                                        field.onChange(finalValue);
+                                                    }}
+                                                    onBlur={field.onBlur}
+                                                    disabled={isLoading}
+                                                />
+                                            ) : (
+                                                <CurrencyInput
+                                                    placeholder="0"
+                                                    value={field.value ?? 0}
+                                                    onChange={field.onChange}
+                                                    onBlur={field.onBlur}
+                                                    disabled={isLoading}
+                                                />
+                                            )}
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>

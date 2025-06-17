@@ -46,7 +46,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
     const [isLoading, setIsLoading] = useState(false);
 
     // API URL for fetch requests
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
     // Đảm bảo URL kết thúc với /api để phù hợp với cấu hình API server
     const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
 
@@ -500,10 +500,12 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
                                     <FormItem>
                                         <FormLabel className="text-foreground dark:text-foreground-dark">{tGold('quantityLabel')}</FormLabel>
                                         <FormControl>
-                                            <CurrencyInput
+                                            <Input
+                                                type="number"
+                                                step="0.01"
                                                 placeholder={tGold('quantityPlaceholder')}
                                                 value={field.value}
-                                                onChange={field.onChange}
+                                                onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                                                 onBlur={field.onBlur}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
