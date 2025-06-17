@@ -1,5 +1,5 @@
 User-agent: *
-Allow: /
+Allow: / 
 Allow: /legal
 Allow: /legal/terms
 Allow: /legal/privacy
