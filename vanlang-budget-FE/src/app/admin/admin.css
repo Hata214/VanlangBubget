@@ -2743,6 +2743,78 @@ body:not(.admin-layout) a.admin-back-button {
     /* Tăng độ sáng cho main text */
 }
 
+/* Dashboard specific dark mode fixes */
+.dark .admin-layout .admin-main h1,
+.dark .admin-layout .admin-main h2,
+.dark .admin-layout .admin-main h3,
+.dark .admin-layout .admin-main h4,
+.dark .admin-layout .admin-main h5,
+.dark .admin-layout .admin-main h6 {
+    color: hsl(213 31% 95%) !important;
+}
+
+.dark .admin-layout .admin-main p,
+.dark .admin-layout .admin-main span,
+.dark .admin-layout .admin-main div {
+    color: hsl(213 31% 95%) !important;
+}
+
+/* Override any hardcoded text colors in dashboard */
+.dark .admin-layout .admin-main .text-gray-900 {
+    color: hsl(213 31% 95%) !important;
+}
+
+.dark .admin-layout .admin-main .text-gray-800 {
+    color: hsl(213 31% 95%) !important;
+}
+
+.dark .admin-layout .admin-main .text-gray-700 {
+    color: hsl(213 31% 90%) !important;
+}
+
+.dark .admin-layout .admin-main .text-gray-600 {
+    color: hsl(213 13% 85%) !important;
+}
+
+.dark .admin-layout .admin-main .text-gray-500 {
+    color: hsl(213 13% 75%) !important;
+}
+
+/* Dashboard cards dark mode */
+.dark .admin-layout .admin-main .bg-white {
+    background-color: hsl(220 13% 12%) !important;
+}
+
+.dark .admin-layout .admin-main .bg-gray-50 {
+    background-color: hsl(220 13% 16%) !important;
+}
+
+.dark .admin-layout .admin-main .bg-gray-100 {
+    background-color: hsl(220 13% 16%) !important;
+}
+
+/* Ensure all text in cards is visible */
+.dark .admin-layout .admin-main [class*="bg-white"] * {
+    color: hsl(213 31% 95%) !important;
+}
+
+.dark .admin-layout .admin-main [class*="bg-gray"] * {
+    color: hsl(213 31% 95%) !important;
+}
+
+/* Badge text colors in dark mode */
+.dark .admin-layout .admin-main .text-green-600 {
+    color: hsl(142 76% 60%) !important;
+}
+
+.dark .admin-layout .admin-main .text-blue-600 {
+    color: hsl(212 100% 70%) !important;
+}
+
+.dark .admin-layout .admin-main .text-red-600 {
+    color: hsl(0 81% 70%) !important;
+}
+
 /* Mobile Sidebar Toggle */
 .admin-layout .admin-mobile-sidebar-toggle {
     display: none;

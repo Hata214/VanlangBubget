@@ -165,11 +165,11 @@ export default function AdminDashboardPage() {
     ] : []
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6 p-6 bg-background text-foreground min-h-screen">
             {/* Header */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">Admin Dashboard</h1>
                     <p className="text-muted-foreground mt-2">
                         Dữ liệu thời gian thực từ MongoDB Database
                     </p>
