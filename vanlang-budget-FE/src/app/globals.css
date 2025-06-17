@@ -42,44 +42,44 @@
         /* Background - Modern dark mode với warmth */
         --background: 220 13% 9%;
         /* #161B22 - GitHub-like dark */
-        --foreground: 213 31% 91%;
-        /* #E6EDF3 - Soft white */
+        --foreground: 213 31% 95%;
+        /* #F0F6FC - Tăng độ sáng cho text chính */
 
         /* Cards - Elevated surfaces */
         --card: 220 13% 12%;
         /* #1C2128 - Slightly lighter than bg */
-        --card-foreground: 213 31% 91%;
-        /* #E6EDF3 - Consistent text */
+        --card-foreground: 213 31% 95%;
+        /* #F0F6FC - Tăng độ sáng cho text trong card */
 
         /* Popovers - Modal surfaces */
         --popover: 220 13% 12%;
         /* #1C2128 - Same as cards */
-        --popover-foreground: 213 31% 91%;
-        /* #E6EDF3 - Consistent text */
+        --popover-foreground: 213 31% 95%;
+        /* #F0F6FC - Tăng độ sáng cho text trong popover */
 
         /* Primary - Brand colors optimized for dark */
         --primary: 212 100% 47%;
         /* #0969DA - GitHub blue, accessible */
-        --primary-foreground: 213 31% 91%;
-        /* #E6EDF3 - White text on blue */
+        --primary-foreground: 213 31% 96%;
+        /* #F6F8FA - Text trắng sáng hơn trên nền primary */
 
         /* Secondary - Subtle backgrounds */
         --secondary: 220 13% 16%;
         /* #22272E - Slightly elevated */
-        --secondary-foreground: 213 31% 91%;
-        /* #E6EDF3 - Consistent text */
+        --secondary-foreground: 213 31% 95%;
+        /* #F0F6FC - Tăng độ sáng cho text secondary */
 
         /* Muted - Subtle elements */
         --muted: 220 13% 16%;
         /* #22272E - Input backgrounds */
-        --muted-foreground: 213 13% 65%;
-        /* #8D96A0 - Muted text */
+        --muted-foreground: 213 13% 85%;
+        /* #C9D1D9 - Tăng độ sáng cho muted text */
 
         /* Accent - Interactive elements */
         --accent: 220 13% 16%;
         /* #22272E - Hover states */
-        --accent-foreground: 213 31% 91%;
-        /* #E6EDF3 - Text on accent */
+        --accent-foreground: 213 31% 95%;
+        /* #F0F6FC - Tăng độ sáng cho accent text */
 
         /* Destructive - Error states */
         --destructive: 0 81% 63%;

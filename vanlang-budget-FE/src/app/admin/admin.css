@@ -195,7 +195,8 @@
 
 /* Dark mode sidebar links */
 .dark .admin-layout .admin-sidebar-link {
-    color: hsl(213 13% 75%);
+    color: hsl(213 13% 88%) !important;
+    /* Tăng độ sáng cho sidebar link */
 }
 
 .dark .admin-layout .admin-sidebar-link::before {
@@ -203,14 +204,18 @@
 }
 
 .dark .admin-layout .admin-sidebar-link:hover {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(192, 132, 252, 0.1));
-    color: hsl(213 31% 91%);
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(192, 132, 252, 0.15)) !important;
+    /* Tăng opacity hover */
+    color: hsl(213 31% 95%) !important;
+    /* Tăng độ sáng khi hover */
     transform: translateX(4px);
 }
 
 .dark .admin-layout .admin-sidebar-link.active {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(192, 132, 252, 0.15));
-    color: hsl(213 31% 91%);
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.2), rgba(192, 132, 252, 0.2)) !important;
+    /* Tăng opacity active */
+    color: hsl(213 31% 96%) !important;
+    /* Tăng độ sáng khi active */
     box-shadow: 0 2px 8px rgba(129, 140, 248, 0.3);
 }
 
@@ -612,15 +617,18 @@
 }
 
 .dark .admin-stats-card-title {
-    color: hsl(213 13% 75%);
+    color: hsl(213 13% 88%) !important;
+    /* Tăng độ sáng cho title */
 }
 
 .dark .admin-stats-card-value {
-    color: hsl(213 31% 91%);
+    color: hsl(213 31% 95%) !important;
+    /* Tăng độ sáng cho value */
 }
 
 .dark .admin-stats-card-subtitle {
-    color: hsl(213 13% 65%);
+    color: hsl(213 13% 82%) !important;
+    /* Tăng độ sáng cho subtitle */
 }
 
 .dark .admin-stats-card-icon-container.skeleton {
@@ -787,7 +795,8 @@
 }
 
 .dark .admin-recent-card-title {
-    color: hsl(213 31% 91%);
+    color: hsl(213 31% 95%) !important;
+    /* Tăng độ sáng cho title */
 }
 
 .dark .admin-recent-item {
@@ -795,24 +804,30 @@
 }
 
 .dark .admin-recent-item:hover {
-    background: hsl(220 13% 14%);
+    background: hsl(220 13% 16%) !important;
+    /* Nền hover sáng hơn */
 }
 
 .dark .admin-recent-item-avatar {
-    background: hsl(220 13% 16%);
-    color: hsl(213 13% 75%);
+    background: hsl(220 13% 18%) !important;
+    /* Nền avatar sáng hơn */
+    color: hsl(213 13% 85%) !important;
+    /* Text avatar sáng hơn */
 }
 
 .dark .admin-recent-item-name {
-    color: hsl(213 31% 91%);
+    color: hsl(213 31% 95%) !important;
+    /* Tăng độ sáng cho name */
 }
 
 .dark .admin-recent-item-detail {
-    color: hsl(213 13% 75%);
+    color: hsl(213 13% 85%) !important;
+    /* Tăng độ sáng cho detail */
 }
 
 .dark .admin-recent-item-time {
-    color: hsl(213 13% 65%);
+    color: hsl(213 13% 78%) !important;
+    /* Tăng độ sáng cho time */
 }
 
 .dark .admin-recent-item-badge.success {
@@ -960,7 +975,8 @@
 }
 
 .dark .admin-layout .admin-user-dropdown-name {
-    color: hsl(213 31% 91%);
+    color: hsl(213 31% 96%) !important;
+    /* Tăng độ sáng cho user name */
 }
 
 .admin-layout .admin-user-dropdown-email {
@@ -970,7 +986,8 @@
 }
 
 .dark .admin-layout .admin-user-dropdown-email {
-    color: hsl(213 13% 75%);
+    color: hsl(213 13% 85%) !important;
+    /* Tăng độ sáng cho email */
 }
 
 .admin-layout .admin-user-dropdown-role {
@@ -1678,8 +1695,18 @@
     color: #6b7280;
 }
 
+.dark .admin-layout .text-muted-foreground {
+    color: hsl(213 13% 85%) !important;
+    /* Tăng độ sáng từ 65% lên 85% */
+}
+
 .admin-layout .bg-muted {
     background-color: #f3f4f6;
+}
+
+.dark .admin-layout .bg-muted {
+    background-color: hsl(220 13% 16%) !important;
+    /* Nền tối hơn để text nổi bật */
 }
 
 /* Animation for dashboard loading skeletons */
@@ -2072,12 +2099,15 @@ body:not(.admin-layout) a.admin-back-button {
 }
 
 .dark .admin-layout .admin-user-dropdown-item {
-    color: hsl(213 13% 85%);
+    color: hsl(213 13% 90%) !important;
+    /* Tăng độ sáng cho dropdown item */
 }
 
 .dark .admin-layout .admin-user-dropdown-item:hover {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(192, 132, 252, 0.1));
-    color: hsl(213 31% 91%);
+    background: linear-gradient(135deg, rgba(129, 140, 248, 0.15), rgba(192, 132, 252, 0.15)) !important;
+    /* Tăng opacity hover */
+    color: hsl(213 31% 96%) !important;
+    /* Tăng độ sáng khi hover */
 }
 
 .admin-layout .admin-user-dropdown-item svg {
@@ -2398,6 +2428,70 @@ body:not(.admin-layout) a.admin-back-button {
 
 /* Admin login footer và link đã được xóa vì lý do bảo mật */
 
+/* ===== DARK MODE TEXT IMPROVEMENTS ===== */
+/* Cải thiện contrast và khả năng đọc text trong dark mode */
+
+/* Card titles và headings */
+.dark .admin-layout h1,
+.dark .admin-layout h2,
+.dark .admin-layout h3,
+.dark .admin-layout h4,
+.dark .admin-layout h5,
+.dark .admin-layout h6 {
+    color: hsl(213 31% 96%) !important;
+}
+
+/* Card descriptions và subtitles */
+.dark .admin-layout .card-description,
+.dark .admin-layout .text-sm {
+    color: hsl(213 13% 88%) !important;
+}
+
+/* Regular text trong cards */
+.dark .admin-layout .card-content,
+.dark .admin-layout .card-body {
+    color: hsl(213 13% 90%) !important;
+}
+
+/* Badge text improvements */
+.dark .admin-layout .badge {
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Table text improvements */
+.dark .admin-layout table {
+    color: hsl(213 13% 90%) !important;
+}
+
+.dark .admin-layout th {
+    color: hsl(213 31% 95%) !important;
+    font-weight: 600 !important;
+}
+
+.dark .admin-layout td {
+    color: hsl(213 13% 88%) !important;
+}
+
+/* Button text improvements */
+.dark .admin-layout button {
+    color: hsl(213 13% 90%) !important;
+}
+
+/* Input placeholder improvements */
+.dark .admin-layout input::placeholder,
+.dark .admin-layout textarea::placeholder {
+    color: hsl(213 13% 70%) !important;
+}
+
+/* Link improvements */
+.dark .admin-layout a {
+    color: hsl(212 100% 75%) !important;
+}
+
+.dark .admin-layout a:hover {
+    color: hsl(212 100% 85%) !important;
+}
+
 /* Responsive Design */
 @media (max-width: 640px) {
     .admin-login-container {
@@ -2645,7 +2739,8 @@ body:not(.admin-layout) a.admin-back-button {
 
 .dark .admin-layout .admin-main {
     background-color: hsl(220 13% 9%) !important;
-    color: hsl(213 31% 91%) !important;
+    color: hsl(213 31% 95%) !important;
+    /* Tăng độ sáng cho main text */
 }
 
 /* Mobile Sidebar Toggle */
