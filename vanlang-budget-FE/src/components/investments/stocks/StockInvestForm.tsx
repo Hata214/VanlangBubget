@@ -453,6 +453,19 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 render={({ field, fieldState: { error } }) => (
                                     <FormItem className="col-span-1 md:col-span-2">
                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('purchasePrice')}</FormLabel>
+                                        {/* Hiển thị giá hiện tại */}
+                                        {currentStockPrice && selectedSymbol && (
+                                            <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
+                                                <div className="flex items-center justify-between text-sm">
+                                                    <span className="text-blue-700 dark:text-blue-300">
+                                                        Giá hiện tại {selectedSymbol}:
+                                                    </span>
+                                                    <span className="font-semibold text-blue-900 dark:text-blue-100">
+                                                        {currentStockPrice.toLocaleString('vi-VN')} VND
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="relative">
                                             <FormControl>
                                                 <CurrencyInput
@@ -481,7 +494,6 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                         className="h-12 text-xs bg-background dark:bg-background-dark hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark"
                                                         onClick={() => {
                                                             form.setValue('price', currentStockPrice);
-                                                            setFormattedPrice(currentStockPrice.toLocaleString('vi-VN'));
 
                                                             // Cập nhật phí nếu cần
                                                             if (form.getValues('autoFee') ?? true) {
@@ -492,7 +504,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                             }
                                                         }}
                                                     >
-                                                        {tStocks('useCurrentPrice')}
+                                                        Dùng giá hiện tại
                                                     </Button>
                                                 )}
                                             </div>

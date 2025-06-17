@@ -16,6 +16,7 @@ interface StockOption {
     symbol: string;
     name: string;
     industry?: string;
+    price?: number;
 }
 
 interface Stock {
@@ -133,7 +134,8 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 const stockOptions: StockOption[] = data.stocks.map((stock: Stock) => ({
                     symbol: stock.symbol || '',
                     name: stock.name || '',
-                    industry: stock.industry || 'Không xác định'
+                    industry: stock.industry || 'Không xác định',
+                    price: stock.price || undefined
                 }));
                 setOptions(stockOptions);
             } else {
@@ -233,9 +235,16 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
         if (!selectedStock) return value;
 
         return (
-            <div className="flex flex-col">
-                <div className="font-medium">{selectedStock.symbol}</div>
-                <div className="text-xs text-muted-foreground">{selectedStock.name}</div>
+            <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col">
+                    <div className="font-medium">{selectedStock.symbol}</div>
+                    <div className="text-xs text-muted-foreground">{selectedStock.name}</div>
+                </div>
+                {selectedStock.price && (
+                    <span className="text-sm font-semibold text-blue-600 dark:text-blue-400 ml-2">
+                        {selectedStock.price.toLocaleString('vi-VN')}
+                    </span>
+                )}
             </div>
         );
     };
@@ -266,13 +275,20 @@ export function StockAutoComplete({ onStockSelect, defaultValue = '', isLoading 
                 )}
 
                 <div className="flex flex-col flex-1">
-                    <div className="flex items-center">
-                        <span className="font-medium">{stock.symbol}</span>
-                        {isPopular && (
-                            <Badge variant="outline" className="ml-2 py-0 h-5 text-xs">
-                                <Tag className="h-3 w-3 mr-1" />
-                                {t('popular')}
-                            </Badge>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                            <span className="font-medium">{stock.symbol}</span>
+                            {isPopular && (
+                                <Badge variant="outline" className="ml-2 py-0 h-5 text-xs">
+                                    <Tag className="h-3 w-3 mr-1" />
+                                    {t('popular')}
+                                </Badge>
+                            )}
+                        </div>
+                        {stock.price && (
+                            <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                                {stock.price.toLocaleString('vi-VN')}
+                            </span>
                         )}
                     </div>
                     <span className="text-xs text-muted-foreground">{stock.name}</span>
