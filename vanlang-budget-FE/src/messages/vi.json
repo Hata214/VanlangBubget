@@ -1858,5 +1858,289 @@
         "stockList": "Danh sách cổ phiếu",
         "loadingStockList": "Đang tải danh sách cổ phiếu...",
         "errorStockList": "Lỗi khi tải danh sách cổ phiếu"
+    },
+    "legal": {
+        "title": "Tài liệu pháp lý",
+        "description": "Tìm hiểu về điều khoản sử dụng và chính sách bảo mật của VanLang Budget. Chúng tôi cam kết minh bạch và bảo vệ quyền lợi người dùng.",
+        "backToLegal": "Quay lại Tài liệu pháp lý",
+        "lastUpdated": "Cập nhật lần cuối: 2025",
+        "contactEmail": "vanlangbudget@gmail.com",
+        "contactSupport": "Liên hệ hỗ trợ",
+        "sendEmail": "Gửi email",
+        "contactPage": "Trang liên hệ",
+        "questionsAboutTerms": "Có câu hỏi về điều khoản?",
+        "questionsAboutTermsDesc": "Nếu bạn có bất kỳ câu hỏi nào về các điều khoản này, vui lòng liên hệ với chúng tôi.",
+        "questionsAboutPrivacy": "Có câu hỏi về bảo mật?",
+        "questionsAboutPrivacyDesc": "Nếu bạn có bất kỳ câu hỏi nào về chính sách bảo mật hoặc cách chúng tôi xử lý dữ liệu của bạn",
+        "questionsAboutCookies": "Có câu hỏi về cookie?",
+        "questionsAboutCookiesDesc": "Nếu bạn có bất kỳ câu hỏi nào về chính sách cookie hoặc cách chúng tôi sử dụng cookie",
+        "readDocument": "Đọc tài liệu",
+        "terms": {
+            "title": "Điều khoản và Điều kiện",
+            "subtitle": "VanLang Budget",
+            "sections": {
+                "introduction": {
+                    "title": "1. Giới thiệu",
+                    "content": "Bằng việc đăng ký và sử dụng VanLang Budget, bạn đồng ý với các điều khoản dưới đây."
+                },
+                "account": {
+                    "title": "2. Đăng ký và Sử dụng Tài khoản",
+                    "items": [
+                        "Người dùng phải cung cấp thông tin chính xác khi đăng ký.",
+                        "Mỗi người dùng chỉ được sử dụng một tài khoản duy nhất.",
+                        "Không được chia sẻ, bán hoặc chuyển nhượng tài khoản."
+                    ]
+                },
+                "responsibility": {
+                    "title": "3. Trách nhiệm Người dùng",
+                    "items": [
+                        "Người dùng chịu trách nhiệm về dữ liệu mà họ nhập vào.",
+                        "Không sử dụng ứng dụng cho các hoạt động gian lận hoặc vi phạm pháp luật.",
+                        "Không can thiệp, tấn công hoặc khai thác bất hợp pháp hệ thống."
+                    ]
+                },
+                "intellectualProperty": {
+                    "title": "4. Quyền Sở hữu Trí tuệ",
+                    "items": [
+                        "Toàn bộ mã nguồn, logo, thiết kế thuộc về nhóm phát triển VanLang Budget.",
+                        "Không được sao chép hoặc tái sử dụng bất kỳ phần nào mà không có sự đồng ý bằng văn bản."
+                    ]
+                },
+                "liability": {
+                    "title": "5. Giới hạn Trách nhiệm",
+                    "items": [
+                        "Ứng dụng không chịu trách nhiệm nếu người dùng nhập sai thông tin tài chính.",
+                        "Thông tin tư vấn AI chỉ mang tính chất tham khảo, không thay thế lời khuyên tài chính chuyên nghiệp."
+                    ]
+                },
+                "termination": {
+                    "title": "6. Chấm dứt Tài khoản",
+                    "items": [
+                        "Người dùng có thể yêu cầu xóa tài khoản bất cứ lúc nào.",
+                        "VanLang Budget có quyền chấm dứt tài khoản nếu phát hiện vi phạm."
+                    ]
+                },
+                "changes": {
+                    "title": "7. Thay đổi Điều khoản",
+                    "content": "Chúng tôi có thể cập nhật điều khoản sử dụng. Việc tiếp tục sử dụng ứng dụng có nghĩa là bạn đồng ý với các điều khoản mới."
+                }
+            }
+        },
+        "privacy": {
+            "title": "Chính sách Bảo mật",
+            "subtitle": "Ứng dụng VanLang Budget",
+            "securityFeatures": {
+                "bcryptEncryption": "Mã hóa bcrypt",
+                "httpsSSL": "HTTPS SSL",
+                "jwtToken": "JWT Token",
+                "anonymousData": "Dữ liệu ẩn danh"
+            },
+            "sections": {
+                "introduction": {
+                    "title": "1. Giới thiệu",
+                    "content": "VanLang Budget cam kết bảo vệ quyền riêng tư và dữ liệu cá nhân của người dùng. Chính sách bảo mật này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân của bạn."
+                },
+                "dataCollection": {
+                    "title": "2. Thông tin chúng tôi thu thập",
+                    "items": [
+                        "Thông tin cá nhân: tên, email, mật khẩu, số điện thoại (nếu có).",
+                        "Thông tin tài chính: chi tiêu, thu nhập, ngân sách, khoản vay, đầu tư.",
+                        "Thông tin thiết bị: IP, loại trình duyệt, thông tin đăng nhập.",
+                        "Lịch sử sử dụng: thời gian đăng nhập, các hành động của người dùng."
+                    ]
+                },
+                "usagePurpose": {
+                    "title": "3. Mục đích sử dụng",
+                    "items": [
+                        "Cung cấp và vận hành dịch vụ quản lý tài chính cá nhân.",
+                        "Gửi thông báo, nhắc nhở (ngân sách, khoản vay...).",
+                        "Cải thiện trải nghiệm người dùng và hỗ trợ kỹ thuật.",
+                        "Phân tích dữ liệu ẩn danh cho mục đích nghiên cứu nội bộ."
+                    ]
+                },
+                "dataProtection": {
+                    "title": "4. Bảo vệ thông tin cá nhân",
+                    "items": [
+                        "Mật khẩu người dùng được mã hóa bằng thuật toán bcrypt.",
+                        "Truyền tải dữ liệu sử dụng giao thức HTTPS bảo mật.",
+                        "Sử dụng token xác thực (JWT) để đảm bảo truy cập an toàn."
+                    ]
+                },
+                "userRights": {
+                    "title": "5. Quyền của người dùng",
+                    "items": [
+                        "Có quyền truy cập, chỉnh sửa hoặc xóa thông tin cá nhân của mình.",
+                        "Có thể yêu cầu xuất toàn bộ dữ liệu cá nhân.",
+                        "Có thể yêu cầu xóa vĩnh viễn tài khoản và dữ liệu."
+                    ]
+                },
+                "dataSharing": {
+                    "title": "6. Lưu trữ và chia sẻ dữ liệu",
+                    "items": [
+                        "Dữ liệu được lưu trữ trên các máy chủ bảo mật của chúng tôi.",
+                        "Chúng tôi không chia sẻ thông tin cá nhân với bên thứ ba, trừ khi có yêu cầu từ cơ quan pháp luật.",
+                        "Dữ liệu có thể được sử dụng dưới dạng ẩn danh cho mục đích thống kê."
+                    ]
+                },
+                "policyChanges": {
+                    "title": "7. Thay đổi chính sách",
+                    "content": "Chúng tôi có quyền thay đổi chính sách bảo mật bất cứ lúc nào. Người dùng sẽ được thông báo nếu có những thay đổi quan trọng."
+                }
+            },
+            "dataRights": {
+                "title": "Quyền của bạn với dữ liệu cá nhân",
+                "access": {
+                    "title": "Truy cập",
+                    "description": "Xem dữ liệu của bạn"
+                },
+                "export": {
+                    "title": "Xuất dữ liệu",
+                    "description": "Tải xuống toàn bộ dữ liệu"
+                },
+                "delete": {
+                    "title": "Xóa dữ liệu",
+                    "description": "Xóa vĩnh viễn tài khoản"
+                }
+            }
+        },
+        "cookies": {
+            "title": "Chính sách Cookie",
+            "subtitle": "VanLang Budget",
+            "cookieTypes": {
+                "essential": {
+                    "label": "Cần thiết",
+                    "description": "Không thể tắt"
+                },
+                "functional": {
+                    "label": "Chức năng",
+                    "description": "Có thể tắt"
+                },
+                "analytics": {
+                    "label": "Phân tích",
+                    "description": "Có thể tắt"
+                },
+                "thirdParty": {
+                    "label": "Bên thứ ba",
+                    "description": "Có thể tắt"
+                }
+            },
+            "sections": {
+                "introduction": {
+                    "title": "1. Giới thiệu về Cookie",
+                    "content": "Cookie là những tệp tin nhỏ được lưu trữ trên thiết bị của bạn khi truy cập VanLang Budget. Chúng giúp chúng tôi cải thiện trải nghiệm người dùng và cung cấp dịch vụ tốt hơn."
+                },
+                "typesOfCookies": {
+                    "title": "2. Các loại Cookie chúng tôi sử dụng",
+                    "items": [
+                        "Cookie cần thiết: Đảm bảo website hoạt động bình thường (đăng nhập, bảo mật).",
+                        "Cookie hiệu suất: Thu thập thông tin về cách bạn sử dụng website.",
+                        "Cookie chức năng: Ghi nhớ các tùy chọn của bạn (ngôn ngữ, giao diện).",
+                        "Cookie phân tích: Giúp chúng tôi hiểu hành vi người dùng để cải thiện dịch vụ."
+                    ]
+                },
+                "essentialCookies": {
+                    "title": "3. Cookie Cần thiết",
+                    "items": [
+                        "Token xác thực (JWT): Duy trì phiên đăng nhập an toàn.",
+                        "CSRF Token: Bảo vệ chống tấn công cross-site.",
+                        "Session ID: Quản lý phiên làm việc của người dùng.",
+                        "Cookie bảo mật: Đảm bảo an toàn trong quá trình truyền tải dữ liệu."
+                    ]
+                },
+                "functionalCookies": {
+                    "title": "4. Cookie Chức năng",
+                    "items": [
+                        "Ngôn ngữ: Ghi nhớ ngôn ngữ bạn đã chọn (Tiếng Việt/Tiếng Anh).",
+                        "Giao diện: Lưu tùy chọn giao diện (Chế độ Sáng/Tối).",
+                        "Tùy chọn hiển thị: Ghi nhớ cách bạn muốn hiển thị dữ liệu.",
+                        "Cài đặt thông báo: Lưu trữ tùy chọn thông báo của bạn."
+                    ]
+                },
+                "analyticsCookies": {
+                    "title": "5. Cookie Phân tích",
+                    "items": [
+                        "Thống kê truy cập: Đếm số lượng người dùng và trang được xem.",
+                        "Hành vi người dùng: Hiểu cách người dùng tương tác với ứng dụng.",
+                        "Hiệu suất: Theo dõi tốc độ tải trang và lỗi hệ thống.",
+                        "Cải thiện UX: Dữ liệu để tối ưu hóa trải nghiệm người dùng."
+                    ]
+                },
+                "thirdPartyCookies": {
+                    "title": "6. Cookie Bên thứ ba",
+                    "items": [
+                        "Vercel Analytics: Theo dõi hiệu suất website (nếu được bật).",
+                        "CDN Services: Tối ưu hóa tốc độ tải trang.",
+                        "Font Services: Google Fonts hoặc các dịch vụ font khác.",
+                        "API Services: Cookie từ các dịch vụ API tích hợp."
+                    ]
+                },
+                "cookieManagement": {
+                    "title": "7. Quản lý Cookie",
+                    "items": [
+                        "Bạn có thể xóa cookie thông qua cài đặt trình duyệt.",
+                        "Việc tắt cookie có thể ảnh hưởng đến một số tính năng của website.",
+                        "Cookie cần thiết không thể tắt để đảm bảo bảo mật.",
+                        "Bạn có thể liên hệ với chúng tôi để biết thêm chi tiết."
+                    ]
+                },
+                "dataRetention": {
+                    "title": "8. Thời gian lưu trữ",
+                    "items": [
+                        "Session cookie: Bị xóa khi đóng trình duyệt.",
+                        "Persistent cookie: Lưu trữ từ 30 ngày đến 1 năm.",
+                        "Token xác thực: Hết hạn sau 7 ngày không hoạt động.",
+                        "Cookie tùy chọn: Lưu trữ lâu dài cho đến khi người dùng xóa."
+                    ]
+                }
+            },
+            "browserSettings": {
+                "title": "Cài đặt Cookie trong Trình duyệt",
+                "chrome": {
+                    "name": "Chrome",
+                    "path": "Cài đặt → Quyền riêng tư → Cookie"
+                },
+                "firefox": {
+                    "name": "Firefox",
+                    "path": "Tùy chọn → Quyền riêng tư → Cookie"
+                },
+                "safari": {
+                    "name": "Safari",
+                    "path": "Tùy chọn → Quyền riêng tư"
+                }
+            },
+            "importantNote": {
+                "title": "Lưu ý quan trọng",
+                "content": "Việc tắt cookie có thể ảnh hưởng đến trải nghiệm VanLang Budget của bạn. Một số tính năng như đăng nhập, lưu cài đặt và bảo mật có thể không hoạt động bình thường. Chúng tôi khuyến nghị chỉ tắt các cookie không cần thiết."
+            }
+        },
+        "cookieBanner": {
+            "title": "Chúng tôi sử dụng Cookie",
+            "description": "VanLang Budget sử dụng cookie để cải thiện trải nghiệm của bạn, cung cấp nội dung phù hợp và phân tích lưu lượng truy cập. Bằng cách tiếp tục sử dụng website, bạn đồng ý với việc sử dụng cookie của chúng tôi.",
+            "learnMore": "Tìm hiểu thêm về chính sách cookie của chúng tôi →",
+            "acceptAll": "Chấp nhận tất cả",
+            "customize": "Tùy chỉnh",
+            "essentialOnly": "Chỉ cần thiết",
+            "settings": {
+                "title": "Cài đặt Cookie",
+                "essential": {
+                    "title": "Cookie Cần thiết",
+                    "description": "Bắt buộc cho hoạt động cơ bản của website (đăng nhập, bảo mật)"
+                },
+                "functional": {
+                    "title": "Cookie Chức năng",
+                    "description": "Ghi nhớ tùy chọn của bạn (ngôn ngữ, giao diện, cài đặt)"
+                },
+                "analytics": {
+                    "title": "Cookie Phân tích",
+                    "description": "Giúp chúng tôi hiểu cách bạn sử dụng website để cải thiện dịch vụ"
+                },
+                "marketing": {
+                    "title": "Cookie Marketing",
+                    "description": "Cá nhân hóa quảng cáo và theo dõi hiệu quả chiến dịch"
+                }
+            },
+            "cancel": "Hủy",
+            "savePreferences": "Lưu tùy chọn"
+        }
     }
 }

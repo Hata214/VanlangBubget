@@ -23,6 +23,7 @@ import { User, Settings, LogOut } from 'lucide-react'
 import { useAppDispatch } from '@/redux/hooks'
 import { logout } from '@/redux/features/authSlice'
 import { useHeaderContent } from '@/hooks/useHeaderContent'
+import { CookieBanner } from '@/components/common/CookieBanner'
 
 interface PublicLayoutProps {
     children: ReactNode
@@ -166,6 +167,9 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
 
             {/* Footer */}
             <Footer />
+
+            {/* Cookie Banner */}
+            <CookieBanner />
         </div>
     )
 }

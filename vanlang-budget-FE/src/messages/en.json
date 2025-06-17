@@ -1693,5 +1693,289 @@
         "stockList": "Stock List",
         "loadingStockList": "Loading stock list...",
         "errorStockList": "Error loading stock list"
+    },
+    "legal": {
+        "title": "Legal Documents",
+        "description": "Learn about VanLang Budget's terms of use and privacy policies. We are committed to transparency and protecting user rights.",
+        "backToLegal": "Back to Legal Documents",
+        "lastUpdated": "Last updated: 2025",
+        "contactEmail": "vanlangbudget@gmail.com",
+        "contactSupport": "Contact Support",
+        "sendEmail": "Send Email",
+        "contactPage": "Contact Page",
+        "questionsAboutTerms": "Questions about these terms?",
+        "questionsAboutTermsDesc": "If you have any questions about these terms, please don't hesitate to contact us.",
+        "questionsAboutPrivacy": "Questions about privacy?",
+        "questionsAboutPrivacyDesc": "If you have any questions about our privacy policy or how we handle your data",
+        "questionsAboutCookies": "Questions about cookies?",
+        "questionsAboutCookiesDesc": "If you have any questions about our cookie policy or how we use cookies",
+        "readDocument": "Read Document",
+        "terms": {
+            "title": "Terms and Conditions",
+            "subtitle": "VanLang Budget",
+            "sections": {
+                "introduction": {
+                    "title": "1. Introduction",
+                    "content": "By registering and using VanLang Budget, you agree to the terms below."
+                },
+                "account": {
+                    "title": "2. Registration and Account Use",
+                    "items": [
+                        "Users must provide accurate information when registering.",
+                        "Each user may only use one unique account.",
+                        "Do not share, sell, or transfer accounts."
+                    ]
+                },
+                "responsibility": {
+                    "title": "3. User Responsibilities",
+                    "items": [
+                        "Users are responsible for the data they enter.",
+                        "Do not use the application for fraudulent activities or legal violations.",
+                        "Do not interfere with the system, attack, or exploit illegally."
+                    ]
+                },
+                "intellectualProperty": {
+                    "title": "4. Intellectual Property Rights",
+                    "items": [
+                        "All source code, logos, and designs belong to the VanLang Budget development team.",
+                        "Do not copy or reuse any part without written consent."
+                    ]
+                },
+                "liability": {
+                    "title": "5. Limitation of Liability",
+                    "items": [
+                        "The application is not responsible if users enter incorrect financial information.",
+                        "AI advisory information is for reference only and does not replace professional financial advice."
+                    ]
+                },
+                "termination": {
+                    "title": "6. Account Termination",
+                    "items": [
+                        "Users can request account deletion at any time.",
+                        "VanLang Budget has the right to terminate accounts if violations are detected."
+                    ]
+                },
+                "changes": {
+                    "title": "7. Changes to Terms",
+                    "content": "We may update the terms of use. Continued use of the application implies your agreement to the new terms."
+                }
+            }
+        },
+        "privacy": {
+            "title": "Privacy Policy",
+            "subtitle": "VanLang Budget Application",
+            "securityFeatures": {
+                "bcryptEncryption": "bcrypt Encryption",
+                "httpsSSL": "HTTPS SSL",
+                "jwtToken": "JWT Token",
+                "anonymousData": "Anonymous Data"
+            },
+            "sections": {
+                "introduction": {
+                    "title": "1. Introduction",
+                    "content": "VanLang Budget is committed to protecting the privacy and personal data of users. This privacy policy explains how we collect, use, and protect your personal information."
+                },
+                "dataCollection": {
+                    "title": "2. Information We Collect",
+                    "items": [
+                        "Personal information: name, email, password, phone number (if any).",
+                        "Financial information: expenses, income, budgets, loans, investments.",
+                        "Device information: IP, browser type, login information.",
+                        "Usage history: login times, user actions."
+                    ]
+                },
+                "usagePurpose": {
+                    "title": "3. Purpose of Use",
+                    "items": [
+                        "Provide and operate personal financial management services.",
+                        "Send notifications, reminders (budgets, loans...).",
+                        "Improve user experience and technical support.",
+                        "Analyze anonymous data for internal research purposes."
+                    ]
+                },
+                "dataProtection": {
+                    "title": "4. Personal Information Protection",
+                    "items": [
+                        "User passwords are encrypted using bcrypt algorithm.",
+                        "Data transmission uses secure HTTPS protocol.",
+                        "Authentication tokens (JWT) are used to ensure secure access."
+                    ]
+                },
+                "userRights": {
+                    "title": "5. User Rights",
+                    "items": [
+                        "Have the right to access, edit, or delete your personal information.",
+                        "Can request export of all personal data.",
+                        "Can request permanent deletion of account and data."
+                    ]
+                },
+                "dataSharing": {
+                    "title": "6. Data Storage and Sharing",
+                    "items": [
+                        "Data is stored on our secure servers.",
+                        "We do not share personal information with third parties, except when required by law enforcement.",
+                        "Data may be used anonymously for statistical purposes."
+                    ]
+                },
+                "policyChanges": {
+                    "title": "7. Policy Changes",
+                    "content": "We have the right to change the privacy policy at any time. Users will be notified if there are important changes."
+                }
+            },
+            "dataRights": {
+                "title": "Your Rights with Personal Data",
+                "access": {
+                    "title": "Access",
+                    "description": "View your data"
+                },
+                "export": {
+                    "title": "Export Data",
+                    "description": "Download all data"
+                },
+                "delete": {
+                    "title": "Delete Data",
+                    "description": "Permanently delete account"
+                }
+            }
+        },
+        "cookies": {
+            "title": "Cookie Policy",
+            "subtitle": "VanLang Budget",
+            "cookieTypes": {
+                "essential": {
+                    "label": "Essential",
+                    "description": "Cannot be disabled"
+                },
+                "functional": {
+                    "label": "Functional",
+                    "description": "Can be disabled"
+                },
+                "analytics": {
+                    "label": "Analytics",
+                    "description": "Can be disabled"
+                },
+                "thirdParty": {
+                    "label": "Third Party",
+                    "description": "Can be disabled"
+                }
+            },
+            "sections": {
+                "introduction": {
+                    "title": "1. Introduction to Cookies",
+                    "content": "Cookies are small files stored on your device when you access VanLang Budget. They help us improve user experience and provide better services."
+                },
+                "typesOfCookies": {
+                    "title": "2. Types of Cookies We Use",
+                    "items": [
+                        "Essential cookies: Ensure the website functions properly (login, security).",
+                        "Performance cookies: Collect information about how you use the website.",
+                        "Functional cookies: Remember your preferences (language, theme).",
+                        "Analytics cookies: Help us understand user behavior to improve services."
+                    ]
+                },
+                "essentialCookies": {
+                    "title": "3. Essential Cookies",
+                    "items": [
+                        "Authentication tokens (JWT): Maintain secure login sessions.",
+                        "CSRF Token: Protect against cross-site attacks.",
+                        "Session ID: Manage user work sessions.",
+                        "Security cookies: Ensure security during data transmission."
+                    ]
+                },
+                "functionalCookies": {
+                    "title": "4. Functional Cookies",
+                    "items": [
+                        "Language: Remember your chosen language (Vietnamese/English).",
+                        "Theme: Save interface preferences (Light/Dark mode).",
+                        "Display options: Remember how you want to display data.",
+                        "Notification settings: Store your notification preferences."
+                    ]
+                },
+                "analyticsCookies": {
+                    "title": "5. Analytics Cookies",
+                    "items": [
+                        "Access statistics: Count number of users and pages viewed.",
+                        "User behavior: Understand how users interact with the application.",
+                        "Performance: Track page load speed and system errors.",
+                        "UX improvement: Data to optimize user experience."
+                    ]
+                },
+                "thirdPartyCookies": {
+                    "title": "6. Third-Party Cookies",
+                    "items": [
+                        "Vercel Analytics: Track website performance (if enabled).",
+                        "CDN Services: Optimize page load speed.",
+                        "Font Services: Google Fonts or other font services.",
+                        "API Services: Cookies from integrated API services."
+                    ]
+                },
+                "cookieManagement": {
+                    "title": "7. Cookie Management",
+                    "items": [
+                        "You can delete cookies through browser settings.",
+                        "Disabling cookies may affect some website features.",
+                        "Essential cookies cannot be disabled to ensure security.",
+                        "You can contact us for more details."
+                    ]
+                },
+                "dataRetention": {
+                    "title": "8. Storage Duration",
+                    "items": [
+                        "Session cookies: Deleted when browser is closed.",
+                        "Persistent cookies: Stored from 30 days to 1 year.",
+                        "Authentication tokens: Expire after 7 days of inactivity.",
+                        "Preference cookies: Stored long-term until user deletes."
+                    ]
+                }
+            },
+            "browserSettings": {
+                "title": "Cookie Settings in Browser",
+                "chrome": {
+                    "name": "Chrome",
+                    "path": "Settings → Privacy → Cookies"
+                },
+                "firefox": {
+                    "name": "Firefox",
+                    "path": "Options → Privacy → Cookies"
+                },
+                "safari": {
+                    "name": "Safari",
+                    "path": "Preferences → Privacy"
+                }
+            },
+            "importantNote": {
+                "title": "Important Note",
+                "content": "Disabling cookies may affect your VanLang Budget experience. Some features like login, saving settings, and security may not work properly. We recommend only disabling non-essential cookies."
+            }
+        },
+        "cookieBanner": {
+            "title": "We Use Cookies",
+            "description": "VanLang Budget uses cookies to improve your experience, provide relevant content and analyze traffic. By continuing to use the website, you agree to our use of cookies.",
+            "learnMore": "Learn more about our cookie policy →",
+            "acceptAll": "Accept All",
+            "customize": "Customize",
+            "essentialOnly": "Essential Only",
+            "settings": {
+                "title": "Cookie Settings",
+                "essential": {
+                    "title": "Essential Cookies",
+                    "description": "Required for basic website operation (login, security)"
+                },
+                "functional": {
+                    "title": "Functional Cookies",
+                    "description": "Remember your preferences (language, theme, settings)"
+                },
+                "analytics": {
+                    "title": "Analytics Cookies",
+                    "description": "Help us understand how you use the website to improve services"
+                },
+                "marketing": {
+                    "title": "Marketing Cookies",
+                    "description": "Personalize advertising and track campaign effectiveness"
+                }
+            },
+            "cancel": "Cancel",
+            "savePreferences": "Save Preferences"
+        }
     }
 }

@@ -85,22 +85,28 @@ export function Footer() {
                         <h3 className="text-lg font-semibold mb-6 text-white">{t('footer.legal.title')}</h3>
                         <ul className="space-y-3">
                             <li>
-                                <a href="/legal-404" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/legal/terms" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <BookIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.legal1 || t('footer.legal.terms')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/legal-404" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/legal/privacy" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <ShieldIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.legal2 || t('footer.legal.privacy')}</span>
-                                </a>
+                                </Link>
                             </li>
                             <li>
-                                <a href="/legal-404" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                <Link href="/legal/cookies" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
                                     <ShieldIcon className="w-4 h-4 mr-2" />
                                     <span>{footerContent?.legal3 || t('footer.legal.cookies')}</span>
-                                </a>
+                                </Link>
+                            </li>
+                            <li>
+                                <Link href="/legal" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors flex items-center">
+                                    <ShieldIcon className="w-4 h-4 mr-2" />
+                                    <span>Tài liệu pháp lý</span>
+                                </Link>
                             </li>
                         </ul>
                     </div>
