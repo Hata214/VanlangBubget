@@ -184,22 +184,22 @@ export default function AdminDashboardPage() {
 
             {/* Thông tin người dùng đăng nhập */}
             {user && (
-                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+                <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 dark:from-slate-800 dark:to-slate-700 dark:border-slate-600">
                     <CardHeader className="pb-3">
                         <div className="flex items-center space-x-2">
                             <Shield className={user.role === 'superadmin' ? 'text-red-500' : 'text-blue-500'} />
-                            <CardTitle className="text-lg">Thông tin đăng nhập</CardTitle>
+                            <CardTitle className="text-lg text-foreground">Thông tin đăng nhập</CardTitle>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-3 gap-6">
                             <div>
                                 <div className="text-sm text-muted-foreground">Tên người dùng</div>
-                                <div className="font-medium">{user.name}</div>
+                                <div className="font-medium text-foreground">{user.name}</div>
                             </div>
                             <div>
                                 <div className="text-sm text-muted-foreground">Email</div>
-                                <div className="font-medium">{user.email}</div>
+                                <div className="font-medium text-foreground">{user.email}</div>
                             </div>
                             <div>
                                 <div className="text-sm text-muted-foreground">Vai trò</div>
