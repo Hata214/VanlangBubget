@@ -212,99 +212,52 @@ export default function AdminDashboardPage() {
                 </Card>
             )}
 
-            {/* Statistics Cards - Chỉ có 8 cards như trong hình */}
-            <div className="space-y-6">
-                {/* Hàng thứ nhất - 4 cards */}
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    {loading ? (
-                        // Loading skeleton hàng 1
-                        [...Array(4)].map((_, index) => (
-                            <Card key={index} className="border-0 shadow-sm bg-white">
-                                <CardContent className="p-6">
+            {/* Statistics Cards - 8 cards nằm ngang trên một hàng */}
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8">
+                {loading ? (
+                    // Loading skeleton cho tất cả 8 cards
+                    [...Array(8)].map((_, index) => (
+                        <Card key={index} className="border-0 shadow-sm bg-white">
+                            <CardContent className="p-4">
+                                <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
-                                            <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
-                                            <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
-                                        </div>
-                                        <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
+                                        <div className="h-3 w-16 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-6 w-6 bg-gray-200 animate-pulse rounded-full"></div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    ) : (
-                        stats_cards.slice(0, 4).map((card, index) => (
-                            <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-                                <CardContent className="p-6">
+                                    <div>
+                                        <div className="h-6 w-10 bg-gray-200 animate-pulse rounded mb-1"></div>
+                                        <div className="h-2 w-14 bg-gray-200 animate-pulse rounded"></div>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                ) : (
+                    stats_cards.map((card, index) => (
+                        <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                            <CardContent className="p-4">
+                                <div className="space-y-3">
                                     <div className="flex items-center justify-between">
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-600 mb-3">
-                                                {card.title}
-                                            </p>
-                                            <div className="space-y-1">
-                                                <p className="text-3xl font-bold text-gray-900">
-                                                    {card.value}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    {card.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className={`p-3 rounded-full ${card.iconBg}`}>
-                                            <card.icon className="h-4 w-4 text-white" />
+                                        <p className="text-xs font-medium text-gray-600">
+                                            {card.title}
+                                        </p>
+                                        <div className={`p-2 rounded-full ${card.iconBg}`}>
+                                            <card.icon className="h-3 w-3 text-white" />
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-                </div>
-
-                {/* Hàng thứ hai - 4 cards */}
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    {loading ? (
-                        // Loading skeleton hàng 2
-                        [...Array(4)].map((_, index) => (
-                            <Card key={index + 4} className="border-0 shadow-sm bg-white">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
-                                            <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
-                                            <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
-                                        </div>
-                                        <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-gray-900 mb-1">
+                                            {card.value}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                            {card.description}
+                                        </p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    ) : (
-                        stats_cards.slice(4, 8).map((card, index) => (
-                            <Card key={index + 4} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
-                                <CardContent className="p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex-1">
-                                            <p className="text-sm font-medium text-gray-600 mb-3">
-                                                {card.title}
-                                            </p>
-                                            <div className="space-y-1">
-                                                <p className="text-3xl font-bold text-gray-900">
-                                                    {card.value}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    {card.description}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className={`p-3 rounded-full ${card.iconBg}`}>
-                                            <card.icon className="h-4 w-4 text-white" />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))
-                    )}
-                </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
 
             {/* Bottom Section - User Roles and Admin Activity */}
