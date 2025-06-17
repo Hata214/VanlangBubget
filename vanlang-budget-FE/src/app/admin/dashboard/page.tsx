@@ -111,72 +111,56 @@ export default function AdminDashboardPage() {
             value: dashboardData.users.total.toLocaleString(),
             description: 'Người dùng đã đăng ký',
             icon: Users,
-            bgColor: 'bg-blue-100',
-            iconColor: 'text-blue-600',
-            borderColor: 'border-blue-200'
+            iconBg: 'bg-blue-500'
         },
         {
             title: 'Người dùng mới',
             value: dashboardData.users.new.toLocaleString(),
             description: '30 ngày qua',
             icon: TrendingUp,
-            bgColor: 'bg-green-100',
-            iconColor: 'text-green-600',
-            borderColor: 'border-green-200'
+            iconBg: 'bg-green-500'
         },
         {
             title: 'Người dùng hoạt động',
             value: dashboardData.users.active.toLocaleString(),
             description: 'Đang hoạt động',
             icon: Activity,
-            bgColor: 'bg-yellow-100',
-            iconColor: 'text-yellow-600',
-            borderColor: 'border-yellow-200'
+            iconBg: 'bg-yellow-500'
         },
         {
             title: 'Quản trị viên',
             value: dashboardData.users.admin.toLocaleString(),
             description: 'Admin & SuperAdmin',
             icon: Shield,
-            bgColor: 'bg-purple-100',
-            iconColor: 'text-purple-600',
-            borderColor: 'border-purple-200'
+            iconBg: 'bg-purple-500'
         },
         {
             title: 'Thu nhập',
             value: dashboardData.financialData.incomes.toLocaleString(),
             description: 'Bản ghi thu nhập',
             icon: DollarSign,
-            bgColor: 'bg-emerald-100',
-            iconColor: 'text-emerald-600',
-            borderColor: 'border-emerald-200'
+            iconBg: 'bg-green-500'
         },
         {
             title: 'Chi tiêu',
             value: dashboardData.financialData.expenses.toLocaleString(),
             description: 'Bản ghi chi tiêu',
             icon: FileText,
-            bgColor: 'bg-red-100',
-            iconColor: 'text-red-600',
-            borderColor: 'border-red-200'
+            iconBg: 'bg-red-500'
         },
         {
             title: 'Khoản vay',
             value: dashboardData.financialData.loans.toLocaleString(),
             description: 'Khoản vay đang quản lý',
             icon: BarChart3,
-            bgColor: 'bg-orange-100',
-            iconColor: 'text-orange-600',
-            borderColor: 'border-orange-200'
+            iconBg: 'bg-orange-500'
         },
         {
             title: 'Ngân sách',
             value: dashboardData.financialData.budgets.toLocaleString(),
             description: 'Kế hoạch ngân sách',
             icon: Database,
-            bgColor: 'bg-indigo-100',
-            iconColor: 'text-indigo-600',
-            borderColor: 'border-indigo-200'
+            iconBg: 'bg-blue-500'
         }
     ] : []
 
@@ -248,46 +232,44 @@ export default function AdminDashboardPage() {
                 </Card>
             )}
 
-            {/* Statistics Cards - Grid 4x2 */}
-            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {/* Statistics Cards - Chỉ có 8 cards như trong hình */}
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                 {loading ? (
                     // Loading skeleton
                     [...Array(8)].map((_, index) => (
-                        <Card key={index} className="h-32">
-                            <CardHeader className="pb-2">
-                                <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                            </CardHeader>
-                            <CardContent>
+                        <Card key={index} className="border-0 shadow-sm bg-white">
+                            <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="h-8 w-16 bg-muted animate-pulse rounded mb-1"></div>
-                                        <div className="h-3 w-20 bg-muted animate-pulse rounded"></div>
+                                        <div className="h-4 w-24 bg-gray-200 animate-pulse rounded mb-3"></div>
+                                        <div className="h-8 w-16 bg-gray-200 animate-pulse rounded mb-2"></div>
+                                        <div className="h-3 w-20 bg-gray-200 animate-pulse rounded"></div>
                                     </div>
-                                    <div className="h-8 w-8 bg-muted animate-pulse rounded-full"></div>
+                                    <div className="h-10 w-10 bg-gray-200 animate-pulse rounded-full"></div>
                                 </div>
                             </CardContent>
                         </Card>
                     ))
                 ) : (
                     stats_cards.map((card, index) => (
-                        <Card key={index} className={`hover:shadow-md transition-shadow h-32 ${card.bgColor} ${card.borderColor}`}>
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-700">
-                                    {card.title}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
+                        <Card key={index} className="border-0 shadow-sm bg-white hover:shadow-md transition-shadow">
+                            <CardContent className="p-6">
                                 <div className="flex items-center justify-between">
-                                    <div>
-                                        <div className="text-2xl font-bold text-gray-900">
-                                            {card.value}
-                                        </div>
-                                        <p className="text-xs text-gray-600 mt-1">
-                                            {card.description}
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium text-gray-600 mb-3">
+                                            {card.title}
                                         </p>
+                                        <div className="space-y-1">
+                                            <p className="text-3xl font-bold text-gray-900">
+                                                {card.value}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {card.description}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className={`p-2 rounded-full bg-white shadow-sm ${card.iconColor}`}>
-                                        <card.icon className="h-5 w-5" />
+                                    <div className={`p-3 rounded-full ${card.iconBg}`}>
+                                        <card.icon className="h-4 w-4 text-white" />
                                     </div>
                                 </div>
                             </CardContent>
@@ -299,7 +281,7 @@ export default function AdminDashboardPage() {
             {/* Bottom Section - User Roles and Admin Activity */}
             <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
                 {/* Phân bố vai trò người dùng */}
-                <Card>
+                <Card className="border-0 shadow-sm bg-white">
                     <CardHeader>
                         <CardTitle>Phân bố vai trò người dùng</CardTitle>
                         <CardDescription>
@@ -311,8 +293,8 @@ export default function AdminDashboardPage() {
                             <div className="space-y-3">
                                 {[...Array(3)].map((_, i) => (
                                     <div key={i} className="flex items-center justify-between">
-                                        <div className="h-4 w-20 bg-muted animate-pulse rounded"></div>
-                                        <div className="h-4 w-12 bg-muted animate-pulse rounded"></div>
+                                        <div className="h-4 w-20 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-4 w-12 bg-gray-200 animate-pulse rounded"></div>
                                     </div>
                                 ))}
                             </div>
@@ -344,7 +326,7 @@ export default function AdminDashboardPage() {
                 </Card>
 
                 {/* Hoạt động quản trị */}
-                <Card>
+                <Card className="border-0 shadow-sm bg-white">
                     <CardHeader>
                         <CardTitle>Hoạt động quản trị</CardTitle>
                         <CardDescription>
@@ -356,8 +338,8 @@ export default function AdminDashboardPage() {
                             <div className="space-y-3">
                                 {[...Array(4)].map((_, i) => (
                                     <div key={i} className="flex items-center justify-between">
-                                        <div className="h-4 w-24 bg-muted animate-pulse rounded"></div>
-                                        <div className="h-4 w-8 bg-muted animate-pulse rounded"></div>
+                                        <div className="h-4 w-24 bg-gray-200 animate-pulse rounded"></div>
+                                        <div className="h-4 w-8 bg-gray-200 animate-pulse rounded"></div>
                                     </div>
                                 ))}
                             </div>
