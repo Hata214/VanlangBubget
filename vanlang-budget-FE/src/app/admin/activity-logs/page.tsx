@@ -171,8 +171,17 @@ export default function ActivityLogsPage() {
 
             const response = await adminService.getActivityStats(options);
 
-            if (response.status === 'success') {
-                setStats(response.data.stats || {
+            if (response.status === 'success' && response.data?.stats) {
+                setStats({
+                    totalActivities: response.data.stats.totalActivities || 0,
+                    todayActivities: response.data.stats.todayActivities || 0,
+                    successRate: response.data.stats.successRate || 0,
+                    topActions: response.data.stats.topActions || [],
+                    activeAdmins: response.data.stats.activeAdmins || 0
+                });
+            } else {
+                // Fallback nếu API không trả về dữ liệu đúng format
+                setStats({
                     totalActivities: 0,
                     todayActivities: 0,
                     successRate: 0,
@@ -182,6 +191,14 @@ export default function ActivityLogsPage() {
             }
         } catch (error) {
             console.error('Lỗi khi tải thống kê:', error);
+            // Set default stats khi có lỗi
+            setStats({
+                totalActivities: 0,
+                todayActivities: 0,
+                successRate: 0,
+                topActions: [],
+                activeAdmins: 0
+            });
         } finally {
             setStatsLoading(false);
         }
@@ -312,14 +329,20 @@ export default function ActivityLogsPage() {
 
     const formatDate = (dateString: string) => {
         if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('vi-VN', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return 'N/A';
+        }
     };
 
     const getActionLabel = (action: string) => {
@@ -474,7 +497,7 @@ export default function ActivityLogsPage() {
                                     {statsLoading ? (
                                         <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
                                     ) : (
-                                        stats.totalActivities.toLocaleString()
+                                        (stats?.totalActivities || 0).toLocaleString()
                                     )}
                                 </p>
                             </div>
@@ -492,7 +515,7 @@ export default function ActivityLogsPage() {
                                     {statsLoading ? (
                                         <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
                                     ) : (
-                                        stats.todayActivities.toLocaleString()
+                                        (stats?.todayActivities || 0).toLocaleString()
                                     )}
                                 </p>
                             </div>
@@ -510,7 +533,7 @@ export default function ActivityLogsPage() {
                                     {statsLoading ? (
                                         <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
                                     ) : (
-                                        `${stats.successRate.toFixed(1)}%`
+                                        `${(stats?.successRate || 0).toFixed(1)}%`
                                     )}
                                 </p>
                             </div>
@@ -528,7 +551,7 @@ export default function ActivityLogsPage() {
                                     {statsLoading ? (
                                         <div className="h-8 w-16 bg-muted animate-pulse rounded"></div>
                                     ) : (
-                                        stats.activeAdmins.toLocaleString()
+                                        (stats?.activeAdmins || 0).toLocaleString()
                                     )}
                                 </p>
                             </div>
@@ -707,16 +730,16 @@ export default function ActivityLogsPage() {
                                             <TableCell className="font-medium whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <Calendar className="mr-2 h-4 w-4 text-gray-500" />
-                                                    {formatDate(log.timestamp)}
+                                                    {formatDate(log?.timestamp || '')}
                                                 </div>
                                             </TableCell>
                                             {currentUser?.role === 'superadmin' && (
                                                 <TableCell>
                                                     <div className="flex items-center">
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
-                                                        {log.adminId ? (
+                                                        {log?.adminId ? (
                                                             <span className="font-medium">
-                                                                {log.adminId.firstName} {log.adminId.lastName}
+                                                                {log.adminId.firstName || ''} {log.adminId.lastName || ''}
                                                             </span>
                                                         ) : 'N/A'}
                                                     </div>
@@ -725,27 +748,27 @@ export default function ActivityLogsPage() {
                                             <TableCell>
                                                 <Badge
                                                     variant="outline"
-                                                    className={getActionBadgeColor(log.action)}
+                                                    className={getActionBadgeColor(log?.action)}
                                                 >
                                                     <Activity className="mr-1 h-3 w-3" />
-                                                    {getActionLabel(log.action)}
+                                                    {getActionLabel(log?.action || '')}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge
                                                     variant="outline"
-                                                    className={getResultBadgeColor(log.result)}
+                                                    className={getResultBadgeColor(log?.result)}
                                                 >
-                                                    {getResultIcon(log.result)}
-                                                    <span className="ml-1">{getResultLabel(log.result)}</span>
+                                                    {getResultIcon(log?.result || '')}
+                                                    <span className="ml-1">{getResultLabel(log?.result || '')}</span>
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {log.targetId ? (
+                                                {log?.targetId ? (
                                                     <div className="flex items-center">
                                                         <User className="mr-2 h-4 w-4 text-gray-500" />
                                                         <span className="text-sm">
-                                                            {log.targetId.firstName} {log.targetId.lastName}
+                                                            {log.targetId.firstName || ''} {log.targetId.lastName || ''}
                                                         </span>
                                                     </div>
                                                 ) : (
@@ -756,7 +779,7 @@ export default function ActivityLogsPage() {
                                                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                                     <Globe className="h-3 w-3" />
                                                     <span className="font-mono text-xs">
-                                                        {log.ipAddress || 'N/A'}
+                                                        {log?.ipAddress || 'N/A'}
                                                     </span>
                                                 </div>
                                             </TableCell>
@@ -776,15 +799,15 @@ export default function ActivityLogsPage() {
                                                                 <div className="text-sm space-y-2">
                                                                     <div className="grid grid-cols-2 gap-2">
                                                                         <span className="font-semibold">Hành động:</span>
-                                                                        <span>{getActionLabel(log.action)}</span>
+                                                                        <span>{getActionLabel(log?.action || '')}</span>
 
                                                                         <span className="font-semibold">Kết quả:</span>
-                                                                        <span>{getResultLabel(log.result)}</span>
+                                                                        <span>{getResultLabel(log?.result || '')}</span>
 
                                                                         <span className="font-semibold">Thời gian:</span>
-                                                                        <span>{formatDate(log.timestamp)}</span>
+                                                                        <span>{formatDate(log?.timestamp || '')}</span>
 
-                                                                        {log.ipAddress && (
+                                                                        {log?.ipAddress && (
                                                                             <>
                                                                                 <span className="font-semibold">IP:</span>
                                                                                 <span className="font-mono text-xs">{log.ipAddress}</span>
@@ -792,7 +815,7 @@ export default function ActivityLogsPage() {
                                                                         )}
                                                                     </div>
 
-                                                                    {log.userAgent && (
+                                                                    {log?.userAgent && (
                                                                         <div className="mt-2">
                                                                             <p className="font-semibold">User Agent:</p>
                                                                             <p className="text-xs bg-gray-100 p-2 rounded mt-1 break-all">
@@ -801,7 +824,7 @@ export default function ActivityLogsPage() {
                                                                         </div>
                                                                     )}
 
-                                                                    {log.details && Object.keys(log.details).length > 0 && (
+                                                                    {log?.details && Object.keys(log.details).length > 0 && (
                                                                         <div className="mt-2">
                                                                             <p className="font-semibold">Chi tiết kỹ thuật:</p>
                                                                             <pre className="text-xs bg-gray-100 p-2 rounded mt-1 overflow-x-auto max-h-32">
