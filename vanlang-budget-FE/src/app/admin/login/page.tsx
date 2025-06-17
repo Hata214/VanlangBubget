@@ -254,11 +254,7 @@ export default function AdminLoginPage() {
                     </button>
                 </form>
 
-                <div className="admin-login-footer">
-                    <Link href="/admin/forgot-password" className="admin-login-link">
-                        Quên mật khẩu?
-                    </Link>
-                </div>
+                {/* Admin không nên có tính năng quên mật khẩu vì lý do bảo mật */}
             </div>
         </div>
     );

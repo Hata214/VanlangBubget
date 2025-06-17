@@ -28,7 +28,7 @@ import { AdminThemeToggle } from '@/components/admin/AdminThemeToggle';
 import './admin.css';
 
 // Trang không yêu cầu kiểm tra quyền admin
-const PUBLIC_PATHS = ['/admin/login', '/admin/forgot-password', '/admin/reset-password'];
+const PUBLIC_PATHS = ['/admin/login', '/admin/reset-password'];
 
 // Tạo hàm riêng để xóa dữ liệu người dùng để tránh lặp code
 const clearUserData = () => {
