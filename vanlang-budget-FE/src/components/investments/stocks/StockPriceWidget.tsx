@@ -23,6 +23,8 @@ interface StockData {
     change?: number;
     percentChange?: number;
     lastUpdated?: Date;
+    name: string;
+    industry: string;
 }
 
 export function StockPriceWidget({ onAddInvestment, defaultSymbol = 'VNM', showAddButton = true }: StockPriceWidgetProps) {
@@ -39,10 +41,16 @@ export function StockPriceWidget({ onAddInvestment, defaultSymbol = 'VNM', showA
         setError(null);
         try {
             const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
-            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${symbol}`);
+            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${symbol}&source=TCBS`);
 
             if (response.data && response.data.price !== undefined && response.data.price !== null) {
-                const newPrice = response.data.price;
+                // Xử lý giá trị: nếu giá > 1000 thì có thể là đơn vị đồng, chia cho 1000 để hiển thị theo nghìn đồng
+                let newPrice = response.data.price;
+                if (newPrice > 1000) {
+                    // Nếu giá > 1000, giả định là đơn vị đồng và chuyển sang nghìn đồng
+                    newPrice = newPrice / 1000;
+                }
+
                 const oldPrice = stockData?.price || newPrice;
                 const priceChange = newPrice - oldPrice;
                 const percentChange = oldPrice ? (priceChange / oldPrice) * 100 : 0;
@@ -52,7 +60,9 @@ export function StockPriceWidget({ onAddInvestment, defaultSymbol = 'VNM', showA
                     price: newPrice,
                     change: priceChange,
                     percentChange: percentChange,
-                    lastUpdated: new Date()
+                    lastUpdated: new Date(),
+                    name: response.data.name || symbol,
+                    industry: response.data.industry || ''
                 });
             } else {
                 setError('Không thể lấy giá cổ phiếu');
@@ -150,6 +160,20 @@ export function StockPriceWidget({ onAddInvestment, defaultSymbol = 'VNM', showA
                                         ) : null}
                                         <span className="font-medium">{formatPrice(stockData.change)} ({formatPercentChange(stockData.percentChange)})</span>
                                     </div>
+                                </div>
+                            )}
+
+                            {stockData.name && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Tên:</span>
+                                    <span className="text-sm font-medium">{stockData.name}</span>
+                                </div>
+                            )}
+
+                            {stockData.industry && (
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-muted-foreground">Ngành:</span>
+                                    <span className="text-sm">{stockData.industry}</span>
                                 </div>
                             )}
 
