@@ -9,8 +9,9 @@ Hệ thống API cung cấp thông tin về thị trường chứng khoán Việ
 - Truy xuất dữ liệu lịch sử giá
 - Xem thông tin chi tiết về công ty
 - Theo dõi chỉ số thị trường (VNIndex, VN30, HNX, UPCOM)
-- **Mới**: Lấy dữ liệu giao dịch theo thời gian thực (intraday)
-- **Mới**: Lấy thông tin giá theo thời gian thực của nhiều mã cổ phiếu
+- **Cập nhật**: Lấy dữ liệu giao dịch theo thời gian thực (intraday)
+- **Cập nhật**: Lấy thông tin giá theo thời gian thực (realtime) của nhiều mã cổ phiếu sử dụng cú pháp mới của vnstock 3.1.0+
+- **Mới**: API dữ liệu giả (mock) cho các mã cổ phiếu khi API realtime không hoạt động
 
 ## Cài đặt và chạy
 
@@ -181,13 +182,18 @@ GET /api/stock/realtime?symbols=<danh sách mã cổ phiếu>&source=<nguồn d�
 
 **Tham số:**
 - `symbols` (mặc định: VNM,VCB,HPG): Danh sách mã cổ phiếu, phân cách bằng dấu phẩy
-- `source` (mặc định: VCI): Nguồn dữ liệu
+- `source` (mặc định: TCBS): Nguồn dữ liệu (khuyên dùng TCBS vì cung cấp dữ liệu realtime tốt nhất)
+
+**Ví dụ:**
+```
+GET /api/stock/realtime?symbols=VCB,BID,CTG,TCB,MBB,VIC,NVL,PDR,VNM,SAB,MSN,HPG&source=TCBS
+```
 
 **Kết quả:**
 ```json
 {
   "symbols": ["VNM", "VCB", "HPG"],
-  "source": "VCI",
+  "source": "TCBS",
   "count": 3,
   "timestamp": "2024-06-18T11:45:07.948866",
   "data": [
@@ -258,6 +264,45 @@ GET /api/market/indices?source=<nguồn dữ liệu>
   "source": "VCI"
 }
 ```
+
+### 9. Dữ liệu giả cho các mã cổ phiếu
+
+```
+GET /api/stock/mock?symbols=<danh sách mã cổ phiếu>
+```
+
+**Tham số:**
+- `symbols` (mặc định: VNM,VCB,HPG): Danh sách mã cổ phiếu, phân cách bằng dấu phẩy
+
+**Ví dụ:**
+```
+GET /api/stock/mock?symbols=VCB,BID,CTG,TCB,MBB,VIC,NVL,PDR,VNM,SAB,MSN,HPG
+```
+
+**Kết quả:**
+```json
+{
+  "symbols": ["VNM", "VCB", "HPG"],
+  "source": "MOCK",
+  "count": 3,
+  "timestamp": "2024-06-18T11:45:07.948866",
+  "data": [
+    {
+      "symbol": "VNM",
+      "price": 56400,
+      "change": 200,
+      "pct_change": 0.35,
+      "volume": 214498,
+      "high": 56800,
+      "low": 56100,
+      "open": 56200
+    },
+    // ...
+  ]
+}
+```
+
+Sử dụng API này khi API realtime không hoạt động hoặc khi bạn cần dữ liệu giả để kiểm thử ứng dụng.
 
 ## Nguồn dữ liệu hỗ trợ
 
