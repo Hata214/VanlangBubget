@@ -413,19 +413,46 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
             print(f"Kết quả truy vấn price_board: {df_price.shape[0]} dòng")
             print(f"Cấu trúc dữ liệu: {df_price.columns.tolist()}")
             print(f"Dữ liệu mẫu: {df_price.head().to_dict('records')}")
+            
+            # Thử lấy dữ liệu từ nguồn khác nếu không có dữ liệu
+            if df_price.empty and source == "TCBS":
+                print("Không có dữ liệu từ TCBS, thử lấy từ VCI")
+                stock = Vnstock().stock(symbol=symbol_list[0], source="VCI")
+                df_price = stock.trading.price_board(symbol_list)
+                print(f"Kết quả truy vấn price_board từ VCI: {df_price.shape[0]} dòng")
         except Exception as inner_e:
             print(f"Lỗi khi gọi price_board: {str(inner_e)}")
-            return {
-                "symbols": symbol_list,
-                "source": source,
-                "count": 0,
-                "timestamp": datetime.now().isoformat(),
-                "error": f"Không thể lấy dữ liệu: {str(inner_e)}",
-                "data": []
-            }
+            try:
+                # Thử lại với nguồn VCI nếu TCBS không hoạt động
+                if source == "TCBS":
+                    print("Thử lại với nguồn VCI")
+                    stock = Vnstock().stock(symbol=symbol_list[0], source="VCI")
+                    df_price = stock.trading.price_board(symbol_list)
+                    print(f"Kết quả truy vấn price_board từ VCI: {df_price.shape[0]} dòng")
+                else:
+                    raise inner_e
+            except Exception as retry_e:
+                print(f"Lỗi khi thử lại: {str(retry_e)}")
+                return {
+                    "symbols": symbol_list,
+                    "source": source,
+                    "count": 0,
+                    "timestamp": datetime.now().isoformat(),
+                    "error": f"Không thể lấy dữ liệu: {str(inner_e)}",
+                    "data": []
+                }
         
         result = []
         if not df_price.empty:
+            # In ra thông tin chi tiết để debug
+            print("Dữ liệu mẫu đầu tiên:")
+            if len(df_price) > 0:
+                first_row = df_price.iloc[0].to_dict()
+                print(f"Dòng đầu tiên: {first_row}")
+                for col in df_price.columns:
+                    val = first_row.get(col)
+                    print(f"  {col}: {val} (type: {type(val)})")
+            
             # Chuyển DataFrame thành danh sách các dict
             for i, (_, row) in enumerate(df_price.iterrows()):
                 stock_data = {}
@@ -461,8 +488,19 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                         # Chuyển đổi sang float
                         price_float = float(price_value)
                         
-                        # Giữ nguyên định dạng số với dấu phẩy ngăn cách phần thập phân
-                        stock_data["price"] = price_float * 1000 if price_float < 1000 else price_float
+                        # Đảm bảo giá được hiển thị đúng định dạng như trên giao diện
+                        # Nếu giá < 1000, nhân với 1000 để hiển thị đúng định dạng
+                        if price_float < 1000:
+                            stock_data["price"] = price_float * 1000
+                        else:
+                            stock_data["price"] = price_float
+                        
+                        # Đảm bảo giá được làm tròn đến 2 chữ số thập phân
+                        stock_data["price"] = round(stock_data["price"], 2)
+                        
+                        # Nếu giá vẫn nhỏ, có thể cần nhân thêm
+                        if stock_data["price"] < 100:
+                            stock_data["price"] = stock_data["price"] * 1000
                     except (ValueError, TypeError):
                         print(f"Lỗi chuyển đổi giá: {price_value} (type: {type(price_value)})")
                         stock_data["price"] = 0
@@ -520,6 +558,7 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             high_value = high_value.replace('.', '').replace(',', '.')
                         high_float = float(high_value)
                         stock_data["high"] = high_float * 1000 if high_float < 1000 else high_float
+                        stock_data["high"] = round(stock_data["high"], 2)
                     except (ValueError, TypeError):
                         pass
                 
@@ -536,6 +575,7 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             low_value = low_value.replace('.', '').replace(',', '.')
                         low_float = float(low_value)
                         stock_data["low"] = low_float * 1000 if low_float < 1000 else low_float
+                        stock_data["low"] = round(stock_data["low"], 2)
                     except (ValueError, TypeError):
                         pass
                 
@@ -552,8 +592,28 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             open_value = open_value.replace('.', '').replace(',', '.')
                         open_float = float(open_value)
                         stock_data["open"] = open_float * 1000 if open_float < 1000 else open_float
+                        stock_data["open"] = round(stock_data["open"], 2)
                     except (ValueError, TypeError):
                         pass
+                
+                # Thêm thông tin công ty nếu có
+                try:
+                    company_info = vnstock.listing_companies()
+                    company_row = company_info[company_info['ticker'] == symbol_value]
+                    if not company_row.empty:
+                        stock_data["name"] = company_row.iloc[0].get('organName', symbol_value)
+                        stock_data["industry"] = company_row.iloc[0].get('industryName', '')
+                except Exception as company_e:
+                    print(f"Lỗi khi lấy thông tin công ty: {str(company_e)}")
+                
+                # Kiểm tra một lần nữa để đảm bảo giá hiển thị đúng
+                if "price" in stock_data and stock_data["price"] > 0:
+                    # Nếu giá < 100, có thể là đang hiển thị sai định dạng
+                    if stock_data["price"] < 100:
+                        stock_data["price"] = stock_data["price"] * 1000
+                    # Nếu giá > 1,000,000, có thể đã nhân quá nhiều
+                    elif stock_data["price"] > 1000000:
+                        stock_data["price"] = stock_data["price"] / 1000
                 
                 result.append(stock_data)
         
