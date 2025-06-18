@@ -65,8 +65,15 @@ export const userService = {
      * @param userId ID của người dùng
      */
     async promoteToAdmin(userId: string) {
-        const response = await api.post(`/api/admin/users/${userId}/promote`);
-        return response.data;
+        try {
+            console.log(`Đang gửi request thăng cấp user ${userId} lên admin`);
+            const response = await api.post(`/api/admin/users/${userId}/promote`);
+            console.log('Kết quả thăng cấp từ API:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Lỗi khi thăng cấp user:', error);
+            throw error;
+        }
     },
 
     /**
@@ -75,8 +82,15 @@ export const userService = {
      * @param userId ID của người dùng
      */
     async demoteFromAdmin(userId: string) {
-        const response = await api.post(`/api/admin/users/${userId}/demote`);
-        return response.data;
+        try {
+            console.log(`Đang gửi request hạ cấp admin ${userId} xuống user`);
+            const response = await api.post(`/api/admin/users/${userId}/demote`);
+            console.log('Kết quả hạ cấp từ API:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Lỗi khi hạ cấp admin:', error);
+            throw error;
+        }
     },
 
     /**

@@ -10,6 +10,7 @@ export async function POST(
 ) {
     try {
         const userId = params.id;
+        console.log(`[API] Đang gửi yêu cầu thăng cấp user ${userId} lên admin`);
 
         // Gọi API backend
         const response = await fetch(
@@ -23,25 +24,28 @@ export async function POST(
             }
         );
 
+        const responseData = await response.json();
+        console.log(`[API] Kết quả từ backend:`, responseData);
+
         if (!response.ok) {
-            const error = await response.json();
+            console.error(`[API] Lỗi khi thăng cấp user: ${responseData.message || 'Unknown error'}`);
             return NextResponse.json(
                 {
                     success: false,
-                    message: error.message || 'Không thể thăng cấp người dùng thành Admin'
+                    message: responseData.message || 'Không thể thăng cấp người dùng thành Admin'
                 },
                 { status: response.status }
             );
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        console.log(`[API] Thăng cấp user ${userId} thành công`);
+        return NextResponse.json(responseData);
     } catch (error) {
-        console.error('Lỗi khi xử lý yêu cầu:', error);
+        console.error('[API] Lỗi khi xử lý yêu cầu thăng cấp:', error);
         return NextResponse.json(
             {
                 success: false,
-                message: 'Lỗi máy chủ nội bộ'
+                message: error instanceof Error ? error.message : 'Lỗi máy chủ nội bộ'
             },
             { status: 500 }
         );

@@ -534,41 +534,51 @@ export const deleteAdminUser = catchAsync(async (req, res, next) => {
  */
 export const promoteToAdmin = catchAsync(async (req, res, next) => {
     const userId = req.params.id;
+    console.log(`[Backend] Đang xử lý yêu cầu thăng cấp user ${userId} lên admin từ user ${req.user.id}`);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.log(`[Backend] ID người dùng không hợp lệ: ${userId}`);
         return next(new AppError('ID người dùng không hợp lệ', 400));
     }
 
     // Chỉ superadmin mới có quyền thăng cấp
     if (req.user.role !== 'superadmin') {
+        console.log(`[Backend] User ${req.user.id} với role ${req.user.role} không có quyền thăng cấp người dùng`);
         return next(new AppError('Chỉ SuperAdmin mới có quyền thăng cấp người dùng', 403));
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
+        console.log(`[Backend] Không tìm thấy user với ID: ${userId}`);
         return next(new AppError('Không tìm thấy người dùng', 404));
     }
 
     // Đã là admin rồi thì không cần thăng cấp nữa
     if (user.role === 'admin') {
+        console.log(`[Backend] User ${userId} đã có quyền Admin`);
         return next(new AppError('Người dùng này đã có quyền Admin', 400));
     }
 
     // Không thể thăng cấp superadmin
     if (user.role === 'superadmin') {
+        console.log(`[Backend] Không thể thay đổi quyền của SuperAdmin ${userId}`);
         return next(new AppError('Không thể thay đổi quyền của SuperAdmin', 400));
     }
 
     // Kiểm tra số lượng admin hiện tại
     const adminCount = await User.countDocuments({ role: 'admin' });
+    console.log(`[Backend] Số lượng admin hiện tại: ${adminCount}`);
+
     if (adminCount >= 3) {
+        console.log(`[Backend] Đã đạt giới hạn tối đa số lượng admin (3)`);
         return next(new AppError('Đã đạt giới hạn tối đa số lượng admin (3)', 400));
     }
 
     // Thăng cấp người dùng
     user.role = 'admin';
     await user.save({ validateBeforeSave: false });
+    console.log(`[Backend] Đã thăng cấp user ${userId} lên Admin thành công`);
 
     // Ghi log
     logger.info(`SuperAdmin ${req.user.id} đã thăng cấp người dùng ${userId} lên Admin`);
@@ -598,33 +608,49 @@ export const promoteToAdmin = catchAsync(async (req, res, next) => {
  */
 export const demoteFromAdmin = catchAsync(async (req, res, next) => {
     const userId = req.params.id;
+    console.log(`[Backend] Đang xử lý yêu cầu hạ cấp admin ${userId} xuống user từ user ${req.user.id}`);
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
+        console.log(`[Backend] ID người dùng không hợp lệ: ${userId}`);
         return next(new AppError('ID người dùng không hợp lệ', 400));
     }
 
     // Chỉ superadmin mới có quyền hạ cấp
     if (req.user.role !== 'superadmin') {
+        console.log(`[Backend] User ${req.user.id} với role ${req.user.role} không có quyền hạ cấp Admin`);
         return next(new AppError('Chỉ SuperAdmin mới có quyền hạ cấp Admin', 403));
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
+        console.log(`[Backend] Không tìm thấy user với ID: ${userId}`);
         return next(new AppError('Không tìm thấy người dùng', 404));
     }
 
     // Chỉ hạ cấp admin
     if (user.role !== 'admin') {
+        console.log(`[Backend] User ${userId} không phải Admin (role hiện tại: ${user.role})`);
         return next(new AppError('Người dùng này không phải Admin', 400));
     }
 
     // Hạ cấp admin xuống người dùng thường
     user.role = 'user';
     await user.save({ validateBeforeSave: false });
+    console.log(`[Backend] Đã hạ cấp Admin ${userId} xuống User thành công`);
 
     // Ghi log
     logger.info(`SuperAdmin ${req.user.id} đã hạ cấp Admin ${userId} xuống User`);
+
+    // Log admin activity
+    await AdminActivityLogger.logUserAction(
+        req.user.id,
+        'USER_DEMOTE',
+        userId,
+        { fromRole: 'admin', toRole: 'user' },
+        'SUCCESS',
+        req
+    );
 
     res.status(200).json({
         status: 'success',

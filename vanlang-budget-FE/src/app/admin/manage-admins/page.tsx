@@ -64,6 +64,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { adminService } from '@/services/adminService';
+import { userService } from '@/services/userService';
 
 interface User {
     _id: string;
@@ -196,18 +197,20 @@ export default function ManageAdminsPage() {
                 return;
             }
 
+            console.log('Đang thăng cấp user:', userId);
             // Gọi API để thăng cấp user lên admin
-            const response = await adminService.updateUserRole(userId, 'admin');
+            const response = await userService.promoteToAdmin(userId);
+            console.log('Kết quả thăng cấp:', response);
 
             if (response.success || response.status === 'success') {
                 toast.success('Đã thăng cấp người dùng lên quản trị viên');
                 fetchUsers(); // Fetch lại danh sách sau khi cập nhật
             } else {
-                throw new Error('Failed to promote user');
+                throw new Error(response.message || 'Không thể thăng cấp người dùng');
             }
         } catch (error: any) {
             console.error('Lỗi khi thăng cấp user:', error);
-            toast.error(error.response?.data?.message || 'Không thể thăng cấp người dùng');
+            toast.error(error.response?.data?.message || error.message || 'Không thể thăng cấp người dùng');
         } finally {
             setProcessingUser(null);
         }
@@ -217,18 +220,20 @@ export default function ManageAdminsPage() {
         try {
             setProcessingUser(userId);
 
+            console.log('Đang hạ cấp admin:', userId);
             // Gọi API để hạ cấp admin xuống user
-            const response = await adminService.updateUserRole(userId, 'user');
+            const response = await userService.demoteFromAdmin(userId);
+            console.log('Kết quả hạ cấp:', response);
 
             if (response.success || response.status === 'success') {
                 toast.success('Đã hạ cấp quản trị viên xuống người dùng thường');
                 fetchUsers();
             } else {
-                throw new Error('Failed to demote admin');
+                throw new Error(response.message || 'Không thể hạ cấp quản trị viên');
             }
         } catch (error: any) {
             console.error('Lỗi khi hạ cấp admin:', error);
-            toast.error(error.response?.data?.message || 'Không thể hạ cấp quản trị viên');
+            toast.error(error.response?.data?.message || error.message || 'Không thể hạ cấp quản trị viên');
         } finally {
             setProcessingUser(null);
         }
@@ -412,8 +417,6 @@ export default function ManageAdminsPage() {
                                         </SelectContent>
                                     </Select>
                                 </div>
-
-
 
                                 {/* Date Filter */}
                                 <div className="flex flex-col gap-1">

@@ -412,12 +412,19 @@ export default function AdminUsersPage() {
 
         try {
             setProcessingUser(userId)
-            await userService.promoteToAdmin(userId)
-            toast.success('Đã thăng cấp người dùng thành Admin')
-            await fetchUsers() // Refresh data
+            console.log('Đang thăng cấp user:', userId)
+            const response = await userService.promoteToAdmin(userId)
+            console.log('Kết quả thăng cấp:', response)
+
+            if (response.status === 'success' || response.success) {
+                toast.success('Đã thăng cấp người dùng thành Admin')
+                await fetchUsers() // Refresh data
+            } else {
+                throw new Error(response.message || 'Không thể thăng cấp người dùng')
+            }
         } catch (err: any) {
             console.error('Error promoting user:', err)
-            const errorMessage = err?.response?.data?.message || 'Không thể thăng cấp người dùng'
+            const errorMessage = err?.response?.data?.message || err.message || 'Không thể thăng cấp người dùng'
             toast.error(errorMessage)
         } finally {
             setProcessingUser(null)
@@ -432,12 +439,19 @@ export default function AdminUsersPage() {
 
         try {
             setProcessingUser(userId)
-            await userService.demoteFromAdmin(userId)
-            toast.success('Đã hạ cấp Admin xuống người dùng thường')
-            await fetchUsers() // Refresh data
+            console.log('Đang hạ cấp admin:', userId)
+            const response = await userService.demoteFromAdmin(userId)
+            console.log('Kết quả hạ cấp:', response)
+
+            if (response.status === 'success' || response.success) {
+                toast.success('Đã hạ cấp Admin xuống người dùng thường')
+                await fetchUsers() // Refresh data
+            } else {
+                throw new Error(response.message || 'Không thể hạ cấp Admin')
+            }
         } catch (err: any) {
             console.error('Error demoting admin:', err)
-            const errorMessage = err?.response?.data?.message || 'Không thể hạ cấp Admin'
+            const errorMessage = err?.response?.data?.message || err.message || 'Không thể hạ cấp Admin'
             toast.error(errorMessage)
         } finally {
             setProcessingUser(null)

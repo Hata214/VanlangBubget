@@ -60,9 +60,18 @@ export async function PUT(
         const userId = params.id;
         const userData = await request.json();
 
+        // Xác định endpoint dựa vào dữ liệu gửi lên
+        let endpoint = `/api/admin/users/${userId}`;
+
+        // Nếu có role, sử dụng endpoint manage/users để cập nhật role
+        if (userData.role) {
+            endpoint = `/api/admin/manage/users/${userId}`;
+            console.log(`Cập nhật role của user ${userId} thành ${userData.role}`);
+        }
+
         // Gọi API backend
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/users/${userId}`,
+            `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
             {
                 method: 'PUT',
                 headers: {

@@ -428,8 +428,15 @@ export const adminService = {
      * Cập nhật role của user
      */
     async updateUserRole(userId: string, role: 'user' | 'admin' | 'superadmin') {
-        const response = await api.put(`/api/admin/users/${userId}`, { role });
-        return response.data;
+        console.log(`Đang gửi request cập nhật role của user ${userId} thành ${role}`);
+        try {
+            const response = await api.put(`/api/admin/users/${userId}`, { role });
+            console.log('Kết quả cập nhật role:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Lỗi khi cập nhật role:', error);
+            throw error;
+        }
     },
 
     // === System Settings ===
