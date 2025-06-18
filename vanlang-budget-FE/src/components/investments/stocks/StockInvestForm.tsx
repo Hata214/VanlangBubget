@@ -138,17 +138,19 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 form.setValue('price', response.data.price);
                 setFormattedPrice(response.data.price.toLocaleString('vi-VN'));
             } else {
-                toast.error(
-                    t('error'),
-                    t('errorFetchingPrice')
-                );
+                toast({
+                    title: t('error'),
+                    description: t('errorFetchingPrice'),
+                    type: 'error'
+                });
             }
         } catch (error) {
             console.error('Lỗi khi lấy giá cổ phiếu:', error);
-            toast.error(
-                t('error'),
-                t('errorFetchingPrice')
-            );
+            toast({
+                title: t('error'),
+                description: t('errorFetchingPrice'),
+                type: 'error'
+            });
         } finally {
             setIsFetchingPrice(false);
         }
@@ -195,7 +197,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         if (form.getValues('autoFee') ?? true) {
             const quantity = form.getValues('quantity');
             const brokerId = form.getValues('broker');
-            const fee = calculateFee(currentStockPrice, quantity, brokerId, form.getValues());
+            const fee = calculateFee(currentStockPrice ?? 0, quantity, brokerId, form.getValues());
             form.setValue('fee', fee);
         }
     };
