@@ -16,16 +16,19 @@ frontend_url_env = os.getenv("FRONTEND_URL")
 default_local_origins = [
     "http://localhost:3000", 
     "http://127.0.0.1:3000",
-    "https://vlb-vanlang-budget.vercel.app"  # Thêm frontend Vercel
+    "https://vlb-vanlang-budget.vercel.app",  # Thêm frontend Vercel
+    "https://my-app-flashapi.onrender.com"  # Thêm đường dẫn production
 ]
 
 allowed_origins = []
 if frontend_url_env:
     # Giả sử FRONTEND_URL có thể chứa nhiều URL cách nhau bởi dấu phẩy
     allowed_origins.extend([origin.strip() for origin in frontend_url_env.split(',')])
-    # Luôn thêm Vercel URL để đảm bảo
+    # Luôn thêm Vercel URL và Render URL để đảm bảo
     if "https://vlb-vanlang-budget.vercel.app" not in allowed_origins:
         allowed_origins.append("https://vlb-vanlang-budget.vercel.app")
+    if "https://my-app-flashapi.onrender.com" not in allowed_origins:
+        allowed_origins.append("https://my-app-flashapi.onrender.com")
 else:
     # Chỉ sử dụng default_local_origins nếu không có FRONTEND_URL (ví dụ: khi chạy local)
     # Trong môi trường production trên Render, FRONTEND_URL NÊN được đặt.
