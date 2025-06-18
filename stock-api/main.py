@@ -411,6 +411,8 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
         try:
             df_price = stock.trading.price_board(symbol_list)
             print(f"Kết quả truy vấn price_board: {df_price.shape[0]} dòng")
+            print(f"Cấu trúc dữ liệu: {df_price.columns.tolist()}")
+            print(f"Dữ liệu mẫu: {df_price.head().to_dict('records')}")
         except Exception as inner_e:
             print(f"Lỗi khi gọi price_board: {str(inner_e)}")
             return {
@@ -451,7 +453,16 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                 # Kiểm tra và chuyển đổi giá
                 if price_value is not None and not pd.isna(price_value):
                     try:
-                        stock_data["price"] = float(price_value)
+                        # Xử lý các trường hợp giá có thể là chuỗi với dấu phẩy
+                        if isinstance(price_value, str):
+                            # Thay thế dấu phẩy bằng dấu chấm nếu là định dạng số Việt Nam/Châu Âu
+                            price_value = price_value.replace('.', '').replace(',', '.')
+                        
+                        # Chuyển đổi sang float
+                        price_float = float(price_value)
+                        
+                        # Giữ nguyên định dạng số với dấu phẩy ngăn cách phần thập phân
+                        stock_data["price"] = price_float * 1000 if price_float < 1000 else price_float
                     except (ValueError, TypeError):
                         print(f"Lỗi chuyển đổi giá: {price_value} (type: {type(price_value)})")
                         stock_data["price"] = 0
@@ -459,38 +470,90 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                     stock_data["price"] = 0
                 
                 # Thay đổi giá
+                change_value = None
                 if 'change' in df_price.columns:
-                    stock_data["change"] = float(row.get('change', 0)) if not pd.isna(row.get('change', 0)) else 0
+                    change_value = row.get('change', 0)
                 elif '% thay đổi giá 1D' in df_price.columns:
-                    stock_data["change"] = float(row.get('% thay đổi giá 1D', 0)) if not pd.isna(row.get('% thay đổi giá 1D', 0)) else 0
+                    change_value = row.get('% thay đổi giá 1D', 0)
+                
+                if change_value is not None and not pd.isna(change_value):
+                    try:
+                        if isinstance(change_value, str):
+                            change_value = change_value.replace('.', '').replace(',', '.')
+                        stock_data["change"] = float(change_value)
+                    except (ValueError, TypeError):
+                        stock_data["change"] = 0
+                else:
+                    stock_data["change"] = 0
                 
                 # Phần trăm thay đổi
                 stock_data["pct_change"] = stock_data.get("change", 0)  # Sử dụng lại giá trị change
                 
                 # Khối lượng
+                volume_value = None
                 if 'volume' in df_price.columns:
-                    stock_data["volume"] = float(row.get('volume', 0)) if not pd.isna(row.get('volume', 0)) else 0
+                    volume_value = row.get('volume', 0)
                 elif 'Khối lượng' in df_price.columns:
-                    stock_data["volume"] = float(row.get('Khối lượng', 0)) if not pd.isna(row.get('Khối lượng', 0)) else 0
+                    volume_value = row.get('Khối lượng', 0)
+                
+                if volume_value is not None and not pd.isna(volume_value):
+                    try:
+                        if isinstance(volume_value, str):
+                            volume_value = volume_value.replace('.', '').replace(',', '.')
+                        stock_data["volume"] = float(volume_value)
+                    except (ValueError, TypeError):
+                        stock_data["volume"] = 0
+                else:
+                    stock_data["volume"] = 0
                 
                 # Thêm các trường khác nếu có
                 # Giá cao
-                if 'high' in df_price.columns and not pd.isna(row.get('high')):
-                    stock_data["high"] = float(row.get('high'))
-                elif 'Cao' in df_price.columns and not pd.isna(row.get('Cao')):
-                    stock_data["high"] = float(row.get('Cao'))
+                high_value = None
+                if 'high' in df_price.columns:
+                    high_value = row.get('high')
+                elif 'Cao' in df_price.columns:
+                    high_value = row.get('Cao')
+                
+                if high_value is not None and not pd.isna(high_value):
+                    try:
+                        if isinstance(high_value, str):
+                            high_value = high_value.replace('.', '').replace(',', '.')
+                        high_float = float(high_value)
+                        stock_data["high"] = high_float * 1000 if high_float < 1000 else high_float
+                    except (ValueError, TypeError):
+                        pass
                 
                 # Giá thấp
-                if 'low' in df_price.columns and not pd.isna(row.get('low')):
-                    stock_data["low"] = float(row.get('low'))
-                elif 'Thấp' in df_price.columns and not pd.isna(row.get('Thấp')):
-                    stock_data["low"] = float(row.get('Thấp'))
+                low_value = None
+                if 'low' in df_price.columns:
+                    low_value = row.get('low')
+                elif 'Thấp' in df_price.columns:
+                    low_value = row.get('Thấp')
+                
+                if low_value is not None and not pd.isna(low_value):
+                    try:
+                        if isinstance(low_value, str):
+                            low_value = low_value.replace('.', '').replace(',', '.')
+                        low_float = float(low_value)
+                        stock_data["low"] = low_float * 1000 if low_float < 1000 else low_float
+                    except (ValueError, TypeError):
+                        pass
                 
                 # Giá mở cửa
-                if 'open' in df_price.columns and not pd.isna(row.get('open')):
-                    stock_data["open"] = float(row.get('open'))
-                elif 'Mở cửa' in df_price.columns and not pd.isna(row.get('Mở cửa')):
-                    stock_data["open"] = float(row.get('Mở cửa'))
+                open_value = None
+                if 'open' in df_price.columns:
+                    open_value = row.get('open')
+                elif 'Mở cửa' in df_price.columns:
+                    open_value = row.get('Mở cửa')
+                
+                if open_value is not None and not pd.isna(open_value):
+                    try:
+                        if isinstance(open_value, str):
+                            open_value = open_value.replace('.', '').replace(',', '.')
+                        open_float = float(open_value)
+                        stock_data["open"] = open_float * 1000 if open_float < 1000 else open_float
+                    except (ValueError, TypeError):
+                        pass
                 
                 result.append(stock_data)
         
