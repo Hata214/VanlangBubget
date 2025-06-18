@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { StockPortfolioDashboard } from '@/components/investments/stocks/StockPortfolioDashboard';
 import { MarketStockTable, MarketStockItem } from '@/components/investments/stocks/MarketStockTable'; // Import the new component and interface
 import { StockPriceChart } from '@/components/investments/stocks/StockPriceChart'; // Import the new chart component
-import { TrendingUp, ListFilter, ChevronLeft, Loader2 } from 'lucide-react'; // Import Loader2
+import { TrendingUp, ListFilter, ChevronLeft, Loader2, RefreshCw } from 'lucide-react'; // Import Loader2 and RefreshCw
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react'; // Import useMemo
@@ -16,6 +16,7 @@ import axios from 'axios';
 import { toast } from '@/components/ui/Toaster';
 import { StockAutoComplete } from '@/components/investments/stocks/StockAutoComplete'; // Import StockAutoComplete
 import { formatCurrency } from '@/utils/formatters'; // Import formatCurrency
+import { getRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
 
 export default function StocksMarketPage() {
     const t = useTranslations('StockMarketPage');
@@ -26,14 +27,17 @@ export default function StocksMarketPage() {
     const [errorAllStocks, setErrorAllStocks] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<keyof MarketStockItem | null>('symbol'); // State for sorting column
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // State for sorting direction
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null); // Thời gian cập nhật cuối cùng
 
     // State for chart data
     const [chartStockSymbol, setChartStockSymbol] = useState<string>('VNM'); // Default symbol for chart
     const [chartStockData, setChartStockData] = useState<{ price: number | null } | null>(null); // Data for chart (current price)
     const [loadingChartStock, setLoadingChartStock] = useState(false);
     const [errorChartStock, setErrorChartStock] = useState<string | null>(null);
-    const [mockHistoricalData, setMockHistoricalData] = useState<any[]>([]); // State for mock historical data
+    const [historicalData, setHistoricalData] = useState<any[]>([]); // State for historical data
 
+    // Danh sách mã cổ phiếu mặc định để hiển thị
+    const defaultStocks = "VNM,VCB,HPG,FPT,MWG,VIC,MSN,TCB,BID,CTG,VHM,GAS,PLX,PNJ,REE,VJC,SAB,NLG,HDB,ACB";
 
     console.log('STOCK_API_URL CHECK - Value from Vercel env:', process.env.NEXT_PUBLIC_STOCK_API_URL);
     const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'http://localhost:8000';
@@ -43,21 +47,35 @@ export default function StocksMarketPage() {
         fetchAllStocks();
     }, []);
 
-    // Fetch all stocks for the list
+    // Fetch all stocks for the list using realtime API
     const fetchAllStocks = async () => {
         setLoadingAllStocks(true);
         setErrorAllStocks(null);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/stocks`);
-            if (response.data && response.data.stocks) {
-                // Map the data to match MarketStockItem structure
-                const formattedStocks: MarketStockItem[] = response.data.stocks.map((stock: any) => ({
+            // Lấy danh sách cổ phiếu từ API realtime
+            const realtimeData = await getRealtimeStocks(defaultStocks);
+
+            if (realtimeData && realtimeData.data && realtimeData.data.length > 0) {
+                // Lấy thông tin tên và ngành từ API danh sách cổ phiếu
+                const stocksListData = await getAllStocks();
+                const stocksInfo = stocksListData.stocks.reduce((acc: Record<string, { name: string; industry: string }>, stock) => {
+                    acc[stock.symbol] = { name: stock.name, industry: stock.industry };
+                    return acc;
+                }, {});
+
+                // Kết hợp dữ liệu từ cả hai API
+                const formattedStocks: MarketStockItem[] = realtimeData.data.map((stock) => ({
                     symbol: stock.symbol,
-                    name: stock.name,
-                    industry: stock.industry,
+                    name: stocksInfo[stock.symbol]?.name || stock.symbol,
+                    industry: stocksInfo[stock.symbol]?.industry || 'Chưa phân loại',
                     price: stock.price,
+                    change: stock.change,
+                    pct_change: stock.pct_change,
+                    volume: stock.volume,
                 }));
+
                 setAllStocks(formattedStocks);
+                setLastUpdated(new Date());
             } else {
                 throw new Error(t('errorStockList'));
             }
@@ -73,39 +91,108 @@ export default function StocksMarketPage() {
         }
     };
 
-    // Fetch current price for the chart's selected stock
-    const fetchChartStockPrice = async (symbol: string) => {
+    // Fetch historical data for the chart's selected stock
+    const fetchChartStockHistory = async (symbol: string) => {
         setLoadingChartStock(true);
         setErrorChartStock(null);
         try {
-            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${symbol}`);
-            if (response.data && response.data.price !== undefined) {
-                setChartStockData({ price: response.data.price });
+            // Tính ngày bắt đầu (30 ngày trước)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            const formattedStartDate = startDate.toISOString().split('T')[0];
+            const formattedEndDate = endDate.toISOString().split('T')[0];
+
+            // Lấy dữ liệu lịch sử
+            const historyData = await getStockHistory(
+                symbol,
+                formattedStartDate,
+                formattedEndDate,
+                '1D'
+            );
+
+            if (historyData && historyData.data && historyData.data.length > 0) {
+                // Chuyển đổi định dạng dữ liệu cho biểu đồ
+                const chartData = historyData.data.map(item => ({
+                    date: item.date,
+                    price: item.close,
+                    open: item.open,
+                    high: item.high,
+                    low: item.low,
+                    volume: item.volume,
+                    change: item.change,
+                    pct_change: item.pct_change
+                }));
+
+                setHistoricalData(chartData);
+
+                // Lấy giá hiện tại từ dữ liệu mới nhất
+                const latestData = historyData.data[historyData.data.length - 1];
+                setChartStockData({ price: latestData.close });
             } else {
-                throw new Error(`Không tìm thấy dữ liệu giá cho mã ${symbol}`);
+                throw new Error(`Không tìm thấy dữ liệu lịch sử cho mã ${symbol}`);
             }
         } catch (error) {
-            console.error(`Lỗi khi lấy giá cổ phiếu ${symbol}:`, error);
-            setErrorChartStock(`Không thể lấy giá cổ phiếu ${symbol}.`);
-            setChartStockData(null);
+            console.error(`Lỗi khi lấy dữ liệu lịch sử cổ phiếu ${symbol}:`, error);
+            setErrorChartStock(`Không thể lấy dữ liệu lịch sử cổ phiếu ${symbol}.`);
+
+            // Nếu không lấy được dữ liệu lịch sử, tạo dữ liệu mô phỏng dựa trên giá hiện tại
+            const currentStock = allStocks.find(stock => stock.symbol === symbol);
+            if (currentStock && currentStock.price) {
+                setChartStockData({ price: currentStock.price });
+                setHistoricalData(generateMockHistoricalData(currentStock.price));
+            } else {
+                setChartStockData(null);
+                setHistoricalData([]);
+            }
         } finally {
             setLoadingChartStock(false);
         }
     };
 
-    // Generate mock historical data based on the current price
+    // Generate mock historical data based on the current price (fallback)
     const generateMockHistoricalData = (currentPrice: number) => {
         const data = [];
         const numPoints = 30; // Number of data points
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - numPoints); // Start 30 days ago
 
+        let previousPrice = currentPrice * (1 - Math.random() * 0.1); // Bắt đầu với giá thấp hơn hiện tại một chút
+
         for (let i = 0; i < numPoints; i++) {
             const date = new Date(startDate);
             date.setDate(date.getDate() + i);
-            // Generate price with some variation around the current price
-            const price = currentPrice * (1 + (Math.random() - 0.5) * 0.1); // ±5% variation
-            data.push({ date: date.toISOString(), price: price });
+
+            // Tạo biến động giá ngẫu nhiên (±3%)
+            const changePercent = (Math.random() - 0.5) * 0.06;
+            const closePrice = previousPrice * (1 + changePercent);
+
+            // Tạo giá mở cửa, cao nhất, thấp nhất
+            const openPrice = previousPrice * (1 + (Math.random() - 0.5) * 0.02);
+            const amplitude = closePrice * 0.02; // Biên độ dao động 2%
+            const highPrice = Math.max(closePrice, openPrice) + Math.random() * amplitude;
+            const lowPrice = Math.min(closePrice, openPrice) - Math.random() * amplitude;
+
+            // Tính toán thay đổi giá
+            const change = closePrice - previousPrice;
+            const pctChange = (change / previousPrice) * 100;
+
+            // Tạo khối lượng giao dịch ngẫu nhiên
+            const volume = Math.floor(100000 + Math.random() * 900000);
+
+            data.push({
+                date: date.toISOString(),
+                price: closePrice,
+                open: openPrice,
+                high: highPrice,
+                low: lowPrice,
+                volume: volume,
+                change: change,
+                pct_change: pctChange
+            });
+
+            previousPrice = closePrice;
         }
         return data;
     };
@@ -113,19 +200,9 @@ export default function StocksMarketPage() {
     // Fetch chart stock data when symbol changes
     useEffect(() => {
         if (chartStockSymbol) {
-            fetchChartStockPrice(chartStockSymbol);
+            fetchChartStockHistory(chartStockSymbol);
         }
     }, [chartStockSymbol]);
-
-    // Generate mock historical data when chartStockData is updated
-    useEffect(() => {
-        if (chartStockData?.price !== null && chartStockData?.price !== undefined) {
-            setMockHistoricalData(generateMockHistoricalData(chartStockData.price));
-        } else {
-            setMockHistoricalData([]); // Clear data if no price
-        }
-    }, [chartStockData]);
-
 
     // Sorting logic for the stock list table
     const handleSort = (column: keyof MarketStockItem) => {
@@ -145,6 +222,9 @@ export default function StocksMarketPage() {
             const aValue = a[sortColumn];
             const bValue = b[sortColumn];
 
+            if (aValue === undefined) return 1;
+            if (bValue === undefined) return -1;
+
             if (aValue < bValue) {
                 return sortDirection === 'asc' ? -1 : 1;
             }
@@ -155,6 +235,16 @@ export default function StocksMarketPage() {
         });
     }, [allStocks, sortColumn, sortDirection]);
 
+    // Format thời gian cập nhật cuối cùng
+    const formatLastUpdated = () => {
+        if (!lastUpdated) return 'Chưa cập nhật';
+
+        return lastUpdated.toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+    };
 
     return (
         <MainLayout>
@@ -212,7 +302,7 @@ export default function StocksMarketPage() {
                                 <div className="h-[300px] w-full">
                                     {/* Use StockPriceChart component */}
                                     <StockPriceChart
-                                        data={mockHistoricalData} // Pass mock historical data
+                                        data={historicalData} // Pass historical data
                                         isLoading={loadingChartStock}
                                         error={errorChartStock}
                                     />
@@ -225,8 +315,26 @@ export default function StocksMarketPage() {
 
                     {/* Re-added "Danh sách cổ phiếu" card */}
                     <Card>
-                        <CardHeader>
+                        <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>{t('stockList')}</CardTitle>
+                            <div className="flex items-center">
+                                <span className="text-sm text-muted-foreground mr-2">
+                                    Cập nhật lúc: {formatLastUpdated()}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={fetchAllStocks}
+                                    disabled={loadingAllStocks}
+                                >
+                                    {loadingAllStocks ? (
+                                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                    ) : (
+                                        <RefreshCw className="h-4 w-4 mr-1" />
+                                    )}
+                                    Cập nhật
+                                </Button>
+                            </div>
                         </CardHeader>
                         <CardContent>
                             {loadingAllStocks ? (

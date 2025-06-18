@@ -15,6 +15,9 @@ export interface StockPriceResponse {
     founded?: number;
     error?: string;
     timestamp?: string;
+    change?: number;
+    pct_change?: number;
+    date?: string;
 }
 
 /**
@@ -26,9 +29,55 @@ export interface StocksListResponse {
         name: string;
         price: number;
         industry: string;
+        change?: number;
+        pct_change?: number;
+        volume?: number;
     }>;
     count: number;
     timestamp: string;
+}
+
+/**
+ * Interface dữ liệu theo thời gian thực
+ */
+export interface RealtimeStockResponse {
+    symbols: string[];
+    source: string;
+    count: number;
+    timestamp: string;
+    data: Array<{
+        symbol: string;
+        price: number;
+        change: number;
+        pct_change: number;
+        volume: number;
+        high?: number;
+        low?: number;
+        open?: number;
+    }>;
+    error?: string;
+}
+
+/**
+ * Interface dữ liệu lịch sử giá
+ */
+export interface StockHistoryResponse {
+    symbol: string;
+    source: string;
+    interval: string;
+    start_date: string;
+    end_date: string;
+    data: Array<{
+        date: string;
+        open: number;
+        high: number;
+        low: number;
+        close: number;
+        volume: number;
+        change?: number;
+        pct_change?: number;
+    }>;
+    error?: string;
 }
 
 /**
@@ -82,11 +131,79 @@ export async function getAllStocks(): Promise<StocksListResponse> {
 }
 
 /**
+ * Lấy dữ liệu cổ phiếu theo thời gian thực
+ * @param symbols Danh sách mã cổ phiếu, phân cách bằng dấu phẩy
+ * @param source Nguồn dữ liệu (mặc định: VCI)
+ * @returns Dữ liệu theo thời gian thực của các mã cổ phiếu
+ */
+export async function getRealtimeStocks(symbols: string = "VNM,VCB,HPG", source: string = "VCI"): Promise<RealtimeStockResponse> {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/stock/realtime`, {
+            params: { symbols, source }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Lỗi khi lấy dữ liệu theo thời gian thực:', error);
+        return {
+            symbols: symbols.split(','),
+            source,
+            count: 0,
+            timestamp: new Date().toISOString(),
+            data: [],
+            error: 'Lỗi khi lấy dữ liệu theo thời gian thực'
+        };
+    }
+}
+
+/**
+ * Lấy dữ liệu lịch sử giá của một mã cổ phiếu
+ * @param symbol Mã cổ phiếu
+ * @param startDate Ngày bắt đầu (định dạng YYYY-MM-DD)
+ * @param endDate Ngày kết thúc (định dạng YYYY-MM-DD)
+ * @param interval Khoảng thời gian (1D, 1W, 1M)
+ * @param source Nguồn dữ liệu (mặc định: VCI)
+ * @returns Dữ liệu lịch sử giá của mã cổ phiếu
+ */
+export async function getStockHistory(
+    symbol: string,
+    startDate?: string,
+    endDate?: string,
+    interval: string = "1D",
+    source: string = "VCI"
+): Promise<StockHistoryResponse> {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/api/stock/history`, {
+            params: {
+                symbol,
+                start_date: startDate,
+                end_date: endDate,
+                interval,
+                source
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Lỗi khi lấy dữ liệu lịch sử giá của ${symbol}:`, error);
+        return {
+            symbol,
+            source,
+            interval,
+            start_date: startDate || '',
+            end_date: endDate || '',
+            data: [],
+            error: `Lỗi khi lấy dữ liệu lịch sử giá của ${symbol}`
+        };
+    }
+}
+
+/**
  * Hook prefetch để sử dụng với SWR hoặc React Query (nếu cần)
  */
 export const stockApiService = {
     getStockPrice,
-    getAllStocks
+    getAllStocks,
+    getRealtimeStocks,
+    getStockHistory
 };
 
 export default stockApiService; 

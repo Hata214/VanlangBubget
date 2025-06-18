@@ -11,13 +11,16 @@ import {
 } from '@/components/ui/table';
 import { formatCurrency } from '@/utils/formatters';
 import { Skeleton } from '@/components/ui/Skeleton';
-import { ArrowUpDown } from 'lucide-react'; // Import icon for sorting
+import { ArrowUpDown, TrendingUp, TrendingDown } from 'lucide-react'; // Thêm icon TrendingUp và TrendingDown
 
 export interface MarketStockItem {
     symbol: string;
     name: string;
     industry: string;
     price: number;
+    change?: number; // Thêm trường biến động giá
+    pct_change?: number; // Thêm trường phần trăm biến động
+    volume?: number; // Thêm trường khối lượng giao dịch
 }
 
 interface MarketStockTableProps {
@@ -49,6 +52,30 @@ export function MarketStockTable({
         );
     }
 
+    // Hàm định dạng phần trăm biến động
+    const formatPercentChange = (value: number | undefined) => {
+        if (value === undefined) return '-';
+        const sign = value >= 0 ? '+' : '';
+        return `${sign}${value.toFixed(2)}%`;
+    };
+
+    // Hàm xác định màu sắc dựa trên biến động giá
+    const getPriceChangeColor = (value: number | undefined) => {
+        if (value === undefined) return '';
+        return value > 0 ? 'text-green-600' : value < 0 ? 'text-red-600' : '';
+    };
+
+    // Hàm định dạng khối lượng giao dịch
+    const formatVolume = (volume: number | undefined) => {
+        if (volume === undefined) return '-';
+        if (volume >= 1000000) {
+            return `${(volume / 1000000).toFixed(2)}M`;
+        } else if (volume >= 1000) {
+            return `${(volume / 1000).toFixed(2)}K`;
+        }
+        return volume.toString();
+    };
+
     return (
         <div className="rounded-md border">
             <Table>
@@ -60,10 +87,37 @@ export function MarketStockTable({
                         <TableHead className="text-right">
                             <button
                                 className="flex items-center justify-end w-full"
-                                onClick={() => onSort && onSort('price')} // Make header clickable for sorting
+                                onClick={() => onSort && onSort('price')}
                             >
                                 Giá hiện tại
-                                <ArrowUpDown className="ml-2 h-4 w-4" /> {/* Add sorting icon */}
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                            </button>
+                        </TableHead>
+                        <TableHead className="text-right">
+                            <button
+                                className="flex items-center justify-end w-full"
+                                onClick={() => onSort && onSort('change')}
+                            >
+                                Thay đổi
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                            </button>
+                        </TableHead>
+                        <TableHead className="text-right">
+                            <button
+                                className="flex items-center justify-end w-full"
+                                onClick={() => onSort && onSort('pct_change')}
+                            >
+                                % Thay đổi
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
+                            </button>
+                        </TableHead>
+                        <TableHead className="text-right">
+                            <button
+                                className="flex items-center justify-end w-full"
+                                onClick={() => onSort && onSort('volume')}
+                            >
+                                Khối lượng
+                                <ArrowUpDown className="ml-2 h-4 w-4" />
                             </button>
                         </TableHead>
                     </TableRow>
@@ -71,7 +125,7 @@ export function MarketStockTable({
                 <TableBody>
                     {stocks.length === 0 ? (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center py-6 text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center py-6 text-muted-foreground">
                                 Không tìm thấy cổ phiếu nào.
                             </TableCell>
                         </TableRow>
@@ -89,6 +143,22 @@ export function MarketStockTable({
                                 </TableCell>
                                 <TableCell className="text-right">
                                     {formatCurrency(stock.price)}
+                                </TableCell>
+                                <TableCell className={`text-right ${getPriceChangeColor(stock.change)}`}>
+                                    <div className="flex items-center justify-end">
+                                        {stock.change !== undefined && stock.change !== 0 && (
+                                            stock.change > 0 ?
+                                                <TrendingUp className="h-4 w-4 mr-1 text-green-600" /> :
+                                                <TrendingDown className="h-4 w-4 mr-1 text-red-600" />
+                                        )}
+                                        {stock.change !== undefined ? formatCurrency(stock.change) : '-'}
+                                    </div>
+                                </TableCell>
+                                <TableCell className={`text-right ${getPriceChangeColor(stock.pct_change)}`}>
+                                    {formatPercentChange(stock.pct_change)}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    {formatVolume(stock.volume)}
                                 </TableCell>
                             </TableRow>
                         ))
