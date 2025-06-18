@@ -23,6 +23,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/Switch';
 import { API_URL } from '@/config/constants';
 import { createStockTransaction, addStockInvestment } from '@/services/investmentService';
+import axios from 'axios';
 
 // Interface cho props
 interface StockInvestFormProps {
@@ -100,6 +101,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const t = useTranslations('Investments');
     const tStocks = useTranslations('Investments.stocks');
     const tValidation = useTranslations('Investments.validation');
+    const [isFetchingPrice, setIsFetchingPrice] = useState(false);
 
     // Tạo schema với translations
     const formSchema = createFormSchema(t, tValidation);
@@ -122,28 +124,35 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         },
     });
 
-    // Thêm function lấy giá cổ phiếu hiện tại từ API
-    const fetchCurrentPrice = useCallback(async (symbol: string) => {
-        if (!symbol) return;
+    // Lấy giá hiện tại của cổ phiếu
+    const fetchCurrentPrice = useCallback(async () => {
+        if (!selectedSymbol) return;
 
+        setIsFetchingPrice(true);
         try {
-            const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'http://localhost:8000';
-            const response = await fetch(`${API_BASE_URL}/api/price?symbol=${symbol}`);
+            const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
+            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${selectedSymbol}`);
 
-            if (!response.ok) {
-                throw new Error(`Lỗi khi lấy giá cổ phiếu: ${response.status}`);
-            }
-
-            const data = await response.json();
-            if (data.price) {
-                setCurrentStockPrice(data.price);
-                return data.price;
+            if (response.data && response.data.price !== undefined && response.data.price !== null) {
+                setCurrentStockPrice(response.data.price);
+                form.setValue('price', response.data.price);
+                setFormattedPrice(response.data.price.toLocaleString('vi-VN'));
+            } else {
+                toast.error(
+                    t('error'),
+                    t('errorFetchingPrice')
+                );
             }
         } catch (error) {
             console.error('Lỗi khi lấy giá cổ phiếu:', error);
+            toast.error(
+                t('error'),
+                t('errorFetchingPrice')
+            );
+        } finally {
+            setIsFetchingPrice(false);
         }
-        return null;
-    }, []);
+    }, [selectedSymbol, t, form, toast]);
 
     // Hàm tính phí giao dịch tự động
     const calculateFee = useCallback((price: number, quantity: number, brokerId: string | undefined, values: FormValues) => {
@@ -180,18 +189,14 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         form.setValue('symbol', value);
 
         // Lấy giá hiện tại và điền vào form
-        const price = await fetchCurrentPrice(value);
-        if (price) {
-            form.setValue('price', price);
-            setFormattedPrice(price.toLocaleString('vi-VN'));
+        await fetchCurrentPrice();
 
-            // Cập nhật phí nếu chế độ tự động được bật
-            if (form.getValues('autoFee') ?? true) {
-                const quantity = form.getValues('quantity');
-                const brokerId = form.getValues('broker');
-                const fee = calculateFee(price, quantity, brokerId, form.getValues());
-                form.setValue('fee', fee);
-            }
+        // Cập nhật phí nếu chế độ tự động được bật
+        if (form.getValues('autoFee') ?? true) {
+            const quantity = form.getValues('quantity');
+            const brokerId = form.getValues('broker');
+            const fee = calculateFee(currentStockPrice, quantity, brokerId, form.getValues());
+            form.setValue('fee', fee);
         }
     };
 
@@ -434,7 +439,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         <StockAutoComplete
                                             onStockSelect={handleStockSelect}
                                             defaultValue={field.value}
-                                            isLoading={isLoading}
+                                            isLoading={isFetchingPrice}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
@@ -481,7 +486,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                         }
                                                     }}
                                                     onBlur={field.onBlur}
-                                                    disabled={isLoading}
+                                                    disabled={isLoading || isFetchingPrice}
                                                     className="pr-40 text-lg h-14 font-medium text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                 />
                                             </FormControl>
@@ -554,7 +559,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     }
                                                 }}
                                                 onBlur={field.onBlur}
-                                                disabled={isLoading}
+                                                disabled={isLoading || isFetchingPrice}
                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             />
                                         </FormControl>
@@ -576,7 +581,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         <Select
                                             value={field.value ?? BROKERS[0].id}
                                             onValueChange={handleBrokerChange}
-                                            disabled={isLoading}
+                                            disabled={isLoading || isFetchingPrice}
                                         >
                                             <FormControl>
                                                 <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
@@ -614,7 +619,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             <FormItem>
                                                 <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('otherBrokerName')}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder={tStocks('enterBrokerName')} {...field} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                    <Input placeholder={tStocks('enterBrokerName')} {...field} disabled={isLoading || isFetchingPrice} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -629,7 +634,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     <FormItem>
                                                         <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerFeePercent')}</FormLabel>
                                                         <FormControl>
-                                                            <Input type="number" step="0.01" placeholder="0.15" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} disabled={isLoading} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
+                                                            <Input type="number" step="0.01" placeholder="0.15" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} disabled={isLoading || isFetchingPrice} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
                                                         </FormControl>
                                                         <FormMessage />
                                                     </FormItem>
@@ -647,7 +652,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                                 value={field.value}
                                                                 onChange={field.onChange}
                                                                 onBlur={field.onBlur}
-                                                                disabled={isLoading}
+                                                                disabled={isLoading || isFetchingPrice}
                                                                 className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                                             />
                                                         </FormControl>
@@ -735,7 +740,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     <Switch
                                                         checked={field.value ?? true}
                                                         onCheckedChange={handleAutoFeeToggle}
-                                                        disabled={isLoading}
+                                                        disabled={isLoading || isFetchingPrice}
                                                         className="data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary-dark data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input-dark"
                                                     />
                                                 </FormControl>
@@ -756,7 +761,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     value={field.value ?? 0}
                                                     onChange={field.onChange}
                                                     onBlur={field.onBlur}
-                                                    disabled={isLoading || (form.getValues('autoFee') ?? true)}
+                                                    disabled={isLoading || (form.getValues('autoFee') ?? true) || isFetchingPrice}
                                                     className={cn((form.getValues('autoFee') ?? true) ? "bg-gray-100 dark:bg-gray-700 text-right" : "bg-input dark:bg-input-dark text-right", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
                                                 />
                                             </FormControl>
@@ -816,7 +821,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             placeholder={tStocks('investmentNotesPlaceholder')}
                                             className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
                                             {...field}
-                                            disabled={isLoading}
+                                            disabled={isLoading || isFetchingPrice}
                                         />
                                     </FormControl>
                                     <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
@@ -829,11 +834,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                     </CardContent>
                     <CardFooter className="flex justify-end space-x-2 pt-0">
                         {onCancel && (
-                            <Button variant="outline" onClick={onCancel} disabled={isLoading} className="bg-transparent hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark">
+                            <Button variant="outline" onClick={onCancel} disabled={isLoading || isFetchingPrice} className="bg-transparent hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark">
                                 {t('cancel')}
                             </Button>
                         )}
-                        <Button type="submit" disabled={isLoading} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
+                        <Button type="submit" disabled={isLoading || isFetchingPrice} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
                             {isLoading ? t('adding') : tStocks('saveInvestment')}
                         </Button>
                     </CardFooter>

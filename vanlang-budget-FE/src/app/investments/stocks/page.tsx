@@ -40,7 +40,7 @@ export default function StocksMarketPage() {
     const defaultStocks = "VNM,VCB,HPG,FPT,MWG,VIC,MSN,TCB,BID,CTG,VHM,GAS,PLX,PNJ,REE,VJC,SAB,NLG,HDB,ACB";
 
     console.log('STOCK_API_URL CHECK - Value from Vercel env:', process.env.NEXT_PUBLIC_STOCK_API_URL);
-    const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'http://localhost:8000';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://stock-api-vlb.onrender.com';
     console.log('STOCK_API_URL CHECK - API_BASE_URL being used:', API_BASE_URL);
 
     useEffect(() => {
