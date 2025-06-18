@@ -2,11 +2,6 @@
 
 Hệ thống API cung cấp thông tin về thị trường chứng khoán Việt Nam, sử dụng thư viện [vnstock](https://github.com/thinh-vu/vnstock) để truy xuất dữ liệu.
 
-## Môi trường
-
-- **Development**: http://localhost:8000
-- **Production**: https://my-app-flashapi.onrender.com
-
 ## Tính năng chính
 
 - Lấy giá hiện tại của cổ phiếu
@@ -45,10 +40,6 @@ uvicorn main:app --reload
 # Hoặc sử dụng Docker
 docker-compose up
 ```
-
-### Triển khai lên môi trường Production
-
-Ứng dụng đã được triển khai lên Render tại địa chỉ: https://my-app-flashapi.onrender.com
 
 ## API Endpoints
 
@@ -282,12 +273,6 @@ API có tài liệu tự động được tạo bởi Swagger UI. Bạn có th�
 
 ```
 http://localhost:8000/docs
-```
-
-Hoặc trong môi trường production:
-
-```
-https://my-app-flashapi.onrender.com/docs
 ```
 
 ## Giấy phép
