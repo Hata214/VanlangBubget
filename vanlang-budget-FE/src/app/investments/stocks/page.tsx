@@ -14,7 +14,6 @@ import { useState, useEffect, useMemo } from 'react'; // Import useMemo
 import { toast } from '@/components/ui/Toaster';
 import { StockAutoComplete } from '@/components/investments/stocks/StockAutoComplete'; // Import StockAutoComplete
 import { getRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
-import { runAllStockApiTests, formatTestResults } from '@/utils/debugStockApi'; // Import debug utilities
 
 export default function StocksMarketPage() {
     const t = useTranslations('StockMarketPage');
@@ -45,31 +44,7 @@ export default function StocksMarketPage() {
         fetchAllStocks();
     }, []);
 
-    // Test function để chạy comprehensive API tests
-    const testDirectRealtimeAPI = async () => {
-        console.log('[TEST] Running comprehensive Stock API tests...');
-        toast.info("API Test Started", "Running comprehensive tests...");
 
-        try {
-            const results = await runAllStockApiTests();
-            const successCount = results.filter(r => r.success).length;
-            const totalTests = results.length;
-
-            console.log('[TEST] Test results:', results);
-            console.log(formatTestResults(results));
-
-            if (successCount === totalTests) {
-                toast.success("All API Tests Passed", `${successCount}/${totalTests} tests successful`);
-            } else if (successCount > 0) {
-                toast.warning("Some API Tests Failed", `${successCount}/${totalTests} tests successful`);
-            } else {
-                toast.error("All API Tests Failed", "Check console for details");
-            }
-        } catch (error) {
-            console.error('[TEST] Comprehensive API test failed:', error);
-            toast.error("API Test Failed", "Check console for error details");
-        }
-    };
 
     // Fetch all stocks for the list using realtime API
     const fetchAllStocks = async () => {
@@ -348,22 +323,7 @@ export default function StocksMarketPage() {
                                 <span className="text-sm text-muted-foreground mr-2">
                                     Cập nhật lúc: {formatLastUpdated()}
                                 </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={testDirectRealtimeAPI}
-                                    className="text-xs"
-                                >
-                                    Test API
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => window.open('/debug/stock-api', '_blank')}
-                                    className="text-xs"
-                                >
-                                    Debug
-                                </Button>
+
                                 <Button
                                     variant="outline"
                                     size="sm"
