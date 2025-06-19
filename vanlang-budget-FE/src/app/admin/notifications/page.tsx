@@ -242,10 +242,21 @@ export default function AdminNotificationsPage() {
                 return
             }
 
-            // Sử dụng endpoint bulk để xóa tất cả
-            await api.delete('/api/admin/notifications/bulk', {
-                data: { notificationIds: allNotificationIds }
+            // Gọi trực tiếp backend để test
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ notificationIds: allNotificationIds })
             })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('Backend response error:', errorText)
+                throw new Error(`Backend error: ${response.status} - ${errorText}`)
+            }
 
             // Cập nhật UI
             setNotifications([])
@@ -319,10 +330,21 @@ export default function AdminNotificationsPage() {
             setError(null)
             const deleteCount = selectedNotifications.length
 
-            // Gọi API xóa nhiều thông báo
-            await api.delete('/api/admin/notifications/bulk', {
-                data: { notificationIds: selectedNotifications }
+            // Gọi trực tiếp backend để test
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ notificationIds: selectedNotifications })
             })
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('Backend response error:', errorText)
+                throw new Error(`Backend error: ${response.status} - ${errorText}`)
+            }
 
             // Cập nhật UI
             setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)))
