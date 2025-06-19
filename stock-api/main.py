@@ -82,10 +82,24 @@ def read_root():
         vnstock_version = vnstock.__version__ if hasattr(vnstock, '__version__') else "unknown"
         vnstock_methods = [method for method in dir(vnstock) if not method.startswith('_')]
         has_price_board = hasattr(vnstock, 'price_board')
+        has_listing_companies = hasattr(vnstock, 'listing_companies')
+
+        # Test các method khác có thể có trong vnstock 3.x
+        available_methods = {
+            'stock_historical_data': hasattr(vnstock, 'stock_historical_data'),
+            'stock_intraday_data': hasattr(vnstock, 'stock_intraday_data'),
+            'price_depth': hasattr(vnstock, 'price_depth'),
+            'price_board': has_price_board,
+            'listing_companies': has_listing_companies,
+            'company_overview': hasattr(vnstock, 'company_overview'),
+            'stock_prices': hasattr(vnstock, 'stock_prices'),
+            'get_stock_prices': hasattr(vnstock, 'get_stock_prices'),
+        }
+
     except Exception as e:
         vnstock_version = f"error: {str(e)}"
         vnstock_methods = []
-        has_price_board = False
+        available_methods = {}
 
     return {
         "message": "Stock API Service",
@@ -99,9 +113,10 @@ def read_root():
         "cors_origins": allowed_origins,
         "debug_info": {
             "vnstock_version": vnstock_version,
-            "has_price_board": has_price_board,
             "vnstock_methods_count": len(vnstock_methods),
-            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
+            "available_methods": available_methods,
+            "all_methods": vnstock_methods[:20]  # Chỉ hiển thị 20 method đầu tiên
         }
     }
 
@@ -118,161 +133,137 @@ def get_stock_price(symbol: str = "VNM", source: str = "TCBS"):
         Dữ liệu giá cổ phiếu hoặc thông báo lỗi.
     """
     try:
-        # Sử dụng price_board để lấy giá hiện tại
-        price_data = vnstock.price_board([symbol.upper()])
-        
-        if not price_data.empty:
-            result = price_data.iloc[0].to_dict()
-            return {
-                "symbol": symbol.upper(),
-                "price": result.get('Giá', 0),
-                "change": result.get('% thay đổi giá 1D', 0),
-                "volume": result.get('Khối lượng', 0),
-                "source": source,
-                "timestamp": datetime.now().isoformat(),
-                "raw_data": result
-            }
-        else:
-            return {"symbol": symbol.upper(), "error": "Không tìm thấy dữ liệu cho mã chứng khoán này."}
+        # Thử các method khác nhau của vnstock 3.x
+        price_data = None
+
+        # Thử method 1: stock_historical_data (lấy dữ liệu gần nhất)
+        if hasattr(vnstock, 'stock_historical_data'):
+            try:
+                end_date = datetime.now().strftime('%Y-%m-%d')
+                start_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+                price_data = vnstock.stock_historical_data(
+                    symbol=symbol.upper(),
+                    start_date=start_date,
+                    end_date=end_date,
+                    resolution="1D"
+                )
+                if not price_data.empty:
+                    latest_data = price_data.iloc[-1]
+                    return {
+                        "symbol": symbol.upper(),
+                        "price": float(latest_data.get('close', 0)),
+                        "change": float(latest_data.get('change', 0)) if 'change' in latest_data else 0,
+                        "volume": int(latest_data.get('volume', 0)) if 'volume' in latest_data else 0,
+                        "source": source,
+                        "timestamp": datetime.now().isoformat(),
+                        "method": "stock_historical_data"
+                    }
+            except Exception as e:
+                print(f"stock_historical_data failed: {e}")
+
+        # Thử method 2: stock_intraday_data
+        if hasattr(vnstock, 'stock_intraday_data'):
+            try:
+                price_data = vnstock.stock_intraday_data(
+                    symbol=symbol.upper(),
+                    page_size=1
+                )
+                if not price_data.empty:
+                    latest_data = price_data.iloc[0]
+                    return {
+                        "symbol": symbol.upper(),
+                        "price": float(latest_data.get('close', 0)),
+                        "change": float(latest_data.get('change', 0)) if 'change' in latest_data else 0,
+                        "volume": int(latest_data.get('volume', 0)) if 'volume' in latest_data else 0,
+                        "source": source,
+                        "timestamp": datetime.now().isoformat(),
+                        "method": "stock_intraday_data"
+                    }
+            except Exception as e:
+                print(f"stock_intraday_data failed: {e}")
+
+        # Fallback: Trả về lỗi với thông tin debug
+        return {
+            "symbol": symbol.upper(),
+            "error": "Không thể lấy dữ liệu với các method hiện có",
+            "available_methods": [method for method in dir(vnstock) if not method.startswith('_')][:10]
+        }
+
     except Exception as e:
         print(f"Error fetching stock price for {symbol} from {source}: {e}")
         return {"error": f"Đã xảy ra lỗi khi lấy dữ liệu: {str(e)}"}
 
 @app.get("/api/stocks")
-def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiếu muốn lấy"), 
+def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiếu muốn lấy"),
                   source: str = Query("TCBS", description="Nguồn dữ liệu")):
     """
     API lấy danh sách các mã cổ phiếu.
-    
+
     Returns:
         Danh sách các mã cổ phiếu và thông tin cơ bản
     """
     try:
-        # Lấy danh sách công ty niêm yết từ vnstock
-        df_listing = vnstock.listing_companies()
-        
-        # Chọn các cổ phiếu phổ biến hoặc có thể lấy tất cả và giới hạn bằng limit
-        popular_symbols = ["VCB", "BID", "CTG", "TCB", "MBB", "VIC", "NVL", 
+        # Chọn các cổ phiếu phổ biến
+        popular_symbols = ["VCB", "BID", "CTG", "TCB", "MBB", "VIC", "NVL",
                           "VNM", "SAB", "MSN", "HPG", "GAS", "PLX", "FPT", "MWG", "PNJ"]
-        
-        # Nếu limit lớn hơn số lượng mã phổ biến, lấy thêm từ danh sách đầy đủ
-        if limit > len(popular_symbols):
-            additional_symbols = df_listing['ticker'].tolist()[:limit - len(popular_symbols)]
-            symbols_to_query = popular_symbols + additional_symbols
-        else:
-            symbols_to_query = popular_symbols[:limit]
-        
-        # Lấy bảng giá cho các mã đã chọn
-        df_price = vnstock.price_board(symbols_to_query)
-        print(f"Kết quả truy vấn price_board: {df_price.shape[0]} dòng")
-        
+
+        symbols_to_query = popular_symbols[:limit]
+
         stocks = []
-        for i, (_, row) in enumerate(df_price.iterrows()):
-            # Xác định mã cổ phiếu từ các cột có thể có
-            symbol_value = None
-            if 'symbol' in df_price.columns:
-                symbol_value = clean_symbol(row.get('symbol', ''))
-            elif 'Mã CP' in df_price.columns:
-                symbol_value = clean_symbol(row.get('Mã CP', ''))
-            
-            # Nếu không tìm thấy mã hoặc mã không hợp lệ, sử dụng mã từ danh sách ban đầu
-            if not symbol_value and i < len(symbols_to_query):
-                symbol_value = symbols_to_query[i]
-            
-            if symbol_value:
-                # Tìm thông tin công ty từ danh sách
-                company_info = df_listing[df_listing['ticker'] == symbol_value]
-                
-                # Khởi tạo dữ liệu cổ phiếu
-                stock_data = {"symbol": symbol_value}
-                
-                # Thêm giá
-                price_value = None
-                if 'price' in df_price.columns:
-                    price_value = row.get('price')
-                elif 'Giá' in df_price.columns:
-                    price_value = row.get('Giá')
-                
-                # Kiểm tra và chuyển đổi giá
-                if price_value is not None and not pd.isna(price_value):
-                    try:
-                        # Xử lý các trường hợp giá có thể là chuỗi với dấu phẩy
-                        if isinstance(price_value, str):
-                            # Thay thế dấu phẩy bằng dấu chấm nếu là định dạng số Việt Nam/Châu Âu
-                            price_value = price_value.replace('.', '').replace(',', '.')
-                        
-                        # Chuyển đổi sang float
-                        price_float = float(price_value)
-                        
-                        # Đảm bảo giá được hiển thị đúng định dạng như trên giao diện
-                        if price_float < 1000:
-                            stock_data["price"] = price_float * 1000
-                        else:
-                            stock_data["price"] = price_float
-                        
-                        # Đảm bảo giá được làm tròn đến 2 chữ số thập phân
-                        stock_data["price"] = round(stock_data["price"], 2)
-                    except (ValueError, TypeError):
-                        stock_data["price"] = 0
-                else:
-                    stock_data["price"] = 0
-                
-                # Thêm thay đổi giá
-                change_value = None
-                if 'change' in df_price.columns:
-                    change_value = row.get('change', 0)
-                elif '% thay đổi giá 1D' in df_price.columns:
-                    change_value = row.get('% thay đổi giá 1D', 0)
-                
-                if change_value is not None and not pd.isna(change_value):
-                    try:
-                        if isinstance(change_value, str):
-                            change_value = change_value.replace('.', '').replace(',', '.')
-                        stock_data["change"] = float(change_value)
-                    except (ValueError, TypeError):
-                        stock_data["change"] = 0
-                else:
-                    stock_data["change"] = 0
-                
-                # Thêm phần trăm thay đổi
-                stock_data["pct_change"] = stock_data.get("change", 0)  # Sử dụng lại giá trị change
-                
-                # Thêm khối lượng
-                volume_value = None
-                if 'volume' in df_price.columns:
-                    volume_value = row.get('volume', 0)
-                elif 'Khối lượng' in df_price.columns:
-                    volume_value = row.get('Khối lượng', 0)
-                
-                if volume_value is not None and not pd.isna(volume_value):
-                    try:
-                        if isinstance(volume_value, str):
-                            volume_value = volume_value.replace('.', '').replace(',', '.')
-                        stock_data["volume"] = float(volume_value)
-                    except (ValueError, TypeError):
-                        stock_data["volume"] = 0
-                else:
-                    stock_data["volume"] = 0
-                
-                # Thêm thông tin công ty nếu có
-                if not company_info.empty:
-                    stock_data.update({
-                        "name": company_info.iloc[0].get('organName', symbol_value),
-                        "exchange": company_info.iloc[0].get('exchange', ''),
-                        "industry": company_info.iloc[0].get('industryName', 'Chưa phân loại')
-                    })
-                else:
-                    stock_data.update({
-                        "name": symbol_value,
-                        "exchange": "",
-                        "industry": "Chưa phân loại"
-                    })
-                
-                stocks.append(stock_data)
-        
+
+        # Lấy dữ liệu cho từng mã cổ phiếu
+        for symbol in symbols_to_query:
+            try:
+                # Thử lấy dữ liệu historical gần nhất
+                if hasattr(vnstock, 'stock_historical_data'):
+                    end_date = datetime.now().strftime('%Y-%m-%d')
+                    start_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+
+                    stock_data = vnstock.stock_historical_data(
+                        symbol=symbol,
+                        start_date=start_date,
+                        end_date=end_date,
+                        resolution="1D"
+                    )
+
+                    if not stock_data.empty:
+                        latest_data = stock_data.iloc[-1]
+
+                        # Tạo dữ liệu cổ phiếu
+                        stock_info = {
+                            "symbol": symbol,
+                            "name": symbol,  # Tạm thời sử dụng symbol làm name
+                            "price": float(latest_data.get('close', 0)),
+                            "change": float(latest_data.get('change', 0)) if 'change' in latest_data else 0,
+                            "pct_change": 0,  # Sẽ tính sau
+                            "volume": int(latest_data.get('volume', 0)) if 'volume' in latest_data else 0,
+                            "industry": "Chưa phân loại",
+                            "exchange": "HOSE"
+                        }
+
+                        # Tính phần trăm thay đổi
+                        if stock_info["price"] > 0 and stock_info["change"] != 0:
+                            stock_info["pct_change"] = round((stock_info["change"] / (stock_info["price"] - stock_info["change"])) * 100, 2)
+
+                        stocks.append(stock_info)
+
+            except Exception as stock_e:
+                print(f"Lỗi khi lấy dữ liệu cho {symbol}: {str(stock_e)}")
+                # Thêm dữ liệu mock cho symbol này
+                stocks.append({
+                    "symbol": symbol,
+                    "name": symbol,
+                    "price": 0,
+                    "change": 0,
+                    "pct_change": 0,
+                    "volume": 0,
+                    "industry": "Chưa phân loại",
+                    "exchange": "HOSE"
+                })
+
         # Sắp xếp theo mã chứng khoán
         stocks.sort(key=lambda x: x["symbol"])
-        
+
         return {
             "stocks": stocks,
             "count": len(stocks),
@@ -372,11 +363,11 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                      source: str = Query("TCBS", description="Nguồn dữ liệu")):
     """
     Lấy thông tin giá theo thời gian thực của nhiều mã chứng khoán.
-    
+
     Args:
         symbols: Danh sách mã chứng khoán, phân cách bằng dấu phẩy
         source: Nguồn dữ liệu (mặc định: TCBS vì thường cung cấp dữ liệu realtime tốt hơn)
-        
+
     Returns:
         Thông tin giá theo thời gian thực của các mã chứng khoán
     """
@@ -384,143 +375,69 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
         # Chuyển chuỗi symbols thành list
         symbol_list = [s.strip().upper() for s in symbols.split(',')]
         print(f"Đang lấy dữ liệu realtime cho: {symbol_list}")
-        
-        # Lấy bảng giá cho các mã cổ phiếu
-        try:
-            df_price = vnstock.price_board(symbol_list)
-            print(f"Kết quả truy vấn price_board: {df_price.shape[0]} dòng")
-            print(f"Cấu trúc dữ liệu: {df_price.columns.tolist()}")
-        except Exception as inner_e:
-            print(f"Lỗi khi gọi price_board: {str(inner_e)}")
-            return {
-                "symbols": symbol_list,
-                "source": source,
-                "count": 0,
-                "timestamp": datetime.now().isoformat(),
-                "error": f"Không thể lấy dữ liệu: {str(inner_e)}",
-                "data": []
-            }
-        
+
         result = []
-        if not df_price.empty:
-            # In ra thông tin chi tiết để debug
-            print("Dữ liệu mẫu đầu tiên:")
-            if len(df_price) > 0:
-                first_row = df_price.iloc[0].to_dict()
-                print(f"Dòng đầu tiên: {first_row}")
-            
-            # Chuyển DataFrame thành danh sách các dict
-            for i, (_, row) in enumerate(df_price.iterrows()):
-                stock_data = {}
-                
-                # Xử lý mã cổ phiếu đặc biệt
-                symbol_value = None
-                if 'symbol' in df_price.columns:
-                    symbol_value = clean_symbol(row.get('symbol', ''))
-                elif 'Mã CP' in df_price.columns:
-                    symbol_value = clean_symbol(row.get('Mã CP', ''))
-                
-                # Nếu không tìm thấy mã hoặc mã không hợp lệ, sử dụng mã từ danh sách ban đầu
-                if not symbol_value and i < len(symbol_list):
-                    symbol_value = symbol_list[i]
-                
-                stock_data["symbol"] = symbol_value
-                
-                # Giá
-                price_value = None
-                if 'price' in df_price.columns:
-                    price_value = row.get('price')
-                elif 'Giá' in df_price.columns:
-                    price_value = row.get('Giá')
-                
-                # Kiểm tra và chuyển đổi giá
-                if price_value is not None and not pd.isna(price_value):
-                    try:
-                        # Xử lý các trường hợp giá có thể là chuỗi với dấu phẩy
-                        if isinstance(price_value, str):
-                            # Thay thế dấu phẩy bằng dấu chấm nếu là định dạng số Việt Nam/Châu Âu
-                            price_value = price_value.replace('.', '').replace(',', '.')
-                        
-                        # Chuyển đổi sang float
-                        price_float = float(price_value)
-                        
-                        # Đảm bảo giá được hiển thị đúng định dạng như trên giao diện
-                        # Nếu giá < 1000, nhân với 1000 để hiển thị đúng định dạng
-                        if price_float < 1000:
-                            stock_data["price"] = price_float * 1000
-                        else:
-                            stock_data["price"] = price_float
-                        
-                        # Đảm bảo giá được làm tròn đến 2 chữ số thập phân
-                        stock_data["price"] = round(stock_data["price"], 2)
-                        
-                        # Nếu giá vẫn nhỏ, có thể cần nhân thêm
-                        if stock_data["price"] < 100:
-                            stock_data["price"] = stock_data["price"] * 1000
-                    except (ValueError, TypeError):
-                        print(f"Lỗi chuyển đổi giá: {price_value} (type: {type(price_value)})")
-                        stock_data["price"] = 0
-                else:
-                    stock_data["price"] = 0
-                
-                # Thay đổi giá
-                change_value = None
-                if 'change' in df_price.columns:
-                    change_value = row.get('change', 0)
-                elif '% thay đổi giá 1D' in df_price.columns:
-                    change_value = row.get('% thay đổi giá 1D', 0)
-                
-                if change_value is not None and not pd.isna(change_value):
-                    try:
-                        if isinstance(change_value, str):
-                            change_value = change_value.replace('.', '').replace(',', '.')
-                        stock_data["change"] = float(change_value)
-                    except (ValueError, TypeError):
-                        stock_data["change"] = 0
-                else:
-                    stock_data["change"] = 0
-                
-                # Phần trăm thay đổi
-                stock_data["pct_change"] = stock_data.get("change", 0)  # Sử dụng lại giá trị change
-                
-                # Khối lượng
-                volume_value = None
-                if 'volume' in df_price.columns:
-                    volume_value = row.get('volume', 0)
-                elif 'Khối lượng' in df_price.columns:
-                    volume_value = row.get('Khối lượng', 0)
-                
-                if volume_value is not None and not pd.isna(volume_value):
-                    try:
-                        if isinstance(volume_value, str):
-                            volume_value = volume_value.replace('.', '').replace(',', '.')
-                        stock_data["volume"] = float(volume_value)
-                    except (ValueError, TypeError):
-                        stock_data["volume"] = 0
-                else:
-                    stock_data["volume"] = 0
-                
-                # Thêm thông tin công ty nếu có
-                try:
-                    company_info = vnstock.listing_companies()
-                    company_row = company_info[company_info['ticker'] == symbol_value]
-                    if not company_row.empty:
-                        stock_data["name"] = company_row.iloc[0].get('organName', symbol_value)
-                        stock_data["industry"] = company_row.iloc[0].get('industryName', '')
-                except Exception as company_e:
-                    print(f"Lỗi khi lấy thông tin công ty: {str(company_e)}")
-                
-                # Kiểm tra một lần nữa để đảm bảo giá hiển thị đúng
-                if "price" in stock_data and stock_data["price"] > 0:
-                    # Nếu giá < 100, có thể là đang hiển thị sai định dạng
-                    if stock_data["price"] < 100:
-                        stock_data["price"] = stock_data["price"] * 1000
-                    # Nếu giá > 1,000,000, có thể đã nhân quá nhiều
-                    elif stock_data["price"] > 1000000:
-                        stock_data["price"] = stock_data["price"] / 1000
-                
-                result.append(stock_data)
-        
+
+        # Lấy dữ liệu cho từng mã cổ phiếu
+        for symbol in symbol_list:
+            try:
+                # Thử lấy dữ liệu historical gần nhất (realtime)
+                if hasattr(vnstock, 'stock_historical_data'):
+                    end_date = datetime.now().strftime('%Y-%m-%d')
+                    start_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+
+                    stock_data = vnstock.stock_historical_data(
+                        symbol=symbol,
+                        start_date=start_date,
+                        end_date=end_date,
+                        resolution="1D"
+                    )
+
+                    if not stock_data.empty:
+                        latest_data = stock_data.iloc[-1]
+
+                        # Tạo dữ liệu realtime
+                        stock_info = {
+                            "symbol": symbol,
+                            "name": symbol,  # Tạm thời sử dụng symbol làm name
+                            "price": float(latest_data.get('close', 0)),
+                            "change": float(latest_data.get('change', 0)) if 'change' in latest_data else 0,
+                            "pct_change": 0,  # Sẽ tính sau
+                            "volume": int(latest_data.get('volume', 0)) if 'volume' in latest_data else 0,
+                            "industry": "Chưa phân loại"
+                        }
+
+                        # Tính phần trăm thay đổi
+                        if stock_info["price"] > 0 and stock_info["change"] != 0:
+                            stock_info["pct_change"] = round((stock_info["change"] / (stock_info["price"] - stock_info["change"])) * 100, 2)
+
+                        result.append(stock_info)
+                    else:
+                        # Thêm dữ liệu trống cho symbol này
+                        result.append({
+                            "symbol": symbol,
+                            "name": symbol,
+                            "price": 0,
+                            "change": 0,
+                            "pct_change": 0,
+                            "volume": 0,
+                            "industry": "Chưa phân loại",
+                            "error": "Không có dữ liệu"
+                        })
+
+            except Exception as stock_e:
+                print(f"Lỗi khi lấy dữ liệu realtime cho {symbol}: {str(stock_e)}")
+                result.append({
+                    "symbol": symbol,
+                    "name": symbol,
+                    "price": 0,
+                    "change": 0,
+                    "pct_change": 0,
+                    "volume": 0,
+                    "industry": "Chưa phân loại",
+                    "error": f"Lỗi: {str(stock_e)}"
+                })
+
         return {
             "symbols": symbol_list,
             "source": source,
