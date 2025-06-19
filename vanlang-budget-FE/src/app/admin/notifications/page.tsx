@@ -111,6 +111,8 @@ export default function AdminNotificationsPage() {
     const fetchNotifications = async () => {
         try {
             setLoading(true)
+            console.log('Fetching notifications from API...')
+
             const response = await api.get('/api/admin/notifications', {
                 params: {
                     page: currentPage,
@@ -119,43 +121,26 @@ export default function AdminNotificationsPage() {
                 }
             })
 
-            // Dữ liệu mẫu cho môi trường dev
-            const mockData = {
-                notifications: Array.from({ length: 10 }, (_, i) => ({
-                    _id: `notif_${i + 1}`,
-                    title: `Thông báo quan trọng ${i + 1}`,
-                    message: `Đây là nội dung thông báo ${i + 1} được tạo để thử nghiệm.`,
-                    type: ['info', 'warning', 'success', 'error'][Math.floor(Math.random() * 4)] as 'info' | 'warning' | 'success' | 'error',
-                    sentTo: ['all', 'user', 'admin'][Math.floor(Math.random() * 3)] as 'all' | 'user' | 'admin',
-                    isRead: Math.random() > 0.5,
-                    createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-                    sentCount: Math.floor(Math.random() * 100)
-                })),
-                totalPages: 5
-            }
+            console.log('API Response:', response.data)
 
-            setNotifications(response?.data?.notifications || mockData.notifications)
-            setTotalPages(response?.data?.totalPages || mockData.totalPages)
+            // Chỉ sử dụng dữ liệu thật từ API
+            if (response?.data?.notifications) {
+                setNotifications(response.data.notifications)
+                setTotalPages(response.data.totalPages || 1)
+                console.log('Loaded real notifications:', response.data.notifications.length)
+            } else {
+                // Nếu không có dữ liệu, hiển thị danh sách trống
+                setNotifications([])
+                setTotalPages(1)
+                console.log('No notifications found, showing empty list')
+            }
         } catch (error) {
             console.error('Lỗi khi tải thông báo:', error)
 
-            // Dữ liệu mẫu nếu API gặp lỗi
-            const mockData = {
-                notifications: Array.from({ length: 10 }, (_, i) => ({
-                    _id: `notif_${i + 1}`,
-                    title: `Thông báo quan trọng ${i + 1}`,
-                    message: `Đây là nội dung thông báo ${i + 1} được tạo để thử nghiệm.`,
-                    type: ['info', 'warning', 'success', 'error'][Math.floor(Math.random() * 4)] as 'info' | 'warning' | 'success' | 'error',
-                    sentTo: ['all', 'user', 'admin'][Math.floor(Math.random() * 3)] as 'all' | 'user' | 'admin',
-                    isRead: Math.random() > 0.5,
-                    createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-                    sentCount: Math.floor(Math.random() * 100)
-                })),
-                totalPages: 5
-            }
-
-            setNotifications(mockData.notifications)
-            setTotalPages(mockData.totalPages)
+            // Hiển thị danh sách trống khi có lỗi
+            setNotifications([])
+            setTotalPages(1)
+            setError('Không thể tải danh sách thông báo. Vui lòng thử lại.')
         } finally {
             setLoading(false)
         }
