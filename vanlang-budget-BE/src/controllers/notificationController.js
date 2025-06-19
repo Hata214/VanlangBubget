@@ -657,8 +657,8 @@ export const deleteAdminNotification = async (req, res, next) => {
     try {
         const notificationId = req.params.id;
 
-        // Tìm thông báo
-        const notification = await Notification.findById(notificationId);
+        // Tìm thông báo trong AdminNotification collection
+        const notification = await AdminNotification.findById(notificationId);
 
         if (!notification) {
             return res.status(404).json({
@@ -668,7 +668,7 @@ export const deleteAdminNotification = async (req, res, next) => {
         }
 
         // Xóa thông báo
-        await Notification.deleteOne({ _id: notificationId });
+        await AdminNotification.deleteOne({ _id: notificationId });
 
         logger.info(`Admin ${req.user.id} deleted notification ${notificationId}`);
 
@@ -699,8 +699,8 @@ export const deleteAdminNotificationsBulk = async (req, res, next) => {
             });
         }
 
-        // Kiểm tra các thông báo có tồn tại không
-        const existingNotifications = await Notification.find({
+        // Kiểm tra các thông báo có tồn tại không trong AdminNotification collection
+        const existingNotifications = await AdminNotification.find({
             _id: { $in: notificationIds }
         });
 
@@ -712,7 +712,7 @@ export const deleteAdminNotificationsBulk = async (req, res, next) => {
         }
 
         // Xóa các thông báo
-        const deleteResult = await Notification.deleteMany({
+        const deleteResult = await AdminNotification.deleteMany({
             _id: { $in: notificationIds }
         });
 
@@ -747,8 +747,8 @@ export const deleteAllAdminNotifications = async (req, res, next) => {
             });
         }
 
-        // Xóa tất cả thông báo
-        const deleteResult = await Notification.deleteMany({});
+        // Xóa tất cả thông báo admin
+        const deleteResult = await AdminNotification.deleteMany({});
 
         logger.info(`Admin ${req.user.id} deleted all ${deleteResult.deletedCount} notifications`);
 
