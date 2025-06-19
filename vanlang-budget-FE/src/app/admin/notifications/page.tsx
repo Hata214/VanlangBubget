@@ -124,15 +124,15 @@ export default function AdminNotificationsPage() {
             console.log('NextJS API Response:', response.data)
 
             // Chỉ sử dụng dữ liệu thật từ API
-            if (response.data?.notifications) {
-                setNotifications(response.data.notifications)
-                setTotalPages(response.data.totalPages || 1)
-                console.log('Loaded real notifications:', response.data.notifications.length)
+            if (response.data?.data?.notifications) {
+                setNotifications(response.data.data.notifications)
+                setTotalPages(response.data.data.totalPages || 1)
+                console.log('Loaded real notifications:', response.data.data.notifications.length)
             } else {
                 // Nếu không có dữ liệu, hiển thị danh sách trống
                 setNotifications([])
                 setTotalPages(1)
-                console.log('No notifications found, showing empty list')
+                console.log('No notifications data found, response structure:', response.data)
             }
         } catch (error) {
             console.error('Lỗi khi tải thông báo:', error)
