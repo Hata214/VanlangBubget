@@ -171,9 +171,9 @@ export const MessageContent: React.FC<{ message: any }> = ({ message }) => {
     return <StockMessageCard stockData={stockData} />;
   }
 
-  // Hiển thị tin nhắn thường
+  // Hiển thị tin nhắn thường với formatting cải thiện
   return (
-    <div className="text-sm whitespace-pre-wrap">
+    <div className="text-sm whitespace-pre-wrap leading-relaxed">
       {message.text}
     </div>
   );

@@ -14,16 +14,15 @@ class StockService {
         this.maxRetries = 2; // Số lần retry cho production
         this.retryDelay = 1000; // 1 giây delay giữa các retry
 
-        // Production logging
-        if (process.env.NODE_ENV === 'production') {
-            logger.info('🚀 StockService initialized for PRODUCTION', {
-                baseUrl: this.baseUrl,
-                timeout: this.timeout,
-                cacheExpiry: this.cacheExpiry
-            });
-        } else {
-            logger.info('✅ StockService initialized for DEVELOPMENT', { baseUrl: this.baseUrl });
-        }
+        // Production logging with environment variable check
+        logger.info('🚀 StockService initialized', {
+            environment: process.env.NODE_ENV,
+            baseUrl: this.baseUrl,
+            timeout: this.timeout,
+            cacheExpiry: this.cacheExpiry,
+            stockApiUrlFromEnv: process.env.STOCK_API_URL,
+            hasStockApiUrl: !!process.env.STOCK_API_URL
+        });
     }
 
     /**
@@ -130,6 +129,16 @@ class StockService {
      * Get user-friendly error message for production
      */
     getProductionErrorMessage(error) {
+        // Log error details for debugging (only in production logs)
+        if (process.env.NODE_ENV === 'production') {
+            logger.error('📊 Stock API Error Details', {
+                code: error.code,
+                status: error.response?.status,
+                message: error.message,
+                url: error.config?.url
+            });
+        }
+
         if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
             return 'Dịch vụ dữ liệu cổ phiếu đang quá tải, vui lòng thử lại sau';
         }
@@ -138,6 +147,9 @@ class StockService {
         }
         if (error.response?.status === 404) {
             return 'Mã cổ phiếu không tồn tại hoặc không được hỗ trợ';
+        }
+        if (error.response?.status === 429) {
+            return 'Quá nhiều yêu cầu, vui lòng thử lại sau vài phút';
         }
         if (error.response?.status >= 500) {
             return 'Dịch vụ dữ liệu cổ phiếu tạm thời gặp sự cố';

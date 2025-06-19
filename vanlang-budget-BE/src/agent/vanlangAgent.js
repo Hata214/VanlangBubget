@@ -325,7 +325,15 @@ class VanLangAgent {
         }
 
         // Kiểm tra stock query trước khi gọi Gemini AI (ưu tiên cao)
-        if (this.detectStockQuery(normalizedMessage)) {
+        const isStockQuery = this.detectStockQuery(normalizedMessage);
+        logger.info('🔍 Stock query check', {
+            message: normalizedMessage,
+            isStockQuery,
+            stockServiceAvailable: !!this.stockService
+        });
+
+        if (isStockQuery) {
+            logger.info('📊 Returning stock_query intent');
             return 'stock_query';
         }
 
@@ -581,17 +589,22 @@ Chỉ trả lời một từ duy nhất.`;
 
         // Patterns để nhận diện câu hỏi về cổ phiếu
         const stockPatterns = [
-            // Hỏi giá cổ phiếu cụ thể
-            /\b(giá|gia)\s+(cổ phiếu|co phieu|stock)\s+([A-Z]{3,4})\b/i,
+            // Hỏi giá cổ phiếu cụ thể - cải thiện
+            /\b(giá|gia)\s+(cổ phiếu|co phieu|stock)?\s*([A-Z]{3,4})\b/i,
+            /\b(giá|gia)\s+([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|hiện tại|hien tai|thế nào|the nao|như thế nào|nhu the nao)/i,
             /\b(mã|ma)\s+([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|hiện tại|hien tai)/i,
             /\b([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|thế nào|the nao|như thế nào|nhu the nao)/i,
+
+            // Hỏi về cổ phiếu với "của" - cho câu "cổ phiếu của BID"
+            /(cổ phiếu|co phieu|stock)\s+(của|cua)\s+([A-Z]{3,4})/i,
+            /(cổ phiếu|co phieu|stock)\s+([A-Z]{3,4})/i,
 
             // Hỏi về cổ phiếu nói chung
             /\b(cổ phiếu|co phieu|stock|chứng khoán|chung khoan)\s+(nào|nao|gì|gi|thế nào|the nao)/i,
             /\b(thị trường|thi truong|market)\s+(cổ phiếu|co phieu|stock|chứng khoán|chung khoan)/i,
 
-            // Hỏi giá trực tiếp với mã cổ phiếu
-            /\b(VNM|VCB|FPT|VIC|HPG|MSN|CTG|BID|TCB|VHM|MWG|SAB|GAS|PLX|VRE|POW|SSI|HDB|TPB|SHB)\b/i,
+            // Hỏi giá trực tiếp với mã cổ phiếu - mở rộng danh sách
+            /\b(VNM|VCB|FPT|VIC|HPG|MSN|CTG|BID|TCB|VHM|MWG|SAB|GAS|PLX|VRE|POW|SSI|HDB|TPB|SHB|ACB|STB|VPB|EIB|LPB|MBB|NVB|OCB|PVB|SCB|VIB|VND|VCG|VJC|GMD|DGC|REE|PNJ|DXG|KDH)\b/i,
 
             // Câu hỏi phân tích
             /(phân tích|phan tich|analyze)\s+(cổ phiếu|co phieu|stock)/i,
@@ -601,52 +614,90 @@ Chỉ trả lời một từ duy nhất.`;
             // Hỏi về ngành
             /(cổ phiếu|co phieu|stock)\s+(ngân hàng|ngan hang|banking|công nghệ|cong nghe|technology)/i,
 
-            // Patterns đơn giản
+            // Patterns đơn giản - cải thiện
             /giá\s+[A-Z]{3,4}/i,
-            /[A-Z]{3,4}\s+giá/i,
+            /[A-Z]{3,4}\s+(giá|gia)/i,
             /stock\s+price/i,
             /price\s+of\s+[A-Z]{3,4}/i
         ];
 
         const isStockQuery = stockPatterns.some(pattern => pattern.test(normalizedMessage));
 
-        if (isStockQuery) {
-            logger.info('📊 Stock query detected', {
-                message: normalizedMessage,
-                patterns: stockPatterns.map(p => p.test(normalizedMessage))
-            });
-        }
+        // Debug logging cho tất cả stock query attempts
+        logger.info('📊 Stock query detection', {
+            message: normalizedMessage,
+            isStockQuery,
+            matchingPatterns: stockPatterns.map((p, i) => ({
+                index: i,
+                pattern: p.toString(),
+                matches: p.test(normalizedMessage)
+            })).filter(p => p.matches)
+        });
 
         return isStockQuery;
     }
 
     /**
-     * Trích xuất mã cổ phiếu từ tin nhắn
+     * Trích xuất mã cổ phiếu từ tin nhắn - Cải thiện cho production
      */
     extractStockSymbol(message) {
         const normalizedMessage = message.toUpperCase().trim();
 
-        // Danh sách mã cổ phiếu phổ biến
+        // Danh sách mã cổ phiếu phổ biến - mở rộng
         const popularStocks = [
             'VNM', 'VCB', 'FPT', 'VIC', 'HPG', 'MSN', 'CTG', 'BID', 'TCB', 'VHM',
             'MWG', 'SAB', 'GAS', 'PLX', 'VRE', 'POW', 'SSI', 'HDB', 'TPB', 'SHB',
             'ACB', 'STB', 'VPB', 'EIB', 'LPB', 'MBB', 'NVB', 'OCB', 'PVB', 'SCB',
-            'VIB', 'VND', 'VCG', 'VJC', 'GMD', 'DGC', 'REE', 'PNJ', 'DXG', 'KDH'
+            'VIB', 'VND', 'VCG', 'VJC', 'GMD', 'DGC', 'REE', 'PNJ', 'DXG', 'KDH',
+            'BCM', 'BVH', 'CII', 'FLC', 'GEX', 'HAG', 'HNG', 'KBC', 'NKG', 'NTL',
+            'PDR', 'PHR', 'SBT', 'SSB', 'VCI', 'VGC', 'VHC', 'VNS', 'VOS', 'VPI'
         ];
 
-        // Tìm mã cổ phiếu trong tin nhắn
+        // Các patterns để trích xuất mã cổ phiếu
+        const extractionPatterns = [
+            // Pattern cho "cổ phiếu của BID", "giá của VNM"
+            /(của|cua)\s+([A-Z]{3,4})\b/i,
+            // Pattern cho "giá VNM", "VNM hôm nay"
+            /\b([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|thế nào|the nao|như thế nào|nhu the nao|hiện tại|hien tai)/i,
+            // Pattern cho "giá VNM", "mã VNM"
+            /(giá|gia|mã|ma)\s+([A-Z]{3,4})\b/i,
+            // Pattern cho "cổ phiếu VNM"
+            /(cổ phiếu|co phieu|stock)\s+([A-Z]{3,4})\b/i,
+            // Pattern chung cho mã cổ phiếu
+            /\b([A-Z]{3,4})\b/
+        ];
+
+        // Thử các patterns theo thứ tự ưu tiên
+        for (const pattern of extractionPatterns) {
+            const match = normalizedMessage.match(pattern);
+            if (match) {
+                // Lấy group cuối cùng (mã cổ phiếu)
+                const symbol = match[match.length - 1];
+
+                // Kiểm tra xem có phải mã cổ phiếu hợp lệ không
+                if (popularStocks.includes(symbol)) {
+                    logger.info('📊 Stock symbol extracted', {
+                        message: normalizedMessage,
+                        symbol,
+                        pattern: pattern.toString()
+                    });
+                    return symbol;
+                }
+            }
+        }
+
+        // Fallback: tìm bất kỳ mã nào trong danh sách phổ biến
         for (const stock of popularStocks) {
             if (normalizedMessage.includes(stock)) {
+                logger.info('📊 Stock symbol found by inclusion', {
+                    message: normalizedMessage,
+                    symbol: stock
+                });
                 return stock;
             }
         }
 
-        // Tìm pattern mã cổ phiếu (3-4 ký tự viết hoa)
-        const stockMatch = normalizedMessage.match(/\b([A-Z]{3,4})\b/);
-        if (stockMatch) {
-            return stockMatch[1];
-        }
-
+        logger.info('📊 No stock symbol found', { message: normalizedMessage });
         return null;
     }
 
@@ -1459,6 +1510,7 @@ Chỉ trả về JSON, không có text khác.`;
 
                 // Nhóm Stock - Truy vấn cổ phiếu
                 case 'stock_query':
+                    logger.info('📊 Processing stock_query case', { userId, message });
                     return await this.handleStockQuery(userId, message);
 
                 // Nhóm Statistics - Thống kê nâng cao
@@ -3379,7 +3431,7 @@ Vui lòng thử lại sau hoặc kiểm tra mã cổ phiếu khác.`,
     }
 
     /**
-     * 📊 Format response cho thông tin cổ phiếu
+     * 📊 Format response cho thông tin cổ phiếu - Production optimized
      */
     formatStockResponse(stockAnalysis, originalMessage) {
         const { symbol, price, volume, analysis, source, timestamp } = stockAnalysis;
@@ -3395,28 +3447,34 @@ Vui lòng thử lại sau hoặc kiểm tra mã cổ phiếu khác.`,
 
         const emoji = trendEmoji[analysis.trend] || '📊';
 
-        // Tạo response chi tiết
-        let response = `${emoji} **Thông tin cổ phiếu ${symbol}**\n\n`;
+        // Tạo response ngắn gọn và dễ đọc cho mobile
+        let response = `${emoji} **${symbol}** - ${price.formatted}\n\n`;
 
-        response += `💰 **Giá hiện tại:** ${price.formatted}\n`;
+        // Thông tin chính
         response += `📊 **Thay đổi:** ${price.pct_change_formatted}\n`;
         response += `📈 **Khối lượng:** ${volume.formatted}\n\n`;
 
-        response += `🔍 **Phân tích:**\n${analysis.analysis}\n\n`;
+        // Phân tích ngắn gọn
+        response += `🔍 **Phân tích:** ${analysis.analysis}\n\n`;
         response += `💡 **Khuyến nghị:** ${analysis.recommendation}\n\n`;
 
-        // Thêm thông tin kỹ thuật
-        if (analysis.technical_indicators) {
+        // Thông tin bổ sung (chỉ hiển thị nếu có)
+        if (analysis.technical_indicators && analysis.technical_indicators.price_change !== 0) {
             const indicators = analysis.technical_indicators;
-            response += `📋 **Chỉ số kỹ thuật:**\n`;
-            response += `• Thay đổi giá: ${indicators.price_change > 0 ? '+' : ''}${indicators.price_change.toLocaleString('vi-VN')} VND\n`;
-            response += `• Mức khối lượng: ${indicators.volume_level === 'high' ? 'Cao' : indicators.volume_level === 'medium' ? 'Trung bình' : 'Thấp'}\n\n`;
+            const changeText = indicators.price_change > 0 ?
+                `+${indicators.price_change.toLocaleString('vi-VN')}` :
+                `${indicators.price_change.toLocaleString('vi-VN')}`;
+            response += `📋 **Chi tiết:** ${changeText} VND, khối lượng ${indicators.volume_level === 'high' ? 'cao' : indicators.volume_level === 'medium' ? 'TB' : 'thấp'}\n\n`;
         }
 
-        response += `📅 **Cập nhật:** ${new Date(timestamp).toLocaleString('vi-VN')}\n`;
-        response += `📡 **Nguồn:** ${source}\n\n`;
+        // Footer ngắn gọn
+        const updateTime = new Date(timestamp).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        response += `📅 ${updateTime} | 📡 ${source}\n\n`;
 
-        response += `💬 *Lưu ý: Đây chỉ là thông tin tham khảo, không phải lời khuyên đầu tư. Vui lòng tự nghiên cứu kỹ trước khi đưa ra quyết định đầu tư.*`;
+        response += `💬 *Thông tin tham khảo, không phải lời khuyên đầu tư*`;
 
         return response;
     }
