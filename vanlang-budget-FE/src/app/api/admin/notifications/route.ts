@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { hasAdminAccess } from '@/utils/auth'
 import api from '@/services/api'
 
 /**
@@ -16,14 +15,6 @@ export async function GET(req: NextRequest) {
             return NextResponse.json(
                 { error: 'Chưa đăng nhập' },
                 { status: 401 }
-            )
-        }
-
-        // Kiểm tra quyền admin
-        if (!hasAdminAccess(tokenCookie.value)) {
-            return NextResponse.json(
-                { error: 'Không có quyền truy cập' },
-                { status: 403 }
             )
         }
 
@@ -44,7 +35,7 @@ export async function GET(req: NextRequest) {
         }
 
         // Gọi API backend trực tiếp
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || 'https://vlb-vanlang-budget-be.onrender.com'
+        const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://vanlangbubget.onrender.com'
         const backendUrl = `${apiUrl}/api/admin/notifications`;
         console.log('[NextJS API] Calling backend:', backendUrl);
         console.log('[NextJS API] Params:', { page, limit, search });
@@ -105,14 +96,6 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 { error: 'Chưa đăng nhập' },
                 { status: 401 }
-            )
-        }
-
-        // Kiểm tra quyền admin
-        if (!hasAdminAccess(tokenCookie.value)) {
-            return NextResponse.json(
-                { error: 'Không có quyền truy cập' },
-                { status: 403 }
             )
         }
 
