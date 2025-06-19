@@ -79,7 +79,7 @@ interface NewNotification {
 }
 
 export default function AdminNotificationsPage() {
-    const t = useTranslations()
+    const t = useTranslations('admin.notifications')
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
@@ -188,7 +188,7 @@ export default function AdminNotificationsPage() {
             // Cập nhật UI và auto-refresh
             setNotifications(prev => prev.filter(n => n._id !== notificationToDelete))
             setSelectedNotifications(prev => prev.filter(id => id !== notificationToDelete))
-            setSuccess(t('admin.notifications.deleteSuccess'))
+            setSuccess(t('deleteSuccess'))
 
             // Auto-refresh danh sách sau khi xóa
             setTimeout(() => {
@@ -212,7 +212,7 @@ export default function AdminNotificationsPage() {
             } else if (error?.code === 'NETWORK_ERROR' || !navigator.onLine) {
                 setError('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet')
             } else {
-                setError(error?.response?.data?.message || t('admin.notifications.deleteError'))
+                setError(error?.response?.data?.message || t('deleteError'))
             }
 
             setTimeout(() => setError(null), 5000)
@@ -238,7 +238,7 @@ export default function AdminNotificationsPage() {
             // Cập nhật UI
             setNotifications([])
             setSelectedNotifications([])
-            setSuccess(t('admin.notifications.deleteAllSuccess'))
+            setSuccess('Đã xóa tất cả thông báo thành công')
 
             // Auto-refresh danh sách sau khi xóa
             setTimeout(() => {
@@ -251,7 +251,7 @@ export default function AdminNotificationsPage() {
             }, 3000)
         } catch (error) {
             console.error('Lỗi khi xóa tất cả thông báo:', error)
-            setError(t('admin.notifications.deleteAllError'))
+            setError('Lỗi khi xóa tất cả thông báo')
             setTimeout(() => setError(null), 5000)
         } finally {
             setProcessing(false)
@@ -279,7 +279,7 @@ export default function AdminNotificationsPage() {
 
     const handleDeleteSelected = () => {
         if (selectedNotifications.length === 0) {
-            setError(t('admin.notifications.noNotificationsSelected'))
+            setError('Vui lòng chọn ít nhất một thông báo để xóa')
             setTimeout(() => setError(null), 3000)
             return
         }
@@ -292,7 +292,7 @@ export default function AdminNotificationsPage() {
         if (validNotifications.length !== selectedNotifications.length) {
             setSelectedNotifications(validNotifications)
             if (validNotifications.length === 0) {
-                setError(t('admin.notifications.noNotificationsSelected'))
+                setError('Vui lòng chọn ít nhất một thông báo để xóa')
                 setTimeout(() => setError(null), 3000)
                 return
             }
@@ -315,7 +315,7 @@ export default function AdminNotificationsPage() {
             // Cập nhật UI
             setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)))
             setSelectedNotifications([])
-            setSuccess(t('admin.notifications.deleteSelectedSuccess', { count: deleteCount }))
+            setSuccess(`Đã xóa ${deleteCount} thông báo thành công`)
 
             // Auto-refresh danh sách sau khi xóa
             setTimeout(() => {
@@ -339,7 +339,7 @@ export default function AdminNotificationsPage() {
             } else if (error?.code === 'NETWORK_ERROR' || !navigator.onLine) {
                 setError('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet')
             } else {
-                setError(error?.response?.data?.message || t('admin.notifications.deleteSelectedError'))
+                setError(error?.response?.data?.message || 'Lỗi khi xóa thông báo đã chọn')
             }
 
             setTimeout(() => setError(null), 5000)
@@ -356,20 +356,20 @@ export default function AdminNotificationsPage() {
 
             // Validation
             if (!newNotification.title.trim()) {
-                setError(t('admin.notifications.titleRequired'))
+                setError(t('titleRequired'))
                 setProcessing(false)
                 return
             }
 
             if (!newNotification.message.trim()) {
-                setError(t('admin.notifications.messageRequired'))
+                setError(t('messageRequired'))
                 setProcessing(false)
                 return
             }
 
             // Kiểm tra người nhận
             if (!newNotification.sendToAll && !newNotification.sendToAdmins && !newNotification.specificUsers.trim()) {
-                setError(t('admin.notifications.recipientRequired'))
+                setError(t('recipientRequired'))
                 setProcessing(false)
                 return
             }
@@ -407,7 +407,7 @@ export default function AdminNotificationsPage() {
             })
 
             setShowCreateDialog(false)
-            setSuccess(t('admin.notifications.createSuccess'))
+            setSuccess(t('createSuccess'))
             fetchNotifications()  // Refresh danh sách
 
             // Xóa thông báo thành công sau 3 giây
@@ -416,7 +416,7 @@ export default function AdminNotificationsPage() {
             }, 3000)
         } catch (error) {
             console.error('Lỗi khi tạo thông báo:', error)
-            setError(t('admin.notifications.createError'))
+            setError(t('createError'))
         } finally {
             setProcessing(false)
         }
@@ -436,26 +436,26 @@ export default function AdminNotificationsPage() {
     }
 
     const getSentToDisplay = (sentTo: 'all' | 'user' | 'admin' | string[]) => {
-        if (sentTo === 'all') return t('admin.notifications.allUsers')
-        if (sentTo === 'admin') return t('admin.notifications.adminUsers')
-        if (sentTo === 'user') return t('admin.notifications.regularUsers')
-        if (Array.isArray(sentTo)) return `${sentTo.length} ${t('admin.notifications.specificUsers')}`
+        if (sentTo === 'all') return t('allUsers')
+        if (sentTo === 'admin') return t('adminUsers')
+        if (sentTo === 'user') return t('regularUsers')
+        if (Array.isArray(sentTo)) return `${sentTo.length} người dùng cụ thể`
         return String(sentTo)
     }
 
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">{t('admin.notifications.title')}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
                 <p className="text-muted-foreground mt-2">
-                    {t('admin.notifications.description')}
+                    {t('description')}
                 </p>
             </div>
 
             {error && (
                 <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
-                    <AlertTitle>{t('common.error')}</AlertTitle>
+                    <AlertTitle>Lỗi</AlertTitle>
                     <AlertDescription>{error}</AlertDescription>
                 </Alert>
             )}
@@ -463,7 +463,7 @@ export default function AdminNotificationsPage() {
             {success && (
                 <Alert variant="default" className="bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
                     <Bell className="h-4 w-4" />
-                    <AlertTitle>{t('common.success')}</AlertTitle>
+                    <AlertTitle>Thành công</AlertTitle>
                     <AlertDescription>{success}</AlertDescription>
                 </Alert>
             )}
@@ -472,14 +472,14 @@ export default function AdminNotificationsPage() {
                 <form onSubmit={handleSearch} className="flex items-center space-x-2">
                     <Input
                         type="text"
-                        placeholder={t('admin.notifications.searchPlaceholder')}
+                        placeholder={t('searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-64 sm:w-80"
                     />
                     <Button type="submit" size="icon">
                         <Search className="h-4 w-4" />
-                        <span className="sr-only">{t('common.search')}</span>
+                        <span className="sr-only">Tìm kiếm</span>
                     </Button>
                     <Button
                         type="button"
@@ -489,7 +489,7 @@ export default function AdminNotificationsPage() {
                         disabled={loading}
                     >
                         <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                        <span className="sr-only">{t('admin.notifications.refreshList')}</span>
+                        <span className="sr-only">{t('refreshList')}</span>
                     </Button>
                 </form>
 
@@ -502,8 +502,8 @@ export default function AdminNotificationsPage() {
                             size="sm"
                         >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            <span className="hidden sm:inline">{t('admin.notifications.deleteSelected')}</span>
-                            <span className="sm:hidden">{t('admin.notifications.delete')}</span>
+                            <span className="hidden sm:inline">Xóa đã chọn</span>
+                            <span className="sm:hidden">{t('delete')}</span>
                             ({selectedNotifications.length})
                         </Button>
                     )}
@@ -514,13 +514,13 @@ export default function AdminNotificationsPage() {
                         size="sm"
                     >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">{t('admin.notifications.deleteAll')}</span>
-                        <span className="sm:hidden">{t('admin.notifications.delete')}</span>
+                        <span className="hidden sm:inline">Xóa tất cả</span>
+                        <span className="sm:hidden">{t('delete')}</span>
                     </Button>
                     <Button onClick={() => setShowCreateDialog(true)} size="sm">
                         <Plus className="h-4 w-4 mr-2" />
-                        <span className="hidden sm:inline">{t('admin.notifications.createNew')}</span>
-                        <span className="sm:hidden">{t('common.create')}</span>
+                        <span className="hidden sm:inline">{t('createNew')}</span>
+                        <span className="sm:hidden">Tạo</span>
                     </Button>
                 </div>
             </div>
@@ -535,15 +535,15 @@ export default function AdminNotificationsPage() {
                                         <Checkbox
                                             checked={selectedNotifications.length === notifications.length && notifications.length > 0}
                                             onCheckedChange={handleSelectAll}
-                                            aria-label={t('admin.notifications.selectAll')}
+                                            aria-label="Chọn tất cả"
                                         />
                                     </TableHead>
-                                    <TableHead>{t('admin.notifications.title')}</TableHead>
-                                    <TableHead className="hidden sm:table-cell">{t('admin.notifications.type')}</TableHead>
-                                    <TableHead className="hidden md:table-cell">{t('admin.notifications.sentTo')}</TableHead>
-                                    <TableHead className="hidden lg:table-cell">{t('admin.notifications.sentCount')}</TableHead>
-                                    <TableHead className="hidden sm:table-cell">{t('admin.notifications.created')}</TableHead>
-                                    <TableHead>{t('admin.notifications.actions')}</TableHead>
+                                    <TableHead>Tiêu đề</TableHead>
+                                    <TableHead className="hidden sm:table-cell">{t('type')}</TableHead>
+                                    <TableHead className="hidden md:table-cell">Gửi đến</TableHead>
+                                    <TableHead className="hidden lg:table-cell">Số người nhận</TableHead>
+                                    <TableHead className="hidden sm:table-cell">{t('created')}</TableHead>
+                                    <TableHead>{t('actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -561,7 +561,7 @@ export default function AdminNotificationsPage() {
                                 ) : notifications.length === 0 ? (
                                     <TableRow>
                                         <TableCell colSpan={7} className="text-center py-8">
-                                            {t('admin.notifications.noNotificationsFound')}
+                                            {t('noNotificationsFound')}
                                         </TableCell>
                                     </TableRow>
                                 ) : (
@@ -605,7 +605,7 @@ export default function AdminNotificationsPage() {
                                                         onClick={() => handleViewNotification(notification)}
                                                     >
                                                         <Eye className="h-4 w-4" />
-                                                        <span className="sr-only">{t('common.view')}</span>
+                                                        <span className="sr-only">Xem</span>
                                                     </Button>
                                                     <Button
                                                         variant="ghost"
@@ -619,7 +619,7 @@ export default function AdminNotificationsPage() {
                                                         ) : (
                                                             <Trash2 className="h-4 w-4" />
                                                         )}
-                                                        <span className="sr-only">{t('common.delete')}</span>
+                                                        <span className="sr-only">Xóa</span>
                                                     </Button>
                                                 </div>
                                             </TableCell>
@@ -639,10 +639,10 @@ export default function AdminNotificationsPage() {
                             disabled={currentPage <= 1 || loading}
                         >
                             <ChevronLeft className="h-4 w-4" />
-                            <span className="sr-only">{t('common.previous')}</span>
+                            <span className="sr-only">Trước</span>
                         </Button>
                         <div>
-                            {t('common.page')} {currentPage} {t('common.of')} {totalPages}
+                            Trang {currentPage} / {totalPages}
                         </div>
                         <Button
                             variant="outline"
@@ -651,7 +651,7 @@ export default function AdminNotificationsPage() {
                             disabled={currentPage >= totalPages || loading}
                         >
                             <ChevronRight className="h-4 w-4" />
-                            <span className="sr-only">{t('common.next')}</span>
+                            <span className="sr-only">Sau</span>
                         </Button>
                     </div>
                 </CardContent>
@@ -661,9 +661,9 @@ export default function AdminNotificationsPage() {
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('admin.notifications.confirmDelete')}</DialogTitle>
+                        <DialogTitle>{t('confirmDelete')}</DialogTitle>
                         <DialogDescription>
-                            {t('admin.notifications.deleteWarning')}
+                            {t('deleteWarning')}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -672,7 +672,7 @@ export default function AdminNotificationsPage() {
                             onClick={() => setShowDeleteDialog(false)}
                             disabled={processing}
                         >
-                            {t('common.cancel')}
+                            Hủy
                         </Button>
                         <Button
                             variant="destructive"
@@ -684,7 +684,7 @@ export default function AdminNotificationsPage() {
                             ) : (
                                 <Trash2 className="h-4 w-4 mr-2" />
                             )}
-                            {t('common.delete')}
+                            Xóa
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -694,9 +694,9 @@ export default function AdminNotificationsPage() {
             <Dialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('admin.notifications.confirmDeleteAll')}</DialogTitle>
+                        <DialogTitle>Xác nhận xóa tất cả</DialogTitle>
                         <DialogDescription>
-                            {t('admin.notifications.deleteAllWarning')}
+                            Bạn có chắc chắn muốn xóa tất cả thông báo? Hành động này không thể hoàn tác.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -705,7 +705,7 @@ export default function AdminNotificationsPage() {
                             onClick={() => setShowDeleteAllDialog(false)}
                             disabled={processing}
                         >
-                            {t('common.cancel')}
+                            Hủy
                         </Button>
                         <Button
                             variant="destructive"
@@ -717,7 +717,7 @@ export default function AdminNotificationsPage() {
                             ) : (
                                 <XCircle className="h-4 w-4 mr-2" />
                             )}
-                            {t('admin.notifications.deleteAll')}
+                            Xóa tất cả
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -727,9 +727,9 @@ export default function AdminNotificationsPage() {
             <Dialog open={showDeleteSelectedDialog} onOpenChange={setShowDeleteSelectedDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('admin.notifications.confirmDeleteSelected')}</DialogTitle>
+                        <DialogTitle>Xác nhận xóa đã chọn</DialogTitle>
                         <DialogDescription>
-                            {t('admin.notifications.deleteSelectedWarning', { count: selectedNotifications.length })}
+                            Bạn có chắc chắn muốn xóa {selectedNotifications.length} thông báo đã chọn? Hành động này không thể hoàn tác.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
@@ -738,7 +738,7 @@ export default function AdminNotificationsPage() {
                             onClick={() => setShowDeleteSelectedDialog(false)}
                             disabled={processing}
                         >
-                            {t('common.cancel')}
+                            Hủy
                         </Button>
                         <Button
                             variant="destructive"
@@ -750,7 +750,7 @@ export default function AdminNotificationsPage() {
                             ) : (
                                 <Trash2 className="h-4 w-4 mr-2" />
                             )}
-                            {t('admin.notifications.deleteSelected')}
+                            Xóa đã chọn
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -768,7 +768,7 @@ export default function AdminNotificationsPage() {
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <div className="text-right font-medium">{t('admin.notifications.type')}:</div>
+                                <div className="text-right font-medium">{t('type')}:</div>
                                 <div className="col-span-3">
                                     <Badge variant={getTypeBadgeVariant(selectedNotification.type)}>
                                         {selectedNotification.type}
@@ -776,19 +776,19 @@ export default function AdminNotificationsPage() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <div className="text-right font-medium">{t('admin.notifications.sentTo')}:</div>
+                                <div className="text-right font-medium">Gửi đến:</div>
                                 <div className="col-span-3">
                                     {getSentToDisplay(selectedNotification.sentTo)}
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
-                                <div className="text-right font-medium">{t('admin.notifications.sentCount')}:</div>
+                                <div className="text-right font-medium">Số người nhận:</div>
                                 <div className="col-span-3">
                                     {selectedNotification.sentCount ?? '-'}
                                 </div>
                             </div>
                             <div className="grid grid-cols-4 items-start gap-4">
-                                <div className="text-right font-medium">{t('admin.notifications.message')}:</div>
+                                <div className="text-right font-medium">{t('message')}:</div>
                                 <div className="col-span-3 whitespace-pre-wrap">
                                     {selectedNotification.message}
                                 </div>
@@ -803,10 +803,10 @@ export default function AdminNotificationsPage() {
                                 }}
                             >
                                 <Trash2 className="h-4 w-4 mr-2" />
-                                {t('common.delete')}
+                                Xóa
                             </Button>
                             <Button variant="secondary" onClick={() => setSelectedNotification(null)}>
-                                {t('common.close')}
+                                Đóng
                             </Button>
                         </DialogFooter>
                     </DialogContent>
@@ -817,14 +817,14 @@ export default function AdminNotificationsPage() {
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>{t('admin.notifications.createTitle')}</DialogTitle>
+                        <DialogTitle>{t('createTitle')}</DialogTitle>
                         <DialogDescription>
-                            {t('admin.notifications.createDescription')}
+                            {t('createDescription')}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="title">{t('admin.notifications.notificationTitle')}</Label>
+                            <Label htmlFor="title">{t('notificationTitle')}</Label>
                             <Input
                                 id="title"
                                 value={newNotification.title}
@@ -833,7 +833,7 @@ export default function AdminNotificationsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="message">{t('admin.notifications.notificationMessage')}</Label>
+                            <Label htmlFor="message">{t('notificationMessage')}</Label>
                             <Textarea
                                 id="message"
                                 rows={4}
@@ -843,25 +843,25 @@ export default function AdminNotificationsPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="type">{t('admin.notifications.notificationType')}</Label>
+                            <Label htmlFor="type">{t('notificationType')}</Label>
                             <Select
                                 value={newNotification.type}
                                 onValueChange={(value: any) => setNewNotification({ ...newNotification, type: value })}
                             >
                                 <SelectTrigger id="type">
-                                    <SelectValue placeholder={t('admin.notifications.selectType')} />
+                                    <SelectValue placeholder={t('selectType')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="info">{t('admin.notifications.typeInfo')}</SelectItem>
-                                    <SelectItem value="warning">{t('admin.notifications.typeWarning')}</SelectItem>
-                                    <SelectItem value="success">{t('admin.notifications.typeSuccess')}</SelectItem>
-                                    <SelectItem value="error">{t('admin.notifications.typeError')}</SelectItem>
+                                    <SelectItem value="info">{t('typeInfo')}</SelectItem>
+                                    <SelectItem value="warning">{t('typeWarning')}</SelectItem>
+                                    <SelectItem value="success">{t('typeSuccess')}</SelectItem>
+                                    <SelectItem value="error">{t('typeError')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
                         <div className="space-y-4">
-                            <Label>{t('admin.notifications.recipients')}</Label>
+                            <Label>{t('recipients')}</Label>
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -882,7 +882,7 @@ export default function AdminNotificationsPage() {
                                             }
                                         }}
                                     />
-                                    <Label htmlFor="sendToAll">{t('admin.notifications.sendToAll')}</Label>
+                                    <Label htmlFor="sendToAll">{t('sendToAll')}</Label>
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Checkbox
@@ -903,7 +903,7 @@ export default function AdminNotificationsPage() {
                                             }
                                         }}
                                     />
-                                    <Label htmlFor="sendToAdmins">{t('admin.notifications.sendToAdmins')}</Label>
+                                    <Label htmlFor="sendToAdmins">{t('sendToAdmins')}</Label>
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex items-center space-x-2">
@@ -920,12 +920,12 @@ export default function AdminNotificationsPage() {
                                                 }
                                             }}
                                         />
-                                        <Label htmlFor="specificUsers">{t('admin.notifications.specificUsers')}</Label>
+                                        <Label htmlFor="specificUsers">{t('specificUsers')}</Label>
                                     </div>
                                     {!newNotification.sendToAll && !newNotification.sendToAdmins && (
                                         <div>
                                             <Textarea
-                                                placeholder={t('admin.notifications.specificUsersDescription')}
+                                                placeholder={t('specificUsersDescription')}
                                                 value={newNotification.specificUsers}
                                                 onChange={(e) => setNewNotification({ ...newNotification, specificUsers: e.target.value })}
                                             />
@@ -941,7 +941,7 @@ export default function AdminNotificationsPage() {
                             onClick={() => setShowCreateDialog(false)}
                             disabled={processing}
                         >
-                            {t('common.cancel')}
+                            Hủy
                         </Button>
                         <Button
                             onClick={handleCreateNotification}
@@ -952,7 +952,7 @@ export default function AdminNotificationsPage() {
                             ) : (
                                 <Send className="h-4 w-4 mr-2" />
                             )}
-                            {t('admin.notifications.sendNotification')}
+                            {t('sendNotification')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
