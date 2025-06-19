@@ -42,29 +42,58 @@ export async function DELETE(request: NextRequest) {
         console.log(`[API] Đang xóa ${notificationIds.length} thông báo`);
 
         // Parse token để lấy accessToken
-        const tokenData = JSON.parse(tokenCookie.value);
-        const accessToken = tokenData.accessToken;
+        console.log('[DEBUG] Raw token cookie:', tokenCookie.value);
+
+        let accessToken;
+        try {
+            const tokenData = JSON.parse(tokenCookie.value);
+            accessToken = tokenData.accessToken;
+            console.log('[DEBUG] Parsed token data:', { hasAccessToken: !!accessToken });
+        } catch (parseError) {
+            console.error('[DEBUG] Token parse error:', parseError);
+            // Fallback: use raw token value
+            accessToken = tokenCookie.value;
+        }
 
         // Gọi API backend
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`,
-            {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
-                },
-                body: JSON.stringify({ notificationIds }),
-            }
-        );
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`;
+        const requestBody = { notificationIds };
+
+        console.log('[DEBUG] API URL:', apiUrl);
+        console.log('[DEBUG] Request body:', requestBody);
+        console.log('[DEBUG] Authorization header:', `Bearer ${accessToken?.substring(0, 20)}...`);
+
+        const response = await fetch(apiUrl, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${accessToken}`,
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        console.log('[DEBUG] Response status:', response.status);
 
         if (!response.ok) {
-            const error = await response.json();
-            console.error(`[API] Lỗi khi xóa nhiều thông báo: ${error.message || 'Unknown error'}`);
+            const errorText = await response.text();
+            console.error(`[API] Lỗi khi xóa nhiều thông báo:`, {
+                status: response.status,
+                statusText: response.statusText,
+                errorText: errorText
+            });
+
+            let errorMessage = 'Không thể xóa thông báo';
+            try {
+                const errorJson = JSON.parse(errorText);
+                errorMessage = errorJson.message || errorMessage;
+            } catch (e) {
+                errorMessage = errorText || errorMessage;
+            }
+
             return NextResponse.json(
                 {
                     success: false,
-                    message: error.message || 'Không thể xóa thông báo'
+                    message: errorMessage
                 },
                 { status: response.status }
             );
