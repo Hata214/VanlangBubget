@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
         }
 
         // Gọi API backend trực tiếp
-        const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications`;
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || process.env.BACKEND_URL || 'https://vlb-vanlang-budget-be.onrender.com'
+        const backendUrl = `${apiUrl}/api/admin/notifications`;
         console.log('[NextJS API] Calling backend:', backendUrl);
         console.log('[NextJS API] Params:', { page, limit, search });
 

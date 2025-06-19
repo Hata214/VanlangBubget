@@ -111,51 +111,23 @@ export default function AdminNotificationsPage() {
     const fetchNotifications = async () => {
         try {
             setLoading(true)
-            console.log('Fetching notifications from backend API...')
+            console.log('Fetching notifications from NextJS API...')
 
-            // Gọi trực tiếp backend API
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vlb-vanlang-budget-be.onrender.com'
-            const backendUrl = `${apiUrl}/api/admin/notifications`
-            const token = localStorage.getItem('token')
-            let accessToken = token
-
-            // Parse token nếu cần
-            try {
-                const tokenData = JSON.parse(token || '{}')
-                if (tokenData.accessToken) {
-                    accessToken = tokenData.accessToken
-                }
-            } catch (e) {
-                console.log('Using token as-is')
-            }
-
-            console.log('Calling backend URL:', backendUrl)
-            console.log('With params:', { page: currentPage, limit: 10, search: searchTerm })
-
-            const response = await fetch(`${backendUrl}?page=${currentPage}&limit=10&search=${searchTerm}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
+            const response = await api.get('/api/admin/notifications', {
+                params: {
+                    page: currentPage,
+                    limit: 10,
+                    search: searchTerm
                 }
             })
 
-            console.log('Backend response status:', response.status)
-
-            if (!response.ok) {
-                const errorText = await response.text()
-                console.error('Backend error:', errorText)
-                throw new Error(`Backend error: ${response.status} - ${errorText}`)
-            }
-
-            const data = await response.json()
-            console.log('Backend response data:', data)
+            console.log('NextJS API Response:', response.data)
 
             // Chỉ sử dụng dữ liệu thật từ API
-            if (data?.notifications) {
-                setNotifications(data.notifications)
-                setTotalPages(data.totalPages || 1)
-                console.log('Loaded real notifications:', data.notifications.length)
+            if (response.data?.notifications) {
+                setNotifications(response.data.notifications)
+                setTotalPages(response.data.totalPages || 1)
+                console.log('Loaded real notifications:', response.data.notifications.length)
             } else {
                 // Nếu không có dữ liệu, hiển thị danh sách trống
                 setNotifications([])
@@ -449,58 +421,12 @@ export default function AdminNotificationsPage() {
                     .filter(email => email)
             }
 
-            // Gọi trực tiếp backend API
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vlb-vanlang-budget-be.onrender.com'
-            const backendUrl = `${apiUrl}/api/admin/notifications`
-            const token = localStorage.getItem('token')
-            let accessToken = token
-
-            // Parse token nếu cần
-            try {
-                const tokenData = JSON.parse(token || '{}')
-                if (tokenData.accessToken) {
-                    accessToken = tokenData.accessToken
-                }
-            } catch (e) {
-                console.log('Using token as-is')
-            }
-
-            console.log('Creating notification via backend:', backendUrl)
-            console.log('Notification data:', {
+            await api.post('/api/admin/notifications', {
                 title: newNotification.title,
                 message: newNotification.message,
                 type: newNotification.type,
                 sentTo: recipients
             })
-
-            const response = await fetch(backendUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`
-                },
-                body: JSON.stringify({
-                    title: newNotification.title,
-                    message: newNotification.message,
-                    type: newNotification.type,
-                    sentTo: recipients
-                })
-            })
-
-            console.log('Backend response status:', response.status)
-
-            if (!response.ok) {
-                const errorText = await response.text()
-                console.error('Backend error:', errorText)
-                throw new Error(`Backend error: ${response.status} - ${errorText}`)
-            }
-
-            const data = await response.json()
-            console.log('Create notification response:', data)
-
-            if (data?.status !== 'success') {
-                throw new Error(data?.message || 'Có lỗi xảy ra')
-            }
 
             // Reset form
             setNewNotification({
