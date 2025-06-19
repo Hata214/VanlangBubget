@@ -111,23 +111,50 @@ export default function AdminNotificationsPage() {
     const fetchNotifications = async () => {
         try {
             setLoading(true)
-            console.log('Fetching notifications from API...')
+            console.log('Fetching notifications from backend API...')
 
-            const response = await api.get('/api/admin/notifications', {
-                params: {
-                    page: currentPage,
-                    limit: 10,
-                    search: searchTerm
+            // Gọi trực tiếp backend API
+            const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications`
+            const token = localStorage.getItem('token')
+            let accessToken = token
+
+            // Parse token nếu cần
+            try {
+                const tokenData = JSON.parse(token || '{}')
+                if (tokenData.accessToken) {
+                    accessToken = tokenData.accessToken
+                }
+            } catch (e) {
+                console.log('Using token as-is')
+            }
+
+            console.log('Calling backend URL:', backendUrl)
+            console.log('With params:', { page: currentPage, limit: 10, search: searchTerm })
+
+            const response = await fetch(`${backendUrl}?page=${currentPage}&limit=10&search=${searchTerm}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
                 }
             })
 
-            console.log('API Response:', response.data)
+            console.log('Backend response status:', response.status)
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('Backend error:', errorText)
+                throw new Error(`Backend error: ${response.status} - ${errorText}`)
+            }
+
+            const data = await response.json()
+            console.log('Backend response data:', data)
 
             // Chỉ sử dụng dữ liệu thật từ API
-            if (response?.data?.notifications) {
-                setNotifications(response.data.notifications)
-                setTotalPages(response.data.totalPages || 1)
-                console.log('Loaded real notifications:', response.data.notifications.length)
+            if (data?.notifications) {
+                setNotifications(data.notifications)
+                setTotalPages(data.totalPages || 1)
+                console.log('Loaded real notifications:', data.notifications.length)
             } else {
                 // Nếu không có dữ liệu, hiển thị danh sách trống
                 setNotifications([])
@@ -421,12 +448,57 @@ export default function AdminNotificationsPage() {
                     .filter(email => email)
             }
 
-            await api.post('/api/admin/notifications', {
+            // Gọi trực tiếp backend API
+            const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications`
+            const token = localStorage.getItem('token')
+            let accessToken = token
+
+            // Parse token nếu cần
+            try {
+                const tokenData = JSON.parse(token || '{}')
+                if (tokenData.accessToken) {
+                    accessToken = tokenData.accessToken
+                }
+            } catch (e) {
+                console.log('Using token as-is')
+            }
+
+            console.log('Creating notification via backend:', backendUrl)
+            console.log('Notification data:', {
                 title: newNotification.title,
                 message: newNotification.message,
                 type: newNotification.type,
                 sentTo: recipients
             })
+
+            const response = await fetch(backendUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`
+                },
+                body: JSON.stringify({
+                    title: newNotification.title,
+                    message: newNotification.message,
+                    type: newNotification.type,
+                    sentTo: recipients
+                })
+            })
+
+            console.log('Backend response status:', response.status)
+
+            if (!response.ok) {
+                const errorText = await response.text()
+                console.error('Backend error:', errorText)
+                throw new Error(`Backend error: ${response.status} - ${errorText}`)
+            }
+
+            const data = await response.json()
+            console.log('Create notification response:', data)
+
+            if (data?.status !== 'success') {
+                throw new Error(data?.message || 'Có lỗi xảy ra')
+            }
 
             // Reset form
             setNewNotification({
