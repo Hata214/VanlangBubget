@@ -161,13 +161,7 @@ export const StockMessageCard: React.FC<{ stockData: StockData }> = ({ stockData
   );
 };
 
-/**
- * Function để check xem tin nhắn có phải là stock message không
- */
-export const isStockMessage = (message: any): boolean => {
-  const stockData = extractStockData(message);
-  return stockData !== null;
-};
+
 
 /**
  * Component wrapper để hiển thị tin nhắn cổ phiếu hoặc tin nhắn thường
