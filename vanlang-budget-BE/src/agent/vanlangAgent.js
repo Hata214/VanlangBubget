@@ -13,6 +13,7 @@ import CalculationCoordinator from './calculationCoordinator.js';
 import EnhancedStatisticsEngine from './enhancedStatisticsEngine.js';
 import EnhancedConversationHandler from './enhancedConversationHandler.js';
 import EnhancedGeminiService from '../services/enhancedGeminiService.js';
+import StockService from '../services/stockService.js';
 
 class VanLangAgent {
     constructor(geminiApiKey) {
@@ -26,6 +27,7 @@ class VanLangAgent {
         this.statisticsEngine = new EnhancedStatisticsEngine(); // Khởi tạo Enhanced Statistics Engine
         this.conversationHandler = new EnhancedConversationHandler(this); // Khởi tạo Enhanced Conversation Handler
         this.enhancedGemini = new EnhancedGeminiService(geminiApiKey); // Khởi tạo Enhanced Gemini Service
+        this.stockService = new StockService(); // Khởi tạo Stock Service
     }
 
     /**
@@ -322,6 +324,11 @@ class VanLangAgent {
             return 'statistics_query';
         }
 
+        // Kiểm tra stock query trước khi gọi Gemini AI (ưu tiên cao)
+        if (this.detectStockQuery(normalizedMessage)) {
+            return 'stock_query';
+        }
+
         // Kiểm tra calculation query trước khi gọi Gemini AI
         if (normalizedMessage.includes('có thể chi') || normalizedMessage.includes('co the chi') ||
             normalizedMessage.includes('còn bao nhiêu') || normalizedMessage.includes('con bao nhieu') ||
@@ -347,7 +354,8 @@ Các mục đích có thể (theo thứ tự ưu tiên):
 - savings_income_query: Hỏi về tiền tiết kiệm trong thu nhập (từ khóa: tiền tiết kiệm, tiết kiệm - KHÔNG có "ngân hàng")
 - expense_query: Hỏi về chi tiêu (từ khóa: chi tiêu, chi phí, tiêu dùng, expense, spending, mua, trả, thanh toán - NHƯNG KHÔNG có "trung bình", "average", "so sánh", "phân tích")
 - loan_query: Hỏi về khoản vay (từ khóa: khoản vay, vay, nợ, loan, debt, mượn, cho vay)
-- investment_query: Hỏi về đầu tư (từ khóa: đầu tư, investment, cổ phiếu, stock, vàng, gold, bất động sản, real estate)
+- stock_query: Hỏi về cổ phiếu cụ thể (từ khóa: giá VNM, cổ phiếu FPT, VCB hôm nay, phân tích HPG, mã cổ phiếu, stock price)
+- investment_query: Hỏi về đầu tư (từ khóa: đầu tư, investment, vàng, gold, bất động sản, real estate - KHÔNG bao gồm cổ phiếu cụ thể)
 - savings_query: Hỏi về tiết kiệm ngân hàng (từ khóa: tiết kiệm ngân hàng, tiền gửi ngân hàng, gửi tiết kiệm, tiết kiệm từ ngân hàng, tiền tiết kiệm ngân hàng, bank savings)
 - balance_query: Hỏi về số dư, tổng quan tài chính (từ khóa: số dư, balance, tổng quan, overview, tình hình tài chính)
 - detail_query: Xem chi tiết các khoản còn lại (từ khóa: "còn lại", "khác", "chi tiết", "xem thêm", "tất cả", "danh sách đầy đủ")
@@ -563,6 +571,83 @@ Chỉ trả lời một từ duy nhất.`;
         ];
 
         return timePatterns.some(pattern => pattern.test(message));
+    }
+
+    /**
+     * 📊 Phát hiện truy vấn về cổ phiếu
+     */
+    detectStockQuery(message) {
+        const normalizedMessage = message.toLowerCase().trim();
+
+        // Patterns để nhận diện câu hỏi về cổ phiếu
+        const stockPatterns = [
+            // Hỏi giá cổ phiếu cụ thể
+            /\b(giá|gia)\s+(cổ phiếu|co phieu|stock)\s+([A-Z]{3,4})\b/i,
+            /\b(mã|ma)\s+([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|hiện tại|hien tai)/i,
+            /\b([A-Z]{3,4})\s+(hôm nay|hom nay|bây giờ|bay gio|thế nào|the nao|như thế nào|nhu the nao)/i,
+
+            // Hỏi về cổ phiếu nói chung
+            /\b(cổ phiếu|co phieu|stock|chứng khoán|chung khoan)\s+(nào|nao|gì|gi|thế nào|the nao)/i,
+            /\b(thị trường|thi truong|market)\s+(cổ phiếu|co phieu|stock|chứng khoán|chung khoan)/i,
+
+            // Hỏi giá trực tiếp với mã cổ phiếu
+            /\b(VNM|VCB|FPT|VIC|HPG|MSN|CTG|BID|TCB|VHM|MWG|SAB|GAS|PLX|VRE|POW|SSI|HDB|TPB|SHB)\b/i,
+
+            // Câu hỏi phân tích
+            /(phân tích|phan tich|analyze)\s+(cổ phiếu|co phieu|stock)/i,
+            /(xu hướng|xu huong|trend)\s+(cổ phiếu|co phieu|stock)/i,
+            /(nên mua|nen mua|should buy)\s+(cổ phiếu|co phieu|stock)/i,
+
+            // Hỏi về ngành
+            /(cổ phiếu|co phieu|stock)\s+(ngân hàng|ngan hang|banking|công nghệ|cong nghe|technology)/i,
+
+            // Patterns đơn giản
+            /giá\s+[A-Z]{3,4}/i,
+            /[A-Z]{3,4}\s+giá/i,
+            /stock\s+price/i,
+            /price\s+of\s+[A-Z]{3,4}/i
+        ];
+
+        const isStockQuery = stockPatterns.some(pattern => pattern.test(normalizedMessage));
+
+        if (isStockQuery) {
+            logger.info('📊 Stock query detected', {
+                message: normalizedMessage,
+                patterns: stockPatterns.map(p => p.test(normalizedMessage))
+            });
+        }
+
+        return isStockQuery;
+    }
+
+    /**
+     * Trích xuất mã cổ phiếu từ tin nhắn
+     */
+    extractStockSymbol(message) {
+        const normalizedMessage = message.toUpperCase().trim();
+
+        // Danh sách mã cổ phiếu phổ biến
+        const popularStocks = [
+            'VNM', 'VCB', 'FPT', 'VIC', 'HPG', 'MSN', 'CTG', 'BID', 'TCB', 'VHM',
+            'MWG', 'SAB', 'GAS', 'PLX', 'VRE', 'POW', 'SSI', 'HDB', 'TPB', 'SHB',
+            'ACB', 'STB', 'VPB', 'EIB', 'LPB', 'MBB', 'NVB', 'OCB', 'PVB', 'SCB',
+            'VIB', 'VND', 'VCG', 'VJC', 'GMD', 'DGC', 'REE', 'PNJ', 'DXG', 'KDH'
+        ];
+
+        // Tìm mã cổ phiếu trong tin nhắn
+        for (const stock of popularStocks) {
+            if (normalizedMessage.includes(stock)) {
+                return stock;
+            }
+        }
+
+        // Tìm pattern mã cổ phiếu (3-4 ký tự viết hoa)
+        const stockMatch = normalizedMessage.match(/\b([A-Z]{3,4})\b/);
+        if (stockMatch) {
+            return stockMatch[1];
+        }
+
+        return null;
     }
 
     /**
@@ -1371,6 +1456,10 @@ Chỉ trả về JSON, không có text khác.`;
                 // Nhóm Filter - Tìm kiếm có điều kiện
                 case 'filter_query':
                     return await this.handleFilterQuery(userId, message);
+
+                // Nhóm Stock - Truy vấn cổ phiếu
+                case 'stock_query':
+                    return await this.handleStockQuery(userId, message);
 
                 // Nhóm Statistics - Thống kê nâng cao
                 case 'statistics_query':
@@ -3167,6 +3256,170 @@ Giao dịch đã được thêm vào hệ thống.`;
     }
 
 
+
+    /**
+     * 📊 Xử lý truy vấn cổ phiếu với Stock Service - Production Ready
+     */
+    async handleStockQuery(userId, message) {
+        const startTime = Date.now();
+
+        try {
+            // Production logging
+            if (process.env.NODE_ENV === 'production') {
+                logger.info('📊 Stock query received', { userId: userId?.substring(0, 8) + '...', messageLength: message.length });
+            } else {
+                logger.info('Processing stock query', { userId, message });
+            }
+
+            // Trích xuất mã cổ phiếu từ tin nhắn
+            const stockSymbol = this.extractStockSymbol(message);
+
+            if (!stockSymbol) {
+                return {
+                    success: false,
+                    response: `🤖 Tôi không thể xác định mã cổ phiếu từ câu hỏi của bạn.
+
+Vui lòng hỏi theo cách sau:
+• "Giá VNM hôm nay thế nào?"
+• "Cổ phiếu FPT như thế nào?"
+• "VCB bây giờ ra sao?"
+• "Phân tích cổ phiếu HPG"
+
+Các mã phổ biến: VNM, VCB, FPT, VIC, HPG, MSN, CTG, BID, TCB, VHM...`,
+                    metadata: { intent: 'stock_query', error: 'no_symbol_found', responseTime: Date.now() - startTime }
+                };
+            }
+
+            // Validate stock symbol format
+            if (!/^[A-Z]{3,4}$/.test(stockSymbol)) {
+                return {
+                    success: false,
+                    response: `❌ Mã cổ phiếu "${stockSymbol}" không hợp lệ. Mã cổ phiếu phải có 3-4 ký tự viết hoa (VD: VNM, FPT, VCB).`,
+                    metadata: { intent: 'stock_query', symbol: stockSymbol, error: 'invalid_symbol_format', responseTime: Date.now() - startTime }
+                };
+            }
+
+            // Lấy thông tin cổ phiếu từ Stock Service với timeout protection
+            const stockAnalysisPromise = this.stockService.getStockAnalysis(stockSymbol);
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Stock query timeout')), 20000) // 20s timeout
+            );
+
+            const stockAnalysis = await Promise.race([stockAnalysisPromise, timeoutPromise]);
+
+            if (!stockAnalysis.success) {
+                const errorMessage = stockAnalysis.error || stockAnalysis.message || 'Không thể lấy dữ liệu cổ phiếu';
+
+                return {
+                    success: false,
+                    response: `❌ ${errorMessage}
+
+Vui lòng thử lại sau hoặc kiểm tra mã cổ phiếu khác.`,
+                    metadata: {
+                        intent: 'stock_query',
+                        symbol: stockSymbol,
+                        error: errorMessage,
+                        responseTime: Date.now() - startTime
+                    }
+                };
+            }
+
+            // Tạo response với thông tin chi tiết
+            const response = this.formatStockResponse(stockAnalysis, message);
+
+            // Production success logging
+            if (process.env.NODE_ENV === 'production') {
+                logger.info('📊 Stock query completed', {
+                    symbol: stockSymbol,
+                    price: stockAnalysis.price?.current,
+                    responseTime: Date.now() - startTime
+                });
+            }
+
+            return {
+                success: true,
+                response,
+                metadata: {
+                    intent: 'stock_query',
+                    symbol: stockSymbol,
+                    price: stockAnalysis.price?.current || 0,
+                    change: stockAnalysis.price?.change || 0,
+                    pct_change: stockAnalysis.price?.pct_change || 0,
+                    volume: stockAnalysis.volume?.raw || 0,
+                    analysis: stockAnalysis.analysis?.trend || 'neutral',
+                    source: stockAnalysis.source || 'TCBS',
+                    responseTime: Date.now() - startTime
+                }
+            };
+
+        } catch (error) {
+            const responseTime = Date.now() - startTime;
+
+            // Production error logging
+            if (process.env.NODE_ENV === 'production') {
+                logger.error('📊 Stock query error', {
+                    error: error.message,
+                    responseTime,
+                    userId: userId?.substring(0, 8) + '...'
+                });
+            } else {
+                logger.error('Error in handleStockQuery:', error);
+            }
+
+            return {
+                success: false,
+                response: `❌ Dịch vụ cổ phiếu tạm thời không khả dụng. Vui lòng thử lại sau.`,
+                metadata: {
+                    intent: 'stock_query',
+                    error: process.env.NODE_ENV === 'production' ? 'service_unavailable' : error.message,
+                    responseTime
+                }
+            };
+        }
+    }
+
+    /**
+     * 📊 Format response cho thông tin cổ phiếu
+     */
+    formatStockResponse(stockAnalysis, originalMessage) {
+        const { symbol, price, volume, analysis, source, timestamp } = stockAnalysis;
+
+        // Emoji cho xu hướng
+        const trendEmoji = {
+            'strong_bullish': '🚀',
+            'bullish': '📈',
+            'neutral': '➡️',
+            'bearish': '📉',
+            'strong_bearish': '💥'
+        };
+
+        const emoji = trendEmoji[analysis.trend] || '📊';
+
+        // Tạo response chi tiết
+        let response = `${emoji} **Thông tin cổ phiếu ${symbol}**\n\n`;
+
+        response += `💰 **Giá hiện tại:** ${price.formatted}\n`;
+        response += `📊 **Thay đổi:** ${price.pct_change_formatted}\n`;
+        response += `📈 **Khối lượng:** ${volume.formatted}\n\n`;
+
+        response += `🔍 **Phân tích:**\n${analysis.analysis}\n\n`;
+        response += `💡 **Khuyến nghị:** ${analysis.recommendation}\n\n`;
+
+        // Thêm thông tin kỹ thuật
+        if (analysis.technical_indicators) {
+            const indicators = analysis.technical_indicators;
+            response += `📋 **Chỉ số kỹ thuật:**\n`;
+            response += `• Thay đổi giá: ${indicators.price_change > 0 ? '+' : ''}${indicators.price_change.toLocaleString('vi-VN')} VND\n`;
+            response += `• Mức khối lượng: ${indicators.volume_level === 'high' ? 'Cao' : indicators.volume_level === 'medium' ? 'Trung bình' : 'Thấp'}\n\n`;
+        }
+
+        response += `📅 **Cập nhật:** ${new Date(timestamp).toLocaleString('vi-VN')}\n`;
+        response += `📡 **Nguồn:** ${source}\n\n`;
+
+        response += `💬 *Lưu ý: Đây chỉ là thông tin tham khảo, không phải lời khuyên đầu tư. Vui lòng tự nghiên cứu kỹ trước khi đưa ra quyết định đầu tư.*`;
+
+        return response;
+    }
 
     /**
      * 📊 Xử lý thống kê nâng cao với Enhanced Statistics Engine

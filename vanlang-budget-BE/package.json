@@ -10,6 +10,8 @@
     "build": "npm install --legacy-peer-deps",
     "test": "jest",
     "test:watch": "jest --watch",
+    "validate:production": "node validate-production.js",
+    "test:stock": "node test-stock-integration.js",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix"

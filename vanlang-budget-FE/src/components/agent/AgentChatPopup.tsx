@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext'
+import { MessageContent } from '@/utils/stockMessageFormatter';
 import { useAppSelector } from '@/redux/hooks';
 import { getToken } from '@/services/api';
 
@@ -298,8 +299,8 @@ const AgentChatPopup: React.FC = () => {
       {isOpen && (
         <div
           className={`fixed z-[9999] transition-all duration-300 ${isMinimized
-              ? 'bottom-6 right-6 w-80 h-16' // Minimized state: always bottom-right, fixed small size
-              : 'inset-0 w-full h-full md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[600px]' // Expanded: fullscreen on mobile, original on desktop
+            ? 'bottom-6 right-6 w-80 h-16' // Minimized state: always bottom-right, fixed small size
+            : 'inset-0 w-full h-full md:inset-auto md:bottom-6 md:right-6 md:w-96 md:h-[600px]' // Expanded: fullscreen on mobile, original on desktop
             }`}
         >
           <Card className="h-full flex flex-col shadow-2xl border-0 bg-white dark:bg-gray-900 rounded-none md:rounded-lg">
@@ -381,7 +382,7 @@ const AgentChatPopup: React.FC = () => {
                             <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <div className="text-sm whitespace-pre-wrap">{message.text}</div>
+                            <MessageContent message={message} />
                             <div className="flex items-center justify-between mt-1">
                               <div className="text-xs opacity-70">
                                 {formatTimestamp(message.timestamp)}
