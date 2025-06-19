@@ -50,7 +50,9 @@ import {
 } from '../controllers/systemSettingsController.js';
 import {
     getAdminNotifications,
-    createAdminNotification
+    createAdminNotification,
+    deleteAdminNotification,
+    deleteAdminNotificationsBulk
 } from '../controllers/notificationController.js';
 import multer from 'multer';
 
@@ -268,6 +270,16 @@ router.get('/notifications', getAdminNotifications);
  * Tạo thông báo mới từ admin
  */
 router.post('/notifications', createAdminNotification);
+
+/**
+ * Xóa một thông báo cụ thể (Admin only)
+ */
+router.delete('/notifications/:id', deleteAdminNotification);
+
+/**
+ * Xóa nhiều thông báo cùng lúc (Admin only)
+ */
+router.delete('/notifications/bulk', deleteAdminNotificationsBulk);
 
 // === Test Route ===
 router.get('/test-logs', async (req, res) => {

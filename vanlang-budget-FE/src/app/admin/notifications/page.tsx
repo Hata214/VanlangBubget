@@ -49,7 +49,6 @@ import {
     XCircle
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
-import { format } from 'date-fns'
 import {
     Select,
     SelectContent,
@@ -90,7 +89,9 @@ export default function AdminNotificationsPage() {
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
+    const [showDeleteSelectedDialog, setShowDeleteSelectedDialog] = useState(false)
     const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
+    const [selectedNotifications, setSelectedNotifications] = useState<string[]>([])
     const [newNotification, setNewNotification] = useState<NewNotification>({
         title: '',
         message: '',
@@ -179,21 +180,42 @@ export default function AdminNotificationsPage() {
 
         try {
             setProcessing(true)
+            setError(null)
 
             // Gọi API xóa thông báo
             await api.delete(`/api/admin/notifications/${notificationToDelete}`)
 
-            // Cập nhật UI
+            // Cập nhật UI và auto-refresh
             setNotifications(prev => prev.filter(n => n._id !== notificationToDelete))
+            setSelectedNotifications(prev => prev.filter(id => id !== notificationToDelete))
             setSuccess(t('admin.notifications.deleteSuccess'))
+
+            // Auto-refresh danh sách sau khi xóa
+            setTimeout(() => {
+                fetchNotifications()
+            }, 1000)
 
             // Xóa thông báo thành công sau 3 giây
             setTimeout(() => {
                 setSuccess(null)
             }, 3000)
-        } catch (error) {
+        } catch (error: any) {
             console.error('Lỗi khi xóa thông báo:', error)
-            setError(t('admin.notifications.deleteError'))
+
+            // Xử lý các loại lỗi khác nhau
+            if (error?.response?.status === 404) {
+                setError('Thông báo không tồn tại hoặc đã bị xóa')
+                // Refresh danh sách để cập nhật UI
+                fetchNotifications()
+            } else if (error?.response?.status === 403) {
+                setError('Bạn không có quyền xóa thông báo này')
+            } else if (error?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+                setError('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet')
+            } else {
+                setError(error?.response?.data?.message || t('admin.notifications.deleteError'))
+            }
+
+            setTimeout(() => setError(null), 5000)
         } finally {
             setProcessing(false)
             setShowDeleteDialog(false)
@@ -208,13 +230,20 @@ export default function AdminNotificationsPage() {
     const confirmDeleteAllNotifications = async () => {
         try {
             setProcessing(true)
+            setError(null)
 
             // Gọi API xóa tất cả thông báo
             await api.delete('/api/admin/notifications/all')
 
             // Cập nhật UI
             setNotifications([])
+            setSelectedNotifications([])
             setSuccess(t('admin.notifications.deleteAllSuccess'))
+
+            // Auto-refresh danh sách sau khi xóa
+            setTimeout(() => {
+                fetchNotifications()
+            }, 1000)
 
             // Xóa thông báo thành công sau 3 giây
             setTimeout(() => {
@@ -223,9 +252,100 @@ export default function AdminNotificationsPage() {
         } catch (error) {
             console.error('Lỗi khi xóa tất cả thông báo:', error)
             setError(t('admin.notifications.deleteAllError'))
+            setTimeout(() => setError(null), 5000)
         } finally {
             setProcessing(false)
             setShowDeleteAllDialog(false)
+        }
+    }
+
+    const handleSelectNotification = (notificationId: string) => {
+        setSelectedNotifications(prev => {
+            if (prev.includes(notificationId)) {
+                return prev.filter(id => id !== notificationId)
+            } else {
+                return [...prev, notificationId]
+            }
+        })
+    }
+
+    const handleSelectAll = () => {
+        if (selectedNotifications.length === notifications.length) {
+            setSelectedNotifications([])
+        } else {
+            setSelectedNotifications(notifications.map(n => n._id))
+        }
+    }
+
+    const handleDeleteSelected = () => {
+        if (selectedNotifications.length === 0) {
+            setError(t('admin.notifications.noNotificationsSelected'))
+            setTimeout(() => setError(null), 3000)
+            return
+        }
+
+        // Kiểm tra xem các thông báo đã chọn có còn tồn tại không
+        const validNotifications = selectedNotifications.filter(id =>
+            notifications.some(n => n._id === id)
+        )
+
+        if (validNotifications.length !== selectedNotifications.length) {
+            setSelectedNotifications(validNotifications)
+            if (validNotifications.length === 0) {
+                setError(t('admin.notifications.noNotificationsSelected'))
+                setTimeout(() => setError(null), 3000)
+                return
+            }
+        }
+
+        setShowDeleteSelectedDialog(true)
+    }
+
+    const confirmDeleteSelected = async () => {
+        try {
+            setProcessing(true)
+            setError(null)
+            const deleteCount = selectedNotifications.length
+
+            // Gọi API xóa nhiều thông báo
+            await api.delete('/api/admin/notifications/bulk', {
+                data: { notificationIds: selectedNotifications }
+            })
+
+            // Cập nhật UI
+            setNotifications(prev => prev.filter(n => !selectedNotifications.includes(n._id)))
+            setSelectedNotifications([])
+            setSuccess(t('admin.notifications.deleteSelectedSuccess', { count: deleteCount }))
+
+            // Auto-refresh danh sách sau khi xóa
+            setTimeout(() => {
+                fetchNotifications()
+            }, 1000)
+
+            // Xóa thông báo thành công sau 3 giây
+            setTimeout(() => {
+                setSuccess(null)
+            }, 3000)
+        } catch (error: any) {
+            console.error('Lỗi khi xóa thông báo đã chọn:', error)
+
+            // Xử lý các loại lỗi khác nhau
+            if (error?.response?.status === 404) {
+                setError('Một số thông báo không tồn tại hoặc đã bị xóa')
+                // Refresh danh sách để cập nhật UI
+                fetchNotifications()
+            } else if (error?.response?.status === 403) {
+                setError('Bạn không có quyền xóa thông báo')
+            } else if (error?.code === 'NETWORK_ERROR' || !navigator.onLine) {
+                setError('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet')
+            } else {
+                setError(error?.response?.data?.message || t('admin.notifications.deleteSelectedError'))
+            }
+
+            setTimeout(() => setError(null), 5000)
+        } finally {
+            setProcessing(false)
+            setShowDeleteSelectedDialog(false)
         }
     }
 
@@ -341,51 +461,88 @@ export default function AdminNotificationsPage() {
             )}
 
             {success && (
-                <Alert variant="default" className="bg-green-50 text-green-800 dark:bg-green-900/20 dark:text-green-400">
+                <Alert variant="default" className="bg-green-50 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800">
                     <Bell className="h-4 w-4" />
                     <AlertTitle>{t('common.success')}</AlertTitle>
                     <AlertDescription>{success}</AlertDescription>
                 </Alert>
             )}
 
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <form onSubmit={handleSearch} className="flex items-center space-x-2">
                     <Input
                         type="text"
                         placeholder={t('admin.notifications.searchPlaceholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-64"
+                        className="w-64 sm:w-80"
                     />
                     <Button type="submit" size="icon">
                         <Search className="h-4 w-4" />
                         <span className="sr-only">{t('common.search')}</span>
                     </Button>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        onClick={fetchNotifications}
+                        disabled={loading}
+                    >
+                        <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                        <span className="sr-only">{t('admin.notifications.refreshList')}</span>
+                    </Button>
                 </form>
 
-                <div className="flex gap-2">
-                    <Button variant="outline" onClick={handleDeleteAllNotifications} className="text-destructive">
+                <div className="flex flex-wrap gap-2">
+                    {selectedNotifications.length > 0 && (
+                        <Button
+                            variant="outline"
+                            onClick={handleDeleteSelected}
+                            className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
+                            size="sm"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            <span className="hidden sm:inline">{t('admin.notifications.deleteSelected')}</span>
+                            <span className="sm:hidden">{t('admin.notifications.delete')}</span>
+                            ({selectedNotifications.length})
+                        </Button>
+                    )}
+                    <Button
+                        variant="outline"
+                        onClick={handleDeleteAllNotifications}
+                        className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
+                        size="sm"
+                    >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        {t('admin.notifications.deleteAll')}
+                        <span className="hidden sm:inline">{t('admin.notifications.deleteAll')}</span>
+                        <span className="sm:hidden">{t('admin.notifications.delete')}</span>
                     </Button>
-                    <Button onClick={() => setShowCreateDialog(true)}>
+                    <Button onClick={() => setShowCreateDialog(true)} size="sm">
                         <Plus className="h-4 w-4 mr-2" />
-                        {t('admin.notifications.createNew')}
+                        <span className="hidden sm:inline">{t('admin.notifications.createNew')}</span>
+                        <span className="sm:hidden">{t('common.create')}</span>
                     </Button>
                 </div>
             </div>
 
             <Card>
                 <CardContent className="p-0">
-                    <div className="rounded-md">
+                    <div className="rounded-md overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-12">
+                                        <Checkbox
+                                            checked={selectedNotifications.length === notifications.length && notifications.length > 0}
+                                            onCheckedChange={handleSelectAll}
+                                            aria-label={t('admin.notifications.selectAll')}
+                                        />
+                                    </TableHead>
                                     <TableHead>{t('admin.notifications.title')}</TableHead>
-                                    <TableHead>{t('admin.notifications.type')}</TableHead>
-                                    <TableHead>{t('admin.notifications.sentTo')}</TableHead>
-                                    <TableHead>{t('admin.notifications.sentCount')}</TableHead>
-                                    <TableHead>{t('admin.notifications.created')}</TableHead>
+                                    <TableHead className="hidden sm:table-cell">{t('admin.notifications.type')}</TableHead>
+                                    <TableHead className="hidden md:table-cell">{t('admin.notifications.sentTo')}</TableHead>
+                                    <TableHead className="hidden lg:table-cell">{t('admin.notifications.sentCount')}</TableHead>
+                                    <TableHead className="hidden sm:table-cell">{t('admin.notifications.created')}</TableHead>
                                     <TableHead>{t('admin.notifications.actions')}</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -394,7 +551,7 @@ export default function AdminNotificationsPage() {
                                     // Loading skeleton
                                     [...Array(5)].map((_, index) => (
                                         <TableRow key={index}>
-                                            {[...Array(6)].map((_, cellIndex) => (
+                                            {[...Array(7)].map((_, cellIndex) => (
                                                 <TableCell key={cellIndex}>
                                                     <div className="h-4 bg-muted animate-pulse rounded"></div>
                                                 </TableCell>
@@ -403,7 +560,7 @@ export default function AdminNotificationsPage() {
                                     ))
                                 ) : notifications.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="text-center py-8">
+                                        <TableCell colSpan={7} className="text-center py-8">
                                             {t('admin.notifications.noNotificationsFound')}
                                         </TableCell>
                                     </TableRow>
@@ -411,20 +568,33 @@ export default function AdminNotificationsPage() {
                                     notifications.map((notification) => (
                                         <TableRow key={notification._id}>
                                             <TableCell>
-                                                <div className="font-medium">{notification.title}</div>
+                                                <Checkbox
+                                                    checked={selectedNotifications.includes(notification._id)}
+                                                    onCheckedChange={() => handleSelectNotification(notification._id)}
+                                                    aria-label={`Select ${notification.title}`}
+                                                />
                                             </TableCell>
                                             <TableCell>
+                                                <div className="font-medium">{notification.title}</div>
+                                                <div className="text-sm text-muted-foreground sm:hidden">
+                                                    <Badge variant={getTypeBadgeVariant(notification.type)} className="mr-2">
+                                                        {notification.type}
+                                                    </Badge>
+                                                    {new Date(notification.createdAt).toLocaleDateString()}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="hidden sm:table-cell">
                                                 <Badge variant={getTypeBadgeVariant(notification.type)}>
                                                     {notification.type}
                                                 </Badge>
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden md:table-cell">
                                                 {getSentToDisplay(notification.sentTo)}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden lg:table-cell">
                                                 {notification.sentCount ?? '-'}
                                             </TableCell>
-                                            <TableCell>
+                                            <TableCell className="hidden sm:table-cell">
                                                 {new Date(notification.createdAt).toLocaleDateString()}
                                             </TableCell>
                                             <TableCell>
@@ -440,10 +610,15 @@ export default function AdminNotificationsPage() {
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="text-destructive"
+                                                        className="text-destructive hover:bg-destructive/10 dark:hover:bg-destructive/20"
                                                         onClick={() => handleDeleteNotification(notification._id)}
+                                                        disabled={processing}
                                                     >
-                                                        <Trash2 className="h-4 w-4" />
+                                                        {processing && notificationToDelete === notification._id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="h-4 w-4" />
+                                                        )}
                                                         <span className="sr-only">{t('common.delete')}</span>
                                                     </Button>
                                                 </div>
@@ -543,6 +718,39 @@ export default function AdminNotificationsPage() {
                                 <XCircle className="h-4 w-4 mr-2" />
                             )}
                             {t('admin.notifications.deleteAll')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog xác nhận xóa thông báo đã chọn */}
+            <Dialog open={showDeleteSelectedDialog} onOpenChange={setShowDeleteSelectedDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.notifications.confirmDeleteSelected')}</DialogTitle>
+                        <DialogDescription>
+                            {t('admin.notifications.deleteSelectedWarning', { count: selectedNotifications.length })}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowDeleteSelectedDialog(false)}
+                            disabled={processing}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDeleteSelected}
+                            disabled={processing}
+                        >
+                            {processing ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Trash2 className="h-4 w-4 mr-2" />
+                            )}
+                            {t('admin.notifications.deleteSelected')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

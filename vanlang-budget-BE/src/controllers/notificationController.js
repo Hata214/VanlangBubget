@@ -627,3 +627,84 @@ export const createAdminNotification = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Xóa một thông báo cụ thể (Admin only)
+ * @route   DELETE /api/admin/notifications/:id
+ * @access  Private (Admin)
+ */
+export const deleteAdminNotification = async (req, res, next) => {
+    try {
+        const notificationId = req.params.id;
+
+        // Tìm thông báo
+        const notification = await Notification.findById(notificationId);
+
+        if (!notification) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Không tìm thấy thông báo'
+            });
+        }
+
+        // Xóa thông báo
+        await Notification.deleteOne({ _id: notificationId });
+
+        logger.info(`Admin ${req.user.id} deleted notification ${notificationId}`);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Đã xóa thông báo thành công'
+        });
+    } catch (error) {
+        logger.error('Error deleting admin notification:', error);
+        next(error);
+    }
+};
+
+/**
+ * @desc    Xóa nhiều thông báo cùng lúc (Admin only)
+ * @route   DELETE /api/admin/notifications/bulk
+ * @access  Private (Admin)
+ */
+export const deleteAdminNotificationsBulk = async (req, res, next) => {
+    try {
+        const { notificationIds } = req.body;
+
+        // Validate input
+        if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Danh sách ID thông báo không hợp lệ'
+            });
+        }
+
+        // Kiểm tra các thông báo có tồn tại không
+        const existingNotifications = await Notification.find({
+            _id: { $in: notificationIds }
+        });
+
+        if (existingNotifications.length !== notificationIds.length) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Một số thông báo không tồn tại'
+            });
+        }
+
+        // Xóa các thông báo
+        const deleteResult = await Notification.deleteMany({
+            _id: { $in: notificationIds }
+        });
+
+        logger.info(`Admin ${req.user.id} deleted ${deleteResult.deletedCount} notifications`);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Đã xóa ${deleteResult.deletedCount} thông báo thành công`,
+            deletedCount: deleteResult.deletedCount
+        });
+    } catch (error) {
+        logger.error('Error deleting admin notifications bulk:', error);
+        next(error);
+    }
+};
