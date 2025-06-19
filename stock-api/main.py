@@ -120,6 +120,8 @@ def read_root():
             "/api/price?symbol=CODE&source=TCBS",
             "/api/stocks?limit=50&source=TCBS",
             "/api/stocks/by-industry?industry=banking&limit=20",
+            "/api/stocks/all-exchanges?exchange=HOSE&limit=100",
+            "/api/stocks/statistics",
             "/api/stock/history?symbol=VNM&source=TCBS&start_date=2024-01-01&end_date=2024-05-01&interval=1D",
             "/api/stock/realtime?symbols=VNM,VCB,HPG&source=TCBS",
         ],
@@ -405,6 +407,189 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
             "timestamp": datetime.now().isoformat()
         }
 
+@app.get("/api/stocks/all-exchanges")
+def get_all_exchange_stocks(exchange: str = Query("all", description="Sàn giao dịch: HOSE, HNX, UPCOM, all"),
+                           limit: int = Query(1000, description="Số lượng cổ phiếu muốn lấy"),
+                           source: str = Query("TCBS", description="Nguồn dữ liệu")):
+    """
+    API lấy tất cả mã cổ phiếu từ các sàn HOSE, HNX, UPCOM.
+
+    Args:
+        exchange: Sàn giao dịch (HOSE, HNX, UPCOM, all)
+        limit: Số lượng cổ phiếu muốn lấy
+        source: Nguồn dữ liệu
+
+    Returns:
+        Danh sách tất cả mã cổ phiếu từ sàn được chọn
+    """
+    try:
+        all_stocks = []
+
+        # Thử sử dụng vnstock để lấy danh sách công ty niêm yết
+        if hasattr(vnstock, 'listing_companies'):
+            try:
+                # Lấy danh sách công ty niêm yết
+                companies_df = vnstock.listing_companies()
+
+                if not companies_df.empty:
+                    print(f"Found {len(companies_df)} companies from listing_companies()")
+                    print(f"Columns: {companies_df.columns.tolist()}")
+
+                    # Lọc theo sàn giao dịch
+                    if exchange.upper() != "ALL":
+                        if 'exchange' in companies_df.columns:
+                            companies_df = companies_df[companies_df['exchange'].str.upper() == exchange.upper()]
+                        elif 'Exchange' in companies_df.columns:
+                            companies_df = companies_df[companies_df['Exchange'].str.upper() == exchange.upper()]
+                        elif 'EXCHANGE' in companies_df.columns:
+                            companies_df = companies_df[companies_df['EXCHANGE'].str.upper() == exchange.upper()]
+
+                    # Lấy danh sách symbol
+                    symbols = []
+                    if 'symbol' in companies_df.columns:
+                        symbols = companies_df['symbol'].tolist()
+                    elif 'Symbol' in companies_df.columns:
+                        symbols = companies_df['Symbol'].tolist()
+                    elif 'SYMBOL' in companies_df.columns:
+                        symbols = companies_df['SYMBOL'].tolist()
+                    elif 'ticker' in companies_df.columns:
+                        symbols = companies_df['ticker'].tolist()
+                    elif 'code' in companies_df.columns:
+                        symbols = companies_df['code'].tolist()
+
+                    # Giới hạn số lượng
+                    symbols = symbols[:limit]
+
+                    print(f"Extracted {len(symbols)} symbols: {symbols[:10]}...")
+
+                    # Lấy dữ liệu giá cho từng nhóm nhỏ (để tránh timeout)
+                    batch_size = 20
+                    for i in range(0, len(symbols), batch_size):
+                        batch_symbols = symbols[i:i+batch_size]
+
+                        try:
+                            if hasattr(vnstock, 'Trading'):
+                                trading = vnstock.Trading()
+                                price_data = trading.price_board(batch_symbols)
+
+                                if not price_data.empty:
+                                    for idx, row in price_data.iterrows():
+                                        symbol_val = row.get(('listing', 'symbol')) or batch_symbols[idx] if idx < len(batch_symbols) else 'N/A'
+                                        exchange_val = row.get(('listing', 'exchange')) or 'UNKNOWN'
+
+                                        price_val = row.get(('match', 'match_price')) or 0
+                                        match_price = row.get(('match', 'match_price'), 0)
+                                        ref_price = row.get(('listing', 'ref_price'), 0)
+                                        change_val = float(match_price - ref_price) if match_price and ref_price else 0
+                                        volume_val = row.get(('match', 'accumulated_volume')) or 0
+
+                                        pct_change = 0
+                                        if ref_price and ref_price > 0 and change_val != 0:
+                                            pct_change = round((change_val / ref_price) * 100, 2)
+
+                                        stock_info = {
+                                            "symbol": str(symbol_val),
+                                            "name": str(symbol_val),
+                                            "price": float(price_val) if price_val else 0,
+                                            "change": float(change_val) if change_val else 0,
+                                            "pct_change": pct_change,
+                                            "volume": int(volume_val) if volume_val else 0,
+                                            "exchange": str(exchange_val),
+                                            "industry": "Chưa phân loại"
+                                        }
+                                        all_stocks.append(stock_info)
+
+                        except Exception as batch_e:
+                            print(f"Error processing batch {i}-{i+batch_size}: {batch_e}")
+                            # Thêm dữ liệu trống cho batch này
+                            for symbol in batch_symbols:
+                                all_stocks.append({
+                                    "symbol": symbol,
+                                    "name": symbol,
+                                    "price": 0,
+                                    "change": 0,
+                                    "pct_change": 0,
+                                    "volume": 0,
+                                    "exchange": exchange.upper() if exchange.upper() != "ALL" else "UNKNOWN",
+                                    "industry": "Chưa phân loại"
+                                })
+
+            except Exception as listing_e:
+                print(f"listing_companies() failed: {listing_e}")
+
+        # Fallback: Sử dụng danh sách cố định nếu vnstock không hoạt động
+        if not all_stocks:
+            print("Fallback to predefined stock lists...")
+
+            # Danh sách cổ phiếu HOSE phổ biến
+            hose_stocks = [
+                "VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB",
+                "VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG",
+                "VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC",
+                "HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS",
+                "GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG",
+                "FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS",
+                "MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG",
+                "VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH",
+                "POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"
+            ]
+
+            # Danh sách cổ phiếu HNX phổ biến
+            hnx_stocks = [
+                "SHB", "MSB", "OCB", "LPB", "EIB", "NAB", "BAB", "ABB", "VBB",
+                "CEO", "HDC", "NLG", "IDC", "CRE", "TDH", "IJC", "KBC", "SCR",
+                "VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP",
+                "DTL", "VCA", "TNA", "VNS", "CSM", "VCS", "SHI", "VGC",
+                "PVG", "PSH", "PVX", "PGS", "PGD", "PGC", "PSW", "PGV",
+                "CMT", "CMX", "ICT", "VTI", "VTS", "VDS", "VGT"
+            ]
+
+            # Chọn danh sách theo sàn
+            if exchange.upper() == "HOSE":
+                symbols_to_use = hose_stocks
+            elif exchange.upper() == "HNX":
+                symbols_to_use = hnx_stocks
+            else:  # ALL
+                symbols_to_use = hose_stocks + hnx_stocks
+
+            symbols_to_use = symbols_to_use[:limit]
+
+            # Tạo dữ liệu fallback
+            for symbol in symbols_to_use:
+                exchange_name = "HOSE" if symbol in hose_stocks else "HNX"
+                all_stocks.append({
+                    "symbol": symbol,
+                    "name": symbol,
+                    "price": 0,
+                    "change": 0,
+                    "pct_change": 0,
+                    "volume": 0,
+                    "exchange": exchange_name,
+                    "industry": "Chưa phân loại"
+                })
+
+        # Sắp xếp theo symbol
+        all_stocks.sort(key=lambda x: x["symbol"])
+
+        return {
+            "exchange": exchange.upper(),
+            "stocks": all_stocks,
+            "count": len(all_stocks),
+            "timestamp": datetime.now().isoformat(),
+            "source": source,
+            "method": "listing_companies" if hasattr(vnstock, 'listing_companies') else "fallback"
+        }
+
+    except Exception as e:
+        print(f"Error getting all exchange stocks: {e}")
+        return {
+            "exchange": exchange.upper(),
+            "stocks": [],
+            "count": 0,
+            "error": f"Lỗi khi lấy danh sách cổ phiếu: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }
+
 @app.get("/api/stocks/by-industry")
 def get_stocks_by_industry(industry: str = Query("all", description="Ngành cần lọc"),
                           limit: int = Query(50, description="Số lượng cổ phiếu muốn lấy"),
@@ -525,6 +710,113 @@ def get_stocks_by_industry(industry: str = Query("all", description="Ngành cầ
             "industry": industry,
             "error": f"Lỗi khi lấy dữ liệu ngành: {str(e)}",
             "available_industries": ["banking", "real_estate", "manufacturing", "steel_mining", "oil_gas", "technology", "retail", "aviation_logistics", "utilities", "food_agriculture", "all"],
+            "timestamp": datetime.now().isoformat()
+        }
+
+@app.get("/api/stocks/statistics")
+def get_market_statistics(source: str = Query("TCBS", description="Nguồn dữ liệu")):
+    """
+    API lấy thống kê tổng quan thị trường chứng khoán Việt Nam.
+
+    Returns:
+        Thống kê về số lượng cổ phiếu, sàn giao dịch, ngành
+    """
+    try:
+        stats = {
+            "total_stocks": 0,
+            "exchanges": {
+                "HOSE": 0,
+                "HNX": 0,
+                "UPCOM": 0
+            },
+            "industries": {
+                "Ngân hàng": 0,
+                "Bất động sản": 0,
+                "Sản xuất & Tiêu dùng": 0,
+                "Thép & Khai khoáng": 0,
+                "Dầu khí": 0,
+                "Công nghệ": 0,
+                "Bán lẻ": 0,
+                "Hàng không & Logistics": 0,
+                "Điện & Tiện ích": 0,
+                "Thực phẩm & Nông nghiệp": 0,
+                "Chưa phân loại": 0
+            },
+            "sample_stocks": [],
+            "timestamp": datetime.now().isoformat(),
+            "source": source
+        }
+
+        # Thử lấy danh sách từ vnstock
+        if hasattr(vnstock, 'listing_companies'):
+            try:
+                companies_df = vnstock.listing_companies()
+
+                if not companies_df.empty:
+                    stats["total_stocks"] = len(companies_df)
+
+                    # Đếm theo sàn giao dịch
+                    if 'exchange' in companies_df.columns:
+                        exchange_counts = companies_df['exchange'].value_counts()
+                        for exchange, count in exchange_counts.items():
+                            if exchange.upper() in stats["exchanges"]:
+                                stats["exchanges"][exchange.upper()] = int(count)
+
+                    # Lấy mẫu 20 cổ phiếu đầu tiên
+                    sample_symbols = []
+                    if 'symbol' in companies_df.columns:
+                        sample_symbols = companies_df['symbol'].head(20).tolist()
+                    elif 'Symbol' in companies_df.columns:
+                        sample_symbols = companies_df['Symbol'].head(20).tolist()
+
+                    stats["sample_stocks"] = sample_symbols
+
+            except Exception as e:
+                print(f"Error getting statistics from listing_companies: {e}")
+
+        # Fallback: Đếm từ danh sách cố định
+        if stats["total_stocks"] == 0:
+            banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB", "NAB", "BAB", "ABB", "VBB"]
+            real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR", "CEO", "HDC", "NLG", "IDC", "CRE", "TDH"]
+            manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT", "VCF", "BBC", "TAC", "DPM", "BMP", "VHG"]
+            steel_mining_stocks = ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS", "DTL", "VCA", "TNA", "VNS", "CSM", "VCS", "SHI", "VGC"]
+            oil_gas_stocks = ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG", "PVG", "PSH", "PVX", "PGS", "PGD", "PGC", "PSW", "PGV"]
+            technology_stocks = ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS", "CMT", "CMX", "ICT", "TNG", "VTI", "VTS", "VDS", "VGT"]
+            retail_stocks = ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG", "FRT", "VRE", "VGC", "VGS", "VGI", "VGT", "VGV", "VGX"]
+            aviation_logistics_stocks = ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH", "VOS", "VTO", "VTG", "VTS", "VTV", "VTX", "VTY", "VTZ"]
+            utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC", "EVG", "EVS", "EVF", "GEX", "HND", "SJD", "QTP", "VSI"]
+            food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP", "VNF", "VIF", "VCG", "VTF", "VFF", "VGF", "VHF", "VKF"]
+
+            all_stocks = (banking_stocks + real_estate_stocks + manufacturing_stocks +
+                         steel_mining_stocks + oil_gas_stocks + technology_stocks +
+                         retail_stocks + aviation_logistics_stocks + utilities_stocks +
+                         food_agriculture_stocks)
+
+            stats["total_stocks"] = len(set(all_stocks))
+            stats["industries"]["Ngân hàng"] = len(banking_stocks)
+            stats["industries"]["Bất động sản"] = len(real_estate_stocks)
+            stats["industries"]["Sản xuất & Tiêu dùng"] = len(manufacturing_stocks)
+            stats["industries"]["Thép & Khai khoáng"] = len(steel_mining_stocks)
+            stats["industries"]["Dầu khí"] = len(oil_gas_stocks)
+            stats["industries"]["Công nghệ"] = len(technology_stocks)
+            stats["industries"]["Bán lẻ"] = len(retail_stocks)
+            stats["industries"]["Hàng không & Logistics"] = len(aviation_logistics_stocks)
+            stats["industries"]["Điện & Tiện ích"] = len(utilities_stocks)
+            stats["industries"]["Thực phẩm & Nông nghiệp"] = len(food_agriculture_stocks)
+
+            # Ước tính số lượng theo sàn (dựa trên thực tế)
+            stats["exchanges"]["HOSE"] = 400  # Ước tính
+            stats["exchanges"]["HNX"] = 350   # Ước tính
+            stats["exchanges"]["UPCOM"] = 800 # Ước tính
+
+            stats["sample_stocks"] = sorted(list(set(all_stocks)))[:20]
+
+        return stats
+
+    except Exception as e:
+        print(f"Error getting market statistics: {e}")
+        return {
+            "error": f"Lỗi khi lấy thống kê thị trường: {str(e)}",
             "timestamp": datetime.now().isoformat()
         }
 
