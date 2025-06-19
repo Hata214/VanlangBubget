@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext'
-import { isStockMessage } from '@/utils/stockMessageFormatter';
+import { isStockMessage, MessageContent } from '@/utils/stockMessageFormatter';
 import { useAppSelector } from '@/redux/hooks';
 import { getToken } from '@/services/api';
 
@@ -272,7 +272,7 @@ const AgentChatPopup: React.FC = () => {
   console.log('🤖 Agent Debug:', { user, token, cookieToken, authUser, reduxAuth });
 
   return (
-    <>
+    <div>
       {/* Chat Bubble Button - Always show for testing */}
       {!isOpen && (
         <div className="fixed bottom-6 right-6 z-[9999]">
@@ -375,25 +375,26 @@ const AgentChatPopup: React.FC = () => {
                           }`}
                       >
                         <div className="flex items-start space-x-2">
-                          {message.sender === 'agent' && (
-                            <Bot className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          )}
-                          {message.sender === 'user' && (
-                            <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                          )}
+                          <div className="flex-shrink-0">
+                            {message.sender === 'agent' ? (
+                              <Bot className="h-4 w-4 mt-0.5" />
+                            ) : (
+                              <User className="h-4 w-4 mt-0.5" />
+                            )}
+                          </div>
                           <div className="flex-1">
-                            <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                              {message.text}
-                            </div>
+                            <MessageContent message={message} />
                             <div className="flex items-center justify-between mt-1">
                               <div className="text-xs opacity-70">
                                 {formatTimestamp(message.timestamp)}
                               </div>
-                              {message.metadata?.cached && (
-                                <Badge variant="outline" className="text-xs">
-                                  Cached
-                                </Badge>
-                              )}
+                              <div>
+                                {message.metadata?.cached && (
+                                  <Badge variant="outline" className="text-xs">
+                                    Cached
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -471,7 +472,7 @@ const AgentChatPopup: React.FC = () => {
           </Card>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
