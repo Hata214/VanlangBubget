@@ -53,7 +53,7 @@ const BROKERS: BrokerOption[] = [
 const createFormSchema = (t: any, tValidation: any) => z.object({
     symbol: z.string().min(1, t('symbolRequired')),
     price: z.coerce.number()
-        .min(1, t('pricePositive'))
+        .min(1, 'Giá phải lớn hơn 0. Vui lòng chọn mã cổ phiếu để tự động lấy giá.')
         .max(100000000000, tValidation('maxPriceLimit')),
     quantity: z.coerce.number()
         .min(100, t('quantityMinimum'))
@@ -187,18 +187,49 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
     // Xử lý khi chọn cổ phiếu
     const handleStockSelect = async (value: string) => {
+        console.log('Đã chọn cổ phiếu:', value);
         setSelectedSymbol(value);
         form.setValue('symbol', value);
 
         // Lấy giá hiện tại và điền vào form
-        await fetchCurrentPrice();
+        setIsFetchingPrice(true);
+        try {
+            const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
+            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${value}`);
 
-        // Cập nhật phí nếu chế độ tự động được bật
-        if (form.getValues('autoFee') ?? true) {
-            const quantity = form.getValues('quantity');
-            const brokerId = form.getValues('broker');
-            const fee = calculateFee(currentStockPrice ?? 0, quantity, brokerId, form.getValues());
-            form.setValue('fee', fee);
+            if (response.data && response.data.price !== undefined && response.data.price !== null) {
+                const price = response.data.price;
+                setCurrentStockPrice(price);
+                form.setValue('price', price);
+                setFormattedPrice(price.toLocaleString('vi-VN'));
+
+                console.log('Đã cập nhật giá:', price);
+
+                // Cập nhật phí nếu chế độ tự động được bật
+                if (form.getValues('autoFee') ?? true) {
+                    const quantity = form.getValues('quantity');
+                    const brokerId = form.getValues('broker');
+                    const fee = calculateFee(price, quantity, brokerId, form.getValues());
+                    form.setValue('fee', fee);
+                    console.log('Đã cập nhật phí:', fee);
+                }
+            } else {
+                console.error('Không thể lấy giá cho mã:', value);
+                toast({
+                    title: tStocks('error'),
+                    description: tStocks('errorFetchingPrice'),
+                    type: 'error'
+                });
+            }
+        } catch (error) {
+            console.error('Lỗi khi lấy giá cổ phiếu:', error);
+            toast({
+                title: tStocks('error'),
+                description: tStocks('errorFetchingPrice'),
+                type: 'error'
+            });
+        } finally {
+            setIsFetchingPrice(false);
         }
     };
 
@@ -443,6 +474,16 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             defaultValue={field.value}
                                             isLoading={isFetchingPrice}
                                         />
+                                        {isFetchingPrice && (
+                                            <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                                                🔄 Đang lấy giá hiện tại...
+                                            </div>
+                                        )}
+                                        {!field.value && (
+                                            <div className="text-sm text-muted-foreground mt-1">
+                                                💡 Chọn mã cổ phiếu để tự động điền giá
+                                            </div>
+                                        )}
                                     </FormControl>
                                     <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                         {tStocks('selectStockDescription')}
@@ -519,6 +560,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
                                             {tStocks('purchasePriceDescription')}
                                         </FormDescription>
+                                        {field.value === 0 && !isFetchingPrice && !selectedSymbol && (
+                                            <div className="text-sm text-amber-600 dark:text-amber-400 mt-1 flex items-center">
+                                                ⚠️ Vui lòng chọn mã cổ phiếu ở trên để tự động lấy giá
+                                            </div>
+                                        )}
                                         <FormMessage />
                                     </FormItem>
                                 )}
