@@ -51,14 +51,8 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
     // Kiểm tra xem có phải protected path không
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
-    // Thử sử dụng context để thay đổi locale
-    let localeContext;
-    try {
-        localeContext = useLocaleContext();
-    } catch {
-        // Không có context, sử dụng cách cũ
-        localeContext = null;
-    }
+    // Luôn gọi hook ở top level để tuân thủ Rules of Hooks
+    const localeContext = useLocaleContext();
 
     // Xử lý khi thay đổi ngôn ngữ
     const handleLanguageChange = (newLocale: string) => {

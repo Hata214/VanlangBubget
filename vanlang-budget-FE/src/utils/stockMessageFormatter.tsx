@@ -110,7 +110,8 @@ const formatVolume = (volume: number): string => {
  * Trích xuất phân tích từ text response
  */
 const extractAnalysisFromText = (text: string): string => {
-  const analysisMatch = text.match(/🔍 \*\*Phân tích:\*\*\n(.+?)\n\n/s);
+  // Sử dụng regex không có flag 's' để tương thích với ES2017
+  const analysisMatch = text.match(/🔍 \*\*Phân tích:\*\*\n(.+?)\n\n/);
   return analysisMatch ? analysisMatch[1] : 'Không có phân tích';
 };
 
@@ -118,7 +119,8 @@ const extractAnalysisFromText = (text: string): string => {
  * Trích xuất khuyến nghị từ text response
  */
 const extractRecommendationFromText = (text: string): string => {
-  const recommendationMatch = text.match(/💡 \*\*Khuyến nghị:\*\* (.+?)\n\n/s);
+  // Sử dụng regex không có flag 's' để tương thích với ES2017
+  const recommendationMatch = text.match(/💡 \*\*Khuyến nghị:\*\* (.+?)\n\n/);
   return recommendationMatch ? recommendationMatch[1] : 'Không có khuyến nghị';
 };
 
