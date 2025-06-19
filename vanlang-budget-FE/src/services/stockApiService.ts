@@ -144,25 +144,63 @@ export async function getAllStocks(): Promise<StocksListResponse> {
 }
 
 /**
- * Lấy dữ liệu cổ phiếu theo thời gian thực (mô phỏng từ API stocks)
+ * Lấy dữ liệu cổ phiếu theo thời gian thực từ stock-api
  * @param symbols Danh sách mã cổ phiếu, phân cách bằng dấu phẩy
- * @param source Nguồn dữ liệu (mặc định: VCI)
+ * @param source Nguồn dữ liệu (mặc định: TCBS - khuyên dùng cho realtime)
  * @returns Dữ liệu theo thời gian thực của các mã cổ phiếu
  */
-export async function getRealtimeStocks(symbols: string = "VNM,VCB,HPG", source: string = "VCI"): Promise<RealtimeStockResponse> {
+export async function getRealtimeStocks(symbols: string = "VNM,VCB,HPG", source: string = "TCBS"): Promise<RealtimeStockResponse> {
     try {
-        // Lấy tất cả cổ phiếu
+        console.log(`[getRealtimeStocks] Fetching realtime data for: ${symbols} from source: ${source}`);
+
+        // Gọi API realtime thật từ stock-api
+        const response = await axios.get<RealtimeStockResponse>(`${API_BASE_URL}/api/stock/realtime`, {
+            params: {
+                symbols: symbols,
+                source: source
+            },
+            timeout: 15000 // 15 giây timeout
+        });
+
+        console.log(`[getRealtimeStocks] API response:`, response.data);
+
+        // Kiểm tra response hợp lệ
+        if (response.data && response.data.data && response.data.data.length > 0) {
+            return response.data;
+        } else {
+            console.warn(`[getRealtimeStocks] No data received from API, falling back to mock data`);
+            // Fallback to mock data if API returns empty
+            return await getRealtimeStocksFallback(symbols, source);
+        }
+    } catch (error) {
+        console.error('[getRealtimeStocks] Error calling realtime API:', error);
+
+        // Fallback to mock data on error
+        console.log('[getRealtimeStocks] Falling back to mock data due to API error');
+        return await getRealtimeStocksFallback(symbols, source);
+    }
+}
+
+/**
+ * Fallback function để lấy dữ liệu mock khi API realtime không hoạt động
+ * @param symbols Danh sách mã cổ phiếu
+ * @param source Nguồn dữ liệu
+ * @returns Mock realtime data
+ */
+async function getRealtimeStocksFallback(symbols: string, source: string): Promise<RealtimeStockResponse> {
+    try {
+        // Lấy tất cả cổ phiếu từ API stocks
         const allStocksResponse = await getAllStocks();
         const allStocks = allStocksResponse.stocks || [];
 
         // Lọc theo danh sách mã cổ phiếu được yêu cầu
-        const symbolList = symbols.split(',');
+        const symbolList = symbols.split(',').map(s => s.trim().toUpperCase());
         const filteredStocks = allStocks.filter(stock => symbolList.includes(stock.symbol));
 
         // Chuyển đổi sang định dạng RealtimeStockResponse
         return {
             symbols: symbolList,
-            source: source,
+            source: `${source}_FALLBACK`,
             count: filteredStocks.length,
             timestamp: new Date().toISOString(),
             data: filteredStocks.map(stock => ({
@@ -174,17 +212,70 @@ export async function getRealtimeStocks(symbols: string = "VNM,VCB,HPG", source:
                 high: stock.price + Math.abs(stock.change || 0),
                 low: stock.price - Math.abs(stock.change || 0),
                 open: stock.price - (stock.change || 0) / 2
-            }))
+            })),
+            error: 'Using fallback data - realtime API unavailable'
         };
     } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu theo thời gian thực:', error);
+        console.error('Lỗi khi lấy dữ liệu fallback:', error);
         return {
             symbols: symbols.split(','),
-            source,
+            source: `${source}_ERROR`,
             count: 0,
             timestamp: new Date().toISOString(),
             data: [],
-            error: 'Lỗi khi lấy dữ liệu theo thời gian thực'
+            error: 'Lỗi khi lấy dữ liệu theo thời gian thực và fallback'
+        };
+    }
+}
+
+/**
+ * Gọi trực tiếp API realtime từ stock-api (không fallback)
+ * @param symbols Danh sách mã cổ phiếu, phân cách bằng dấu phẩy
+ * @param source Nguồn dữ liệu (mặc định: TCBS)
+ * @returns Dữ liệu realtime trực tiếp từ stock-api
+ */
+export async function getDirectRealtimeStocks(symbols: string = "VNM,VCB,HPG", source: string = "TCBS"): Promise<RealtimeStockResponse> {
+    try {
+        console.log(`[getDirectRealtimeStocks] Calling stock-api directly: ${API_BASE_URL}/api/stock/realtime`);
+        console.log(`[getDirectRealtimeStocks] Params: symbols=${symbols}, source=${source}`);
+
+        const response = await axios.get<RealtimeStockResponse>(`${API_BASE_URL}/api/stock/realtime`, {
+            params: {
+                symbols: symbols,
+                source: source
+            },
+            timeout: 20000, // 20 giây timeout
+            headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'VanLang-Budget-Frontend/1.0'
+            }
+        });
+
+        console.log(`[getDirectRealtimeStocks] Response status:`, response.status);
+        console.log(`[getDirectRealtimeStocks] Response data:`, response.data);
+
+        return response.data;
+    } catch (error) {
+        console.error('[getDirectRealtimeStocks] Direct API call failed:', error);
+
+        if (axios.isAxiosError(error)) {
+            return {
+                symbols: symbols.split(','),
+                source: source,
+                count: 0,
+                timestamp: new Date().toISOString(),
+                data: [],
+                error: `API Error: ${error.response?.status} ${error.response?.statusText || error.message}`
+            };
+        }
+
+        return {
+            symbols: symbols.split(','),
+            source: source,
+            count: 0,
+            timestamp: new Date().toISOString(),
+            data: [],
+            error: `Network Error: ${error}`
         };
     }
 }
@@ -301,6 +392,7 @@ export const stockApiService = {
     getStockPrice,
     getAllStocks,
     getRealtimeStocks,
+    getDirectRealtimeStocks,
     getStockHistory
 };
 

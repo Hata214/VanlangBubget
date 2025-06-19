@@ -16,7 +16,8 @@ import axios from 'axios';
 import { toast } from '@/components/ui/Toaster';
 import { StockAutoComplete } from '@/components/investments/stocks/StockAutoComplete'; // Import StockAutoComplete
 import { formatCurrency } from '@/utils/formatters'; // Import formatCurrency
-import { getRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
+import { getRealtimeStocks, getDirectRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
+import { runAllStockApiTests, formatTestResults } from '@/utils/debugStockApi'; // Import debug utilities
 
 export default function StocksMarketPage() {
     const t = useTranslations('StockMarketPage');
@@ -47,13 +48,42 @@ export default function StocksMarketPage() {
         fetchAllStocks();
     }, []);
 
+    // Test function để chạy comprehensive API tests
+    const testDirectRealtimeAPI = async () => {
+        console.log('[TEST] Running comprehensive Stock API tests...');
+        toast.info("API Test Started", "Running comprehensive tests...");
+
+        try {
+            const results = await runAllStockApiTests();
+            const successCount = results.filter(r => r.success).length;
+            const totalTests = results.length;
+
+            console.log('[TEST] Test results:', results);
+            console.log(formatTestResults(results));
+
+            if (successCount === totalTests) {
+                toast.success("All API Tests Passed", `${successCount}/${totalTests} tests successful`);
+            } else if (successCount > 0) {
+                toast.warning("Some API Tests Failed", `${successCount}/${totalTests} tests successful`);
+            } else {
+                toast.error("All API Tests Failed", "Check console for details");
+            }
+        } catch (error) {
+            console.error('[TEST] Comprehensive API test failed:', error);
+            toast.error("API Test Failed", "Check console for error details");
+        }
+    };
+
     // Fetch all stocks for the list using realtime API
     const fetchAllStocks = async () => {
         setLoadingAllStocks(true);
         setErrorAllStocks(null);
         try {
-            // Lấy danh sách cổ phiếu từ API realtime
-            const realtimeData = await getRealtimeStocks(defaultStocks);
+            console.log('[fetchAllStocks] Starting to fetch stocks...');
+
+            // Lấy danh sách cổ phiếu từ API realtime (với fallback)
+            const realtimeData = await getRealtimeStocks(defaultStocks, 'TCBS');
+            console.log('[fetchAllStocks] Realtime data received:', realtimeData);
 
             if (realtimeData && realtimeData.data && realtimeData.data.length > 0) {
                 // Lấy thông tin tên và ngành từ API danh sách cổ phiếu
@@ -317,10 +347,18 @@ export default function StocksMarketPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <CardTitle>{t('stockList')}</CardTitle>
-                            <div className="flex items-center">
+                            <div className="flex items-center gap-2">
                                 <span className="text-sm text-muted-foreground mr-2">
                                     Cập nhật lúc: {formatLastUpdated()}
                                 </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={testDirectRealtimeAPI}
+                                    className="text-xs"
+                                >
+                                    Test API
+                                </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"
