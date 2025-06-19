@@ -102,15 +102,30 @@ def read_root():
         available_methods = {}
 
     return {
-        "message": "Stock API Service",
+        "message": "Stock API Service - Vietnam Stock Market",
+        "total_stocks": "100+ Vietnamese stocks",
+        "industries": [
+            "Ngân hàng (15 mã)",
+            "Bất động sản (13 mã)",
+            "Sản xuất & Tiêu dùng (13 mã)",
+            "Thép & Khai khoáng (10 mã)",
+            "Dầu khí (10 mã)",
+            "Công nghệ (10 mã)",
+            "Bán lẻ (10 mã)",
+            "Hàng không & Logistics (10 mã)",
+            "Điện & Tiện ích (10 mã)",
+            "Thực phẩm & Nông nghiệp (10 mã)"
+        ],
         "endpoints": [
             "/api/price?symbol=CODE&source=TCBS",
-            "/api/stocks?limit=20&source=TCBS",
+            "/api/stocks?limit=50&source=TCBS",
+            "/api/stocks/by-industry?industry=banking&limit=20",
             "/api/stock/history?symbol=VNM&source=TCBS&start_date=2024-01-01&end_date=2024-05-01&interval=1D",
             "/api/stock/realtime?symbols=VNM,VCB,HPG&source=TCBS",
         ],
         "available_sources": ["VCI", "TCBS", "SSI", "DNSE"],
         "cors_origins": allowed_origins,
+        "version": "3.1.0",
         "debug_info": {
             "vnstock_version": vnstock_version,
             "vnstock_methods_count": len(vnstock_methods),
@@ -216,9 +231,26 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
         Danh sách các mã cổ phiếu và thông tin cơ bản
     """
     try:
-        # Chọn các cổ phiếu phổ biến
-        popular_symbols = ["VCB", "BID", "CTG", "TCB", "MBB", "VIC", "NVL",
-                          "VNM", "SAB", "MSN", "HPG", "GAS", "PLX", "FPT", "MWG", "PNJ"]
+        # Danh sách cổ phiếu Việt Nam theo ngành
+        banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB"]
+        real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR"]
+        manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT"]
+        steel_mining_stocks = ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS"]
+        oil_gas_stocks = ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG"]
+        technology_stocks = ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS"]
+        retail_stocks = ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG"]
+        aviation_logistics_stocks = ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH"]
+        utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"]
+        food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP"]
+
+        # Kết hợp tất cả các mã cổ phiếu
+        all_symbols = (banking_stocks + real_estate_stocks + manufacturing_stocks +
+                      steel_mining_stocks + oil_gas_stocks + technology_stocks +
+                      retail_stocks + aviation_logistics_stocks + utilities_stocks +
+                      food_agriculture_stocks)
+
+        # Loại bỏ trùng lặp và sắp xếp
+        popular_symbols = sorted(list(set(all_symbols)))
 
         symbols_to_query = popular_symbols[:limit]
 
@@ -263,6 +295,31 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                         if ref_price and ref_price > 0 and change_val != 0:
                             pct_change = round((change_val / ref_price) * 100, 2)
 
+                        # Xác định ngành dựa trên symbol
+                        def get_industry(symbol):
+                            if symbol in banking_stocks:
+                                return "Ngân hàng"
+                            elif symbol in real_estate_stocks:
+                                return "Bất động sản"
+                            elif symbol in manufacturing_stocks:
+                                return "Sản xuất & Tiêu dùng"
+                            elif symbol in steel_mining_stocks:
+                                return "Thép & Khai khoáng"
+                            elif symbol in oil_gas_stocks:
+                                return "Dầu khí"
+                            elif symbol in technology_stocks:
+                                return "Công nghệ"
+                            elif symbol in retail_stocks:
+                                return "Bán lẻ"
+                            elif symbol in aviation_logistics_stocks:
+                                return "Hàng không & Logistics"
+                            elif symbol in utilities_stocks:
+                                return "Điện & Tiện ích"
+                            elif symbol in food_agriculture_stocks:
+                                return "Thực phẩm & Nông nghiệp"
+                            else:
+                                return "Chưa phân loại"
+
                         # Tạo dữ liệu cổ phiếu từ price_board
                         stock_info = {
                             "symbol": str(symbol_val),
@@ -271,7 +328,7 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                             "change": float(change_val) if change_val else 0,
                             "pct_change": pct_change,
                             "volume": int(volume_val) if volume_val else 0,
-                            "industry": "Chưa phân loại",
+                            "industry": get_industry(str(symbol_val)),
                             "exchange": "HOSE"
                         }
                         stocks.append(stock_info)
@@ -341,6 +398,122 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
             "stocks": [],
             "count": 0,
             "error": f"Lỗi khi lấy danh sách cổ phiếu: {str(e)}",
+            "timestamp": datetime.now().isoformat()
+        }
+
+@app.get("/api/stocks/by-industry")
+def get_stocks_by_industry(industry: str = Query("all", description="Ngành cần lọc"),
+                          limit: int = Query(50, description="Số lượng cổ phiếu muốn lấy"),
+                          source: str = Query("TCBS", description="Nguồn dữ liệu")):
+    """
+    API lấy danh sách cổ phiếu theo ngành.
+
+    Args:
+        industry: Tên ngành (banking, real_estate, manufacturing, steel_mining, oil_gas, technology, retail, aviation_logistics, utilities, food_agriculture, all)
+        limit: Số lượng cổ phiếu muốn lấy
+        source: Nguồn dữ liệu
+
+    Returns:
+        Danh sách các mã cổ phiếu theo ngành
+    """
+    try:
+        # Định nghĩa các ngành
+        industry_mapping = {
+            "banking": ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB"],
+            "real_estate": ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR"],
+            "manufacturing": ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT"],
+            "steel_mining": ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS"],
+            "oil_gas": ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG"],
+            "technology": ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS"],
+            "retail": ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG"],
+            "aviation_logistics": ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH"],
+            "utilities": ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"],
+            "food_agriculture": ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP"]
+        }
+
+        # Chọn symbols theo ngành
+        if industry == "all":
+            symbols_to_query = []
+            for industry_symbols in industry_mapping.values():
+                symbols_to_query.extend(industry_symbols)
+            symbols_to_query = sorted(list(set(symbols_to_query)))[:limit]
+        elif industry in industry_mapping:
+            symbols_to_query = industry_mapping[industry][:limit]
+        else:
+            return {
+                "error": f"Ngành '{industry}' không hợp lệ",
+                "available_industries": list(industry_mapping.keys()) + ["all"],
+                "timestamp": datetime.now().isoformat()
+            }
+
+        # Lấy dữ liệu giống như endpoint /api/stocks
+        stocks = []
+        if hasattr(vnstock, 'Trading'):
+            try:
+                trading = vnstock.Trading()
+                price_data = trading.price_board(symbols_to_query)
+
+                if not price_data.empty:
+                    for idx, row in price_data.iterrows():
+                        symbol_val = row.get(('listing', 'symbol')) or symbols_to_query[idx] if idx < len(symbols_to_query) else 'N/A'
+                        price_val = row.get(('match', 'match_price')) or 0
+                        match_price = row.get(('match', 'match_price'), 0)
+                        ref_price = row.get(('listing', 'ref_price'), 0)
+                        change_val = float(match_price - ref_price) if match_price and ref_price else 0
+                        volume_val = row.get(('match', 'accumulated_volume')) or 0
+
+                        pct_change = 0
+                        if ref_price and ref_price > 0 and change_val != 0:
+                            pct_change = round((change_val / ref_price) * 100, 2)
+
+                        # Xác định ngành
+                        stock_industry = "Chưa phân loại"
+                        for ind_name, ind_symbols in industry_mapping.items():
+                            if str(symbol_val) in ind_symbols:
+                                industry_names = {
+                                    "banking": "Ngân hàng",
+                                    "real_estate": "Bất động sản",
+                                    "manufacturing": "Sản xuất & Tiêu dùng",
+                                    "steel_mining": "Thép & Khai khoáng",
+                                    "oil_gas": "Dầu khí",
+                                    "technology": "Công nghệ",
+                                    "retail": "Bán lẻ",
+                                    "aviation_logistics": "Hàng không & Logistics",
+                                    "utilities": "Điện & Tiện ích",
+                                    "food_agriculture": "Thực phẩm & Nông nghiệp"
+                                }
+                                stock_industry = industry_names.get(ind_name, "Chưa phân loại")
+                                break
+
+                        stock_info = {
+                            "symbol": str(symbol_val),
+                            "name": str(symbol_val),
+                            "price": float(price_val) if price_val else 0,
+                            "change": float(change_val) if change_val else 0,
+                            "pct_change": pct_change,
+                            "volume": int(volume_val) if volume_val else 0,
+                            "industry": stock_industry,
+                            "exchange": "HOSE"
+                        }
+                        stocks.append(stock_info)
+
+            except Exception as e:
+                print(f"Error getting industry stocks: {e}")
+
+        return {
+            "industry": industry,
+            "stocks": stocks,
+            "count": len(stocks),
+            "available_industries": list(industry_mapping.keys()) + ["all"],
+            "timestamp": datetime.now().isoformat(),
+            "source": source
+        }
+
+    except Exception as e:
+        return {
+            "industry": industry,
+            "error": f"Lỗi khi lấy dữ liệu ngành: {str(e)}",
+            "available_industries": ["banking", "real_estate", "manufacturing", "steel_mining", "oil_gas", "technology", "retail", "aviation_logistics", "utilities", "food_agriculture", "all"],
             "timestamp": datetime.now().isoformat()
         }
 
@@ -511,6 +684,42 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                         if ref_price and ref_price > 0 and change_val != 0:
                             pct_change = round((change_val / ref_price) * 100, 2)
 
+                        # Xác định ngành dựa trên symbol (sử dụng lại function từ trên)
+                        def get_industry_realtime(symbol):
+                            banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB"]
+                            real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR"]
+                            manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT"]
+                            steel_mining_stocks = ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS"]
+                            oil_gas_stocks = ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG"]
+                            technology_stocks = ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS"]
+                            retail_stocks = ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG"]
+                            aviation_logistics_stocks = ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH"]
+                            utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"]
+                            food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP"]
+
+                            if symbol in banking_stocks:
+                                return "Ngân hàng"
+                            elif symbol in real_estate_stocks:
+                                return "Bất động sản"
+                            elif symbol in manufacturing_stocks:
+                                return "Sản xuất & Tiêu dùng"
+                            elif symbol in steel_mining_stocks:
+                                return "Thép & Khai khoáng"
+                            elif symbol in oil_gas_stocks:
+                                return "Dầu khí"
+                            elif symbol in technology_stocks:
+                                return "Công nghệ"
+                            elif symbol in retail_stocks:
+                                return "Bán lẻ"
+                            elif symbol in aviation_logistics_stocks:
+                                return "Hàng không & Logistics"
+                            elif symbol in utilities_stocks:
+                                return "Điện & Tiện ích"
+                            elif symbol in food_agriculture_stocks:
+                                return "Thực phẩm & Nông nghiệp"
+                            else:
+                                return "Chưa phân loại"
+
                         # Tạo dữ liệu realtime từ price_board
                         stock_info = {
                             "symbol": str(symbol_val),
@@ -519,7 +728,7 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             "change": float(change_val) if change_val else 0,
                             "pct_change": pct_change,
                             "volume": int(volume_val) if volume_val else 0,
-                            "industry": "Chưa phân loại"
+                            "industry": get_industry_realtime(str(symbol_val))
                         }
                         result.append(stock_info)
 
