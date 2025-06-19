@@ -161,12 +161,29 @@ def get_stock_price(symbol: str = "VNM", source: str = "TCBS"):
                 price_data = trading.price_board([symbol.upper()])
 
                 if not price_data.empty:
+                    # Debug: In ra cấu trúc dữ liệu price
+                    print(f"Price Trading.price_board columns: {price_data.columns.tolist()}")
+                    print(f"Price Trading.price_board shape: {price_data.shape}")
+                    print(f"Price sample data: {price_data.iloc[0].to_dict()}")
+
                     latest_data = price_data.iloc[0]
+                    print(f"Price latest_data: {latest_data.to_dict()}")
+
+                    # Thử các tên cột khác nhau
+                    price_val = (latest_data.get('close') or latest_data.get('price') or
+                                latest_data.get('last') or latest_data.get('current_price') or 0)
+
+                    change_val = (latest_data.get('change') or latest_data.get('change_percent') or
+                                 latest_data.get('pct_change') or 0)
+
+                    volume_val = (latest_data.get('volume') or latest_data.get('vol') or
+                                 latest_data.get('total_volume') or 0)
+
                     return {
                         "symbol": symbol.upper(),
-                        "price": float(latest_data.get('close', 0)) if 'close' in latest_data else float(latest_data.get('price', 0)),
-                        "change": float(latest_data.get('change', 0)) if 'change' in latest_data else 0,
-                        "volume": int(latest_data.get('volume', 0)) if 'volume' in latest_data else 0,
+                        "price": float(price_val) if price_val else 0,
+                        "change": float(change_val) if change_val else 0,
+                        "volume": int(volume_val) if volume_val else 0,
                         "source": source,
                         "timestamp": datetime.now().isoformat(),
                         "method": "Trading.price_board"
@@ -210,15 +227,37 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                 price_data = trading.price_board(symbols_to_query)
 
                 if not price_data.empty:
+                    # Debug: In ra cấu trúc dữ liệu
+                    print(f"Trading.price_board columns: {price_data.columns.tolist()}")
+                    print(f"Trading.price_board shape: {price_data.shape}")
+                    if len(price_data) > 0:
+                        print(f"Sample row data: {price_data.iloc[0].to_dict()}")
+
                     for idx, row in price_data.iterrows():
+                        # Debug: In ra dữ liệu từng row
+                        print(f"Row {idx}: {row.to_dict()}")
+
+                        # Thử các tên cột khác nhau
+                        symbol_val = (row.get('symbol') or row.get('ticker') or row.get('code') or
+                                     symbols_to_query[idx] if idx < len(symbols_to_query) else 'N/A')
+
+                        price_val = (row.get('close') or row.get('price') or row.get('last') or
+                                    row.get('current_price') or 0)
+
+                        change_val = (row.get('change') or row.get('change_percent') or
+                                     row.get('pct_change') or 0)
+
+                        volume_val = (row.get('volume') or row.get('vol') or
+                                     row.get('total_volume') or 0)
+
                         # Tạo dữ liệu cổ phiếu từ price_board
                         stock_info = {
-                            "symbol": row.get('symbol', symbols_to_query[idx] if idx < len(symbols_to_query) else 'N/A'),
-                            "name": row.get('symbol', symbols_to_query[idx] if idx < len(symbols_to_query) else 'N/A'),
-                            "price": float(row.get('close', 0)) if 'close' in row else float(row.get('price', 0)),
-                            "change": float(row.get('change', 0)) if 'change' in row else 0,
-                            "pct_change": float(row.get('pct_change', 0)) if 'pct_change' in row else 0,
-                            "volume": int(row.get('volume', 0)) if 'volume' in row else 0,
+                            "symbol": str(symbol_val),
+                            "name": str(symbol_val),
+                            "price": float(price_val) if price_val else 0,
+                            "change": float(change_val) if change_val else 0,
+                            "pct_change": float(change_val) if change_val else 0,
+                            "volume": int(volume_val) if volume_val else 0,
                             "industry": "Chưa phân loại",
                             "exchange": "HOSE"
                         }
@@ -427,15 +466,37 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                 price_data = trading.price_board(symbol_list)
 
                 if not price_data.empty:
+                    # Debug: In ra cấu trúc dữ liệu realtime
+                    print(f"Realtime Trading.price_board columns: {price_data.columns.tolist()}")
+                    print(f"Realtime Trading.price_board shape: {price_data.shape}")
+                    if len(price_data) > 0:
+                        print(f"Realtime sample row: {price_data.iloc[0].to_dict()}")
+
                     for idx, row in price_data.iterrows():
+                        # Debug: In ra dữ liệu từng row
+                        print(f"Realtime Row {idx}: {row.to_dict()}")
+
+                        # Thử các tên cột khác nhau
+                        symbol_val = (row.get('symbol') or row.get('ticker') or row.get('code') or
+                                     symbol_list[idx] if idx < len(symbol_list) else 'N/A')
+
+                        price_val = (row.get('close') or row.get('price') or row.get('last') or
+                                    row.get('current_price') or 0)
+
+                        change_val = (row.get('change') or row.get('change_percent') or
+                                     row.get('pct_change') or 0)
+
+                        volume_val = (row.get('volume') or row.get('vol') or
+                                     row.get('total_volume') or 0)
+
                         # Tạo dữ liệu realtime từ price_board
                         stock_info = {
-                            "symbol": row.get('symbol', symbol_list[idx] if idx < len(symbol_list) else 'N/A'),
-                            "name": row.get('symbol', symbol_list[idx] if idx < len(symbol_list) else 'N/A'),
-                            "price": float(row.get('close', 0)) if 'close' in row else float(row.get('price', 0)),
-                            "change": float(row.get('change', 0)) if 'change' in row else 0,
-                            "pct_change": float(row.get('pct_change', 0)) if 'pct_change' in row else 0,
-                            "volume": int(row.get('volume', 0)) if 'volume' in row else 0,
+                            "symbol": str(symbol_val),
+                            "name": str(symbol_val),
+                            "price": float(price_val) if price_val else 0,
+                            "change": float(change_val) if change_val else 0,
+                            "pct_change": float(change_val) if change_val else 0,
+                            "volume": int(volume_val) if volume_val else 0,
                             "industry": "Chưa phân loại"
                         }
                         result.append(stock_info)
