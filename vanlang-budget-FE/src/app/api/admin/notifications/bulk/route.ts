@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { hasAdminAccess } from '@/utils/auth';
 
 /**
  * API endpoint để xóa nhiều thông báo cùng lúc
@@ -21,14 +20,6 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
-        // Kiểm tra quyền admin
-        if (!hasAdminAccess(tokenCookie.value)) {
-            return NextResponse.json(
-                { error: 'Không có quyền truy cập' },
-                { status: 403 }
-            );
-        }
-
         // Lấy danh sách ID từ request body
         const { notificationIds } = await request.json();
 
@@ -41,33 +32,18 @@ export async function DELETE(request: NextRequest) {
 
         console.log(`[API] Đang xóa ${notificationIds.length} thông báo`);
 
-        // Parse token để lấy accessToken
-        console.log('[DEBUG] Raw token cookie:', tokenCookie.value);
-
-        let accessToken;
-        try {
-            const tokenData = JSON.parse(tokenCookie.value);
-            accessToken = tokenData.accessToken;
-            console.log('[DEBUG] Parsed token data:', { hasAccessToken: !!accessToken });
-        } catch (parseError) {
-            console.error('[DEBUG] Token parse error:', parseError);
-            // Fallback: use raw token value
-            accessToken = tokenCookie.value;
-        }
-
         // Gọi API backend
         const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/notifications/bulk`;
         const requestBody = { notificationIds };
 
         console.log('[DEBUG] API URL:', apiUrl);
         console.log('[DEBUG] Request body:', requestBody);
-        console.log('[DEBUG] Authorization header:', `Bearer ${accessToken?.substring(0, 20)}...`);
 
         const response = await fetch(apiUrl, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${accessToken}`,
+                'Authorization': `Bearer ${tokenCookie.value}`,
             },
             body: JSON.stringify(requestBody),
         });

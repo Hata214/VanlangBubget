@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { hasAdminAccess } from '@/utils/auth';
 
 /**
  * API endpoint để xóa một thông báo
@@ -25,26 +24,14 @@ export async function DELETE(
             );
         }
 
-        // Kiểm tra quyền admin
-        if (!hasAdminAccess(tokenCookie.value)) {
-            return NextResponse.json(
-                { error: 'Không có quyền truy cập' },
-                { status: 403 }
-            );
-        }
-
-        // Parse token để lấy accessToken
-        const tokenData = JSON.parse(tokenCookie.value);
-        const accessToken = tokenData.accessToken;
-
-        // Gọi API backend
+        // Gọi API backend trực tiếp với token
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/${notificationId}`,
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/notifications/${notificationId}`,
             {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${accessToken}`,
+                    'Authorization': `Bearer ${tokenCookie.value}`,
                 },
             }
         );
