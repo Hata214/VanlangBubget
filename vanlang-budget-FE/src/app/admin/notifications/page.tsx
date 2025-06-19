@@ -242,8 +242,12 @@ export default function AdminNotificationsPage() {
                 return
             }
 
-            // Gọi trực tiếp backend để test
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`, {
+            // Gọi trực tiếp backend với URL cố định
+            const backendUrl = 'https://vanlangbubget.onrender.com/api/admin/notifications/bulk'
+            console.log('Calling backend URL:', backendUrl)
+            console.log('Sending notificationIds:', allNotificationIds)
+
+            const response = await fetch(backendUrl, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -251,6 +255,9 @@ export default function AdminNotificationsPage() {
                 },
                 body: JSON.stringify({ notificationIds: allNotificationIds })
             })
+
+            console.log('Response status:', response.status)
+            console.log('Response headers:', response.headers)
 
             if (!response.ok) {
                 const errorText = await response.text()
@@ -330,8 +337,12 @@ export default function AdminNotificationsPage() {
             setError(null)
             const deleteCount = selectedNotifications.length
 
-            // Gọi trực tiếp backend để test
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`, {
+            // Gọi trực tiếp backend với URL cố định
+            const backendUrl = 'https://vanlangbubget.onrender.com/api/admin/notifications/bulk'
+            console.log('Calling backend URL:', backendUrl)
+            console.log('Sending notificationIds:', selectedNotifications)
+
+            const response = await fetch(backendUrl, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -339,6 +350,8 @@ export default function AdminNotificationsPage() {
                 },
                 body: JSON.stringify({ notificationIds: selectedNotifications })
             })
+
+            console.log('Response status:', response.status)
 
             if (!response.ok) {
                 const errorText = await response.text()
