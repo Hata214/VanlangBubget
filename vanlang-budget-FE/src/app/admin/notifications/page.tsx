@@ -232,13 +232,25 @@ export default function AdminNotificationsPage() {
             setProcessing(true)
             setError(null)
 
-            // Gọi API xóa tất cả thông báo
-            await api.delete('/api/admin/notifications/all')
+            // Lấy tất cả ID thông báo hiện có
+            const allNotificationIds = notifications.map(n => n._id)
+
+            if (allNotificationIds.length === 0) {
+                setError('Không có thông báo nào để xóa')
+                setProcessing(false)
+                setShowDeleteAllDialog(false)
+                return
+            }
+
+            // Sử dụng endpoint bulk để xóa tất cả
+            await api.delete('/api/admin/notifications/bulk', {
+                data: { notificationIds: allNotificationIds }
+            })
 
             // Cập nhật UI
             setNotifications([])
             setSelectedNotifications([])
-            setSuccess('Đã xóa tất cả thông báo thành công')
+            setSuccess(`Đã xóa tất cả ${allNotificationIds.length} thông báo thành công`)
 
             // Auto-refresh danh sách sau khi xóa
             setTimeout(() => {
