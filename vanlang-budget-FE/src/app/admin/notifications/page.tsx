@@ -114,7 +114,8 @@ export default function AdminNotificationsPage() {
             console.log('Fetching notifications from backend API...')
 
             // Gọi trực tiếp backend API
-            const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications`
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vlb-vanlang-budget-be.onrender.com'
+            const backendUrl = `${apiUrl}/api/admin/notifications`
             const token = localStorage.getItem('token')
             let accessToken = token
 
@@ -449,7 +450,8 @@ export default function AdminNotificationsPage() {
             }
 
             // Gọi trực tiếp backend API
-            const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications`
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://vlb-vanlang-budget-be.onrender.com'
+            const backendUrl = `${apiUrl}/api/admin/notifications`
             const token = localStorage.getItem('token')
             let accessToken = token
 
