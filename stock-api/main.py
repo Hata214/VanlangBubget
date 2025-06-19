@@ -231,17 +231,17 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
         Danh sách các mã cổ phiếu và thông tin cơ bản
     """
     try:
-        # Danh sách cổ phiếu Việt Nam theo ngành
-        banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB"]
-        real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR"]
-        manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT"]
-        steel_mining_stocks = ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS"]
-        oil_gas_stocks = ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG"]
-        technology_stocks = ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS"]
-        retail_stocks = ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG"]
-        aviation_logistics_stocks = ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH"]
-        utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"]
-        food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP"]
+        # Danh sách cổ phiếu Việt Nam theo ngành (đã bổ sung thêm các mã phổ biến)
+        banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB", "NAB", "BAB", "ABB", "VBB"]
+        real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR", "CEO", "HDC", "NLG", "IDC", "CRE", "TDH"]
+        manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT", "VCF", "BBC", "TAC", "DPM", "BMP", "VHG"]
+        steel_mining_stocks = ["HPG", "HSG", "NKG", "TLH", "SMC", "VGS", "TVN", "KSB", "POM", "TIS", "DTL", "VCA", "TNA", "VNS", "CSM", "VCS", "SHI", "VGC"]
+        oil_gas_stocks = ["GAS", "PLX", "PVS", "PVD", "PVC", "PVB", "BSR", "OIL", "PVT", "CNG", "PVG", "PSH", "PVX", "PGS", "PGD", "PGC", "PSW", "PGV"]
+        technology_stocks = ["FPT", "CMG", "ELC", "ITD", "SAM", "VGI", "VTC", "VNG", "SFI", "VCS", "CMT", "CMX", "ICT", "TNG", "VTI", "VTS", "VDS", "VGT"]
+        retail_stocks = ["MWG", "PNJ", "DGW", "FRT", "VGR", "AST", "SCS", "VDS", "TNG", "HAG", "FRT", "VRE", "VGC", "VGS", "VGI", "VGT", "VGV", "VGX"]
+        aviation_logistics_stocks = ["VJC", "HVN", "ACV", "VTP", "GMD", "VSC", "TCO", "STG", "TMS", "HAH", "VOS", "VTO", "VTG", "VTS", "VTV", "VTX", "VTY", "VTZ"]
+        utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC", "EVG", "EVS", "EVF", "GEX", "HND", "SJD", "QTP", "VSI"]
+        food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP", "VNF", "VIF", "VCG", "VTF", "VFF", "VGF", "VHF", "VKF"]
 
         # Kết hợp tất cả các mã cổ phiếu
         all_symbols = (banking_stocks + real_estate_stocks + manufacturing_stocks +
@@ -295,29 +295,33 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                         if ref_price and ref_price > 0 and change_val != 0:
                             pct_change = round((change_val / ref_price) * 100, 2)
 
-                        # Xác định ngành dựa trên symbol
+                        # Xác định ngành dựa trên symbol (case-insensitive)
                         def get_industry(symbol):
-                            if symbol in banking_stocks:
+                            symbol_upper = str(symbol).upper().strip()
+                            print(f"Checking industry for symbol: '{symbol_upper}'")  # Debug log
+
+                            if symbol_upper in banking_stocks:
                                 return "Ngân hàng"
-                            elif symbol in real_estate_stocks:
+                            elif symbol_upper in real_estate_stocks:
                                 return "Bất động sản"
-                            elif symbol in manufacturing_stocks:
+                            elif symbol_upper in manufacturing_stocks:
                                 return "Sản xuất & Tiêu dùng"
-                            elif symbol in steel_mining_stocks:
+                            elif symbol_upper in steel_mining_stocks:
                                 return "Thép & Khai khoáng"
-                            elif symbol in oil_gas_stocks:
+                            elif symbol_upper in oil_gas_stocks:
                                 return "Dầu khí"
-                            elif symbol in technology_stocks:
+                            elif symbol_upper in technology_stocks:
                                 return "Công nghệ"
-                            elif symbol in retail_stocks:
+                            elif symbol_upper in retail_stocks:
                                 return "Bán lẻ"
-                            elif symbol in aviation_logistics_stocks:
+                            elif symbol_upper in aviation_logistics_stocks:
                                 return "Hàng không & Logistics"
-                            elif symbol in utilities_stocks:
+                            elif symbol_upper in utilities_stocks:
                                 return "Điện & Tiện ích"
-                            elif symbol in food_agriculture_stocks:
+                            elif symbol_upper in food_agriculture_stocks:
                                 return "Thực phẩm & Nông nghiệp"
                             else:
+                                print(f"Symbol '{symbol_upper}' not found in any industry list")  # Debug log
                                 return "Chưa phân loại"
 
                         # Tạo dữ liệu cổ phiếu từ price_board
@@ -466,10 +470,13 @@ def get_stocks_by_industry(industry: str = Query("all", description="Ngành cầ
                         if ref_price and ref_price > 0 and change_val != 0:
                             pct_change = round((change_val / ref_price) * 100, 2)
 
-                        # Xác định ngành
+                        # Xác định ngành (case-insensitive)
                         stock_industry = "Chưa phân loại"
+                        symbol_upper = str(symbol_val).upper().strip()
+                        print(f"By-industry - Checking industry for symbol: '{symbol_upper}'")  # Debug log
+
                         for ind_name, ind_symbols in industry_mapping.items():
-                            if str(symbol_val) in ind_symbols:
+                            if symbol_upper in ind_symbols:
                                 industry_names = {
                                     "banking": "Ngân hàng",
                                     "real_estate": "Bất động sản",
@@ -483,7 +490,11 @@ def get_stocks_by_industry(industry: str = Query("all", description="Ngành cầ
                                     "food_agriculture": "Thực phẩm & Nông nghiệp"
                                 }
                                 stock_industry = industry_names.get(ind_name, "Chưa phân loại")
+                                print(f"By-industry - Found industry '{stock_industry}' for symbol '{symbol_upper}'")  # Debug log
                                 break
+
+                        if stock_industry == "Chưa phân loại":
+                            print(f"By-industry - Symbol '{symbol_upper}' not found in any industry list")  # Debug log
 
                         stock_info = {
                             "symbol": str(symbol_val),
@@ -684,8 +695,11 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                         if ref_price and ref_price > 0 and change_val != 0:
                             pct_change = round((change_val / ref_price) * 100, 2)
 
-                        # Xác định ngành dựa trên symbol (sử dụng lại function từ trên)
+                        # Xác định ngành dựa trên symbol (case-insensitive)
                         def get_industry_realtime(symbol):
+                            symbol_upper = str(symbol).upper().strip()
+                            print(f"Realtime - Checking industry for symbol: '{symbol_upper}'")  # Debug log
+
                             banking_stocks = ["VCB", "BID", "CTG", "TCB", "MBB", "VPB", "ACB", "HDB", "STB", "TPB", "EIB", "SHB", "MSB", "OCB", "LPB"]
                             real_estate_stocks = ["VIC", "VHM", "NVL", "VRE", "KDH", "DXG", "PDR", "BCM", "DIG", "HDG", "IJC", "KBC", "SCR"]
                             manufacturing_stocks = ["VNM", "SAB", "MSN", "MML", "VIS", "CII", "DHG", "TRA", "BHN", "KDC", "MCH", "ANV", "SBT"]
@@ -697,27 +711,28 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             utilities_stocks = ["POW", "GEG", "PC1", "NT2", "SBA", "REE", "EVE", "VSH", "BWE", "TBC"]
                             food_agriculture_stocks = ["VHC", "BAF", "LAF", "HNG", "SLS", "FMC", "CAP", "LSS", "ASM", "HAP"]
 
-                            if symbol in banking_stocks:
+                            if symbol_upper in banking_stocks:
                                 return "Ngân hàng"
-                            elif symbol in real_estate_stocks:
+                            elif symbol_upper in real_estate_stocks:
                                 return "Bất động sản"
-                            elif symbol in manufacturing_stocks:
+                            elif symbol_upper in manufacturing_stocks:
                                 return "Sản xuất & Tiêu dùng"
-                            elif symbol in steel_mining_stocks:
+                            elif symbol_upper in steel_mining_stocks:
                                 return "Thép & Khai khoáng"
-                            elif symbol in oil_gas_stocks:
+                            elif symbol_upper in oil_gas_stocks:
                                 return "Dầu khí"
-                            elif symbol in technology_stocks:
+                            elif symbol_upper in technology_stocks:
                                 return "Công nghệ"
-                            elif symbol in retail_stocks:
+                            elif symbol_upper in retail_stocks:
                                 return "Bán lẻ"
-                            elif symbol in aviation_logistics_stocks:
+                            elif symbol_upper in aviation_logistics_stocks:
                                 return "Hàng không & Logistics"
-                            elif symbol in utilities_stocks:
+                            elif symbol_upper in utilities_stocks:
                                 return "Điện & Tiện ích"
-                            elif symbol in food_agriculture_stocks:
+                            elif symbol_upper in food_agriculture_stocks:
                                 return "Thực phẩm & Nông nghiệp"
                             else:
+                                print(f"Realtime - Symbol '{symbol_upper}' not found in any industry list")  # Debug log
                                 return "Chưa phân loại"
 
                         # Tạo dữ liệu realtime từ price_board
