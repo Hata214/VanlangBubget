@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 from datetime import datetime, timedelta
 import os
-import json
-import random
+import sys
 
 # Import vnstock
 import vnstock
@@ -78,8 +77,18 @@ def clean_symbol(symbol_str):
 
 @app.get("/")
 def read_root():
+    # Thêm thông tin debug về vnstock
+    try:
+        vnstock_version = vnstock.__version__ if hasattr(vnstock, '__version__') else "unknown"
+        vnstock_methods = [method for method in dir(vnstock) if not method.startswith('_')]
+        has_price_board = hasattr(vnstock, 'price_board')
+    except Exception as e:
+        vnstock_version = f"error: {str(e)}"
+        vnstock_methods = []
+        has_price_board = False
+
     return {
-        "message": "Stock API Service", 
+        "message": "Stock API Service",
         "endpoints": [
             "/api/price?symbol=CODE&source=TCBS",
             "/api/stocks?limit=20&source=TCBS",
@@ -87,7 +96,13 @@ def read_root():
             "/api/stock/realtime?symbols=VNM,VCB,HPG&source=TCBS",
         ],
         "available_sources": ["VCI", "TCBS", "SSI", "DNSE"],
-        "cors_origins": allowed_origins
+        "cors_origins": allowed_origins,
+        "debug_info": {
+            "vnstock_version": vnstock_version,
+            "has_price_board": has_price_board,
+            "vnstock_methods_count": len(vnstock_methods),
+            "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        }
     }
 
 @app.get("/api/price")
