@@ -708,3 +708,37 @@ export const deleteAdminNotificationsBulk = async (req, res, next) => {
         next(error);
     }
 };
+
+/**
+ * @desc    Xóa tất cả thông báo (Admin only)
+ * @route   DELETE /api/admin/notifications/all
+ * @access  Private (Admin)
+ */
+export const deleteAllAdminNotifications = async (req, res, next) => {
+    try {
+        // Đếm số lượng thông báo trước khi xóa
+        const totalCount = await Notification.countDocuments();
+
+        if (totalCount === 0) {
+            return res.status(200).json({
+                status: 'success',
+                message: 'Không có thông báo nào để xóa',
+                deletedCount: 0
+            });
+        }
+
+        // Xóa tất cả thông báo
+        const deleteResult = await Notification.deleteMany({});
+
+        logger.info(`Admin ${req.user.id} deleted all ${deleteResult.deletedCount} notifications`);
+
+        res.status(200).json({
+            status: 'success',
+            message: `Đã xóa tất cả ${deleteResult.deletedCount} thông báo thành công`,
+            deletedCount: deleteResult.deletedCount
+        });
+    } catch (error) {
+        logger.error('Error deleting all admin notifications:', error);
+        next(error);
+    }
+};

@@ -52,7 +52,8 @@ import {
     getAdminNotifications,
     createAdminNotification,
     deleteAdminNotification,
-    deleteAdminNotificationsBulk
+    deleteAdminNotificationsBulk,
+    deleteAllAdminNotifications
 } from '../controllers/notificationController.js';
 import multer from 'multer';
 
@@ -280,6 +281,11 @@ router.delete('/notifications/:id', deleteAdminNotification);
  * Xóa nhiều thông báo cùng lúc (Admin only)
  */
 router.delete('/notifications/bulk', deleteAdminNotificationsBulk);
+
+/**
+ * Xóa tất cả thông báo (Admin only)
+ */
+router.delete('/notifications/all', deleteAllAdminNotifications);
 
 // === Test Route ===
 router.get('/test-logs', async (req, res) => {
