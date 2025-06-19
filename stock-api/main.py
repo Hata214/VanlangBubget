@@ -169,15 +169,19 @@ def get_stock_price(symbol: str = "VNM", source: str = "TCBS"):
                     latest_data = price_data.iloc[0]
                     print(f"Price latest_data: {latest_data.to_dict()}")
 
-                    # Thử các tên cột khác nhau
-                    price_val = (latest_data.get('close') or latest_data.get('price') or
-                                latest_data.get('last') or latest_data.get('current_price') or 0)
+                    # vnstock 3.x sử dụng MultiIndex columns với format (category, field)
+                    price_val = (latest_data.get(('match', 'match_price')) or
+                                latest_data.get(('match', 'avg_match_price')) or
+                                latest_data.get('close') or latest_data.get('price') or 0)
 
-                    change_val = (latest_data.get('change') or latest_data.get('change_percent') or
-                                 latest_data.get('pct_change') or 0)
+                    # Tính change từ match_price và ref_price
+                    match_price = latest_data.get(('match', 'match_price'), 0)
+                    ref_price = latest_data.get(('listing', 'ref_price'), 0)
+                    change_val = float(match_price - ref_price) if match_price and ref_price else 0
 
-                    volume_val = (latest_data.get('volume') or latest_data.get('vol') or
-                                 latest_data.get('total_volume') or 0)
+                    volume_val = (latest_data.get(('match', 'accumulated_volume')) or
+                                 latest_data.get(('match', 'match_vol')) or
+                                 latest_data.get('volume') or 0)
 
                     return {
                         "symbol": symbol.upper(),
@@ -237,18 +241,27 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                         # Debug: In ra dữ liệu từng row
                         print(f"Row {idx}: {row.to_dict()}")
 
-                        # Thử các tên cột khác nhau
-                        symbol_val = (row.get('symbol') or row.get('ticker') or row.get('code') or
+                        # vnstock 3.x sử dụng MultiIndex columns với format (category, field)
+                        symbol_val = (row.get(('listing', 'symbol')) or row.get('symbol') or
                                      symbols_to_query[idx] if idx < len(symbols_to_query) else 'N/A')
 
-                        price_val = (row.get('close') or row.get('price') or row.get('last') or
-                                    row.get('current_price') or 0)
+                        price_val = (row.get(('match', 'match_price')) or
+                                    row.get(('match', 'avg_match_price')) or
+                                    row.get('close') or row.get('price') or 0)
 
-                        change_val = (row.get('change') or row.get('change_percent') or
-                                     row.get('pct_change') or 0)
+                        # Tính change từ match_price và ref_price
+                        match_price = row.get(('match', 'match_price'), 0)
+                        ref_price = row.get(('listing', 'ref_price'), 0)
+                        change_val = float(match_price - ref_price) if match_price and ref_price else 0
 
-                        volume_val = (row.get('volume') or row.get('vol') or
-                                     row.get('total_volume') or 0)
+                        volume_val = (row.get(('match', 'accumulated_volume')) or
+                                     row.get(('match', 'match_vol')) or
+                                     row.get('volume') or 0)
+
+                        # Tính phần trăm thay đổi
+                        pct_change = 0
+                        if ref_price and ref_price > 0 and change_val != 0:
+                            pct_change = round((change_val / ref_price) * 100, 2)
 
                         # Tạo dữ liệu cổ phiếu từ price_board
                         stock_info = {
@@ -256,7 +269,7 @@ def get_all_stocks(limit: int = Query(20, description="Số lượng cổ phiế
                             "name": str(symbol_val),
                             "price": float(price_val) if price_val else 0,
                             "change": float(change_val) if change_val else 0,
-                            "pct_change": float(change_val) if change_val else 0,
+                            "pct_change": pct_change,
                             "volume": int(volume_val) if volume_val else 0,
                             "industry": "Chưa phân loại",
                             "exchange": "HOSE"
@@ -476,18 +489,27 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                         # Debug: In ra dữ liệu từng row
                         print(f"Realtime Row {idx}: {row.to_dict()}")
 
-                        # Thử các tên cột khác nhau
-                        symbol_val = (row.get('symbol') or row.get('ticker') or row.get('code') or
+                        # vnstock 3.x sử dụng MultiIndex columns với format (category, field)
+                        symbol_val = (row.get(('listing', 'symbol')) or row.get('symbol') or
                                      symbol_list[idx] if idx < len(symbol_list) else 'N/A')
 
-                        price_val = (row.get('close') or row.get('price') or row.get('last') or
-                                    row.get('current_price') or 0)
+                        price_val = (row.get(('match', 'match_price')) or
+                                    row.get(('match', 'avg_match_price')) or
+                                    row.get('close') or row.get('price') or 0)
 
-                        change_val = (row.get('change') or row.get('change_percent') or
-                                     row.get('pct_change') or 0)
+                        # Tính change từ match_price và ref_price
+                        match_price = row.get(('match', 'match_price'), 0)
+                        ref_price = row.get(('listing', 'ref_price'), 0)
+                        change_val = float(match_price - ref_price) if match_price and ref_price else 0
 
-                        volume_val = (row.get('volume') or row.get('vol') or
-                                     row.get('total_volume') or 0)
+                        volume_val = (row.get(('match', 'accumulated_volume')) or
+                                     row.get(('match', 'match_vol')) or
+                                     row.get('volume') or 0)
+
+                        # Tính phần trăm thay đổi
+                        pct_change = 0
+                        if ref_price and ref_price > 0 and change_val != 0:
+                            pct_change = round((change_val / ref_price) * 100, 2)
 
                         # Tạo dữ liệu realtime từ price_board
                         stock_info = {
@@ -495,7 +517,7 @@ def get_stock_realtime(symbols: str = Query("VNM,VCB,HPG", description="Danh sá
                             "name": str(symbol_val),
                             "price": float(price_val) if price_val else 0,
                             "change": float(change_val) if change_val else 0,
-                            "pct_change": float(change_val) if change_val else 0,
+                            "pct_change": pct_change,
                             "volume": int(volume_val) if volume_val else 0,
                             "industry": "Chưa phân loại"
                         }
