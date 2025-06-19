@@ -403,4 +403,60 @@ notificationSchema.statics.createLoanStatusChangeNotification = async function (
 
 const Notification = mongoose.model('Notification', notificationSchema);
 
-export default Notification; 
+// Schema riêng cho Admin Notifications
+const adminNotificationSchema = new mongoose.Schema(
+    {
+        title: {
+            type: String,
+            required: [true, 'Admin notification must have a title']
+        },
+        message: {
+            type: String,
+            required: [true, 'Admin notification must have a message']
+        },
+        type: {
+            type: String,
+            enum: ['info', 'success', 'warning', 'error', 'system'],
+            default: 'info'
+        },
+        sentTo: {
+            type: mongoose.Schema.Types.Mixed, // 'all', 'admin', hoặc array emails
+            required: true
+        },
+        sentCount: {
+            type: Number,
+            default: 0
+        },
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
+        recipients: [{
+            userId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            email: String,
+            delivered: {
+                type: Boolean,
+                default: false
+            },
+            deliveredAt: Date
+        }]
+    },
+    {
+        timestamps: true,
+        collection: 'adminnotifications' // Chỉ định tên collection cụ thể
+    }
+);
+
+// Index cho tìm kiếm
+adminNotificationSchema.index({ title: 'text', message: 'text' });
+adminNotificationSchema.index({ createdAt: -1 });
+adminNotificationSchema.index({ type: 1 });
+
+const AdminNotification = mongoose.model('AdminNotification', adminNotificationSchema);
+
+export default Notification;
+export { AdminNotification };

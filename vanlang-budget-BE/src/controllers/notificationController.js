@@ -1,4 +1,4 @@
-import Notification from '../models/Notification.js';
+import Notification, { AdminNotification } from '../models/Notification.js';
 import User from '../models/userModel.js';
 import { emailService } from '../services/emailService.js';
 import socketManager from '../utils/socketManager.js';
@@ -504,15 +504,15 @@ export const getAdminNotifications = async (req, res, next) => {
             };
         }
 
-        // Lấy notifications với thông tin user
-        const notifications = await Notification.find(matchQuery)
-            .populate('user', 'firstName lastName email')
+        // Lấy admin notifications từ collection adminnotifications
+        const notifications = await AdminNotification.find(matchQuery)
+            .populate('createdBy', 'firstName lastName email')
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limitNum);
 
-        // Đếm tổng số notifications
-        const totalNotifications = await Notification.countDocuments(matchQuery);
+        // Đếm tổng số admin notifications
+        const totalNotifications = await AdminNotification.countDocuments(matchQuery);
         const totalPages = Math.ceil(totalNotifications / limitNum);
 
         res.status(200).json({
@@ -591,9 +591,29 @@ export const createAdminNotification = async (req, res, next) => {
             });
         }
 
-        // Tạo thông báo cho từng người dùng
+        // Chuẩn bị danh sách recipients
+        const recipients = targetUsers.map(user => ({
+            userId: user._id,
+            email: user.email,
+            delivered: false
+        }));
+
+        // Tạo admin notification
+        const adminNotification = new AdminNotification({
+            title,
+            message,
+            type,
+            sentTo,
+            sentCount: targetUsers.length,
+            createdBy: req.user.id,
+            recipients
+        });
+
+        await adminNotification.save();
+        logger.info('Admin notification saved to adminnotifications collection:', adminNotification._id);
+
+        // Tạo thông báo cho từng người dùng trong collection notifications
         const notifications = [];
-        const emailPromises = [];
 
         for (const user of targetUsers) {
             const notification = new Notification({
