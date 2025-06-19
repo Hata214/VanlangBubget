@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext'
-import { MessageContent } from '@/utils/stockMessageFormatter';
+import { isStockMessage } from '@/utils/stockMessageFormatter';
 import { useAppSelector } from '@/redux/hooks';
 import { getToken } from '@/services/api';
 
@@ -382,7 +382,9 @@ const AgentChatPopup: React.FC = () => {
                             <User className="h-4 w-4 mt-0.5 flex-shrink-0" />
                           )}
                           <div className="flex-1">
-                            <MessageContent message={message} />
+                            <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                              {message.text}
+                            </div>
                             <div className="flex items-center justify-between mt-1">
                               <div className="text-xs opacity-70">
                                 {formatTimestamp(message.timestamp)}
