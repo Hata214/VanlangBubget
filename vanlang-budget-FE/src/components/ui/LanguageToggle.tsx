@@ -1,14 +1,12 @@
 'use client'
 
 import { useLocale, useTranslations } from 'next-intl'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { Globe } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
-import { locales } from '@/i18n'
-import { useLocaleContext } from '@/providers/LocaleProvider'
 
 type LanguageToggleProps = {
     className?: string
@@ -51,8 +49,7 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
     // Kiểm tra xem có phải protected path không
     const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
-    // Luôn gọi hook ở top level để tuân thủ Rules of Hooks
-    const localeContext = useLocaleContext();
+    // Use simple locale switching without context dependency
 
     // Xử lý khi thay đổi ngôn ngữ
     const handleLanguageChange = (newLocale: string) => {
@@ -60,10 +57,10 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
 
         setIsChanging(true);
 
-        if (isProtectedPath && localeContext) {
-            // Đối với protected paths, sử dụng context
-            localeContext.setLocale(newLocale as any);
-            window.location.reload(); // Vẫn cần reload để cập nhật translations
+        if (isProtectedPath) {
+            // Đối với protected paths, sử dụng simple reload
+            localStorage.setItem('preferred-locale', newLocale);
+            window.location.reload(); // Reload để cập nhật translations
         } else {
             // Đối với public paths, sử dụng routing với locale prefix
             const pathWithoutLocale = pathname.replace(/^\/(vi|en)/, '') || '';
