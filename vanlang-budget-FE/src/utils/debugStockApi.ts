@@ -6,7 +6,7 @@
 import axios from 'axios';
 
 // URL của stock-api trong production
-const STOCK_API_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
+const STOCK_API_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'http://localhost:8000';
 
 export interface DebugResult {
     success: boolean;
