@@ -41,6 +41,10 @@ export async function DELETE(request: NextRequest) {
 
         console.log(`[API] Đang xóa ${notificationIds.length} thông báo`);
 
+        // Parse token để lấy accessToken
+        const tokenData = JSON.parse(tokenCookie.value);
+        const accessToken = tokenData.accessToken;
+
         // Gọi API backend
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`,
@@ -48,7 +52,7 @@ export async function DELETE(request: NextRequest) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${tokenCookie.value}`,
+                    'Authorization': `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({ notificationIds }),
             }
@@ -68,7 +72,7 @@ export async function DELETE(request: NextRequest) {
 
         const result = await response.json();
         console.log(`[API] Đã xóa ${result.deletedCount || notificationIds.length} thông báo thành công`);
-        
+
         return NextResponse.json({
             success: true,
             message: result.message || 'Đã xóa thông báo thành công',

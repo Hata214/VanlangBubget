@@ -29,6 +29,10 @@ export async function DELETE(request: NextRequest) {
             );
         }
 
+        // Parse token để lấy accessToken
+        const tokenData = JSON.parse(tokenCookie.value);
+        const accessToken = tokenData.accessToken;
+
         // Gọi API backend
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/all`,
@@ -36,7 +40,7 @@ export async function DELETE(request: NextRequest) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${tokenCookie.value}`,
+                    'Authorization': `Bearer ${accessToken}`,
                 },
             }
         );
