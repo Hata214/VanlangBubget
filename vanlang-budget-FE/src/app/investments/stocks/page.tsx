@@ -4,7 +4,6 @@ import React from 'react';
 import { useTranslations } from 'next-intl';
 import MainLayout from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs';
 import { StockPortfolioDashboard } from '@/components/investments/stocks/StockPortfolioDashboard';
 import { MarketStockTable, MarketStockItem } from '@/components/investments/stocks/MarketStockTable'; // Import the new component and interface
 import { StockPriceChart } from '@/components/investments/stocks/StockPriceChart'; // Import the new chart component
@@ -12,17 +11,15 @@ import { TrendingUp, ListFilter, ChevronLeft, Loader2, RefreshCw } from 'lucide-
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react'; // Import useMemo
-import axios from 'axios';
 import { toast } from '@/components/ui/Toaster';
 import { StockAutoComplete } from '@/components/investments/stocks/StockAutoComplete'; // Import StockAutoComplete
-import { formatCurrency } from '@/utils/formatters'; // Import formatCurrency
-import { getRealtimeStocks, getDirectRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
+import { getRealtimeStocks, getAllStocks, getStockHistory } from '@/services/stockApiService'; // Import new services
 import { runAllStockApiTests, formatTestResults } from '@/utils/debugStockApi'; // Import debug utilities
 
 export default function StocksMarketPage() {
     const t = useTranslations('StockMarketPage');
     const common_t = useTranslations('common'); // For common translations
-    const investments_t = useTranslations('Investments'); // For general investment translations if needed
+    // const investments_t = useTranslations('Investments'); // For general investment translations if needed
     const [allStocks, setAllStocks] = useState<MarketStockItem[]>([]); // Specify type
     const [loadingAllStocks, setLoadingAllStocks] = useState(true);
     const [errorAllStocks, setErrorAllStocks] = useState<string | null>(null);
@@ -358,6 +355,14 @@ export default function StocksMarketPage() {
                                     className="text-xs"
                                 >
                                     Test API
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => window.open('/debug/stock-api', '_blank')}
+                                    className="text-xs"
+                                >
+                                    Debug
                                 </Button>
                                 <Button
                                     variant="outline"

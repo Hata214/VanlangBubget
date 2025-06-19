@@ -24,20 +24,21 @@ export interface DebugResult {
 export async function testStockApiConnection(): Promise<DebugResult> {
     const startTime = Date.now();
     const timestamp = new Date().toISOString();
-    
+
     try {
         console.log(`[DEBUG] Testing connection to: ${STOCK_API_URL}`);
-        
+
         const response = await axios.get(`${STOCK_API_URL}/`, {
-            timeout: 10000,
+            timeout: 30000, // Increased timeout for production
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'VanLang-Budget-Debug/1.0'
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
             }
         });
-        
+
         const responseTime = Date.now() - startTime;
-        
+
         return {
             success: true,
             endpoint: '/',
@@ -48,7 +49,7 @@ export async function testStockApiConnection(): Promise<DebugResult> {
         };
     } catch (error) {
         const responseTime = Date.now() - startTime;
-        
+
         if (axios.isAxiosError(error)) {
             return {
                 success: false,
@@ -59,7 +60,7 @@ export async function testStockApiConnection(): Promise<DebugResult> {
                 responseTime
             };
         }
-        
+
         return {
             success: false,
             endpoint: '/',
@@ -77,20 +78,21 @@ export async function testStockPriceEndpoint(symbol: string = 'VNM'): Promise<De
     const startTime = Date.now();
     const timestamp = new Date().toISOString();
     const endpoint = `/api/price?symbol=${symbol}`;
-    
+
     try {
         console.log(`[DEBUG] Testing price endpoint: ${STOCK_API_URL}${endpoint}`);
-        
+
         const response = await axios.get(`${STOCK_API_URL}${endpoint}`, {
-            timeout: 15000,
+            timeout: 30000, // Increased timeout for production
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'VanLang-Budget-Debug/1.0'
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
             }
         });
-        
+
         const responseTime = Date.now() - startTime;
-        
+
         return {
             success: true,
             endpoint,
@@ -101,7 +103,7 @@ export async function testStockPriceEndpoint(symbol: string = 'VNM'): Promise<De
         };
     } catch (error) {
         const responseTime = Date.now() - startTime;
-        
+
         if (axios.isAxiosError(error)) {
             return {
                 success: false,
@@ -112,7 +114,7 @@ export async function testStockPriceEndpoint(symbol: string = 'VNM'): Promise<De
                 responseTime
             };
         }
-        
+
         return {
             success: false,
             endpoint,
@@ -130,20 +132,21 @@ export async function testRealtimeEndpoint(symbols: string = 'VNM,VCB,HPG', sour
     const startTime = Date.now();
     const timestamp = new Date().toISOString();
     const endpoint = `/api/stock/realtime?symbols=${symbols}&source=${source}`;
-    
+
     try {
         console.log(`[DEBUG] Testing realtime endpoint: ${STOCK_API_URL}${endpoint}`);
-        
+
         const response = await axios.get(`${STOCK_API_URL}${endpoint}`, {
-            timeout: 20000,
+            timeout: 30000, // Increased timeout for production
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'VanLang-Budget-Debug/1.0'
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
             }
         });
-        
+
         const responseTime = Date.now() - startTime;
-        
+
         return {
             success: true,
             endpoint,
@@ -154,7 +157,7 @@ export async function testRealtimeEndpoint(symbols: string = 'VNM,VCB,HPG', sour
         };
     } catch (error) {
         const responseTime = Date.now() - startTime;
-        
+
         if (axios.isAxiosError(error)) {
             return {
                 success: false,
@@ -165,7 +168,7 @@ export async function testRealtimeEndpoint(symbols: string = 'VNM,VCB,HPG', sour
                 responseTime
             };
         }
-        
+
         return {
             success: false,
             endpoint,
@@ -183,20 +186,21 @@ export async function testStocksListEndpoint(): Promise<DebugResult> {
     const startTime = Date.now();
     const timestamp = new Date().toISOString();
     const endpoint = '/api/stocks';
-    
+
     try {
         console.log(`[DEBUG] Testing stocks list endpoint: ${STOCK_API_URL}${endpoint}`);
-        
+
         const response = await axios.get(`${STOCK_API_URL}${endpoint}`, {
-            timeout: 15000,
+            timeout: 30000, // Increased timeout for production
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'VanLang-Budget-Debug/1.0'
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
             }
         });
-        
+
         const responseTime = Date.now() - startTime;
-        
+
         return {
             success: true,
             endpoint,
@@ -207,7 +211,7 @@ export async function testStocksListEndpoint(): Promise<DebugResult> {
         };
     } catch (error) {
         const responseTime = Date.now() - startTime;
-        
+
         if (axios.isAxiosError(error)) {
             return {
                 success: false,
@@ -218,7 +222,7 @@ export async function testStocksListEndpoint(): Promise<DebugResult> {
                 responseTime
             };
         }
-        
+
         return {
             success: false,
             endpoint,
@@ -234,29 +238,29 @@ export async function testStocksListEndpoint(): Promise<DebugResult> {
  */
 export async function runAllStockApiTests(): Promise<DebugResult[]> {
     console.log('[DEBUG] Running comprehensive Stock API tests...');
-    
+
     const results: DebugResult[] = [];
-    
+
     // Test 1: Connection
     console.log('[DEBUG] Test 1: Basic connection');
     results.push(await testStockApiConnection());
-    
+
     // Test 2: Price endpoint
     console.log('[DEBUG] Test 2: Price endpoint');
     results.push(await testStockPriceEndpoint('VNM'));
-    
+
     // Test 3: Stocks list endpoint
     console.log('[DEBUG] Test 3: Stocks list endpoint');
     results.push(await testStocksListEndpoint());
-    
+
     // Test 4: Realtime endpoint
     console.log('[DEBUG] Test 4: Realtime endpoint');
     results.push(await testRealtimeEndpoint('VNM,VCB,HPG', 'TCBS'));
-    
+
     // Summary
     const successCount = results.filter(r => r.success).length;
     console.log(`[DEBUG] Tests completed: ${successCount}/${results.length} successful`);
-    
+
     return results;
 }
 
@@ -265,24 +269,24 @@ export async function runAllStockApiTests(): Promise<DebugResult[]> {
  */
 export function formatTestResults(results: DebugResult[]): string {
     let output = '=== STOCK API DEBUG RESULTS ===\n\n';
-    
+
     results.forEach((result, index) => {
         output += `Test ${index + 1}: ${result.endpoint}\n`;
         output += `Status: ${result.success ? '✅ SUCCESS' : '❌ FAILED'}\n`;
         output += `HTTP Status: ${result.status || 'N/A'}\n`;
         output += `Response Time: ${result.responseTime || 'N/A'}ms\n`;
-        
+
         if (result.error) {
             output += `Error: ${result.error}\n`;
         }
-        
+
         if (result.data) {
             output += `Data Preview: ${JSON.stringify(result.data, null, 2).substring(0, 200)}...\n`;
         }
-        
+
         output += `Timestamp: ${result.timestamp}\n`;
         output += '---\n\n';
     });
-    
+
     return output;
 }

@@ -89,7 +89,12 @@ export interface StockHistoryResponse {
 export const getStockPrice = async (symbol: string): Promise<StockPriceResponse> => {
     try {
         const response = await axios.get<StockPriceResponse>(`${API_BASE_URL}/api/price`, {
-            params: { symbol }
+            params: { symbol },
+            timeout: 30000, // 30 giây timeout cho production
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
         });
         return response.data;
     } catch (error) {
@@ -116,11 +121,14 @@ export const getStockPrice = async (symbol: string): Promise<StockPriceResponse>
  */
 export async function getAllStocks(): Promise<StocksListResponse> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/stocks`);
-        if (!response.ok) {
-            throw new Error(`Lỗi API: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
+        const response = await axios.get<StocksListResponse>(`${API_BASE_URL}/api/stocks`, {
+            timeout: 30000, // 30 giây timeout cho production
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        const data = response.data;
 
         // Thêm dữ liệu mô phỏng cho change, pct_change và volume vì API không cung cấp
         if (data && data.stocks) {
@@ -159,7 +167,12 @@ export async function getRealtimeStocks(symbols: string = "VNM,VCB,HPG", source:
                 symbols: symbols,
                 source: source
             },
-            timeout: 15000 // 15 giây timeout
+            timeout: 30000, // 30 giây timeout cho production
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
+            }
         });
 
         console.log(`[getRealtimeStocks] API response:`, response.data);
@@ -244,10 +257,11 @@ export async function getDirectRealtimeStocks(symbols: string = "VNM,VCB,HPG", s
                 symbols: symbols,
                 source: source
             },
-            timeout: 20000, // 20 giây timeout
+            timeout: 30000, // 30 giây timeout
             headers: {
                 'Accept': 'application/json',
-                'User-Agent': 'VanLang-Budget-Frontend/1.0'
+                'Content-Type': 'application/json'
+                // Removed User-Agent header as it's not allowed in browser
             }
         });
 
