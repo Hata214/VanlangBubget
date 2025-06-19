@@ -155,9 +155,9 @@ export const StockMessageCard: React.FC<{ stockData: StockData }> = ({ stockData
 💬 *Thông tin tham khảo, không phải lời khuyên đầu tư*`;
 
   return (
-    <div className="text-sm whitespace-pre-wrap">
+    <span className="text-sm whitespace-pre-wrap leading-relaxed">
       {formattedText}
-    </div>
+    </span>
   );
 };
 
@@ -173,8 +173,8 @@ export const MessageContent: React.FC<{ message: any }> = ({ message }) => {
 
   // Hiển thị tin nhắn thường với formatting cải thiện
   return (
-    <div className="text-sm whitespace-pre-wrap leading-relaxed">
+    <span className="text-sm whitespace-pre-wrap leading-relaxed">
       {message.text}
-    </div>
+    </span>
   );
 };
