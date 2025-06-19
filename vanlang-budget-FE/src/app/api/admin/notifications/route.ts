@@ -74,6 +74,13 @@ export async function GET(req: NextRequest) {
 
         const data = await response.json();
         console.log('[NextJS API] Backend response data:', data);
+        console.log('[NextJS API] Data structure:', {
+            hasNotifications: !!data.notifications,
+            notificationsLength: data.notifications?.length,
+            hasTotalPages: !!data.totalPages,
+            totalPages: data.totalPages,
+            dataKeys: Object.keys(data)
+        });
 
         return NextResponse.json(data);
     } catch (error) {
