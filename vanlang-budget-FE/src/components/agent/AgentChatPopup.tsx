@@ -346,7 +346,9 @@ const AgentChatPopup: React.FC = () => {
                   onClick={() => setIsMinimized(!isMinimized)}
                   className="h-8 w-8 text-white hover:bg-white/20"
                 >
-                  {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                  <div className="flex items-center justify-center">
+                    {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
+                  </div>
                 </Button>
                 <Button
                   variant="ghost"
@@ -446,11 +448,13 @@ const AgentChatPopup: React.FC = () => {
                       size="icon"
                       className="bg-blue-500 hover:bg-blue-600"
                     >
-                      {isLoading ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
+                      <div className="flex items-center justify-center">
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </div>
                     </Button>
                   </div>
 
