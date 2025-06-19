@@ -27,6 +27,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
+    DialogClose,
 } from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -42,7 +43,10 @@ import {
     Send,
     Eye,
     Trash2,
-    AlertTriangle
+    AlertTriangle,
+    Loader2,
+    RefreshCw,
+    XCircle
 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { format } from 'date-fns'
@@ -84,6 +88,9 @@ export default function AdminNotificationsPage() {
     const [totalPages, setTotalPages] = useState(1)
     const [selectedNotification, setSelectedNotification] = useState<Notification | null>(null)
     const [showCreateDialog, setShowCreateDialog] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
+    const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
     const [newNotification, setNewNotification] = useState<NewNotification>({
         title: '',
         message: '',
@@ -160,6 +167,66 @@ export default function AdminNotificationsPage() {
 
     const handleViewNotification = (notification: Notification) => {
         setSelectedNotification(notification)
+    }
+
+    const handleDeleteNotification = (notificationId: string) => {
+        setNotificationToDelete(notificationId)
+        setShowDeleteDialog(true)
+    }
+
+    const confirmDeleteNotification = async () => {
+        if (!notificationToDelete) return
+
+        try {
+            setProcessing(true)
+
+            // Gọi API xóa thông báo
+            await api.delete(`/api/admin/notifications/${notificationToDelete}`)
+
+            // Cập nhật UI
+            setNotifications(prev => prev.filter(n => n._id !== notificationToDelete))
+            setSuccess(t('admin.notifications.deleteSuccess'))
+
+            // Xóa thông báo thành công sau 3 giây
+            setTimeout(() => {
+                setSuccess(null)
+            }, 3000)
+        } catch (error) {
+            console.error('Lỗi khi xóa thông báo:', error)
+            setError(t('admin.notifications.deleteError'))
+        } finally {
+            setProcessing(false)
+            setShowDeleteDialog(false)
+            setNotificationToDelete(null)
+        }
+    }
+
+    const handleDeleteAllNotifications = () => {
+        setShowDeleteAllDialog(true)
+    }
+
+    const confirmDeleteAllNotifications = async () => {
+        try {
+            setProcessing(true)
+
+            // Gọi API xóa tất cả thông báo
+            await api.delete('/api/admin/notifications/all')
+
+            // Cập nhật UI
+            setNotifications([])
+            setSuccess(t('admin.notifications.deleteAllSuccess'))
+
+            // Xóa thông báo thành công sau 3 giây
+            setTimeout(() => {
+                setSuccess(null)
+            }, 3000)
+        } catch (error) {
+            console.error('Lỗi khi xóa tất cả thông báo:', error)
+            setError(t('admin.notifications.deleteAllError'))
+        } finally {
+            setProcessing(false)
+            setShowDeleteAllDialog(false)
+        }
     }
 
     const handleCreateNotification = async () => {
@@ -296,10 +363,16 @@ export default function AdminNotificationsPage() {
                     </Button>
                 </form>
 
-                <Button onClick={() => setShowCreateDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t('admin.notifications.createNew')}
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" onClick={handleDeleteAllNotifications} className="text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        {t('admin.notifications.deleteAll')}
+                    </Button>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        {t('admin.notifications.createNew')}
+                    </Button>
+                </div>
             </div>
 
             <Card>
@@ -368,6 +441,7 @@ export default function AdminNotificationsPage() {
                                                         variant="ghost"
                                                         size="icon"
                                                         className="text-destructive"
+                                                        onClick={() => handleDeleteNotification(notification._id)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                         <span className="sr-only">{t('common.delete')}</span>
@@ -408,6 +482,72 @@ export default function AdminNotificationsPage() {
                 </CardContent>
             </Card>
 
+            {/* Dialog xác nhận xóa thông báo */}
+            <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.notifications.confirmDelete')}</DialogTitle>
+                        <DialogDescription>
+                            {t('admin.notifications.deleteWarning')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowDeleteDialog(false)}
+                            disabled={processing}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDeleteNotification}
+                            disabled={processing}
+                        >
+                            {processing ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Trash2 className="h-4 w-4 mr-2" />
+                            )}
+                            {t('common.delete')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog xác nhận xóa tất cả thông báo */}
+            <Dialog open={showDeleteAllDialog} onOpenChange={setShowDeleteAllDialog}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>{t('admin.notifications.confirmDeleteAll')}</DialogTitle>
+                        <DialogDescription>
+                            {t('admin.notifications.deleteAllWarning')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowDeleteAllDialog(false)}
+                            disabled={processing}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={confirmDeleteAllNotifications}
+                            disabled={processing}
+                        >
+                            {processing ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <XCircle className="h-4 w-4 mr-2" />
+                            )}
+                            {t('admin.notifications.deleteAll')}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             {/* Dialog xem chi tiết thông báo */}
             {selectedNotification && (
                 <Dialog open={!!selectedNotification} onOpenChange={(open) => !open && setSelectedNotification(null)}>
@@ -446,7 +586,17 @@ export default function AdminNotificationsPage() {
                                 </div>
                             </div>
                         </div>
-                        <DialogFooter>
+                        <DialogFooter className="flex justify-between">
+                            <Button
+                                variant="destructive"
+                                onClick={() => {
+                                    setSelectedNotification(null);
+                                    handleDeleteNotification(selectedNotification._id);
+                                }}
+                            >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                {t('common.delete')}
+                            </Button>
                             <Button variant="secondary" onClick={() => setSelectedNotification(null)}>
                                 {t('common.close')}
                             </Button>
@@ -488,103 +638,113 @@ export default function AdminNotificationsPage() {
                             <Label htmlFor="type">{t('admin.notifications.notificationType')}</Label>
                             <Select
                                 value={newNotification.type}
-                                onValueChange={(value) => setNewNotification({
-                                    ...newNotification,
-                                    type: value as 'info' | 'warning' | 'success' | 'error'
-                                })}
+                                onValueChange={(value: any) => setNewNotification({ ...newNotification, type: value })}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger id="type">
                                     <SelectValue placeholder={t('admin.notifications.selectType')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="info">Info</SelectItem>
-                                    <SelectItem value="warning">Warning</SelectItem>
-                                    <SelectItem value="success">Success</SelectItem>
-                                    <SelectItem value="error">Error</SelectItem>
+                                    <SelectItem value="info">{t('admin.notifications.typeInfo')}</SelectItem>
+                                    <SelectItem value="warning">{t('admin.notifications.typeWarning')}</SelectItem>
+                                    <SelectItem value="success">{t('admin.notifications.typeSuccess')}</SelectItem>
+                                    <SelectItem value="error">{t('admin.notifications.typeError')}</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <Label>{t('admin.notifications.recipients')}</Label>
-
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="sendToAll"
-                                    checked={newNotification.sendToAll}
-                                    onCheckedChange={(checked) => {
-                                        setNewNotification({
-                                            ...newNotification,
-                                            sendToAll: checked as boolean,
-                                            sendToAdmins: false,
-                                            specificUsers: ''
-                                        })
-                                    }}
-                                />
-                                <Label
-                                    htmlFor="sendToAll"
-                                    className="text-sm font-normal leading-none cursor-pointer"
-                                >
-                                    {t('admin.notifications.sendToAll')}
-                                </Label>
-                            </div>
-
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="sendToAdmins"
-                                    checked={newNotification.sendToAdmins}
-                                    onCheckedChange={(checked) => {
-                                        setNewNotification({
-                                            ...newNotification,
-                                            sendToAdmins: checked as boolean,
-                                            sendToAll: false,
-                                            specificUsers: ''
-                                        })
-                                    }}
-                                />
-                                <Label
-                                    htmlFor="sendToAdmins"
-                                    className="text-sm font-normal leading-none cursor-pointer"
-                                >
-                                    {t('admin.notifications.sendToAdmins')}
-                                </Label>
-                            </div>
-
                             <div className="space-y-2">
-                                <Label htmlFor="specificUsers">{t('admin.notifications.specificUsers')}</Label>
-                                <Textarea
-                                    id="specificUsers"
-                                    placeholder={t('admin.notifications.emailsPlaceholder')}
-                                    rows={2}
-                                    value={newNotification.specificUsers}
-                                    onChange={(e) => {
-                                        setNewNotification({
-                                            ...newNotification,
-                                            specificUsers: e.target.value,
-                                            sendToAll: false,
-                                            sendToAdmins: false
-                                        })
-                                    }}
-                                    disabled={newNotification.sendToAll || newNotification.sendToAdmins}
-                                />
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="sendToAll"
+                                        checked={newNotification.sendToAll}
+                                        onCheckedChange={(checked) => {
+                                            if (checked) {
+                                                setNewNotification({
+                                                    ...newNotification,
+                                                    sendToAll: true,
+                                                    sendToAdmins: false
+                                                })
+                                            } else {
+                                                setNewNotification({
+                                                    ...newNotification,
+                                                    sendToAll: false
+                                                })
+                                            }
+                                        }}
+                                    />
+                                    <Label htmlFor="sendToAll">{t('admin.notifications.sendToAll')}</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="sendToAdmins"
+                                        checked={newNotification.sendToAdmins}
+                                        onCheckedChange={(checked) => {
+                                            if (checked) {
+                                                setNewNotification({
+                                                    ...newNotification,
+                                                    sendToAll: false,
+                                                    sendToAdmins: true
+                                                })
+                                            } else {
+                                                setNewNotification({
+                                                    ...newNotification,
+                                                    sendToAdmins: false
+                                                })
+                                            }
+                                        }}
+                                    />
+                                    <Label htmlFor="sendToAdmins">{t('admin.notifications.sendToAdmins')}</Label>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id="specificUsers"
+                                            checked={!newNotification.sendToAll && !newNotification.sendToAdmins}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setNewNotification({
+                                                        ...newNotification,
+                                                        sendToAll: false,
+                                                        sendToAdmins: false
+                                                    })
+                                                }
+                                            }}
+                                        />
+                                        <Label htmlFor="specificUsers">{t('admin.notifications.specificUsers')}</Label>
+                                    </div>
+                                    {!newNotification.sendToAll && !newNotification.sendToAdmins && (
+                                        <div>
+                                            <Textarea
+                                                placeholder={t('admin.notifications.specificUsersDescription')}
+                                                value={newNotification.specificUsers}
+                                                onChange={(e) => setNewNotification({ ...newNotification, specificUsers: e.target.value })}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <DialogFooter className="gap-2 sm:gap-0">
+                    <DialogFooter>
                         <Button
                             variant="secondary"
                             onClick={() => setShowCreateDialog(false)}
+                            disabled={processing}
                         >
                             {t('common.cancel')}
                         </Button>
                         <Button
-                            variant="default"
                             onClick={handleCreateNotification}
                             disabled={processing}
-                            className="gap-2"
                         >
-                            <Send className="h-4 w-4" />
-                            {processing ? t('common.processing') : t('admin.notifications.send')}
+                            {processing ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4 mr-2" />
+                            )}
+                            {t('admin.notifications.sendNotification')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

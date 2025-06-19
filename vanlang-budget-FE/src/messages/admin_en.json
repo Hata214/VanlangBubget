@@ -99,6 +99,7 @@
         "cancel": "Cancel",
         "preview": "Preview",
         "delete": "Delete",
+        "deleteAll": "Delete All",
         "viewDetails": "View Details",
         "notificationDetails": "Notification Details",
         "sentTo": "Sent To",
@@ -109,7 +110,22 @@
         "deleteWarning": "Are you sure you want to delete this notification?",
         "deleteSuccess": "Notification deleted successfully",
         "deleteError": "Error deleting notification",
+        "confirmDeleteAll": "Confirm Delete All",
+        "deleteAllWarning": "Are you sure you want to delete all notifications? This action cannot be undone.",
+        "deleteAllSuccess": "All notifications deleted successfully",
+        "deleteAllError": "Error deleting all notifications",
         "noNotificationsFound": "No notifications found",
-        "refreshList": "Refresh List"
+        "refreshList": "Refresh List",
+        "createNew": "Create New",
+        "createTitle": "Create Notification",
+        "createDescription": "Create and send a new notification to users",
+        "allUsers": "All Users",
+        "adminUsers": "Admin Users Only",
+        "regularUsers": "Regular Users Only",
+        "selectType": "Select type",
+        "created": "Created",
+        "message": "Message",
+        "type": "Type",
+        "actions": "Actions"
     }
 }
