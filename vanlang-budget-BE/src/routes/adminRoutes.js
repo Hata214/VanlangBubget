@@ -273,11 +273,6 @@ router.get('/notifications', getAdminNotifications);
 router.post('/notifications', createAdminNotification);
 
 /**
- * Xóa một thông báo cụ thể (Admin only)
- */
-router.delete('/notifications/:id', deleteAdminNotification);
-
-/**
  * Xóa nhiều thông báo cùng lúc (Admin only)
  */
 router.delete('/notifications/bulk', deleteAdminNotificationsBulk);
@@ -286,6 +281,11 @@ router.delete('/notifications/bulk', deleteAdminNotificationsBulk);
  * Xóa tất cả thông báo (Admin only)
  */
 router.delete('/notifications/all', deleteAllAdminNotifications);
+
+/**
+ * Xóa một thông báo cụ thể (Admin only)
+ */
+router.delete('/notifications/:id', deleteAdminNotification);
 
 // === Test Route ===
 router.get('/test-logs', async (req, res) => {
