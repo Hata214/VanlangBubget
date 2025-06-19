@@ -56,7 +56,7 @@ export async function DELETE(request: NextRequest) {
         }
 
         // Gọi API backend
-        const apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/admin/notifications/bulk`;
+        const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/admin/notifications/bulk`;
         const requestBody = { notificationIds };
 
         console.log('[DEBUG] API URL:', apiUrl);

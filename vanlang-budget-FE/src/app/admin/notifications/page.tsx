@@ -227,16 +227,11 @@ export default function AdminNotificationsPage() {
                 return
             }
 
-            // Gọi trực tiếp backend với URL cố định
-            const backendUrl = 'https://vanlangbubget.onrender.com/api/admin/notifications/bulk'
-            console.log('Calling backend URL:', backendUrl)
-            console.log('Sending notificationIds:', allNotificationIds)
-
-            const response = await fetch(backendUrl, {
+            // Sử dụng NextJS API route
+            const response = await fetch('/api/admin/notifications/bulk', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({ notificationIds: allNotificationIds })
             })
@@ -322,16 +317,11 @@ export default function AdminNotificationsPage() {
             setError(null)
             const deleteCount = selectedNotifications.length
 
-            // Gọi trực tiếp backend với URL cố định
-            const backendUrl = 'https://vanlangbubget.onrender.com/api/admin/notifications/bulk'
-            console.log('Calling backend URL:', backendUrl)
-            console.log('Sending notificationIds:', selectedNotifications)
-
-            const response = await fetch(backendUrl, {
+            // Sử dụng NextJS API route
+            const response = await fetch('/api/admin/notifications/bulk', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({ notificationIds: selectedNotifications })
             })
