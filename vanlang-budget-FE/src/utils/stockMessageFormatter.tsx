@@ -31,18 +31,14 @@ interface StockData {
   timestamp: string;
 }
 
-/**
- * Kiểm tra xem tin nhắn có phải là response cổ phiếu không
- */
-export const isStockMessage = (message: any): boolean => {
-  return message.metadata?.intent === 'stock_query' && message.metadata?.symbol;
-};
+
 
 /**
  * Trích xuất dữ liệu cổ phiếu từ metadata
  */
 export const extractStockData = (message: any): StockData | null => {
-  if (!isStockMessage(message)) return null;
+  // Kiểm tra xem tin nhắn có phải là response cổ phiếu không
+  if (!(message.metadata?.intent === 'stock_query' && message.metadata?.symbol)) return null;
 
   const { metadata } = message;
 

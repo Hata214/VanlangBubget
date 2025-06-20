@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useToast } from '@/hooks/useToast';
 import { useAuth } from '@/contexts/AuthContext'
-import { MessageContent } from '@/utils/stockMessageFormatter';
+import { isStockMessage, MessageContent } from '@/utils/stockMessageFormatter';
 import { useAppSelector } from '@/redux/hooks';
 import { getToken } from '@/services/api';
 
