@@ -444,7 +444,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                                         <DropdownMenuLabel>{t('profile.account')}</DropdownMenuLabel>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem asChild>
-                                            <Link href={`/profile`} className="flex items-center cursor-pointer">
+                                            <Link href={`/${locale}/profile`} className="flex items-center cursor-pointer">
                                                 <UserIcon className="w-4 h-4 mr-2 text-muted-foreground" />
                                                 {t('userProfile.title')}
                                             </Link>

@@ -26,6 +26,7 @@ import FormDebug from '@/components/debug/FormDebug'
 import ProfileDebug from '@/components/debug/ProfileDebug'
 import TokenSync from '@/components/debug/TokenSync'
 import { useAuthToken } from '@/hooks/useAuthToken'
+import { useParams } from 'next/navigation'
 
 interface ProfileFormData {
     firstName: string
@@ -41,6 +42,8 @@ interface PasswordFormData {
 
 export default function ProfilePage() {
     const t = useTranslations();
+    const params = useParams()
+    const locale = params.locale as string
     const dispatch = useAppDispatch()
     const { user, isLoading, error } = useAppSelector((state) => state.auth)
     const [showSuccess, setShowSuccess] = useState(false)
@@ -61,6 +64,7 @@ export default function ProfilePage() {
         console.log('Profile page mounted, checking token and user state...')
         console.log('Current user state:', user)
         console.log('Has token:', hasToken)
+        console.log('Current locale:', locale)
 
         if (hasToken) {
             console.log('Token available, fetching user profile...')
@@ -68,7 +72,7 @@ export default function ProfilePage() {
         } else {
             console.log('No token available, skipping profile fetch')
         }
-    }, [dispatch, hasToken])
+    }, [dispatch, hasToken, locale])
 
     // Update form when user data changes
     useEffect(() => {
@@ -135,12 +139,15 @@ export default function ProfilePage() {
         }
     }
 
+    // Dynamic settings link based on locale
+    const settingsLink = `/${locale}/settings`
+
     return (
         <MainLayout>
             <div className="max-w-4xl mx-auto py-6">
                 <div className="space-y-8">
                     <div className="flex items-center gap-4">
-                        <Link href="/vi/settings">
+                        <Link href={settingsLink}>
                             <Button variant="ghost" size="icon">
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>

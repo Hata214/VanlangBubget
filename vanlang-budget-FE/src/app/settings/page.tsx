@@ -49,7 +49,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.userProfileDesc')}</p>
-                            <Link href="/profile">
+                            <Link href="/vi/profile">
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.manageProfile')}
                                     <ArrowRightIcon className="h-4 w-4" />
