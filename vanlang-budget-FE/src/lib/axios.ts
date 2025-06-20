@@ -3,18 +3,7 @@
 import apiInstance from '../services/api'
 
 // Create a wrapper that adds notification-specific response transformation
-import axios from 'axios'
-
-const instance = axios.create(apiInstance.defaults)
-
-// Copy all interceptors from the main instance
-apiInstance.interceptors.request.handlers.forEach((handler: any) => {
-    instance.interceptors.request.use(handler.fulfilled, handler.rejected)
-})
-
-apiInstance.interceptors.response.handlers.forEach((handler: any) => {
-    instance.interceptors.response.use(handler.fulfilled, handler.rejected)
-})
+const instance = apiInstance;
 
 // Add notification-specific response transformation
 instance.interceptors.response.use(
