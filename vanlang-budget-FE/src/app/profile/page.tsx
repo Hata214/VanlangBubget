@@ -146,18 +146,18 @@ export default function ProfilePage() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold">{t('userProfile.title')}</h1>
+                            <h1 className="text-3xl font-bold">{t('userProfile.title', { defaultMessage: 'Thông tin tài khoản' })}</h1>
                             <p className="mt-2 text-gray-500">
-                                {t('userProfile.subtitle')}
+                                {t('userProfile.subtitle', { defaultMessage: 'Quản lý thông tin cá nhân và mật khẩu tài khoản của bạn' })}
                             </p>
                         </div>
                     </div>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('userProfile.basicInfo')}</CardTitle>
+                            <CardTitle>{t('userProfile.basicInfo', { defaultMessage: 'Thông tin cơ bản' })}</CardTitle>
                             <CardDescription>
-                                {t('userProfile.basicInfoDesc')}
+                                {t('userProfile.basicInfoDesc', { defaultMessage: 'Cập nhật thông tin cá nhân của bạn' })}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -263,9 +263,9 @@ export default function ProfilePage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>{t('passwordSettings.title')}</CardTitle>
+                            <CardTitle>{t('passwordSettings.title', { defaultMessage: 'Đổi mật khẩu' })}</CardTitle>
                             <CardDescription>
-                                {t('passwordSettings.subtitle')}
+                                {t('passwordSettings.subtitle', { defaultMessage: 'Cập nhật mật khẩu để bảo vệ tài khoản của bạn' })}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -292,7 +292,7 @@ export default function ProfilePage() {
                                         name="currentPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('passwordSettings.currentPassword')}</FormLabel>
+                                                <FormLabel>{t('passwordSettings.currentPassword', { defaultMessage: 'Mật khẩu hiện tại' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>
@@ -309,7 +309,7 @@ export default function ProfilePage() {
                                         name="newPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('passwordSettings.newPassword')}</FormLabel>
+                                                <FormLabel>{t('passwordSettings.newPassword', { defaultMessage: 'Mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>
@@ -330,7 +330,7 @@ export default function ProfilePage() {
                                         name="confirmPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('passwordSettings.confirmPassword')}</FormLabel>
+                                                <FormLabel>{t('passwordSettings.confirmPassword', { defaultMessage: 'Xác nhận mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>

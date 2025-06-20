@@ -113,7 +113,7 @@ export default function ProfilePage() {
         setPasswordError(null)
 
         if (data.newPassword !== data.confirmPassword) {
-            setPasswordError('Mật khẩu mới không khớp')
+            setPasswordError(t('passwordSettings.passwordsDoNotMatch', { defaultMessage: 'Mật khẩu mới không khớp' }))
             return
         }
 
@@ -131,7 +131,7 @@ export default function ProfilePage() {
             })
         } catch (error) {
             console.error('Change password error:', error)
-            setPasswordError('Không thể đổi mật khẩu. Mật khẩu hiện tại có thể không đúng.')
+            setPasswordError(t('passwordSettings.changeError', { defaultMessage: 'Không thể đổi mật khẩu. Mật khẩu hiện tại có thể không đúng.' }))
         }
     }
 
@@ -146,25 +146,25 @@ export default function ProfilePage() {
                             </Button>
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-bold">Thông tin tài khoản</h1>
+                            <h1 className="text-3xl font-bold">{t('userProfile.title', { defaultMessage: 'Thông tin tài khoản' })}</h1>
                             <p className="mt-2 text-gray-500">
-                                Quản lý thông tin cá nhân và mật khẩu tài khoản của bạn
+                                {t('userProfile.subtitle', { defaultMessage: 'Quản lý thông tin cá nhân và mật khẩu tài khoản của bạn' })}
                             </p>
                         </div>
                     </div>
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Thông tin cơ bản</CardTitle>
+                            <CardTitle>{t('userProfile.basicInfo', { defaultMessage: 'Thông tin cơ bản' })}</CardTitle>
                             <CardDescription>
-                                Cập nhật thông tin cá nhân của bạn
+                                {t('userProfile.basicInfoDesc', { defaultMessage: 'Cập nhật thông tin cá nhân của bạn' })}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             {isLoading && (
                                 <div className="flex items-center justify-center py-4">
                                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                    <span className="ml-2">Đang tải thông tin...</span>
+                                    <span className="ml-2">{t('common.loading', { defaultMessage: 'Đang tải thông tin...' })}</span>
                                 </div>
                             )}
 
@@ -173,7 +173,7 @@ export default function ProfilePage() {
                                     {showSuccess && (
                                         <Alert
                                             variant="success"
-                                            message="Cập nhật thông tin thành công"
+                                            message={t('userProfile.updateSuccess', { defaultMessage: 'Cập nhật thông tin thành công' })}
                                             onClose={() => setShowSuccess(false)}
                                         />
                                     )}
@@ -190,7 +190,7 @@ export default function ProfilePage() {
                                         name="firstName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Họ</FormLabel>
+                                                <FormLabel>{t('userProfile.firstName', { defaultMessage: 'Họ' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} />
                                                 </FormControl>
@@ -204,7 +204,7 @@ export default function ProfilePage() {
                                         name="lastName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Tên</FormLabel>
+                                                <FormLabel>{t('userProfile.lastName', { defaultMessage: 'Tên' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} />
                                                 </FormControl>
@@ -214,14 +214,14 @@ export default function ProfilePage() {
                                     />
 
                                     <div className="space-y-2">
-                                        <FormLabel>Email</FormLabel>
+                                        <FormLabel>{t('userProfile.email', { defaultMessage: 'Email' })}</FormLabel>
                                         <Input
                                             value={user?.email || ''}
                                             disabled
-                                            className="bg-gray-50"
+                                            className="bg-gray-50 dark:bg-gray-800"
                                         />
                                         <p className="text-sm text-gray-500">
-                                            Email không thể thay đổi
+                                            {t('userProfile.emailDesc', { defaultMessage: 'Email không thể thay đổi' })}
                                         </p>
                                     </div>
 
@@ -230,12 +230,12 @@ export default function ProfilePage() {
                                         name="phoneNumber"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Số điện thoại</FormLabel>
+                                                <FormLabel>{t('userProfile.phoneNumber', { defaultMessage: 'Số điện thoại' })}</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
                                                         type="tel"
-                                                        placeholder="Nhập số điện thoại (10-11 số)"
+                                                        placeholder={t('userProfile.phoneNumberPlaceholder', { defaultMessage: 'Nhập số điện thoại (10-11 số)' })}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -244,7 +244,7 @@ export default function ProfilePage() {
                                         rules={{
                                             pattern: {
                                                 value: /^[0-9]{10,11}$/,
-                                                message: 'Số điện thoại phải có 10-11 số'
+                                                message: t('userProfile.phoneNumberError', { defaultMessage: 'Số điện thoại phải có 10-11 số' })
                                             }
                                         }}
                                     />
@@ -252,8 +252,9 @@ export default function ProfilePage() {
                                     <Button
                                         type="submit"
                                         isLoading={isLoading}
+                                        disabled={isLoading}
                                     >
-                                        Lưu thay đổi
+                                        {t('userProfile.saveChanges', { defaultMessage: 'Lưu thay đổi' })}
                                     </Button>
                                 </form>
                             </Form>
@@ -262,9 +263,9 @@ export default function ProfilePage() {
 
                     <Card>
                         <CardHeader>
-                            <CardTitle>Đổi mật khẩu</CardTitle>
+                            <CardTitle>{t('passwordSettings.title', { defaultMessage: 'Đổi mật khẩu' })}</CardTitle>
                             <CardDescription>
-                                Cập nhật mật khẩu để bảo vệ tài khoản của bạn
+                                {t('passwordSettings.subtitle', { defaultMessage: 'Cập nhật mật khẩu để bảo vệ tài khoản của bạn' })}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -273,7 +274,7 @@ export default function ProfilePage() {
                                     {showPasswordSuccess && (
                                         <Alert
                                             variant="success"
-                                            message="Thay đổi mật khẩu thành công"
+                                            message={t('passwordSettings.changeSuccess', { defaultMessage: 'Thay đổi mật khẩu thành công' })}
                                             onClose={() => setShowPasswordSuccess(false)}
                                         />
                                     )}
@@ -291,7 +292,7 @@ export default function ProfilePage() {
                                         name="currentPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Mật khẩu hiện tại</FormLabel>
+                                                <FormLabel>{t('passwordSettings.currentPassword', { defaultMessage: 'Mật khẩu hiện tại' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>
@@ -299,7 +300,7 @@ export default function ProfilePage() {
                                             </FormItem>
                                         )}
                                         rules={{
-                                            required: 'Mật khẩu hiện tại là bắt buộc',
+                                            required: t('passwordSettings.currentPasswordRequired', { defaultMessage: 'Mật khẩu hiện tại là bắt buộc' }),
                                         }}
                                     />
 
@@ -308,7 +309,7 @@ export default function ProfilePage() {
                                         name="newPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Mật khẩu mới</FormLabel>
+                                                <FormLabel>{t('passwordSettings.newPassword', { defaultMessage: 'Mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>
@@ -316,10 +317,10 @@ export default function ProfilePage() {
                                             </FormItem>
                                         )}
                                         rules={{
-                                            required: 'Mật khẩu mới là bắt buộc',
+                                            required: t('passwordSettings.newPasswordRequired', { defaultMessage: 'Mật khẩu mới là bắt buộc' }),
                                             minLength: {
                                                 value: 8,
-                                                message: 'Mật khẩu phải có ít nhất 8 ký tự',
+                                                message: t('passwordSettings.passwordMinLength', { defaultMessage: 'Mật khẩu phải có ít nhất 8 ký tự' }),
                                             },
                                         }}
                                     />
@@ -329,7 +330,7 @@ export default function ProfilePage() {
                                         name="confirmPassword"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Xác nhận mật khẩu mới</FormLabel>
+                                                <FormLabel>{t('passwordSettings.confirmPassword', { defaultMessage: 'Xác nhận mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} type="password" />
                                                 </FormControl>
@@ -337,15 +338,16 @@ export default function ProfilePage() {
                                             </FormItem>
                                         )}
                                         rules={{
-                                            required: 'Xác nhận mật khẩu là bắt buộc',
+                                            required: t('passwordSettings.confirmPasswordRequired', { defaultMessage: 'Xác nhận mật khẩu là bắt buộc' }),
                                         }}
                                     />
 
                                     <Button
                                         type="submit"
                                         isLoading={isLoading}
+                                        disabled={isLoading}
                                     >
-                                        Cập nhật mật khẩu
+                                        {t('passwordSettings.updatePassword', { defaultMessage: 'Cập nhật mật khẩu' })}
                                     </Button>
                                 </form>
                             </Form>
@@ -353,11 +355,16 @@ export default function ProfilePage() {
                     </Card>
                 </div>
             </div>
-            <TokenSync />
-            <AuthDebug />
-            <ApiTest />
-            <FormDebug form={form} title="Profile Form" />
-            <ProfileDebug />
+            {/* Debug Components - Chỉ hiển thị trong development */}
+            {process.env.NODE_ENV === 'development' && (
+                <>
+                    <TokenSync />
+                    <AuthDebug />
+                    <ApiTest />
+                    <FormDebug form={form} title="Profile Form" />
+                    <ProfileDebug />
+                </>
+            )}
         </MainLayout>
     )
 }
