@@ -35,10 +35,8 @@ interface AuthResponse {
         firstName?: string
         lastName?: string
     }
-    token: {
-        accessToken: string
-        refreshToken: string
-    }
+    token: string  // Backend trả về token là string
+    refreshToken: string  // refreshToken riêng biệt
     message?: string
 }
 
@@ -292,7 +290,7 @@ class AuthService {
                     try {
                         // Backend trả về { token: "...", refreshToken: "..." }
                         const accessToken = response.data.token;
-                        const refreshToken = response.data.refreshToken;
+                        const refreshToken = (response.data as any).refreshToken;
 
                         // Lưu token vào cookie
                         saveTokenToCookie(accessToken, refreshToken);
