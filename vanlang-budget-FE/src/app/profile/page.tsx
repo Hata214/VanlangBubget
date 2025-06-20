@@ -20,6 +20,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import MainLayout from '@/components/layout/MainLayout'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
+import AuthDebug from '@/components/debug/AuthDebug'
+import ApiTest from '@/components/debug/ApiTest'
+import FormDebug from '@/components/debug/FormDebug'
+import ProfileDebug from '@/components/debug/ProfileDebug'
+import TokenSync from '@/components/debug/TokenSync'
+import { useAuthToken } from '@/hooks/useAuthToken'
 
 interface ProfileFormData {
     firstName: string
@@ -40,6 +46,7 @@ export default function ProfilePage() {
     const [showSuccess, setShowSuccess] = useState(false)
     const [showPasswordSuccess, setShowPasswordSuccess] = useState(false)
     const [passwordError, setPasswordError] = useState<string | null>(null)
+    const { hasToken } = useAuthToken()
 
     const form = useForm<ProfileFormData>({
         defaultValues: {
@@ -49,14 +56,29 @@ export default function ProfilePage() {
         },
     })
 
-    // Load user profile when component mounts
+    // Load user profile when component mounts and token is available
     useEffect(() => {
-        dispatch(fetchUserProfile())
-    }, [dispatch])
+        console.log('Profile page mounted, checking token and user state...')
+        console.log('Current user state:', user)
+        console.log('Has token:', hasToken)
+
+        if (hasToken) {
+            console.log('Token available, fetching user profile...')
+            dispatch(fetchUserProfile())
+        } else {
+            console.log('No token available, skipping profile fetch')
+        }
+    }, [dispatch, hasToken])
 
     // Update form when user data changes
     useEffect(() => {
+        console.log('User data changed:', user)
         if (user) {
+            console.log('Updating form with user data:', {
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: user.phoneNumber
+            })
             form.reset({
                 firstName: user.firstName || '',
                 lastName: user.lastName || '',
@@ -64,6 +86,11 @@ export default function ProfilePage() {
             })
         }
     }, [user, form])
+
+    // Debug loading and error states
+    useEffect(() => {
+        console.log('Auth state changed:', { isLoading, error, user: !!user })
+    }, [isLoading, error, user])
 
     const passwordForm = useForm<PasswordFormData>({
         defaultValues: {
@@ -134,6 +161,13 @@ export default function ProfilePage() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
+                            {isLoading && (
+                                <div className="flex items-center justify-center py-4">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                    <span className="ml-2">{t('common.loading', { defaultMessage: 'Đang tải thông tin...' })}</span>
+                                </div>
+                            )}
+
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                                     {showSuccess && (
@@ -156,7 +190,7 @@ export default function ProfilePage() {
                                         name="firstName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('userProfile.lastName')}</FormLabel>
+                                                <FormLabel>{t('userProfile.firstName', { defaultMessage: 'Họ' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} />
                                                 </FormControl>
@@ -170,7 +204,7 @@ export default function ProfilePage() {
                                         name="lastName"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('userProfile.firstName')}</FormLabel>
+                                                <FormLabel>{t('userProfile.lastName', { defaultMessage: 'Tên' })}</FormLabel>
                                                 <FormControl>
                                                     <Input {...field} />
                                                 </FormControl>
@@ -180,14 +214,14 @@ export default function ProfilePage() {
                                     />
 
                                     <div className="space-y-2">
-                                        <FormLabel>{t('userProfile.email')}</FormLabel>
+                                        <FormLabel>{t('userProfile.email', { defaultMessage: 'Email' })}</FormLabel>
                                         <Input
                                             value={user?.email || ''}
                                             disabled
-                                            className="bg-gray-50"
+                                            className="bg-gray-50 dark:bg-gray-800"
                                         />
                                         <p className="text-sm text-gray-500">
-                                            {t('userProfile.emailDesc')}
+                                            {t('userProfile.emailDesc', { defaultMessage: 'Email không thể thay đổi' })}
                                         </p>
                                     </div>
 
@@ -196,12 +230,12 @@ export default function ProfilePage() {
                                         name="phoneNumber"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>{t('userProfile.phoneNumber')}</FormLabel>
+                                                <FormLabel>{t('userProfile.phoneNumber', { defaultMessage: 'Số điện thoại' })}</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         {...field}
                                                         type="tel"
-                                                        placeholder={t('userProfile.phoneNumberPlaceholder', { defaultMessage: 'Enter phone number (10-11 digits)' })}
+                                                        placeholder={t('userProfile.phoneNumberPlaceholder', { defaultMessage: 'Nhập số điện thoại (10-11 số)' })}
                                                     />
                                                 </FormControl>
                                                 <FormMessage />
@@ -210,7 +244,7 @@ export default function ProfilePage() {
                                         rules={{
                                             pattern: {
                                                 value: /^[0-9]{10,11}$/,
-                                                message: t('userProfile.phoneNumberError', { defaultMessage: 'Phone number must be 10-11 digits' })
+                                                message: t('userProfile.phoneNumberError', { defaultMessage: 'Số điện thoại phải có 10-11 số' })
                                             }
                                         }}
                                     />
@@ -218,8 +252,9 @@ export default function ProfilePage() {
                                     <Button
                                         type="submit"
                                         isLoading={isLoading}
+                                        disabled={isLoading}
                                     >
-                                        {t('userProfile.saveChanges')}
+                                        {t('userProfile.saveChanges', { defaultMessage: 'Lưu thay đổi' })}
                                     </Button>
                                 </form>
                             </Form>
@@ -310,8 +345,9 @@ export default function ProfilePage() {
                                     <Button
                                         type="submit"
                                         isLoading={isLoading}
+                                        disabled={isLoading}
                                     >
-                                        {t('common.save')}
+                                        {t('passwordSettings.updatePassword', { defaultMessage: 'Cập nhật mật khẩu' })}
                                     </Button>
                                 </form>
                             </Form>
@@ -319,6 +355,16 @@ export default function ProfilePage() {
                     </Card>
                 </div>
             </div>
+            {/* Debug Components - Chỉ hiển thị trong development */}
+            {process.env.NODE_ENV === 'development' && (
+                <>
+                    <TokenSync />
+                    <AuthDebug />
+                    <ApiTest />
+                    <FormDebug form={form} title="Profile Form" />
+                    <ProfileDebug />
+                </>
+            )}
         </MainLayout>
     )
-} 
+}
