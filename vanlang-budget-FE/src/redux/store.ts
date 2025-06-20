@@ -1,5 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
-import authReducer from './features/auth/authSlice'
+import authReducer from './features/authSlice'
 import incomeReducer from './features/incomeSlice'
 import expenseReducer from './features/expenseSlice'
 import loanReducer from './features/loanSlice'

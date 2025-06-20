@@ -93,7 +93,18 @@ export default function ProfilePage() {
 
     // Debug loading and error states
     useEffect(() => {
-        console.log('Auth state changed:', { isLoading, error, user: !!user })
+        console.log('Auth state changed:', {
+            isLoading,
+            error,
+            user: !!user,
+            userDetails: user ? {
+                _id: user._id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                phoneNumber: user.phoneNumber
+            } : null
+        })
     }, [isLoading, error, user])
 
     const passwordForm = useForm<PasswordFormData>({
@@ -177,6 +188,19 @@ export default function ProfilePage() {
 
                             <Form {...form}>
                                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                                    {/* Debug info */}
+                                    {process.env.NODE_ENV === 'development' && (
+                                        <div className="p-2 bg-blue-50 dark:bg-blue-900 rounded text-xs">
+                                            <p>Form values: {JSON.stringify(form.getValues())}</p>
+                                            <p>User state: {JSON.stringify(user ? {
+                                                firstName: user.firstName,
+                                                lastName: user.lastName,
+                                                email: user.email,
+                                                phoneNumber: user.phoneNumber
+                                            } : null)}</p>
+                                        </div>
+                                    )}
+
                                     {showSuccess && (
                                         <Alert
                                             variant="success"
@@ -231,6 +255,12 @@ export default function ProfilePage() {
                                         <p className="text-sm text-gray-500">
                                             {t('userProfile.emailDesc', { defaultMessage: 'Email không thể thay đổi' })}
                                         </p>
+                                        {/* Debug info */}
+                                        {process.env.NODE_ENV === 'development' && (
+                                            <p className="text-xs text-blue-500">
+                                                Debug: user?.email = "{user?.email || 'undefined'}"
+                                            </p>
+                                        )}
                                     </div>
 
                                     <FormField
