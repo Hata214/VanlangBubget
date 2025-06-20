@@ -65,16 +65,25 @@ class AuthService {
      */
     async login(email: string, password: string): Promise<AuthResponse> {
         try {
-            // Sử dụng API_URL từ api.ts
-            console.log('Using API URL for login:', API_URL);
+            console.log('🚀 STARTING LOGIN PROCESS');
+            console.log('='.repeat(60));
+            console.log('📧 Email:', email);
+            console.log('🌐 API URL:', API_URL);
+            console.log('🕐 Timestamp:', new Date().toISOString());
 
             // Sử dụng đúng đường dẫn API với tiền tố /api
+            console.log('📤 Sending login request...');
             const response = await api.post('/api/auth/login', {
                 email,
                 password
             });
 
-            console.log('Login response status:', response.status);
+            console.log('📥 LOGIN RESPONSE RECEIVED');
+            console.log('Status:', response.status);
+            console.log('Status Text:', response.statusText);
+            console.log('Headers:', response.headers);
+            console.log('Data keys:', Object.keys(response.data || {}));
+            console.log('Full response data:', JSON.stringify(response.data, null, 2));
 
             // Clone response data và chuẩn hóa
             const responseData = { ...response.data };
@@ -82,32 +91,57 @@ class AuthService {
             // Chuẩn hóa user object
             if (responseData.user && responseData.user.id && !responseData.user._id) {
                 responseData.user._id = responseData.user.id;
+                console.log('✅ Normalized user._id from user.id');
             }
 
             // Lưu token vào cookie và localStorage
             // Backend trả về { token: "...", refreshToken: "..." }
+            console.log('🔍 ANALYZING TOKEN DATA');
+            console.log('responseData.token exists:', !!responseData.token);
+            console.log('responseData.refreshToken exists:', !!responseData.refreshToken);
+
             if (responseData.token) {
                 const accessToken = responseData.token;
                 const refreshToken = responseData.refreshToken;
 
-                console.log('🔑 Login - Saving tokens:', {
-                    hasAccessToken: !!accessToken,
-                    hasRefreshToken: !!refreshToken,
-                    accessTokenLength: accessToken?.length || 0,
-                    refreshTokenLength: refreshToken?.length || 0
+                console.log('🔑 TOKEN DETAILS:');
+                console.log('Access Token:', {
+                    exists: !!accessToken,
+                    type: typeof accessToken,
+                    length: accessToken?.length || 0,
+                    isString: typeof accessToken === 'string',
+                    preview: accessToken ? accessToken.substring(0, 50) + '...' : 'N/A'
+                });
+                console.log('Refresh Token:', {
+                    exists: !!refreshToken,
+                    type: typeof refreshToken,
+                    length: refreshToken?.length || 0,
+                    isString: typeof refreshToken === 'string',
+                    preview: refreshToken ? refreshToken.substring(0, 50) + '...' : 'N/A'
+                });
+
+                console.log('💾 CALLING saveTokenToCookie...');
+                console.log('Input parameters:', {
+                    accessToken: typeof accessToken,
+                    refreshToken: typeof refreshToken
                 });
 
                 // Sử dụng hàm từ api.ts để lưu token
                 saveTokenToCookie(accessToken, refreshToken);
-                console.log('✅ Login token saved successfully');
+                console.log('✅ saveTokenToCookie call completed');
 
                 // Debug: Kiểm tra token storage ngay sau khi lưu
                 setTimeout(() => {
-                    console.log('🔍 Checking token storage after login:');
+                    console.log('🔍 VERIFYING TOKEN STORAGE AFTER LOGIN:');
                     debugTokenStorage();
-                }, 100);
+                    console.log('='.repeat(60));
+                }, 300);
             } else {
-                console.error('❌ No token in login response:', responseData);
+                console.error('❌ NO TOKEN IN LOGIN RESPONSE!');
+                console.error('Response data structure:', responseData);
+                console.error('Available keys:', Object.keys(responseData));
+                console.error('Token field type:', typeof responseData.token);
+                console.error('Token field value:', responseData.token);
             }
 
             return responseData;

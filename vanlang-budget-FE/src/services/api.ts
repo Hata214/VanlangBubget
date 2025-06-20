@@ -22,9 +22,9 @@ export const INITIALIZATION_TIME = new Date().toISOString();
 export const cookieOptions = {
     path: '/',
     maxAge: 30 * 24 * 60 * 60, // 30 ngày
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' as const : 'lax' as const,
+    sameSite: 'lax' as const, // Sử dụng 'lax' cho cả dev và production để tránh vấn đề CORS
     secure: process.env.NODE_ENV === 'production',
-    domain: process.env.NODE_ENV === 'production' ? '.onrender.com' : undefined
+    // Không set domain để cookie hoạt động trên subdomain hiện tại
 }
 
 // Hàm đảm bảo token có tiền tố "Bearer "
@@ -71,38 +71,50 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
             return;
         }
 
-        // Luôn lưu vào localStorage trước
+        // Luôn lưu vào localStorage trước với error handling
         if (typeof window !== 'undefined') {
-            localStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
-            sessionStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
+            try {
+                localStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
+                console.log('✅ Đã lưu access token vào localStorage:', accessToken.substring(0, 20) + '...');
+            } catch (localStorageError) {
+                console.error('❌ Lỗi khi lưu access token vào localStorage:', localStorageError);
+            }
+
+            try {
+                sessionStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
+                console.log('✅ Đã lưu access token vào sessionStorage');
+            } catch (sessionStorageError) {
+                console.error('❌ Lỗi khi lưu access token vào sessionStorage:', sessionStorageError);
+            }
 
             // Lưu refresh token nếu có
             if (refreshToken) {
-                localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-                sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
-                console.log('Đã lưu refresh token vào localStorage:', refreshToken.substring(0, 20) + '...');
+                try {
+                    localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+                    console.log('✅ Đã lưu refresh token vào localStorage:', refreshToken.substring(0, 20) + '...');
+                } catch (localStorageError) {
+                    console.error('❌ Lỗi khi lưu refresh token vào localStorage:', localStorageError);
+                }
+
+                try {
+                    sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+                    console.log('✅ Đã lưu refresh token vào sessionStorage');
+                } catch (sessionStorageError) {
+                    console.error('❌ Lỗi khi lưu refresh token vào sessionStorage:', sessionStorageError);
+                }
             } else {
-                console.warn('Không có refresh token để lưu!');
+                console.warn('⚠️ Không có refresh token để lưu!');
             }
-            console.log('Đã lưu access token vào localStorage:', accessToken.substring(0, 20) + '...');
+        } else {
+            console.warn('⚠️ Window object không có sẵn, không thể lưu vào storage');
         }
 
-        // Sau đó thử lưu vào cookie với settings phù hợp cho production
+        // Sau đó thử lưu vào cookie với settings nhất quán
         try {
-            setCookie(TOKEN_COOKIE_NAME, accessToken, {
-                ...cookieOptions,
-                path: '/',
-                sameSite: 'lax', // Sử dụng 'lax' thay vì 'none' để tránh vấn đề CORS
-                secure: process.env.NODE_ENV === 'production'
-            });
+            setCookie(TOKEN_COOKIE_NAME, accessToken, cookieOptions);
 
             if (refreshToken) {
-                setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
-                    ...cookieOptions,
-                    path: '/',
-                    sameSite: 'lax', // Sử dụng 'lax' thay vì 'none' để tránh vấn đề CORS
-                    secure: process.env.NODE_ENV === 'production'
-                });
+                setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieOptions);
             }
             console.log('Đã lưu token vào cookie thành công.');
         } catch (cookieError) {
@@ -511,6 +523,34 @@ export const debugTokenStorage = () => {
     };
 };
 
+// Thêm hàm test saveTokenToCookie
+export const testSaveToken = (testAccessToken?: string, testRefreshToken?: string) => {
+    const accessToken = testAccessToken || 'test_access_token_' + Date.now();
+    const refreshToken = testRefreshToken || 'test_refresh_token_' + Date.now();
+
+    console.log('🧪 TESTING saveTokenToCookie:');
+    console.log('Input tokens:', { accessToken: accessToken.substring(0, 20) + '...', refreshToken: refreshToken.substring(0, 20) + '...' });
+
+    // Clear storage trước khi test
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem(TOKEN_COOKIE_NAME);
+        localStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
+        sessionStorage.removeItem(TOKEN_COOKIE_NAME);
+        sessionStorage.removeItem(REFRESH_TOKEN_COOKIE_NAME);
+    }
+
+    // Test saveTokenToCookie
+    saveTokenToCookie(accessToken, refreshToken);
+
+    // Kiểm tra kết quả ngay lập tức
+    setTimeout(() => {
+        console.log('🔍 Checking results after saveTokenToCookie:');
+        debugTokenStorage();
+    }, 100);
+
+    return { accessToken, refreshToken };
+};
+
 // Thêm hàm debug để test connection
 export const testConnection = async () => {
     try {
@@ -572,7 +612,8 @@ if (typeof window !== 'undefined') {
     // Expose debug functions to global scope for browser console access
     (window as any).debugTokenStorage = debugTokenStorage;
     (window as any).testConnection = testConnection;
-    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection()');
+    (window as any).testSaveToken = testSaveToken;
+    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection(), testSaveToken()');
 }
 
 // Export instance axios để các module khác có thể sử dụng
