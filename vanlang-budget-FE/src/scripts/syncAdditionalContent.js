@@ -8,8 +8,8 @@ import fs from 'fs';
 import path from 'path';
 
 // API Endpoints
-const API_BASE_URL = 'http://localhost:4000/api';
-const SITE_CONTENT_ENDPOINT = `${API_BASE_URL}/site-content`;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://vanlangbubget.onrender.com';
+const SITE_CONTENT_ENDPOINT = `${API_BASE_URL}/api/site-content`;
 
 // Import hàm cập nhật URL hình ảnh
 let updateImageUrlsInContent = (content) => content; // Mặc định không làm gì

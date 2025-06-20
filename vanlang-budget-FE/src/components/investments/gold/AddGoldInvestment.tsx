@@ -46,7 +46,7 @@ export default function AddGoldInvestment({ onSuccess }: AddGoldInvestmentProps)
     const [isLoading, setIsLoading] = useState(false);
 
     // API URL for fetch requests
-    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000';
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://vanlangbubget.onrender.com';
     // Đảm bảo URL kết thúc với /api để phù hợp với cấu hình API server
     const API_URL = API_BASE_URL.endsWith('/api') ? API_BASE_URL : `${API_BASE_URL}/api`;
 

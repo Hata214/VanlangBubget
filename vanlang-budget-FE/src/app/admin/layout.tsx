@@ -186,7 +186,7 @@ export default function AdminLayout({
 
                     // Thử gọi API verify-token trực tiếp từ backend
                     try {
-                        const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+                        const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://vanlangbubget.onrender.com';
                         const directResponse = await fetch(`${backendUrl}/api/auth/verify-token`, {
                             method: 'GET',
                             headers: {

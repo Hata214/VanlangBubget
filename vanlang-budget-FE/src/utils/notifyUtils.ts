@@ -14,7 +14,7 @@ export const initializeSocket = (): Socket => {
         return socket;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || process.env.NEXT_PUBLIC_API_URL || 'https://vanlangbubget.onrender.com';
 
     // Lấy token từ service
     const token = getToken();
