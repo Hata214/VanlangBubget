@@ -34,8 +34,10 @@ export default function LoginPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirectUrl = searchParams?.get('redirect') || '/dashboard'
+    const sessionExpired = searchParams?.get('session_expired') === 'true'
     const dispatch = useAppDispatch()
     const [showError, setShowError] = useState(false)
+    const [errorMessage, setErrorMessage] = useState<string>('')
 
     const form = useForm<LoginFormData>({
         defaultValues: {
@@ -59,12 +61,19 @@ export default function LoginPage() {
                 form.setValue('password', savedPassword)
             }
         }
-    }, [form])
+
+        // Hiển thị thông báo nếu session đã hết hạn
+        if (sessionExpired) {
+            setShowError(true)
+            setErrorMessage(t('auth.sessionExpired', { defaultMessage: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.' }))
+        }
+    }, [form, sessionExpired, t])
 
     const onSubmit = async (data: LoginFormData) => {
         try {
             dispatch(setLoading(true))
             setShowError(false)
+            setErrorMessage('')
 
             console.log('Logging in with:', data.email);
 
@@ -107,25 +116,27 @@ export default function LoginPage() {
                 router.push(redirectUrl)
             } else {
                 console.error('Login response missing token or user data');
+                setErrorMessage(t('auth.invalidResponse', { defaultMessage: 'Phản hồi từ máy chủ không đúng định dạng' }))
                 dispatch(setError('Phản hồi từ máy chủ không đúng định dạng'))
                 setShowError(true)
             }
         } catch (error: any) {
             console.error('Login error (detailed):', error)
 
-            let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại sau.'
+            let errorMessage = t('auth.loginFailed', { defaultMessage: 'Đăng nhập thất bại. Vui lòng thử lại sau.' })
 
             if (error.response) {
                 // Nếu server trả về lỗi cụ thể
                 errorMessage = error.response.data?.message || errorMessage
             } else if (error.request) {
                 // Nếu không nhận được phản hồi từ server
-                errorMessage = 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng.'
+                errorMessage = t('auth.serverConnectionError', { defaultMessage: 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra kết nối mạng.' })
             } else if (error.message) {
                 // Lỗi từ việc thiết lập request
                 errorMessage = error.message
             }
 
+            setErrorMessage(errorMessage)
             dispatch(setError(errorMessage))
             setShowError(true)
         } finally {
@@ -148,7 +159,7 @@ export default function LoginPage() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                             {showError && (
                                 <Alert variant="destructive">
-                                    {t('auth.loginError')}
+                                    {errorMessage || t('auth.loginError')}
                                 </Alert>
                             )}
                             <div className="space-y-4">

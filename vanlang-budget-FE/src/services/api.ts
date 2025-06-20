@@ -70,18 +70,31 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
             return;
         }
 
-        // Lưu access token
-        setCookie(TOKEN_COOKIE_NAME, accessToken, cookieOptions);
+        // Lưu access token với cấu hình cookie được cải thiện
+        setCookie(TOKEN_COOKIE_NAME, accessToken, {
+            ...cookieOptions,
+            path: '/',
+            sameSite: 'lax'
+        });
+        
         if (typeof window !== 'undefined') {
             localStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
             sessionStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
         }
+        
+        // Đặt token cho cả axios instance và axios global
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        
         console.log('Đã lưu access token thành công.');
 
         // Lưu refresh token nếu có
         if (refreshToken) {
-            setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, cookieOptions);
+            setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
+                ...cookieOptions,
+                path: '/',
+                sameSite: 'lax'
+            });
             if (typeof window !== 'undefined') {
                 localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
                 sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
@@ -251,9 +264,18 @@ export const refreshToken = async (): Promise<string | null> => {
         if (response.data && response.data.token) {
             // Trường hợp response trả về trong định dạng khác
             console.log('Đã nhận token mới (định dạng khác), lưu...')
-            saveTokenToCookie(response.data.token.accessToken || response.data.token,
-                response.data.token.refreshToken)
-            return response.data.token.accessToken || response.data.token
+            
+            // Xử lý nhiều định dạng token có thể có
+            const accessToken = typeof response.data.token === 'string' 
+                ? response.data.token 
+                : response.data.token.accessToken || response.data.token;
+                
+            const newRefreshToken = typeof response.data.token === 'object' 
+                ? response.data.token.refreshToken 
+                : response.data.refreshToken;
+                
+            saveTokenToCookie(accessToken, newRefreshToken)
+            return typeof accessToken === 'string' ? accessToken : null;
         }
 
         console.error('Dữ liệu refresh token không hợp lệ:', response.data)
@@ -338,20 +360,58 @@ instance.interceptors.response.use(
             originalRequest._retry = true
 
             try {
-                const newToken = await refreshToken()
-
+                // Lấy refresh token trực tiếp
+                const refreshTokenValue = getRefreshToken();
+                
+                if (!refreshTokenValue) {
+                    console.error('Không tìm thấy refresh token khi xử lý lỗi 401');
+                    shouldRedirectToLogin = true;
+                    throw new Error('Không tìm thấy refresh token');
+                }
+                
+                // Gọi API refresh token trực tiếp
+                const response = await axios.post(`${API_URL}/api/auth/refresh-token`, {
+                    refreshToken: refreshTokenValue
+                }, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                // Xử lý response từ refresh token
+                let newToken = null;
+                
+                if (response.data?.token?.accessToken) {
+                    newToken = response.data.token.accessToken;
+                } else if (response.data?.token && typeof response.data.token === 'string') {
+                    newToken = response.data.token;
+                } else if (response.data?.jwt) {
+                    newToken = response.data.jwt;
+                }
+                
                 if (newToken) {
-                    console.log('Token mới đã được tạo, thử lại request...')
+                    console.log('Token mới đã được tạo, thử lại request...');
+                    
+                    // Lưu token mới
+                    if (response.data.token) {
+                        saveTokenToCookie(response.data.token);
+                    } else if (response.data.jwt) {
+                        saveTokenToCookie(response.data.jwt, response.data.refreshToken);
+                    }
+                    
                     // Cập nhật token trong header và thử lại request
-                    originalRequest.headers.Authorization = `Bearer ${newToken}`
-                    return instance(originalRequest)
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    return instance(originalRequest);
                 } else {
-                    console.log('Không thể tạo token mới, đánh dấu để chuyển hướng tới trang đăng nhập')
+                    console.log('Không thể tạo token mới, đánh dấu để chuyển hướng tới trang đăng nhập');
                     shouldRedirectToLogin = true;
                 }
             } catch (refreshError) {
-                console.error('Lỗi khi thử refresh token:', refreshError)
+                console.error('Lỗi khi thử refresh token:', refreshError);
                 shouldRedirectToLogin = true;
+                
+                // Đảm bảo xóa token khi refresh thất bại
+                removeTokens();
             }
         }
 
@@ -373,10 +433,13 @@ instance.interceptors.response.use(
                 // Ngăn việc chuyển hướng nhiều lần bằng cách kiểm tra localStorage
                 if (!localStorage.getItem('redirecting_to_login')) {
                     localStorage.setItem('redirecting_to_login', 'true');
+                    
+                    // Xóa toàn bộ token trước khi chuyển hướng
+                    removeTokens();
 
                     // Thêm delay để tránh chuyển hướng quá nhanh
                     setTimeout(() => {
-                        window.location.href = '/login';
+                        window.location.href = '/login?session_expired=true';
                         // Xóa flag sau khi chuyển hướng
                         setTimeout(() => {
                             localStorage.removeItem('redirecting_to_login');
