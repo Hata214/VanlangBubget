@@ -551,6 +551,43 @@ export const testSaveToken = (testAccessToken?: string, testRefreshToken?: strin
     return { accessToken, refreshToken };
 };
 
+// Thêm hàm test authentication flow
+export const testAuthFlow = async () => {
+    console.log('🧪 TESTING COMPLETE AUTHENTICATION FLOW');
+    console.log('='.repeat(60));
+
+    // Step 1: Check initial state
+    console.log('📋 Step 1: Initial State Check');
+    debugTokenStorage();
+
+    // Step 2: Test token save
+    console.log('📋 Step 2: Test Token Save');
+    testSaveToken();
+
+    // Step 3: Verify save worked
+    setTimeout(() => {
+        console.log('📋 Step 3: Verify Save Worked');
+        debugTokenStorage();
+
+        // Step 4: Test token retrieval
+        console.log('📋 Step 4: Test Token Retrieval');
+        const retrievedAccessToken = getToken();
+        const retrievedRefreshToken = getRefreshToken();
+
+        console.log('Retrieved tokens:', {
+            accessToken: retrievedAccessToken ? retrievedAccessToken.substring(0, 20) + '...' : 'NONE',
+            refreshToken: retrievedRefreshToken ? retrievedRefreshToken.substring(0, 20) + '...' : 'NONE'
+        });
+
+        // Step 5: Test API call with token
+        console.log('📋 Step 5: Test API Call with Token');
+        testConnection();
+
+        console.log('🧪 AUTHENTICATION FLOW TEST COMPLETED');
+        console.log('='.repeat(60));
+    }, 500);
+};
+
 // Thêm hàm debug để test connection
 export const testConnection = async () => {
     try {
@@ -613,7 +650,8 @@ if (typeof window !== 'undefined') {
     (window as any).debugTokenStorage = debugTokenStorage;
     (window as any).testConnection = testConnection;
     (window as any).testSaveToken = testSaveToken;
-    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection(), testSaveToken()');
+    (window as any).testAuthFlow = testAuthFlow;
+    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection(), testSaveToken(), testAuthFlow()');
 }
 
 // Export instance axios để các module khác có thể sử dụng

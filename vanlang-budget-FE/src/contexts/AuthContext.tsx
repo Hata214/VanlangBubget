@@ -6,7 +6,7 @@ import { authService } from '@/services/authService'; // Keep for getUserProfile
 import { signIn, signOut, useSession } from 'next-auth/react'; // Import signIn, signOut, useSession
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { TOKEN_COOKIE_NAME, cookieOptions, saveTokenToCookie, removeTokens } from '@/services/api';
+import { TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME, cookieOptions, saveTokenToCookie, removeTokens } from '@/services/api';
 
 interface RegisterData {
     firstName: string;
@@ -55,20 +55,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const reduxUser = useAppSelector((state) => state.auth.user);
     const reduxToken = useAppSelector((state) => state.auth.token);
 
-    // Determine isAuthenticated based on NextAuth session and potentially custom logic
-    const isAuthenticated = status === 'authenticated';
-    const user = session?.user || reduxUser; // Prefer session user, fallback to redux user
+    // Determine isAuthenticated - PRIORITIZE CUSTOM TOKEN over NextAuth session
+    const customToken = Cookies.get(TOKEN_COOKIE_NAME);
+    const hasCustomToken = !!customToken;
+    const hasNextAuthSession = status === 'authenticated';
 
-    // accessToken and refreshToken can be derived if needed, or managed by NextAuth
-    // For simplicity, let's assume NextAuth handles token refresh via its JWT strategy
-    // The custom backend token is set in cookies by CredentialsProvider
-    const accessToken = (reduxToken as any)?.accessToken || (session as any)?.accessToken || null;
-    const refreshToken = (reduxToken as any)?.refreshToken || (session as any)?.refreshToken || null;
+    // User is authenticated if they have either custom token OR NextAuth session
+    const isAuthenticated = hasCustomToken || hasNextAuthSession;
+
+    // Prefer custom user data (reduxUser) over NextAuth session user
+    const user = reduxUser || session?.user;
+
+    // Prioritize custom tokens from cookies/redux over NextAuth tokens
+    const accessToken = customToken || (reduxToken as any)?.accessToken || (session as any)?.accessToken || null;
+    const refreshToken = Cookies.get(REFRESH_TOKEN_COOKIE_NAME) || (reduxToken as any)?.refreshToken || (session as any)?.refreshToken || null;
 
 
     // Initialize custom aspects or sync Redux store with NextAuth session
     useEffect(() => {
         setIsLoading(status === 'loading');
+
+        // Check for custom tokens first
+        const customAccessToken = Cookies.get(TOKEN_COOKIE_NAME);
+        const customRefreshToken = Cookies.get(REFRESH_TOKEN_COOKIE_NAME);
+
         if (status === 'authenticated' && session?.user) {
             // Sync NextAuth session user to Redux if not already there or different
             // This assumes the structure of session.user matches what setCredentials expects
@@ -76,8 +86,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const nextAuthUser = session.user as any;
 
                 // Get the actual token from NextAuth session or cookies
-                const actualAccessToken = nextAuthUser.accessToken || Cookies.get(TOKEN_COOKIE_NAME);
-                const actualRefreshToken = nextAuthUser.refreshToken || Cookies.get('refreshToken');
+                const actualAccessToken = nextAuthUser.accessToken || customAccessToken;
+                const actualRefreshToken = nextAuthUser.refreshToken || customRefreshToken;
 
                 console.log('AuthContext: Syncing NextAuth session to Redux', {
                     user: nextAuthUser.email,
@@ -105,58 +115,83 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 }));
             }
         } else if (status === 'unauthenticated') {
-            // Clear Redux auth state if NextAuth session is lost
-            if (reduxUser) {
-                console.log('AuthContext: NextAuth unauthenticated, clearing Redux state');
+            // ONLY clear Redux auth state if BOTH NextAuth session is lost AND no custom tokens exist
+            if (reduxUser && !customAccessToken && !customRefreshToken) {
+                console.log('AuthContext: NextAuth unauthenticated AND no custom tokens, clearing Redux state');
                 dispatch(logout());
-                // Use unified token removal function
                 removeTokens();
+            } else if (customAccessToken || customRefreshToken) {
+                console.log('AuthContext: NextAuth unauthenticated but custom tokens exist, keeping authentication');
+                // Keep the current state, don't clear tokens
             }
         }
     }, [session, status, dispatch, reduxUser]);
 
 
-    // Đăng nhập using NextAuth
+    // Đăng nhập using CUSTOM authService (not NextAuth)
     const handleLogin = async (email: string, password: string) => {
         setIsLoading(true);
         setError(null);
         try {
-            const result = await signIn('credentials', {
-                redirect: false, // Handle redirect manually or let NextAuth handle it based on pages config
-                email,
-                password,
-            });
+            console.log('AuthContext: Using custom authService.login');
 
-            if (result?.error) {
-                setError(result.error);
+            // Use custom authService instead of NextAuth
+            const response = await authService.login(email, password);
+
+            if (response && response.user && response.token) {
+                // Dispatch to Redux store
+                dispatch(setCredentials({
+                    user: response.user,
+                    token: response.token,
+                    refreshToken: response.refreshToken
+                }));
+
+                console.log('AuthContext: Custom login successful');
                 setIsLoading(false);
-                throw new Error(result.error);
+            } else {
+                throw new Error('Invalid response from login service');
             }
-
-            // On successful signIn, useSession() will update, triggering useEffect to sync Redux.
-            // NextAuth's default behavior (or pages.signIn config) might handle redirection.
-            // If manual redirect is needed:
-            // router.push('/dashboard'); // Or based on callbackUrl from signIn result
-            setIsLoading(false);
-            // router.push('/dashboard'); // Let NextAuth handle redirection based on its config or callbackUrl
         } catch (error: any) {
+            console.error('AuthContext: Custom login failed:', error);
             setError(error.message || 'Đăng nhập thất bại');
             setIsLoading(false);
             throw error;
         }
     };
 
-    // Đăng xuất using NextAuth
+    // Đăng xuất using CUSTOM authService (not NextAuth)
     const handleLogout = async () => {
         setIsLoading(true);
-        // Custom backend logout if needed (e.g., invalidate refresh token on server)
-        // await authService.logout(); // This might clear the custom cookie
-        await signOut({ redirect: false }); // signOut from NextAuth, handles session & cookie
-        dispatch(logout()); // Clear Redux state
-        removeTokens(); // Clear custom cookies if any are still managed separately
-        delete axios.defaults.headers.common['Authorization'];
-        router.push('/admin/login'); // Or let NextAuth handle redirect
-        setIsLoading(false);
+        try {
+            console.log('AuthContext: Using custom authService.logout');
+
+            // Use custom authService logout
+            await authService.logout();
+
+            // Clear Redux state
+            dispatch(logout());
+
+            // Clear axios headers
+            delete axios.defaults.headers.common['Authorization'];
+
+            // Only sign out from NextAuth if there's an active session
+            if (status === 'authenticated') {
+                console.log('AuthContext: Also signing out from NextAuth');
+                await signOut({ redirect: false });
+            }
+
+            console.log('AuthContext: Logout completed');
+            router.push('/login');
+        } catch (error: any) {
+            console.error('AuthContext: Logout error:', error);
+            // Even if logout fails, clear local state
+            dispatch(logout());
+            removeTokens();
+            delete axios.defaults.headers.common['Authorization'];
+            router.push('/login');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     // Đăng ký tài khoản mới - this still uses custom backend directly
