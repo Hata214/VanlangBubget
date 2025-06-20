@@ -374,13 +374,13 @@ export default function MainLayout({ children }: MainLayoutProps) {
                                             <DropdownMenuLabel>{t('profile.account')}</DropdownMenuLabel>
                                             <DropdownMenuSeparator />
                                             <DropdownMenuItem asChild>
-                                                <Link href={`/profile`} className="flex items-center cursor-pointer">
+                                                <Link href={`/${locale}/profile`} className="flex items-center cursor-pointer">
                                                     <UserIcon className="w-4 h-4 mr-2 text-muted-foreground" />
                                                     {t('userProfile.title')}
                                                 </Link>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem asChild>
-                                                <Link href={`/settings`} className="flex items-center cursor-pointer">
+                                                <Link href={`/${locale}/settings`} className="flex items-center cursor-pointer">
                                                     <Cog6ToothIcon className="w-4 h-4 mr-2 text-muted-foreground" />
                                                     {t('settings.title')}
                                                 </Link>
@@ -450,7 +450,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem asChild>
-                                            <Link href={`/settings`} className="flex items-center cursor-pointer">
+                                            <Link href={`/${locale}/settings`} className="flex items-center cursor-pointer">
                                                 <Cog6ToothIcon className="w-4 h-4 mr-2 text-muted-foreground" />
                                                 {t('settings.title')}
                                             </Link>

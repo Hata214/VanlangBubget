@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { useAppSelector } from '@/redux/hooks';
 import NotificationBell from '../notification/NotificationBell';
 
@@ -19,6 +19,7 @@ interface User {
 
 const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
     const t = useTranslations();
+    const locale = useLocale();
     const pathname = usePathname();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { user } = useAppSelector((state) => state.auth);
@@ -87,7 +88,7 @@ const Navbar: React.FC<NavbarProps> = ({ onLogout }) => {
                         {isDropdownOpen && (
                             <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
                                 <Link
-                                    href="/vi/profile"
+                                    href={`/${locale}/profile`}
                                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                     onClick={() => setIsDropdownOpen(false)}
                                 >
