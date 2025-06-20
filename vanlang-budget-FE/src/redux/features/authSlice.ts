@@ -13,16 +13,17 @@ interface User {
     isEmailVerified: boolean
 }
 
-// Cấu trúc token
+// Cấu trúc token - phù hợp với backend response format
 interface TokenData {
     accessToken: string
     refreshToken: string
 }
 
-// Định nghĩa kiểu AuthResponse từ authService
+// Định nghĩa kiểu AuthResponse từ authService - phù hợp với backend
 interface AuthResponse {
     user: User
-    token: TokenData
+    token: string  // Backend trả về token là string
+    refreshToken?: string  // refreshToken riêng biệt
     message?: string
 }
 
@@ -153,7 +154,11 @@ const authSlice = createSlice({
             action: PayloadAction<AuthResponse>
         ) => {
             state.user = action.payload.user
-            state.token = action.payload.token
+            // Convert backend format to internal format
+            state.token = {
+                accessToken: action.payload.token,
+                refreshToken: action.payload.refreshToken || ''
+            }
             state.isAuthenticated = true
 
             // Lưu trạng thái vào localStorage

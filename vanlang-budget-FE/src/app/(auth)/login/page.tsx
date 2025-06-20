@@ -94,7 +94,7 @@ export default function LoginPage() {
             console.log('Login successful, response:', response);
 
             if (response && response.token) {
-                // Đảm bảo response có cấu trúc phù hợp với AuthResponse
+                // Đảm bảo response có cấu trúc phù hợp với AuthResponse mới
                 const authData = {
                     user: {
                         _id: (response.user as any)._id || (response.user as any).id || '',
@@ -104,9 +104,8 @@ export default function LoginPage() {
                         role: (response.user as any).role || 'user',
                         isEmailVerified: (response.user as any).isEmailVerified || false
                     },
-                    token: typeof response.token === 'string'
-                        ? { accessToken: response.token, refreshToken: '' }
-                        : response.token
+                    token: response.token, // Backend trả về token là string
+                    refreshToken: response.refreshToken || ''
                 }
 
                 // Token đã được lưu trong authService.login

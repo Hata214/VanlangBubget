@@ -100,10 +100,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                         role: nextAuthUser.role || 'user',
                         isEmailVerified: nextAuthUser.isEmailVerified || false,
                     },
-                    token: {
-                        accessToken: actualAccessToken || "next-auth-session",
-                        refreshToken: actualRefreshToken || "next-auth-session"
-                    }
+                    token: actualAccessToken || "next-auth-session",
+                    refreshToken: actualRefreshToken || "next-auth-session"
                 }));
             }
         } else if (status === 'unauthenticated') {

@@ -14,13 +14,23 @@ export async function POST(request: NextRequest) {
             { status: 200 }
         )
 
-        // Set cookie
-        response.cookies.set('token', data.token.accessToken, {
+        // Set cookie - data.token is now a string
+        response.cookies.set('token', data.token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
             maxAge: 7 * 24 * 60 * 60 // 7 days
         })
+
+        // Set refresh token cookie if available
+        if (data.refreshToken) {
+            response.cookies.set('refreshToken', data.refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 30 * 24 * 60 * 60 // 30 days
+            })
+        }
 
         return response
     } catch (error: any) {

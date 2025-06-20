@@ -51,15 +51,25 @@ interface UserData {
  */
 export function getTokenData(tokenString: string): UserData | null {
     try {
-        // Parse chuỗi token thành đối tượng
-        const tokenData: TokenData = JSON.parse(tokenString)
+        // Token bây giờ là string trực tiếp, không phải JSON object
+        let accessToken = tokenString;
 
-        if (!tokenData.accessToken) {
+        // Nếu tokenString là JSON object (backward compatibility)
+        try {
+            const tokenData: TokenData = JSON.parse(tokenString)
+            if (tokenData.accessToken) {
+                accessToken = tokenData.accessToken;
+            }
+        } catch {
+            // tokenString đã là string token trực tiếp
+        }
+
+        if (!accessToken) {
             return null
         }
 
         // Lấy phần payload của JWT
-        const parts = tokenData.accessToken.split('.')
+        const parts = accessToken.split('.')
         if (parts.length !== 3) {
             return null
         }
@@ -92,14 +102,25 @@ export function hasAdminAccess(tokenString: string): boolean {
  */
 export function isValidToken(tokenString: string): boolean {
     try {
-        const tokenData: TokenData = JSON.parse(tokenString)
+        // Token bây giờ là string trực tiếp, không phải JSON object
+        let accessToken = tokenString;
 
-        if (!tokenData.accessToken) {
+        // Nếu tokenString là JSON object (backward compatibility)
+        try {
+            const tokenData: TokenData = JSON.parse(tokenString)
+            if (tokenData.accessToken) {
+                accessToken = tokenData.accessToken;
+            }
+        } catch {
+            // tokenString đã là string token trực tiếp
+        }
+
+        if (!accessToken) {
             return false
         }
 
         // Kiểm tra cấu trúc JWT
-        const parts = tokenData.accessToken.split('.')
+        const parts = accessToken.split('.')
         if (parts.length !== 3) {
             return false
         }

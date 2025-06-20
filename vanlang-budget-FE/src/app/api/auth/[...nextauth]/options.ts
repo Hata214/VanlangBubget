@@ -37,9 +37,9 @@ export const authOptions: NextAuthOptions = {
                     let accessToken = '';
                     let refreshToken = '';
                     if (userData.token) {
-                        // Sử dụng hàm saveTokenToCookie từ api.ts
-                        accessToken = userData.token.accessToken || userData.token;
-                        refreshToken = userData.token.refreshToken || '';
+                        // Backend trả về { token: "...", refreshToken: "..." }
+                        accessToken = userData.token; // token is now a string
+                        refreshToken = userData.refreshToken || '';
                         saveTokenToCookie(accessToken, refreshToken);
                     }
 
