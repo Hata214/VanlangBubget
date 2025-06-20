@@ -1,7 +1,9 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
-import { socketService, SocketEvent, useSocket } from '@/services/socketService'
+import React, { createContext, useContext, useEffect } from 'react'
+import { socketService } from '@/services/socketService'
+import { SocketEvent } from '@/types/socket'
+import { useSocket } from '@/hooks/useSocket'
 import { useAppSelector } from '@/redux/hooks'
 import { getToken } from '@/services/api'
 
@@ -23,7 +25,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     // Sử dụng getToken() để lấy token một cách nhất quán
     const tokenString = getToken()
     const { isConnected } = useSocket(tokenString)
-    const [notifications, setNotifications] = useState<any[]>([])
 
     // Tự động tham gia room của user sau khi kết nối thành công
     useEffect(() => {
@@ -52,8 +53,6 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
         // Xử lý sự kiện nhận thông báo mới
         const handleNewNotification = (notification: any) => {
             console.log('New notification received:', notification);
-            setNotifications((prev) => [notification, ...prev])
-
             // TODO: Thêm code hiển thị thông báo popup hoặc toast ở đây
         }
 

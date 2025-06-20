@@ -1,50 +1,7 @@
 import { io, Socket } from 'socket.io-client';
-import { useEffect, useState } from 'react';
 import Cookies from 'js-cookie';
 import { formatTokenForHeader, API_URL, TOKEN_COOKIE_NAME, getToken } from './api';
-
-// Các sự kiện socket từ server
-export enum SocketEvent {
-    // Budget events
-    BUDGET_CREATE = 'budget:create',
-    BUDGET_UPDATE = 'budget:update',
-    BUDGET_DELETE = 'budget:delete',
-
-    // Expense events
-    EXPENSE_CREATE = 'expense:create',
-    EXPENSE_UPDATE = 'expense:update',
-    EXPENSE_DELETE = 'expense:delete',
-
-    // Income events
-    INCOME_CREATE = 'income:create',
-    INCOME_UPDATE = 'income:update',
-    INCOME_DELETE = 'income:delete',
-
-    // Loan events
-    LOAN_CREATE = 'loan:create',
-    LOAN_UPDATE = 'loan:update',
-    LOAN_DELETE = 'loan:delete',
-    LOAN_STATUS_CHANGED = 'loan_status_changed',
-
-    // Loan payment events
-    LOAN_PAYMENT_CREATE = 'loan:payment:create',
-    LOAN_PAYMENT_DELETE = 'loan:payment:delete',
-
-    // Investment events
-    INVESTMENT_CREATE = 'investment:create',
-    INVESTMENT_UPDATE = 'investment:update',
-    INVESTMENT_DELETE = 'investment:delete',
-
-    // Notification events
-    NOTIFICATION_CREATE = 'notification:create',
-    NOTIFICATION_READ = 'notification:read',
-    NOTIFICATION_DELETE = 'notification:delete',
-
-    // Connection events
-    CONNECT = 'connect',
-    DISCONNECT = 'disconnect',
-    CONNECTION_ERROR = 'connect_error'
-}
+import { SocketEvent } from '@/types/socket';
 
 class SocketService {
     private socket: Socket | null = null;
@@ -276,43 +233,8 @@ class SocketService {
 // Singleton instance
 export const socketService = new SocketService();
 
-// React Hook để sử dụng Socket
-export function useSocket(token?: string | null) {
-    const [isConnected, setIsConnected] = useState(false);
+// Export socketService as default
+export default socketService;
 
-    useEffect(() => {
-        // Sử dụng getToken từ api.ts để lấy token
-        const authToken = token || getToken();
-
-        if (authToken) {
-            console.log('useSocket: Using token for connection');
-            // Kết nối socket khi có token
-            socketService.connect(authToken);
-
-            // Theo dõi sự kiện kết nối
-            const handleConnect = () => setIsConnected(true);
-            const handleDisconnect = () => setIsConnected(false);
-
-            socketService.on(SocketEvent.CONNECT, handleConnect);
-            socketService.on(SocketEvent.DISCONNECT, handleDisconnect);
-
-            // Cập nhật trạng thái kết nối ban đầu
-            setIsConnected(socketService.isConnected());
-
-            return () => {
-                // Dọn dẹp
-                socketService.off(SocketEvent.CONNECT, handleConnect);
-                socketService.off(SocketEvent.DISCONNECT, handleDisconnect);
-            };
-        } else {
-            console.log('useSocket: No token available');
-        }
-    }, [token]);
-
-    return {
-        socket: socketService,
-        isConnected
-    };
-}
-
-export default socketService; 
+// Re-export SocketEvent for convenience
+export { SocketEvent } from '@/types/socket';

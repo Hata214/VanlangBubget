@@ -2,7 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { useAppSelector, useAppDispatch } from '@/redux/hooks'
-import { socketService, SocketEvent } from '@/services/socketService'
+import { socketService } from '@/services/socketService'
+import { SocketEvent } from '@/types/socket'
 import { fetchUnreadCount, addNotification, fetchNotifications } from '@/redux/features/notificationSlice'
 import { fetchLoans } from '@/redux/features/loanSlice'
 import { useToast } from '@/contexts/ToastContext'
