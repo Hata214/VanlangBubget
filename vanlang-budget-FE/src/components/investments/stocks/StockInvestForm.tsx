@@ -44,8 +44,23 @@ type FormValues = z.infer<typeof formSchema>;
 
 // Hàm tính phí giao dịch dựa trên broker
 const calculateFee = (totalValue: number, broker: string): number => {
-    // Tất cả broker hiện tại đều có phí 0.15% với tối thiểu 10,000 VND
-    return Math.max(totalValue * 0.0015, 10000);
+    // Phí giao dịch theo từng công ty chứng khoán (thực tế 2024-2025)
+    const feeStructure: { [key: string]: { rate: number; minFee: number } } = {
+        'VNDirect (0.15%, tối thiểu 50.000đ)': { rate: 0.0015, minFee: 50000 },
+        'SSI (từ 0.15%, tối thiểu 54.000đ)': { rate: 0.0015, minFee: 54000 },
+        'TCBS (0.15%, tối thiểu 50.000đ)': { rate: 0.0015, minFee: 50000 },
+        'VPS (từ 0.15%, tối thiểu 50.000đ)': { rate: 0.0015, minFee: 50000 },
+        'HSC (từ 0.15%, tối thiểu 50.000đ)': { rate: 0.0015, minFee: 50000 },
+        'MBS (từ 0.15%, tối thiểu 50.000đ)': { rate: 0.0015, minFee: 50000 },
+    };
+
+    const brokerInfo = feeStructure[broker];
+    if (brokerInfo) {
+        return Math.max(totalValue * brokerInfo.rate, brokerInfo.minFee);
+    }
+
+    // Mặc định cho trường hợp "Khác" hoặc không tìm thấy
+    return Math.max(totalValue * 0.0015, 50000);
 };
 
 export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
@@ -62,7 +77,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             symbol: '',
             price: 0,
             quantity: 100,
-            broker: 'VNDirect (0.15%)',
+            broker: 'VNDirect (0.15%, tối thiểu 50.000đ)',
             purchaseDate: new Date(),
             fee: 0,
             notes: '',
@@ -314,18 +329,17 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent>
-                                                <SelectItem value="VNDirect (0.15%)">VNDirect (0.15%)</SelectItem>
-                                                <SelectItem value="SSI (0.15%)">SSI (0.15%)</SelectItem>
-                                                <SelectItem value="TCBS (0.15%)">TCBS (0.15%)</SelectItem>
-                                                <SelectItem value="VPS (0.15%)">VPS (0.15%)</SelectItem>
-                                                <SelectItem value="HSC (0.15%)">HSC (0.15%)</SelectItem>
-                                                <SelectItem value="MBS (0.15%)">MBS (0.15%)</SelectItem>
-                                                <SelectItem value="VNDIRECT (0.15%)">VNDIRECT (0.15%)</SelectItem>
-                                                <SelectItem value="Khác">Khác</SelectItem>
+                                                <SelectItem value="VNDirect (0.15%, tối thiểu 50.000đ)">VNDirect (0.15%, tối thiểu 50.000đ)</SelectItem>
+                                                <SelectItem value="SSI (từ 0.15%, tối thiểu 54.000đ)">SSI (từ 0.15%, tối thiểu 54.000đ)</SelectItem>
+                                                <SelectItem value="TCBS (0.15%, tối thiểu 50.000đ)">TCBS (0.15%, tối thiểu 50.000đ)</SelectItem>
+                                                <SelectItem value="VPS (từ 0.15%, tối thiểu 50.000đ)">VPS (từ 0.15%, tối thiểu 50.000đ)</SelectItem>
+                                                <SelectItem value="HSC (từ 0.15%, tối thiểu 50.000đ)">HSC (từ 0.15%, tối thiểu 50.000đ)</SelectItem>
+                                                <SelectItem value="MBS (từ 0.15%, tối thiểu 50.000đ)">MBS (từ 0.15%, tối thiểu 50.000đ)</SelectItem>
+                                                <SelectItem value="Khác (Tự nhập phí)">Khác (Tự nhập phí)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormDescription>
-                                            Phí giao dịch: 0.15%, tối thiểu 10,000 VND
+                                            Phí giao dịch thực tế theo từng công ty chứng khoán
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -393,7 +407,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                             />
                                         </FormControl>
                                         <FormDescription>
-                                            Phí giao dịch (tự động tính 0.15%, tối thiểu 10,000 VND)
+                                            Phí giao dịch (tự động tính theo công ty chứng khoán)
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -419,6 +433,18 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 <div className="font-medium text-gray-700 dark:text-gray-200">Tổng chi phí đầu tư:</div>
                                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">
                                     {totalWithFee.toLocaleString('vi-VN')} VND
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Chú thích về phí giao dịch */}
+                        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md p-3">
+                            <div className="flex items-start space-x-2">
+                                <div className="text-amber-600 dark:text-amber-400 mt-0.5">ℹ️</div>
+                                <div className="text-sm text-amber-800 dark:text-amber-200">
+                                    <strong>Lưu ý về phí giao dịch:</strong> Mức phí hiển thị là phí cơ bản cho giao dịch online.
+                                    Phí thực tế có thể thay đổi tùy thuộc vào giá trị giao dịch, loại tài khoản và chính sách ưu đãi.
+                                    Vui lòng kiểm tra biểu phí chi tiết trên website của công ty chứng khoán.
                                 </div>
                             </div>
                         </div>
