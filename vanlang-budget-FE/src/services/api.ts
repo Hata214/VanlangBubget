@@ -80,15 +80,19 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
             if (refreshToken) {
                 localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
                 sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
+                console.log('Đã lưu refresh token vào localStorage:', refreshToken.substring(0, 20) + '...');
+            } else {
+                console.warn('Không có refresh token để lưu!');
             }
+            console.log('Đã lưu access token vào localStorage:', accessToken.substring(0, 20) + '...');
         }
 
-        // Sau đó thử lưu vào cookie
+        // Sau đó thử lưu vào cookie với settings phù hợp cho production
         try {
             setCookie(TOKEN_COOKIE_NAME, accessToken, {
                 ...cookieOptions,
                 path: '/',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                sameSite: 'lax', // Sử dụng 'lax' thay vì 'none' để tránh vấn đề CORS
                 secure: process.env.NODE_ENV === 'production'
             });
 
@@ -96,7 +100,7 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
                 setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
                     ...cookieOptions,
                     path: '/',
-                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+                    sameSite: 'lax', // Sử dụng 'lax' thay vì 'none' để tránh vấn đề CORS
                     secure: process.env.NODE_ENV === 'production'
                 });
             }
@@ -189,7 +193,11 @@ export const getRefreshToken = (): string | null => {
             return cookieToken;
         }
 
-        console.warn('Không tìm thấy refresh token.');
+        console.error('❌ KHÔNG TÌM THẤY REFRESH TOKEN Ở BẤT KỲ ĐÂU!');
+        console.log('Debug info:');
+        console.log('- localStorage keys:', typeof window !== 'undefined' ? Object.keys(localStorage) : 'N/A');
+        console.log('- sessionStorage keys:', typeof window !== 'undefined' ? Object.keys(sessionStorage) : 'N/A');
+        console.log('- Cookie names:', typeof document !== 'undefined' ? document?.cookie?.split(';').map(c => c.split('=')[0].trim()) : 'N/A');
         return null;
     } catch (error) {
         console.error('Lỗi khi lấy refresh token:', error);

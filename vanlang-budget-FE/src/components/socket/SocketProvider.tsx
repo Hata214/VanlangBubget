@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { socketService, SocketEvent, useSocket } from '@/services/socketService'
 import { useAppSelector } from '@/redux/hooks'
-import Cookies from 'js-cookie'
+import { getToken } from '@/services/api'
 
 // Định nghĩa kiểu dữ liệu cho context
 type SocketContextType = {
@@ -20,11 +20,8 @@ export const useSocketContext = () => useContext(SocketContext)
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
     const auth = useAppSelector((state) => state.auth)
-    const tokenObj = auth.token || Cookies.get('token')
-    // Chuyển đổi token thành string nếu là object
-    const tokenString = typeof tokenObj === 'object' && tokenObj !== null 
-        ? tokenObj.accessToken 
-        : (typeof tokenObj === 'string' ? tokenObj : null)
+    // Sử dụng getToken() để lấy token một cách nhất quán
+    const tokenString = getToken()
     const { isConnected } = useSocket(tokenString)
     const [notifications, setNotifications] = useState<any[]>([])
 

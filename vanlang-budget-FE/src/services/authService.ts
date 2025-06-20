@@ -90,9 +90,18 @@ class AuthService {
                 const accessToken = responseData.token;
                 const refreshToken = responseData.refreshToken;
 
+                console.log('🔑 Login - Saving tokens:', {
+                    hasAccessToken: !!accessToken,
+                    hasRefreshToken: !!refreshToken,
+                    accessTokenLength: accessToken?.length || 0,
+                    refreshTokenLength: refreshToken?.length || 0
+                });
+
                 // Sử dụng hàm từ api.ts để lưu token
                 saveTokenToCookie(accessToken, refreshToken);
-                console.log('Login token saved successfully');
+                console.log('✅ Login token saved successfully');
+            } else {
+                console.error('❌ No token in login response:', responseData);
             }
 
             return responseData;
