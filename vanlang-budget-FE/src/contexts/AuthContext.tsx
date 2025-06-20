@@ -139,9 +139,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const response = await authService.login(email, password);
 
             if (response && response.user && response.token) {
-                // Dispatch to Redux store
+                // Ensure user object has all required fields for Redux
+                const normalizedUser = {
+                    _id: response.user._id || response.user.id || '',
+                    email: response.user.email || '',
+                    firstName: response.user.firstName || '',
+                    lastName: response.user.lastName || '',
+                    phoneNumber: response.user.phoneNumber || '',
+                    fullName: response.user.fullName || `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim(),
+                    role: response.user.role || 'user',
+                    isEmailVerified: response.user.isEmailVerified || false
+                };
+
+                // Dispatch to Redux store with normalized user
                 dispatch(setCredentials({
-                    user: response.user,
+                    user: normalizedUser,
                     token: response.token,
                     refreshToken: response.refreshToken
                 }));
