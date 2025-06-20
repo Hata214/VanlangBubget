@@ -468,6 +468,49 @@ export const getAuthHeader = () => {
     };
 };
 
+// Thêm hàm debug để kiểm tra token storage
+export const debugTokenStorage = () => {
+    console.log('🔍 DEBUG TOKEN STORAGE:');
+    console.log('='.repeat(50));
+
+    // Kiểm tra localStorage
+    const localAccessToken = typeof window !== 'undefined' ? localStorage.getItem(TOKEN_COOKIE_NAME) : null;
+    const localRefreshToken = typeof window !== 'undefined' ? localStorage.getItem(REFRESH_TOKEN_COOKIE_NAME) : null;
+
+    // Kiểm tra sessionStorage
+    const sessionAccessToken = typeof window !== 'undefined' ? sessionStorage.getItem(TOKEN_COOKIE_NAME) : null;
+    const sessionRefreshToken = typeof window !== 'undefined' ? sessionStorage.getItem(REFRESH_TOKEN_COOKIE_NAME) : null;
+
+    // Kiểm tra cookies
+    const cookieAccessToken = getCookie(TOKEN_COOKIE_NAME);
+    const cookieRefreshToken = getCookie(REFRESH_TOKEN_COOKIE_NAME);
+
+    console.log('📱 localStorage:');
+    console.log(`  - Access Token: ${localAccessToken ? localAccessToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+    console.log(`  - Refresh Token: ${localRefreshToken ? localRefreshToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+
+    console.log('💾 sessionStorage:');
+    console.log(`  - Access Token: ${sessionAccessToken ? sessionAccessToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+    console.log(`  - Refresh Token: ${sessionRefreshToken ? sessionRefreshToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+
+    console.log('🍪 Cookies:');
+    console.log(`  - Access Token: ${cookieAccessToken && typeof cookieAccessToken === 'string' ? cookieAccessToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+    console.log(`  - Refresh Token: ${cookieRefreshToken && typeof cookieRefreshToken === 'string' ? cookieRefreshToken.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+
+    console.log('🔧 Functions:');
+    console.log(`  - getToken(): ${getToken() ? getToken()!.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+    console.log(`  - getRefreshToken(): ${getRefreshToken() ? getRefreshToken()!.substring(0, 20) + '...' : 'KHÔNG CÓ'}`);
+
+    console.log('='.repeat(50));
+
+    return {
+        localStorage: { accessToken: localAccessToken, refreshToken: localRefreshToken },
+        sessionStorage: { accessToken: sessionAccessToken, refreshToken: sessionRefreshToken },
+        cookies: { accessToken: cookieAccessToken, refreshToken: cookieRefreshToken },
+        functions: { accessToken: getToken(), refreshToken: getRefreshToken() }
+    };
+};
+
 // Thêm hàm debug để test connection
 export const testConnection = async () => {
     try {
@@ -525,6 +568,11 @@ const checkInitialConnection = () => {
 // Chạy kiểm tra kết nối tự động nếu ở môi trường client
 if (typeof window !== 'undefined') {
     checkInitialConnection();
+
+    // Expose debug functions to global scope for browser console access
+    (window as any).debugTokenStorage = debugTokenStorage;
+    (window as any).testConnection = testConnection;
+    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection()');
 }
 
 // Export instance axios để các module khác có thể sử dụng

@@ -1,6 +1,6 @@
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import api, { cookieOptions, formatTokenForHeader, TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME, saveTokenToCookie, getToken, removeTokens, API_URL } from './api'
+import api, { cookieOptions, formatTokenForHeader, TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME, saveTokenToCookie, getToken, removeTokens, API_URL, debugTokenStorage } from './api'
 
 interface LoginCredentials {
     email: string
@@ -100,6 +100,12 @@ class AuthService {
                 // Sử dụng hàm từ api.ts để lưu token
                 saveTokenToCookie(accessToken, refreshToken);
                 console.log('✅ Login token saved successfully');
+
+                // Debug: Kiểm tra token storage ngay sau khi lưu
+                setTimeout(() => {
+                    console.log('🔍 Checking token storage after login:');
+                    debugTokenStorage();
+                }, 100);
             } else {
                 console.error('❌ No token in login response:', responseData);
             }
