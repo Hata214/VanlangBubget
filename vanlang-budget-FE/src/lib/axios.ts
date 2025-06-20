@@ -1,56 +1,22 @@
+// Re-export the main axios instance from api.ts to maintain compatibility
+// This ensures all axios requests use the same instance with unified token handling
+import apiInstance from '../services/api'
+
+// Create a wrapper that adds notification-specific response transformation
 import axios from 'axios'
-import {
-    getToken,
-    refreshToken,
-    TOKEN_COOKIE_NAME,
-    removeTokens,
-    API_URL
-} from '../services/api'
 
-// Hàm đảm bảo token có tiền tố "Bearer "
-const formatTokenForHeader = (token: string) => {
-    if (!token) return '';
+const instance = axios.create(apiInstance.defaults)
 
-    // Nếu token đã có tiền tố "Bearer ", trả về nguyên bản
-    if (token.startsWith('Bearer ')) {
-        return token;
-    }
-
-    // Nếu không, thêm tiền tố
-    return `Bearer ${token}`;
-}
-
-const instance = axios.create({
-    baseURL: API_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    withCredentials: true,
+// Copy all interceptors from the main instance
+apiInstance.interceptors.request.handlers.forEach((handler: any) => {
+    instance.interceptors.request.use(handler.fulfilled, handler.rejected)
 })
 
-// Log thông tin API URL để debug
-console.log('Axios instance using API URL:', API_URL);
+apiInstance.interceptors.response.handlers.forEach((handler: any) => {
+    instance.interceptors.response.use(handler.fulfilled, handler.rejected)
+})
 
-instance.interceptors.request.use(
-    (config) => {
-        const token = getToken(); // Sử dụng hàm getToken từ api.ts
-        if (token) {
-            const formattedToken = formatTokenForHeader(token);
-            config.headers.Authorization = formattedToken;
-            console.log('Adding token to request:', formattedToken.substring(0, 15) + '...');
-        }
-
-        // Log URL gửi request để debug
-        console.log(`Sending ${config.method?.toUpperCase()} request to: ${config.baseURL}${config.url}`);
-
-        return config;
-    },
-    (error) => {
-        console.error('Request error:', error);
-        return Promise.reject(error);
-    }
-)
-
+// Add notification-specific response transformation
 instance.interceptors.response.use(
     (response) => {
         // Chuyển đổi trường read thành isRead cho các Notification trong response
@@ -87,38 +53,8 @@ instance.interceptors.response.use(
 
         return response;
     },
-    async (error) => {
-        // Log chi tiết lỗi để debug
-        console.error('API Error:', error.response?.status, error.response?.data || error.message);
-        console.error('Request URL was:', error.config?.url);
-
-        // Xử lý lỗi 401 Unauthorized
-        if (error.response?.status === 401 && !error.config._retry) {
-            error.config._retry = true;
-            try {
-                // Thử refresh token
-                const newToken = await refreshToken();
-
-                if (newToken) {
-                    // Cập nhật token trong header và thử lại request
-                    error.config.headers.Authorization = `Bearer ${newToken}`;
-                    return instance(error.config);
-                } else {
-                    // Nếu không thể refresh token, đăng xuất và chuyển hướng
-                    removeTokens();
-                    if (typeof window !== 'undefined') {
-                        window.location.href = '/login';
-                    }
-                }
-            } catch (refreshError) {
-                console.error('Lỗi khi refresh token:', refreshError);
-                removeTokens();
-                if (typeof window !== 'undefined') {
-                    window.location.href = '/login';
-                }
-            }
-        }
-
+    (error) => {
+        // Let the main instance handle all error logic
         return Promise.reject(error);
     }
 )

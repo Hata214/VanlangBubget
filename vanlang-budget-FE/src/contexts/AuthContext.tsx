@@ -76,8 +76,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 const nextAuthUser = session.user as any;
 
                 // Get the actual token from NextAuth session or cookies
-                const actualAccessToken = nextAuthUser.accessToken || Cookies.get('token') || localStorage.getItem('token');
-                const actualRefreshToken = nextAuthUser.refreshToken || Cookies.get('refreshToken') || localStorage.getItem('refreshToken');
+                const actualAccessToken = nextAuthUser.accessToken || Cookies.get(TOKEN_COOKIE_NAME);
+                const actualRefreshToken = nextAuthUser.refreshToken || Cookies.get('refreshToken');
 
                 console.log('AuthContext: Syncing NextAuth session to Redux', {
                     user: nextAuthUser.email,
@@ -85,12 +85,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
                     hasRefreshToken: !!actualRefreshToken
                 });
 
-                // Store tokens in localStorage for API calls
+                // Store tokens using the unified saveTokenToCookie function
                 if (actualAccessToken) {
-                    localStorage.setItem('token', actualAccessToken);
-                }
-                if (actualRefreshToken) {
-                    localStorage.setItem('refreshToken', actualRefreshToken);
+                    saveTokenToCookie(actualAccessToken, actualRefreshToken);
                 }
 
                 dispatch(setCredentials({
@@ -114,9 +111,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (reduxUser) {
                 console.log('AuthContext: NextAuth unauthenticated, clearing Redux state');
                 dispatch(logout());
-                // Also clear localStorage tokens
-                localStorage.removeItem('token');
-                localStorage.removeItem('refreshToken');
+                // Use unified token removal function
+                removeTokens();
             }
         }
     }, [session, status, dispatch, reduxUser]);

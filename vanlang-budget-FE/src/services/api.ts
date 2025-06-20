@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import { getCookie, setCookie, deleteCookie } from 'cookies-next'
 
 // Constants cho các cookie name
@@ -75,14 +75,14 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
         if (typeof window !== 'undefined') {
             localStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
             sessionStorage.setItem(TOKEN_COOKIE_NAME, accessToken);
-            
+
             // Lưu refresh token nếu có
             if (refreshToken) {
                 localStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
                 sessionStorage.setItem(REFRESH_TOKEN_COOKIE_NAME, refreshToken);
             }
         }
-        
+
         // Sau đó thử lưu vào cookie
         try {
             setCookie(TOKEN_COOKIE_NAME, accessToken, {
@@ -91,7 +91,7 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
                 secure: process.env.NODE_ENV === 'production'
             });
-            
+
             if (refreshToken) {
                 setCookie(REFRESH_TOKEN_COOKIE_NAME, refreshToken, {
                     ...cookieOptions,
@@ -105,11 +105,11 @@ export const saveTokenToCookie = (accessTokenInput: string | object, refreshToke
             console.warn('Không thể lưu token vào cookie:', cookieError);
             // Không throw lỗi, vì đã lưu vào localStorage
         }
-        
+
         // Đặt token cho axios
         axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        
+
         console.log('Đã lưu token thành công');
     } catch (error) {
         console.error('Lỗi khi lưu token:', error);
@@ -129,14 +129,14 @@ export const getToken = (): string | null => {
                 console.log('Lấy token từ localStorage thành công');
                 return localToken;
             }
-            
+
             const sessionToken = sessionStorage.getItem(TOKEN_COOKIE_NAME);
             if (sessionToken) {
                 console.log('Lấy token từ sessionStorage thành công');
                 return sessionToken;
             }
         }
-        
+
         // Cuối cùng mới thử lấy từ cookie
         const cookieToken = getCookie(TOKEN_COOKIE_NAME) as string | null;
         if (cookieToken) {
@@ -169,14 +169,14 @@ export const getRefreshToken = (): string | null => {
                 console.log('Lấy refresh token từ localStorage thành công');
                 return localToken;
             }
-            
+
             const sessionToken = sessionStorage.getItem(REFRESH_TOKEN_COOKIE_NAME);
             if (sessionToken) {
                 console.log('Lấy refresh token từ sessionStorage thành công');
                 return sessionToken;
             }
         }
-        
+
         // Cuối cùng mới thử lấy từ cookie
         const cookieToken = getCookie(REFRESH_TOKEN_COOKIE_NAME) as string | null;
         if (cookieToken) {
@@ -246,28 +246,15 @@ export const refreshToken = async (): Promise<string | null> => {
 
         console.log('Refresh token response:', response.status, response.statusText)
 
-        if (response.data && response.data.jwt) {
-            // Lưu token mới
-            console.log('Đã nhận token mới, lưu...')
-            saveTokenToCookie(response.data.jwt, response.data.refreshToken)
-            return response.data.jwt
-        }
-
+        // Backend trả về { token: "...", refreshToken: "..." }
         if (response.data && response.data.token) {
-            // Trường hợp response trả về trong định dạng khác
-            console.log('Đã nhận token mới (định dạng khác), lưu...')
-            
-            // Xử lý nhiều định dạng token có thể có
-            const accessToken = typeof response.data.token === 'string' 
-                ? response.data.token 
-                : response.data.token.accessToken || response.data.token;
-                
-            const newRefreshToken = typeof response.data.token === 'object' 
-                ? response.data.token.refreshToken 
-                : response.data.refreshToken;
-                
+            console.log('Đã nhận token mới từ backend, lưu...')
+
+            const accessToken = response.data.token;
+            const newRefreshToken = response.data.refreshToken;
+
             saveTokenToCookie(accessToken, newRefreshToken)
-            return typeof accessToken === 'string' ? accessToken : null;
+            return accessToken;
         }
 
         console.error('Dữ liệu refresh token không hợp lệ:', response.data)
@@ -317,8 +304,8 @@ instance.interceptors.request.use(
         }
 
         // Đảm bảo luôn lấy token mới nhất từ localStorage trước
-        const token = typeof window !== 'undefined' ? 
-            localStorage.getItem(TOKEN_COOKIE_NAME) || getToken() : 
+        const token = typeof window !== 'undefined' ?
+            localStorage.getItem(TOKEN_COOKIE_NAME) || getToken() :
             getToken();
 
         if (token) {
@@ -326,18 +313,18 @@ instance.interceptors.request.use(
             console.log('Adding auth token to request');
         } else {
             console.log('No token available for request');
-            
+
             // Trong production, nếu không có token và đang ở trang dashboard hoặc trang yêu cầu xác thực, chuyển hướng về login
-            if (process.env.NODE_ENV === 'production' && 
-                typeof window !== 'undefined' && 
-                (window.location.pathname.includes('/dashboard') || 
-                 window.location.pathname.includes('/expenses') ||
-                 window.location.pathname.includes('/incomes') ||
-                 window.location.pathname.includes('/loans') ||
-                 window.location.pathname.includes('/investments') ||
-                 window.location.pathname.includes('/profile')) &&
+            if (process.env.NODE_ENV === 'production' &&
+                typeof window !== 'undefined' &&
+                (window.location.pathname.includes('/dashboard') ||
+                    window.location.pathname.includes('/expenses') ||
+                    window.location.pathname.includes('/incomes') ||
+                    window.location.pathname.includes('/loans') ||
+                    window.location.pathname.includes('/investments') ||
+                    window.location.pathname.includes('/profile')) &&
                 !localStorage.getItem('redirecting_to_login')) {
-                
+
                 localStorage.setItem('redirecting_to_login', 'true');
                 setTimeout(() => {
                     window.location.href = '/login?session_expired=true';
@@ -377,13 +364,13 @@ instance.interceptors.response.use(
             try {
                 // Lấy refresh token trực tiếp
                 const refreshTokenValue = getRefreshToken();
-                
+
                 if (!refreshTokenValue) {
                     console.error('Không tìm thấy refresh token khi xử lý lỗi 401');
                     shouldRedirectToLogin = true;
                     throw new Error('Không tìm thấy refresh token');
                 }
-                
+
                 // Gọi API refresh token trực tiếp
                 const response = await axios.post(`${API_URL}/api/auth/refresh-token`, {
                     refreshToken: refreshTokenValue
@@ -392,28 +379,17 @@ instance.interceptors.response.use(
                         'Content-Type': 'application/json'
                     }
                 });
-                
-                // Xử lý response từ refresh token
-                let newToken = null;
-                
-                if (response.data?.token?.accessToken) {
-                    newToken = response.data.token.accessToken;
-                } else if (response.data?.token && typeof response.data.token === 'string') {
-                    newToken = response.data.token;
-                } else if (response.data?.jwt) {
-                    newToken = response.data.jwt;
-                }
-                
-                if (newToken) {
+
+                // Xử lý response từ refresh token - Backend trả về { token: "...", refreshToken: "..." }
+                if (response.data?.token) {
+                    const newToken = response.data.token;
+                    const newRefreshToken = response.data.refreshToken;
+
                     console.log('Token mới đã được tạo, thử lại request...');
-                    
+
                     // Lưu token mới
-                    if (response.data.token) {
-                        saveTokenToCookie(response.data.token);
-                    } else if (response.data.jwt) {
-                        saveTokenToCookie(response.data.jwt, response.data.refreshToken);
-                    }
-                    
+                    saveTokenToCookie(newToken, newRefreshToken);
+
                     // Cập nhật token trong header và thử lại request
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
                     return instance(originalRequest);
@@ -424,7 +400,7 @@ instance.interceptors.response.use(
             } catch (refreshError) {
                 console.error('Lỗi khi thử refresh token:', refreshError);
                 shouldRedirectToLogin = true;
-                
+
                 // Đảm bảo xóa token khi refresh thất bại
                 removeTokens();
             }
@@ -448,7 +424,7 @@ instance.interceptors.response.use(
                 // Ngăn việc chuyển hướng nhiều lần bằng cách kiểm tra localStorage
                 if (!localStorage.getItem('redirecting_to_login')) {
                     localStorage.setItem('redirecting_to_login', 'true');
-                    
+
                     // Xóa toàn bộ token trước khi chuyển hướng
                     removeTokens();
 

@@ -87,14 +87,13 @@ class AuthService {
             }
 
             // Lưu token vào cookie và localStorage
+            // Backend trả về { token: "...", refreshToken: "..." }
             if (responseData.token) {
-                // Xử lý trường hợp token là chuỗi hoặc object
-                const tokenObj = typeof responseData.token === 'string'
-                    ? { accessToken: responseData.token, refreshToken: '' }
-                    : responseData.token;
+                const accessToken = responseData.token;
+                const refreshToken = responseData.refreshToken;
 
                 // Sử dụng hàm từ api.ts để lưu token
-                saveTokenToCookie(tokenObj);
+                saveTokenToCookie(accessToken, refreshToken);
                 console.log('Login token saved successfully');
             }
 
@@ -291,13 +290,12 @@ class AuthService {
 
                 if (token) {
                     try {
-                        // Xử lý token một cách an toàn
-                        const tokenObj = typeof token === 'string'
-                            ? { accessToken: token, refreshToken: '' }
-                            : token;
+                        // Backend trả về { token: "...", refreshToken: "..." }
+                        const accessToken = response.data.token;
+                        const refreshToken = response.data.refreshToken;
 
                         // Lưu token vào cookie
-                        saveTokenToCookie(tokenObj);
+                        saveTokenToCookie(accessToken, refreshToken);
                         console.log('Token saved after OTP verification:', Cookies.get('token') ? 'Success' : 'Failed');
                     } catch (tokenError) {
                         console.error('Error processing token:', tokenError);
