@@ -588,6 +588,49 @@ export const testAuthFlow = async () => {
     }, 500);
 };
 
+// Thêm hàm test WebSocket connection
+export const testWebSocket = async () => {
+    console.log('🔌 TESTING WEBSOCKET CONNECTION');
+    console.log('='.repeat(60));
+
+    const token = getToken();
+    if (!token) {
+        console.error('❌ No token available for WebSocket test');
+        return;
+    }
+
+    console.log('🔑 Using token:', token.substring(0, 20) + '...');
+    console.log('🌐 WebSocket URL:', API_URL);
+
+    try {
+        // Import socketService dynamically để tránh circular dependency
+        const { socketService } = await import('./socketService');
+
+        // Disconnect existing connection
+        socketService.disconnect();
+
+        // Test connection
+        console.log('🔌 Attempting WebSocket connection...');
+        socketService.connect(token);
+
+        // Listen for connection events
+        socketService.on('connect', () => {
+            console.log('✅ WebSocket connected successfully!');
+        });
+
+        socketService.on('connect_error', (error: any) => {
+            console.error('❌ WebSocket connection error:', error);
+        });
+
+        socketService.on('disconnect', (reason: any) => {
+            console.log('🔌 WebSocket disconnected:', reason);
+        });
+
+    } catch (error) {
+        console.error('❌ Error testing WebSocket:', error);
+    }
+};
+
 // Thêm hàm debug để test connection
 export const testConnection = async () => {
     try {
@@ -651,7 +694,8 @@ if (typeof window !== 'undefined') {
     (window as any).testConnection = testConnection;
     (window as any).testSaveToken = testSaveToken;
     (window as any).testAuthFlow = testAuthFlow;
-    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection(), testSaveToken(), testAuthFlow()');
+    (window as any).testWebSocket = testWebSocket;
+    console.log('🔧 Debug functions available: debugTokenStorage(), testConnection(), testSaveToken(), testAuthFlow(), testWebSocket()');
 }
 
 // Export instance axios để các module khác có thể sử dụng

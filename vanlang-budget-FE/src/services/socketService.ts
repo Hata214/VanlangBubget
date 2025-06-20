@@ -104,10 +104,12 @@ class SocketService {
             auth: {
                 token: cleanToken  // Sử dụng token đã được làm sạch
             },
-            transports: ['websocket'],
+            transports: ['websocket', 'polling'], // Thêm polling fallback
             reconnection: true,
             reconnectionDelay: 1000,
-            reconnectionAttempts: 10
+            reconnectionAttempts: 10,
+            timeout: 20000, // Tăng timeout
+            forceNew: true  // Force tạo connection mới
         });
 
         console.log('Socket connection initialized');

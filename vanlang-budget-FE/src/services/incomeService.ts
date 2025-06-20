@@ -1,4 +1,5 @@
 import api from './api'
+import { refreshAfterIncomeAction } from '@/utils/dataRefresh'
 
 interface Income {
     id: string
@@ -112,6 +113,15 @@ export const incomeService = {
             console.log('incomeService.create: Sending income data to server:', incomeData);
             const response = await api.post<Income>('/api/incomes', incomeData)
             console.log('incomeService.create: Successfully created income', response.data)
+
+            // Auto refresh data sau khi tạo income
+            try {
+                await refreshAfterIncomeAction();
+                console.log('✅ Data refreshed after income creation');
+            } catch (refreshError) {
+                console.warn('⚠️ Failed to refresh data after income creation:', refreshError);
+            }
+
             return response.data
         } catch (error) {
             console.error('incomeService.create: Error creating income', error)
@@ -146,6 +156,15 @@ export const incomeService = {
 
             console.log(`incomeService.update: Sending validated data for income ${id}`, updateData);
             const response = await api.put<Income>(`/api/incomes/${id}`, updateData);
+
+            // Auto refresh data sau khi update income
+            try {
+                await refreshAfterIncomeAction();
+                console.log('✅ Data refreshed after income update');
+            } catch (refreshError) {
+                console.warn('⚠️ Failed to refresh data after income update:', refreshError);
+            }
+
             return response.data;
         } catch (error) {
             console.error('Error updating income:', error);
@@ -158,6 +177,14 @@ export const incomeService = {
         try {
             await api.delete(`/api/incomes/${id}`)
             console.log(`incomeService.delete: Successfully deleted income with id ${id}`)
+
+            // Auto refresh data sau khi delete income
+            try {
+                await refreshAfterIncomeAction();
+                console.log('✅ Data refreshed after income deletion');
+            } catch (refreshError) {
+                console.warn('⚠️ Failed to refresh data after income deletion:', refreshError);
+            }
         } catch (error) {
             console.error(`incomeService.delete: Error deleting income with id ${id}`, error)
             throw error

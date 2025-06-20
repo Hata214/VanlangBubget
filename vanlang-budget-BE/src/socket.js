@@ -17,7 +17,10 @@ export const getSocketIO = () => {
 export const initializeSocket = (server) => {
     // Lấy danh sách origin từ biến môi trường hoặc sử dụng mặc định
     const productionOriginsFromEnv = process.env.FRONTEND_URL || process.env.CORS_ORIGIN;
-    const defaultProductionOrigins = ['https://vanlang-budget-fe.vercel.app']; // Giữ lại một giá trị mặc định an toàn
+    const defaultProductionOrigins = [
+        'https://vlb-vanlang-budget.vercel.app', // URL frontend thực tế
+        'https://vanlang-budget-fe.vercel.app'   // URL cũ để backward compatibility
+    ];
 
     const socketAllowedOrigins = process.env.NODE_ENV === 'development'
         ? ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000'] // Thêm 127.0.0.1 cho dev
