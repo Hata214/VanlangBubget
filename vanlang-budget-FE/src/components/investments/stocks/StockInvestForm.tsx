@@ -20,6 +20,7 @@ import { useToast } from '@/components/ToastProvider';
 import { StockAutoComplete } from './StockAutoComplete';
 import { vi } from 'date-fns/locale';
 import { addStockInvestment } from '@/services/investmentService';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 import axios from 'axios';
 
 // Interface cho props
@@ -33,12 +34,19 @@ const formSchema = z.object({
     symbol: z.string().min(1, 'Vui lòng chọn mã cổ phiếu'),
     price: z.coerce.number().min(1, 'Giá phải lớn hơn 0'),
     quantity: z.coerce.number().min(100, 'Số lượng tối thiểu là 100').refine(val => val % 100 === 0, { message: 'Số lượng phải là bội số của 100' }),
+    broker: z.string().min(1, 'Vui lòng chọn công ty chứng khoán'),
     purchaseDate: z.date({ required_error: 'Vui lòng chọn ngày mua' }),
     fee: z.coerce.number().min(0, 'Phí giao dịch không được âm').optional(),
     notes: z.string().max(500, 'Ghi chú không được quá 500 ký tự').optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// Hàm tính phí giao dịch dựa trên broker
+const calculateFee = (totalValue: number, broker: string): number => {
+    // Tất cả broker hiện tại đều có phí 0.15% với tối thiểu 10,000 VND
+    return Math.max(totalValue * 0.0015, 10000);
+};
 
 export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const [isLoading, setIsLoading] = useState(false);
@@ -54,6 +62,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             symbol: '',
             price: 0,
             quantity: 100,
+            broker: 'VNDirect (0.15%)',
             purchaseDate: new Date(),
             fee: 0,
             notes: '',
@@ -76,10 +85,11 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 form.setValue('price', price);
                 console.log('Đã cập nhật giá:', price);
 
-                // Tự động tính phí (0.15% với tối thiểu 10,000 VND)
+                // Tự động tính phí dựa trên broker
                 const quantity = form.getValues('quantity');
+                const broker = form.getValues('broker');
                 const totalValue = price * quantity;
-                const fee = Math.max(totalValue * 0.0015, 10000);
+                const fee = calculateFee(totalValue, broker);
                 form.setValue('fee', Math.round(fee));
             } else {
                 toast({
@@ -112,7 +122,7 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 quantity: values.quantity,
                 purchaseDate: format(values.purchaseDate, 'yyyy-MM-dd'),
                 fee: values.fee || 0,
-                broker: 'VNDirect (0.15%)',
+                broker: values.broker,
                 notes: values.notes || ''
             };
 
@@ -256,8 +266,9 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     // Tự động tính lại phí
                                                     const price = form.getValues('price');
                                                     if (price > 0) {
+                                                        const broker = form.getValues('broker');
                                                         const totalValue = price * finalValue;
-                                                        const fee = Math.max(totalValue * 0.0015, 10000);
+                                                        const fee = calculateFee(totalValue, broker);
                                                         form.setValue('fee', Math.round(fee));
                                                     }
                                                 }}
@@ -268,6 +279,53 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         </FormControl>
                                         <FormDescription>
                                             Số lượng cổ phiếu (phải là bội số của 100)
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Công ty chứng khoán */}
+                            <FormField
+                                control={form.control}
+                                name="broker"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Công ty chứng khoán</FormLabel>
+                                        <Select
+                                            onValueChange={(value) => {
+                                                field.onChange(value);
+                                                // Tự động tính lại phí khi thay đổi broker
+                                                const price = form.getValues('price');
+                                                const quantity = form.getValues('quantity');
+                                                if (price > 0 && quantity > 0) {
+                                                    const totalValue = price * quantity;
+                                                    const fee = calculateFee(totalValue, value);
+                                                    form.setValue('fee', Math.round(fee));
+                                                }
+                                            }}
+                                            defaultValue={field.value}
+                                        >
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Chọn công ty chứng khoán..." />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="VNDirect (0.15%)">VNDirect (0.15%)</SelectItem>
+                                                <SelectItem value="SSI (0.15%)">SSI (0.15%)</SelectItem>
+                                                <SelectItem value="TCBS (0.15%)">TCBS (0.15%)</SelectItem>
+                                                <SelectItem value="VPS (0.15%)">VPS (0.15%)</SelectItem>
+                                                <SelectItem value="HSC (0.15%)">HSC (0.15%)</SelectItem>
+                                                <SelectItem value="MBS (0.15%)">MBS (0.15%)</SelectItem>
+                                                <SelectItem value="VNDIRECT (0.15%)">VNDIRECT (0.15%)</SelectItem>
+                                                <SelectItem value="Khác">Khác</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormDescription>
+                                            Phí giao dịch: 0.15%, tối thiểu 10,000 VND
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
