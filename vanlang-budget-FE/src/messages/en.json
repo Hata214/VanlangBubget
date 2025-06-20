@@ -581,7 +581,8 @@
         "currentPasswordRequired": "Current password is required",
         "newPasswordRequired": "New password is required",
         "confirmPasswordRequired": "Password confirmation is required",
-        "passwordMinLength": "Password must be at least 8 characters long"
+        "passwordMinLength": "Password must be at least 8 characters long",
+        "updatePassword": "Update Password"
     },
     "notifications": {
         "title": "Notifications",

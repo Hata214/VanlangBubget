@@ -43,7 +43,6 @@ const protectedUserPaths = [
     '/investments',
     '/budgets',
     '/reports',
-    '/settings',
     '/notifications'
 ];
 

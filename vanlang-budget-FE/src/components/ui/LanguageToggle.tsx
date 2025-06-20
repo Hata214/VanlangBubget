@@ -41,7 +41,6 @@ export function LanguageToggle({ className, variant = 'default' }: LanguageToggl
         '/investments',
         '/budgets',
         '/reports',
-        '/settings',
         '/notifications'
     ];
 

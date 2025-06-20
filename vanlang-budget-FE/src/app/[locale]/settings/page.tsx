@@ -1,6 +1,6 @@
 'use client'
 
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import Link from 'next/link'
 import MainLayout from '@/components/layout/MainLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
@@ -23,6 +23,7 @@ import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
     const t = useTranslations();
+    const locale = useLocale();
     const router = useRouter()
     const dispatch = useAppDispatch()
 
@@ -49,7 +50,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.userProfileDesc')}</p>
-                            <Link href="/vi/profile">
+                            <Link href={`/${locale}/profile`}>
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.manageProfile')}
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -67,7 +68,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.notificationsDesc')}</p>
-                            <Link href="/settings/notifications">
+                            <Link href={`/${locale}/settings/notifications`}>
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.manageNotifications')}
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -85,7 +86,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.securityDesc')}</p>
-                            <Link href="/profile">
+                            <Link href={`/${locale}/profile`}>
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.changePassword')}
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -116,7 +117,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.currencyFormatDesc')}</p>
-                            <Link href="/settings/currency">
+                            <Link href={`/${locale}/settings/currency`}>
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.changeCurrency')}
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -134,7 +135,7 @@ export default function SettingsPage() {
                         </CardHeader>
                         <CardContent>
                             <p className="text-gray-500 mb-4">{t('settings.aboutDesc')}</p>
-                            <Link href="/about">
+                            <Link href={`/${locale}/about`}>
                                 <Button variant="secondary" className="flex w-full items-center justify-between">
                                     {t('settings.aboutApp')}
                                     <ArrowRightIcon className="h-4 w-4" />
@@ -166,4 +167,4 @@ export default function SettingsPage() {
             </div>
         </MainLayout>
     )
-} 
+}
