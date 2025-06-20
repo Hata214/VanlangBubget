@@ -199,7 +199,7 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>{t('userProfile.firstName', { defaultMessage: 'Họ' })}</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} />
+                                                    <Input {...field} autoComplete="given-name" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -213,7 +213,7 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>{t('userProfile.lastName', { defaultMessage: 'Tên' })}</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} />
+                                                    <Input {...field} autoComplete="family-name" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -225,6 +225,7 @@ export default function ProfilePage() {
                                         <Input
                                             value={user?.email || ''}
                                             disabled
+                                            autoComplete="email"
                                             className="bg-gray-50 dark:bg-gray-800"
                                         />
                                         <p className="text-sm text-gray-500">
@@ -242,6 +243,7 @@ export default function ProfilePage() {
                                                     <Input
                                                         {...field}
                                                         type="tel"
+                                                        autoComplete="tel"
                                                         placeholder={t('userProfile.phoneNumberPlaceholder', { defaultMessage: 'Nhập số điện thoại (10-11 số)' })}
                                                     />
                                                 </FormControl>
@@ -301,7 +303,7 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>{t('passwordSettings.currentPassword', { defaultMessage: 'Mật khẩu hiện tại' })}</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} type="password" />
+                                                    <Input {...field} type="password" autoComplete="current-password" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -318,7 +320,7 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>{t('passwordSettings.newPassword', { defaultMessage: 'Mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} type="password" />
+                                                    <Input {...field} type="password" autoComplete="new-password" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -339,7 +341,7 @@ export default function ProfilePage() {
                                             <FormItem>
                                                 <FormLabel>{t('passwordSettings.confirmPassword', { defaultMessage: 'Xác nhận mật khẩu mới' })}</FormLabel>
                                                 <FormControl>
-                                                    <Input {...field} type="password" />
+                                                    <Input {...field} type="password" autoComplete="new-password" />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
