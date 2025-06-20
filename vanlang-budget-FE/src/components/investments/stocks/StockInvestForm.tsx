@@ -100,12 +100,14 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                 form.setValue('price', price);
                 console.log('Đã cập nhật giá:', price);
 
-                // Tự động tính phí dựa trên broker
+                // Tự động tính phí dựa trên broker (trừ khi chọn "Khác")
                 const quantity = form.getValues('quantity');
                 const broker = form.getValues('broker');
-                const totalValue = price * quantity;
-                const fee = calculateFee(totalValue, broker);
-                form.setValue('fee', Math.round(fee));
+                if (broker !== 'Khác (Tự nhập phí)') {
+                    const totalValue = price * quantity;
+                    const fee = calculateFee(totalValue, broker);
+                    form.setValue('fee', Math.round(fee));
+                }
             } else {
                 toast({
                     title: 'Lỗi',
@@ -278,10 +280,10 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
                                                     field.onChange(finalValue);
 
-                                                    // Tự động tính lại phí
+                                                    // Tự động tính lại phí (trừ khi chọn "Khác")
                                                     const price = form.getValues('price');
-                                                    if (price > 0) {
-                                                        const broker = form.getValues('broker');
+                                                    const broker = form.getValues('broker');
+                                                    if (price > 0 && broker !== 'Khác (Tự nhập phí)') {
                                                         const totalValue = price * finalValue;
                                                         const fee = calculateFee(totalValue, broker);
                                                         form.setValue('fee', Math.round(fee));
@@ -312,13 +314,18 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                         <Select
                                             onValueChange={(value) => {
                                                 field.onChange(value);
-                                                // Tự động tính lại phí khi thay đổi broker
-                                                const price = form.getValues('price');
-                                                const quantity = form.getValues('quantity');
-                                                if (price > 0 && quantity > 0) {
-                                                    const totalValue = price * quantity;
-                                                    const fee = calculateFee(totalValue, value);
-                                                    form.setValue('fee', Math.round(fee));
+                                                // Tự động tính lại phí khi thay đổi broker (trừ khi chọn "Khác")
+                                                if (value !== 'Khác (Tự nhập phí)') {
+                                                    const price = form.getValues('price');
+                                                    const quantity = form.getValues('quantity');
+                                                    if (price > 0 && quantity > 0) {
+                                                        const totalValue = price * quantity;
+                                                        const fee = calculateFee(totalValue, value);
+                                                        form.setValue('fee', Math.round(fee));
+                                                    }
+                                                } else {
+                                                    // Reset phí về 0 khi chọn "Khác" để người dùng tự nhập
+                                                    form.setValue('fee', 0);
                                                 }
                                             }}
                                             defaultValue={field.value}
@@ -393,25 +400,33 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             <FormField
                                 control={form.control}
                                 name="fee"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Phí giao dịch (VND)</FormLabel>
-                                        <FormControl>
-                                            <CurrencyInput
-                                                placeholder="0"
-                                                value={field.value || 0}
-                                                onChange={field.onChange}
-                                                onBlur={field.onBlur}
-                                                disabled={isLoading || isFetchingPrice}
-                                                className="text-right"
-                                            />
-                                        </FormControl>
-                                        <FormDescription>
-                                            Phí giao dịch (tự động tính theo công ty chứng khoán)
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                render={({ field }) => {
+                                    const selectedBroker = form.watch('broker');
+                                    const isCustomFee = selectedBroker === 'Khác (Tự nhập phí)';
+
+                                    return (
+                                        <FormItem>
+                                            <FormLabel>Phí giao dịch (VND)</FormLabel>
+                                            <FormControl>
+                                                <CurrencyInput
+                                                    placeholder={isCustomFee ? "Nhập phí giao dịch..." : "0"}
+                                                    value={field.value || 0}
+                                                    onChange={field.onChange}
+                                                    onBlur={field.onBlur}
+                                                    disabled={isLoading || isFetchingPrice || !isCustomFee}
+                                                    className={`text-right ${isCustomFee ? 'border-blue-300 focus:border-blue-500' : ''}`}
+                                                />
+                                            </FormControl>
+                                            <FormDescription>
+                                                {isCustomFee
+                                                    ? "Nhập phí giao dịch thực tế của bạn"
+                                                    : "Phí giao dịch (tự động tính theo công ty chứng khoán)"
+                                                }
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    );
+                                }}
                             />
                         </div>
 
