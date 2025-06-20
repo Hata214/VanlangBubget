@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-// Import từ file cha nơi đã định nghĩa mockInvestments
-import { mockInvestments, Investment, Transaction } from '../../route';
+// Import từ file types/investment.ts thay vì từ route
+import { Investment, InvestmentTransaction } from '@/types/investment';
 
 // Schema validation cho cập nhật giao dịch
 const updateTransactionSchema = z.object({
@@ -14,6 +14,9 @@ const updateTransactionSchema = z.object({
     fee: z.number().min(0).optional(),
     notes: z.string().optional(),
 });
+
+// Mock data tạm thời cho API này
+const mockInvestments: Investment[] = [];
 
 export async function GET(
     request: Request,
@@ -195,7 +198,7 @@ export async function PATCH(
 }
 
 // Hàm cập nhật đầu tư sau khi xóa giao dịch
-function updateInvestmentAfterDeleteTransaction(investment: Investment, transaction: Transaction): void {
+function updateInvestmentAfterDeleteTransaction(investment: Investment, transaction: InvestmentTransaction): void {
     // Kiểm tra xem transaction và transaction.type có tồn tại không
     if (!transaction || typeof transaction.type === 'undefined') {
         console.error('Giao dịch không hợp lệ:', transaction);
@@ -205,14 +208,14 @@ function updateInvestmentAfterDeleteTransaction(investment: Investment, transact
     // Đảo ngược ảnh hưởng của giao dịch
     if (transaction.type === 'buy') {
         // Nếu đã mua, xóa sẽ giảm số lượng
-        investment.quantity = Math.max(0, investment.quantity - transaction.quantity);
+        investment.totalQuantity = Math.max(0, investment.totalQuantity - (transaction.quantity || 0));
     } else if (transaction.type === 'sell') {
         // Nếu đã bán, xóa sẽ tăng số lượng
-        investment.quantity += transaction.quantity;
+        investment.totalQuantity += (transaction.quantity || 0);
     }
 
     // Cập nhật giá trị hiện tại
-    investment.currentValue = investment.quantity * investment.currentPrice;
+    investment.currentValue = investment.totalQuantity * investment.currentPrice;
 
     // Cập nhật lợi nhuận
     investment.profitLoss = investment.currentValue - investment.initialInvestment;
@@ -227,7 +230,7 @@ function updateInvestmentAfterDeleteTransaction(investment: Investment, transact
 }
 
 // Hàm cập nhật đầu tư sau khi sửa giao dịch
-function updateInvestmentAfterEditTransaction(investment: Investment, oldTransaction: Transaction, newTransaction: Transaction): void {
+function updateInvestmentAfterEditTransaction(investment: Investment, oldTransaction: InvestmentTransaction, newTransaction: InvestmentTransaction): void {
     // Kiểm tra xem các đối tượng giao dịch có hợp lệ không
     if (!oldTransaction || !newTransaction || typeof newTransaction.type === 'undefined') {
         console.error('Giao dịch không hợp lệ:', { oldTransaction, newTransaction });
@@ -236,19 +239,19 @@ function updateInvestmentAfterEditTransaction(investment: Investment, oldTransac
 
     // Nếu số lượng thay đổi
     if (oldTransaction.quantity !== newTransaction.quantity) {
-        const quantityDiff = newTransaction.quantity - oldTransaction.quantity;
+        const quantityDiff = (newTransaction.quantity || 0) - (oldTransaction.quantity || 0);
 
         if (newTransaction.type === 'buy') {
             // Nếu là mua, tăng hoặc giảm số lượng theo sự thay đổi
-            investment.quantity += quantityDiff;
+            investment.totalQuantity += quantityDiff;
         } else if (newTransaction.type === 'sell') {
             // Nếu là bán, giảm hoặc tăng số lượng (ngược lại so với mua)
-            investment.quantity -= quantityDiff;
+            investment.totalQuantity -= quantityDiff;
         }
     }
 
     // Cập nhật giá trị hiện tại
-    investment.currentValue = investment.quantity * investment.currentPrice;
+    investment.currentValue = investment.totalQuantity * investment.currentPrice;
 
     // Cập nhật lợi nhuận
     investment.profitLoss = investment.currentValue - investment.initialInvestment;
