@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -13,16 +13,13 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Calendar } from '@/components/ui/Calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover';
 import { cn } from '@/utils/cn';
-import { Calendar as CalendarIcon, Info } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/Textarea';
 import { useToast } from '@/components/ToastProvider';
 import { StockAutoComplete } from './StockAutoComplete';
 import { vi } from 'date-fns/locale';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
-import { Switch } from '@/components/ui/Switch';
-import { API_URL } from '@/config/constants';
-import { createStockTransaction, addStockInvestment } from '@/services/investmentService';
+import { addStockInvestment } from '@/services/investmentService';
 import axios from 'axios';
 
 // Interface cho props
@@ -31,80 +28,24 @@ interface StockInvestFormProps {
     onCancel?: () => void;
 }
 
-// Định nghĩa danh sách công ty chứng khoán
-interface BrokerOption {
-    id: string;
-    name: string;
-    feePercent: number;
-    minFee: number;
-}
-
-// Danh sách công ty chứng khoán và phí
-const BROKERS: BrokerOption[] = [
-    { id: 'vndirect', name: 'VNDirect', feePercent: 0.15, minFee: 10000 },
-    { id: 'mbs', name: 'MBS', feePercent: 0.15, minFee: 10000 },
-    { id: 'ssi', name: 'SSI', feePercent: 0.15, minFee: 10000 },
-    { id: 'tcbs', name: 'TCBS (Techcombank)', feePercent: 0.1, minFee: 5000 },
-    { id: 'vps', name: 'VPS', feePercent: 0.1, minFee: 5000 },
-    { id: 'other', name: 'Khác (Nhập thủ công)', feePercent: 0, minFee: 0 },
-];
-
-// Schema xác thực form
-const createFormSchema = (t: any, tValidation: any) => z.object({
-    symbol: z.string().min(1, t('symbolRequired')),
-    price: z.coerce.number()
-        .min(1, 'Giá phải lớn hơn 0. Vui lòng chọn mã cổ phiếu để tự động lấy giá.')
-        .max(100000000000, tValidation('maxPriceLimit')),
-    quantity: z.coerce.number()
-        .min(100, t('quantityMinimum'))
-        .max(100000000, tValidation('maxQuantityLimit'))
-        .refine(val => val % 100 === 0, { message: t('quantityMultiple') }),
-    purchaseDate: z.date({
-        required_error: t('purchaseDateRequired'),
-    }),
-    fee: z.coerce.number()
-        .min(0, t('feePositive'))
-        .max(100000000000, tValidation('maxFeeLimit'))
-        .optional(),
-    broker: z.string().optional(),
-    otherBrokerName: z.string().optional(),
-    otherBrokerFeePercent: z.coerce.number().min(0).max(100).optional(),
-    otherBrokerMinFee: z.coerce.number().min(0).max(100000000000, tValidation('maxFeeLimit')).optional(),
-    autoFee: z.boolean().optional(),
-    notes: z.string().max(500, t('notesTooLong')).optional(),
-}).refine(data => {
-    if (data.broker === 'other') {
-        if (!data.otherBrokerName || data.otherBrokerName.trim() === '') {
-            return false;
-        }
-        if (data.autoFee ?? true) {
-            if (data.otherBrokerFeePercent === undefined || data.otherBrokerFeePercent === null) return false;
-            if (data.otherBrokerMinFee === undefined || data.otherBrokerMinFee === null) return false;
-        }
-    }
-    return true;
-}, {
-    message: 'Vui lòng nhập đầy đủ thông tin cho công ty chứng khoán khác',
-    path: ['otherBrokerName'],
+// Schema xác thực form đơn giản
+const formSchema = z.object({
+    symbol: z.string().min(1, 'Vui lòng chọn mã cổ phiếu'),
+    price: z.coerce.number().min(1, 'Giá phải lớn hơn 0'),
+    quantity: z.coerce.number().min(100, 'Số lượng tối thiểu là 100').refine(val => val % 100 === 0, { message: 'Số lượng phải là bội số của 100' }),
+    purchaseDate: z.date({ required_error: 'Vui lòng chọn ngày mua' }),
+    fee: z.coerce.number().min(0, 'Phí giao dịch không được âm').optional(),
+    notes: z.string().max(500, 'Ghi chú không được quá 500 ký tự').optional(),
 });
 
-// Kiểu dữ liệu của form
-type FormValues = z.infer<ReturnType<typeof createFormSchema>>;
+type FormValues = z.infer<typeof formSchema>;
 
 export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [selectedSymbol, setSelectedSymbol] = useState<string>('');
-    const [currentStockPrice, setCurrentStockPrice] = useState<number | null>(null);
-    const [formattedPrice, setFormattedPrice] = useState<string>('');
-    const [selectedBroker, setSelectedBroker] = useState<BrokerOption>(BROKERS[0]);
+    const [isFetchingPrice, setIsFetchingPrice] = useState(false);
     const { toast } = useToast();
     const t = useTranslations('Investments');
     const tStocks = useTranslations('Investments.stocks');
-    const tValidation = useTranslations('Investments.validation');
-    const [isFetchingPrice, setIsFetchingPrice] = useState(false);
-
-    // Tạo schema với translations
-    const formSchema = createFormSchema(t, tValidation);
 
     // Khởi tạo form
     const form = useForm<FormValues>({
@@ -115,295 +56,76 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
             quantity: 100,
             purchaseDate: new Date(),
             fee: 0,
-            broker: BROKERS[0].id,
-            otherBrokerName: '',
-            otherBrokerFeePercent: 0.15,
-            otherBrokerMinFee: 0,
-            autoFee: true,
             notes: '',
         },
     });
 
-    // Lấy giá hiện tại của cổ phiếu
-    const fetchCurrentPrice = useCallback(async () => {
-        if (!selectedSymbol) return;
-
-        setIsFetchingPrice(true);
-        try {
-            const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
-            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${selectedSymbol}`);
-
-            if (response.data && response.data.price !== undefined && response.data.price !== null) {
-                setCurrentStockPrice(response.data.price);
-                form.setValue('price', response.data.price);
-                setFormattedPrice(response.data.price.toLocaleString('vi-VN'));
-            } else {
-                toast({
-                    title: t('error'),
-                    description: t('errorFetchingPrice'),
-                    type: 'error'
-                });
-            }
-        } catch (error) {
-            console.error('Lỗi khi lấy giá cổ phiếu:', error);
-            toast({
-                title: t('error'),
-                description: t('errorFetchingPrice'),
-                type: 'error'
-            });
-        } finally {
-            setIsFetchingPrice(false);
-        }
-    }, [selectedSymbol, t, form, toast]);
-
-    // Hàm tính phí giao dịch tự động
-    const calculateFee = useCallback((price: number, quantity: number, brokerId: string | undefined, values: FormValues) => {
-        if (price <= 0 || quantity <= 0) return 0;
-
-        const currentBrokerId = brokerId ?? BROKERS[0].id; // Default brokerId
-
-        let currentBroker: BrokerOption;
-        if (currentBrokerId === 'other') {
-            currentBroker = {
-                id: 'other',
-                name: values.otherBrokerName || 'Khác',
-                feePercent: values.otherBrokerFeePercent ?? 0.15, // Sử dụng default từ defaultValues
-                minFee: values.otherBrokerMinFee ?? 0,       // Sử dụng default từ defaultValues
-            };
-        } else {
-            currentBroker = BROKERS.find(b => b.id === currentBrokerId) || BROKERS[0];
-        }
-
-        const totalValue = price * quantity;
-        let fee = totalValue * (currentBroker.feePercent / 100);
-
-        // Áp dụng phí tối thiểu
-        if (fee < currentBroker.minFee) {
-            fee = currentBroker.minFee;
-        }
-
-        return Math.round(fee);
-    }, []);
-
     // Xử lý khi chọn cổ phiếu
-    const handleStockSelect = async (value: string) => {
-        console.log('Đã chọn cổ phiếu:', value);
-        setSelectedSymbol(value);
-        form.setValue('symbol', value);
+    const handleStockSelect = async (symbol: string) => {
+        console.log('Đã chọn cổ phiếu:', symbol);
+        form.setValue('symbol', symbol);
 
-        // Lấy giá hiện tại và điền vào form
+        // Tự động lấy giá hiện tại
         setIsFetchingPrice(true);
         try {
             const API_BASE_URL = process.env.NEXT_PUBLIC_STOCK_API_URL || 'https://my-app-flashapi.onrender.com';
-            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${value}`);
+            const response = await axios.get(`${API_BASE_URL}/api/price?symbol=${symbol}`);
 
             if (response.data && response.data.price !== undefined && response.data.price !== null) {
                 const price = response.data.price;
-                setCurrentStockPrice(price);
                 form.setValue('price', price);
-                setFormattedPrice(price.toLocaleString('vi-VN'));
-
                 console.log('Đã cập nhật giá:', price);
 
-                // Cập nhật phí nếu chế độ tự động được bật
-                if (form.getValues('autoFee') ?? true) {
-                    const quantity = form.getValues('quantity');
-                    const brokerId = form.getValues('broker');
-                    const fee = calculateFee(price, quantity, brokerId, form.getValues());
-                    form.setValue('fee', fee);
-                    console.log('Đã cập nhật phí:', fee);
-                }
+                // Tự động tính phí (0.15% với tối thiểu 10,000 VND)
+                const quantity = form.getValues('quantity');
+                const totalValue = price * quantity;
+                const fee = Math.max(totalValue * 0.0015, 10000);
+                form.setValue('fee', Math.round(fee));
             } else {
-                console.error('Không thể lấy giá cho mã:', value);
                 toast({
-                    title: tStocks('error'),
-                    description: tStocks('errorFetchingPrice'),
+                    title: 'Lỗi',
+                    description: 'Không thể lấy giá cổ phiếu',
                     type: 'error'
                 });
             }
         } catch (error) {
             console.error('Lỗi khi lấy giá cổ phiếu:', error);
             toast({
-                title: tStocks('error'),
-                description: tStocks('errorFetchingPrice'),
+                title: 'Lỗi',
+                description: 'Không thể lấy giá cổ phiếu',
                 type: 'error'
             });
         } finally {
             setIsFetchingPrice(false);
         }
     };
-
-    // Hàm định dạng giá tiền
-    const formatPriceInput = (value: string) => {
-        // Xóa tất cả ký tự không phải số
-        const numericValue = value.replace(/[^0-9]/g, '');
-
-        if (numericValue) {
-            // Chuyển đổi sang số và định dạng với dấu phân cách hàng nghìn
-            const numValue = parseInt(numericValue, 10);
-            setFormattedPrice(numValue.toLocaleString('vi-VN'));
-
-            // Cập nhật phí nếu cần
-            if (form.getValues('autoFee') ?? true) {
-                const quantity = form.getValues('quantity');
-                const brokerId = form.getValues('broker');
-                const fee = calculateFee(numValue, quantity, brokerId, form.getValues());
-                form.setValue('fee', fee);
-            }
-
-            return numValue;
-        } else {
-            setFormattedPrice('');
-            return 0;
-        }
-    };
-
-    // Xử lý sự kiện thay đổi giá
-    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const numValue = formatPriceInput(e.target.value);
-        form.setValue('price', numValue);
-    };
-
-    // Xử lý sự kiện thay đổi số lượng
-    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        let value = parseInt(e.target.value, 10);
-        if (isNaN(value)) value = 0;
-
-        // Đảm bảo số lượng là bội số của 100
-        const roundedValue = Math.floor(value / 100) * 100;
-        if (roundedValue === 0 && value > 0) {
-            value = 100;
-        } else {
-            value = roundedValue;
-        }
-
-        form.setValue('quantity', value);
-
-        // Cập nhật phí nếu cần
-        if (form.getValues('autoFee') ?? true) {
-            const price = form.getValues('price');
-            const brokerId = form.getValues('broker');
-            const fee = calculateFee(price, value, brokerId, form.getValues());
-            form.setValue('fee', fee);
-        }
-    };
-
-    // Xử lý khi chuyển đổi chế độ tự động tính phí
-    const handleAutoFeeToggle = (checked: boolean | undefined) => {
-        const isAutoFee = checked ?? true; // Default to true if undefined
-        form.setValue('autoFee', isAutoFee);
-
-        if (isAutoFee) {
-            // Khi bật chế độ tự động, tính lại phí
-            const price = form.getValues('price');
-            const quantity = form.getValues('quantity');
-            const brokerId = form.getValues('broker');
-            const fee = calculateFee(price, quantity, brokerId, form.getValues());
-            form.setValue('fee', fee);
-        } else {
-            // Nếu tắt tự động và đang là broker 'Khác', không clear fee
-            // Nếu là broker khác 'Khác', có thể clear fee hoặc để người dùng tự nhập
-            // form.setValue('fee', 0); // Tùy chọn: reset phí khi tắt tự động
-        }
-    };
-
-    // Xử lý khi chọn công ty chứng khoán
-    const handleBrokerChange = (brokerId: string) => {
-        const brokerInfo = BROKERS.find(b => b.id === brokerId) || BROKERS[0];
-        setSelectedBroker(brokerInfo);
-        form.setValue('broker', brokerId);
-
-        // Nếu chọn 'Khác', không tự động điền otherBrokerFeePercent và otherBrokerMinFee từ BROKERS
-        // người dùng sẽ tự nhập chúng.
-        // Nếu chọn một broker cụ thể, có thể reset các trường other...
-        if (brokerId !== 'other') {
-            form.setValue('otherBrokerName', '');
-            // Để lại otherBrokerFeePercent và otherBrokerMinFee như defaultValues hoặc giá trị người dùng đã nhập trước đó nếu họ quay lại chọn 'Khác'
-        }
-
-        if (form.getValues('autoFee') ?? true) {
-            const price = form.getValues('price');
-            const quantity = form.getValues('quantity');
-            const fee = calculateFee(price, quantity, brokerId, form.getValues());
-            form.setValue('fee', fee);
-        }
-    };
-
-    // Xử lý khi form mới reset
-    useEffect(() => {
-        const subscription = form.watch((value) => {
-            if (value.price === 0) {
-                setFormattedPrice('');
-            }
-        });
-        return () => subscription.unsubscribe();
-    }, [form.watch]);
 
     // Xử lý khi submit form
     const onSubmit = async (values: FormValues) => {
         setIsLoading(true);
 
         try {
-            // Đảm bảo dữ liệu hợp lệ
-            if (!values.symbol) {
-                throw new Error(t('symbolRequired'));
-            }
-
-            if (!values.price || values.price <= 0) {
-                throw new Error(t('pricePositive'));
-            }
-
-            if (!values.quantity || values.quantity <= 0) {
-                throw new Error(t('quantityPositive'));
-            }
-
-            const currentBrokerId = values.broker ?? BROKERS[0].id;
-            let finalBrokerName = BROKERS.find(b => b.id === currentBrokerId)?.name ?? 'Không xác định';
-            let feeDetailsForNotes = '';
-
-            if (currentBrokerId === 'other') {
-                if (!values.otherBrokerName || values.otherBrokerName.trim() === '') {
-                    form.setError('otherBrokerName', { type: 'manual', message: tStocks('enterBrokerName') });
-                    setIsLoading(false);
-                    return;
-                }
-                finalBrokerName = values.otherBrokerName.trim(); // otherBrokerName is required by refine if broker is 'other'
-                if (values.autoFee ?? true) { // Default autoFee to true
-                    // otherBrokerFeePercent and otherBrokerMinFee are required by refine if autoFee is true and broker is 'other'
-                    feeDetailsForNotes = ` (% phí: ${values.otherBrokerFeePercent}, tối thiểu: ${values.otherBrokerMinFee} VND)`;
-                } else {
-                    feeDetailsForNotes = ' (Phí nhập thủ công)';
-                }
-            } else {
-                const selectedBrokerInfo = BROKERS.find(b => b.id === currentBrokerId);
-                if (selectedBrokerInfo) {
-                    // finalBrokerName is already set above
-                    feeDetailsForNotes = ` (% phí: ${selectedBrokerInfo.feePercent}, tối thiểu: ${selectedBrokerInfo.minFee} VND)`;
-                }
-            }
-
             // Chuẩn bị dữ liệu đầu tư
             const stockData = {
                 symbol: values.symbol,
                 price: values.price,
                 quantity: values.quantity,
                 purchaseDate: format(values.purchaseDate, 'yyyy-MM-dd'),
-                fee: values.fee ?? 0, // Default fee to 0 if undefined
-                broker: finalBrokerName, // finalBrokerName is now guaranteed to be a string
-                brokerFeeDetails: feeDetailsForNotes,
+                fee: values.fee || 0,
+                broker: 'VNDirect (0.15%)',
                 notes: values.notes || ''
             };
 
             console.log('Dữ liệu đầu tư sẽ gửi lên API:', stockData);
 
-            // Gọi API thêm đầu tư cổ phiếu từ service
+            // Gọi API thêm đầu tư cổ phiếu
             const result = await addStockInvestment(stockData);
             console.log('Kết quả API thêm đầu tư:', result);
 
             // Hiển thị thông báo thành công
             toast({
-                title: t('addSuccess'),
-                description: t('addSuccessDescription'),
+                title: 'Thành công',
+                description: 'Đã thêm đầu tư cổ phiếu thành công',
                 type: 'success'
             });
 
@@ -413,34 +135,17 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
 
             // Reset form
             form.reset();
-            setFormattedPrice('');
-            setSelectedSymbol('');
-            setCurrentStockPrice(null);
         } catch (error) {
             console.error('Lỗi khi lưu đầu tư:', error);
 
-            // Xử lý lỗi từ API
-            let errorMessage = t('unknownError');
-
+            let errorMessage = 'Có lỗi xảy ra khi thêm đầu tư';
             if (error instanceof Error) {
                 errorMessage = error.message;
-            } else if (typeof error === 'object' && error !== null) {
-                // Thử truy cập các thuộc tính lỗi từ Axios
-                const axiosError = error as any;
-                if (axiosError.response && axiosError.response.data) {
-                    // Lấy thông báo lỗi từ backend
-                    if (axiosError.response.data.message) {
-                        errorMessage = axiosError.response.data.message;
-                    } else if (typeof axiosError.response.data === 'string') {
-                        errorMessage = axiosError.response.data;
-                    }
-                }
             }
 
-            // Hiển thị thông báo lỗi
             toast({
-                title: t('error'),
-                description: `${t('addError')}: ${errorMessage}`,
+                title: 'Lỗi',
+                description: errorMessage,
                 type: 'error'
             });
         } finally {
@@ -448,17 +153,18 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
         }
     };
 
-    // Tính tổng giá trị (số lượng * đơn giá)
+    // Tính tổng giá trị
     const totalInvestment = form.watch('price') * form.watch('quantity');
-    const watchedFee = form.watch('fee');
-    const totalWithFee = totalInvestment + (watchedFee ?? 0);
+    const totalWithFee = totalInvestment + (form.watch('fee') || 0);
 
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <Card className="border-border dark:border-border bg-card dark:bg-card text-card-foreground dark:text-card-foreground">
+                <Card className="border-border dark:border-border bg-card dark:bg-card">
                     <CardHeader className="pb-3">
-                        <CardTitle className="text-xl text-blue-800 dark:text-blue-300">{tStocks('addNewStock')}</CardTitle>
+                        <CardTitle className="text-xl text-blue-800 dark:text-blue-300">
+                            Thêm đầu tư cổ phiếu mới
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         {/* Mã cổ phiếu */}
@@ -467,26 +173,26 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             name="symbol"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('stockSymbol')}</FormLabel>
+                                    <FormLabel>Mã cổ phiếu</FormLabel>
                                     <FormControl>
                                         <StockAutoComplete
                                             onStockSelect={handleStockSelect}
                                             defaultValue={field.value}
                                             isLoading={isFetchingPrice}
                                         />
-                                        {isFetchingPrice && (
-                                            <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                                                🔄 Đang lấy giá hiện tại...
-                                            </div>
-                                        )}
-                                        {!field.value && (
-                                            <div className="text-sm text-muted-foreground mt-1">
-                                                💡 Chọn mã cổ phiếu để tự động điền giá
-                                            </div>
-                                        )}
                                     </FormControl>
-                                    <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                        {tStocks('selectStockDescription')}
+                                    {isFetchingPrice && (
+                                        <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                                            🔄 Đang lấy giá hiện tại...
+                                        </div>
+                                    )}
+                                    {!field.value && (
+                                        <div className="text-sm text-muted-foreground mt-1">
+                                            💡 Chọn mã cổ phiếu để tự động điền giá
+                                        </div>
+                                    )}
+                                    <FormDescription>
+                                        Chọn mã cổ phiếu bạn muốn đầu tư
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -494,91 +200,43 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                         />
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Giá mua - phiên bản tối ưu */}
+                            {/* Giá mua */}
                             <FormField
                                 control={form.control}
                                 name="price"
-                                render={({ field, fieldState: { error } }) => (
-                                    <FormItem className="col-span-1 md:col-span-2">
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('purchasePrice')}</FormLabel>
-                                        {/* Hiển thị giá hiện tại */}
-                                        {currentStockPrice && selectedSymbol && (
-                                            <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-200 dark:border-blue-800">
-                                                <div className="flex items-center justify-between text-sm">
-                                                    <span className="text-blue-700 dark:text-blue-300">
-                                                        Giá hiện tại {selectedSymbol}:
-                                                    </span>
-                                                    <span className="font-semibold text-blue-900 dark:text-blue-100">
-                                                        {currentStockPrice.toLocaleString('vi-VN')} VND
-                                                    </span>
-                                                </div>
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Giá mua (VND)</FormLabel>
+                                        <FormControl>
+                                            <CurrencyInput
+                                                placeholder="0"
+                                                value={field.value}
+                                                onChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                disabled={isLoading || isFetchingPrice}
+                                                className="text-right"
+                                            />
+                                        </FormControl>
+                                        {field.value === 0 && !isFetchingPrice && (
+                                            <div className="text-sm text-amber-600 dark:text-amber-400 mt-1">
+                                                ⚠️ Vui lòng chọn mã cổ phiếu để tự động lấy giá
                                             </div>
                                         )}
-                                        <div className="relative">
-                                            <FormControl>
-                                                <CurrencyInput
-                                                    placeholder="0"
-                                                    value={field.value}
-                                                    onChange={(value: number | undefined) => {
-                                                        field.onChange(value);
-                                                        if (value !== undefined && (form.getValues('autoFee') ?? true)) {
-                                                            const quantity = form.getValues('quantity');
-                                                            const brokerId = form.getValues('broker');
-                                                            const fee = calculateFee(value, quantity, brokerId, form.getValues());
-                                                            form.setValue('fee', fee);
-                                                        }
-                                                    }}
-                                                    onBlur={field.onBlur}
-                                                    disabled={isLoading || isFetchingPrice}
-                                                    className="pr-40 text-lg h-14 font-medium text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
-                                                />
-                                            </FormControl>
-                                            <div className="absolute right-1 top-1 flex space-x-1">
-                                                {currentStockPrice && (
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        className="h-12 text-xs bg-background dark:bg-background-dark hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark"
-                                                        onClick={() => {
-                                                            form.setValue('price', currentStockPrice);
-
-                                                            // Cập nhật phí nếu cần
-                                                            if (form.getValues('autoFee') ?? true) {
-                                                                const quantity = form.getValues('quantity');
-                                                                const brokerId = form.getValues('broker');
-                                                                const fee = calculateFee(currentStockPrice, quantity, brokerId, form.getValues());
-                                                                form.setValue('fee', fee);
-                                                            }
-                                                        }}
-                                                    >
-                                                        Dùng giá hiện tại
-                                                    </Button>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            {tStocks('purchasePriceDescription')}
+                                        <FormDescription>
+                                            Giá mua mỗi cổ phiếu
                                         </FormDescription>
-                                        {field.value === 0 && !isFetchingPrice && !selectedSymbol && (
-                                            <div className="text-sm text-amber-600 dark:text-amber-400 mt-1 flex items-center">
-                                                ⚠️ Vui lòng chọn mã cổ phiếu ở trên để tự động lấy giá
-                                            </div>
-                                        )}
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Số lượng - đảm bảo bội số của 100 */}
+                            {/* Số lượng */}
                             <FormField
                                 control={form.control}
                                 name="quantity"
-                                render={({ field, fieldState: { error } }) => (
+                                render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('stockQuantity')}</FormLabel>
+                                        <FormLabel>Số lượng</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="number"
@@ -589,134 +247,32 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                                     let value = parseInt(e.target.value, 10);
                                                     if (isNaN(value)) value = 0;
 
-                                                    // Đảm bảo số lượng là bội số của 100
+                                                    // Đảm bảo là bội số của 100
                                                     const roundedValue = Math.floor(value / 100) * 100;
-                                                    let finalValue = roundedValue;
-                                                    if (roundedValue === 0 && value > 0) {
-                                                        finalValue = 100;
-                                                    }
+                                                    const finalValue = roundedValue === 0 && value > 0 ? 100 : roundedValue;
 
                                                     field.onChange(finalValue);
 
-                                                    // Cập nhật phí nếu cần
-                                                    if (form.getValues('autoFee') ?? true) {
-                                                        const price = form.getValues('price');
-                                                        const brokerId = form.getValues('broker');
-                                                        const fee = calculateFee(price, finalValue, brokerId, form.getValues());
-                                                        form.setValue('fee', fee);
+                                                    // Tự động tính lại phí
+                                                    const price = form.getValues('price');
+                                                    if (price > 0) {
+                                                        const totalValue = price * finalValue;
+                                                        const fee = Math.max(totalValue * 0.0015, 10000);
+                                                        form.setValue('fee', Math.round(fee));
                                                     }
                                                 }}
                                                 onBlur={field.onBlur}
                                                 disabled={isLoading || isFetchingPrice}
-                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                                className="text-right"
                                             />
                                         </FormControl>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            {tStocks('stockQuantityDescription')}
+                                        <FormDescription>
+                                            Số lượng cổ phiếu (phải là bội số của 100)
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
                                 )}
                             />
-
-                            {/* Công ty chứng khoán */}
-                            <FormField
-                                control={form.control}
-                                name="broker"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerage')}</FormLabel>
-                                        <Select
-                                            value={field.value ?? BROKERS[0].id}
-                                            onValueChange={handleBrokerChange}
-                                            disabled={isLoading || isFetchingPrice}
-                                        >
-                                            <FormControl>
-                                                <SelectTrigger className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark">
-                                                    <SelectValue placeholder={tStocks('selectBrokerage')} />
-                                                </SelectTrigger>
-                                            </FormControl>
-                                            <SelectContent className="bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark">
-                                                {BROKERS.map((broker) => (
-                                                    <SelectItem key={broker.id} value={broker.id} className="hover:bg-accent dark:hover:bg-accent-dark">
-                                                        {broker.name} ({broker.feePercent}%)
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            {tStocks('brokerageDescription', {
-                                                feePercent: selectedBroker.feePercent,
-                                                minFee: selectedBroker.minFee.toLocaleString()
-                                            })}
-                                        </FormDescription>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Các trường cho công ty chứng khoán 'Khác' */}
-                            {form.watch('broker') === 'other' && (
-                                <>
-                                    <FormField
-                                        control={form.control}
-                                        name="otherBrokerName"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('otherBrokerName')}</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder={tStocks('enterBrokerName')} {...field} disabled={isLoading || isFetchingPrice} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                    {(form.watch('autoFee') ?? true) && (
-                                        <>
-                                            <FormField
-                                                control={form.control}
-                                                name="otherBrokerFeePercent"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerFeePercent')}</FormLabel>
-                                                        <FormControl>
-                                                            <Input type="number" step="0.01" placeholder="0.15" {...field} onChange={(e) => field.onChange(parseFloat(e.target.value))} disabled={isLoading || isFetchingPrice} className="bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark" />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <FormField
-                                                control={form.control}
-                                                name="otherBrokerMinFee"
-                                                render={({ field, fieldState: { error } }) => (
-                                                    <FormItem>
-                                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('brokerMinFee')}</FormLabel>
-                                                        <FormControl>
-                                                            <CurrencyInput
-                                                                placeholder="5000"
-                                                                value={field.value}
-                                                                onChange={field.onChange}
-                                                                onBlur={field.onBlur}
-                                                                disabled={isLoading || isFetchingPrice}
-                                                                className="text-right bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
-                                                            />
-                                                        </FormControl>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                        </>
-                                    )}
-                                    {!(form.watch('autoFee') ?? true) && (
-                                        <FormDescription className="col-span-1 md:col-span-2 text-sm text-muted-foreground dark:text-muted-foreground-dark">
-                                            {t('validation.manualFeeSelected')}
-                                        </FormDescription>
-                                    )}
-                                </>
-                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -726,48 +282,37 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                                 name="purchaseDate"
                                 render={({ field }) => (
                                     <FormItem className="flex flex-col">
-                                        <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('purchaseDate')}</FormLabel>
+                                        <FormLabel>Ngày mua</FormLabel>
                                         <Popover>
                                             <PopoverTrigger asChild>
                                                 <FormControl>
-                                                    <span
+                                                    <Button
+                                                        variant="outline"
                                                         className={cn(
-                                                            "inline-flex items-center justify-between rounded-md border border-input dark:border-input-dark bg-background dark:bg-input-dark px-4 py-2 text-sm font-medium ring-offset-background dark:ring-offset-background-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:focus-visible:ring-ring-dark focus-visible:ring-offset-2 dark:focus-visible:ring-offset-background-dark disabled:pointer-events-none disabled:opacity-50 h-10 text-foreground dark:text-foreground-dark",
-                                                            !field.value && "text-muted-foreground dark:text-muted-foreground-dark"
+                                                            "w-full pl-3 text-left font-normal",
+                                                            !field.value && "text-muted-foreground"
                                                         )}
                                                     >
                                                         {field.value ? (
                                                             format(field.value, 'dd/MM/yyyy', { locale: vi })
                                                         ) : (
-                                                            <span>{t('validation.selectDate')}</span>
+                                                            <span>Chọn ngày</span>
                                                         )}
                                                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                                    </span>
+                                                    </Button>
                                                 </FormControl>
                                             </PopoverTrigger>
-                                            <PopoverContent className="w-auto p-0 bg-popover dark:bg-popover-dark text-popover-foreground dark:text-popover-foreground-dark" align="start">
+                                            <PopoverContent className="w-auto p-0" align="start">
                                                 <Calendar
                                                     mode="single"
                                                     selected={field.value}
                                                     onSelect={field.onChange}
                                                     disabled={(date) => date > new Date()}
-                                                    initialFocus
-                                                    className="dark:bg-popover-dark dark:text-popover-foreground-dark"
-                                                    classNames={{
-                                                        caption_label: "dark:text-popover-foreground-dark",
-                                                        nav_button: "dark:text-popover-foreground-dark dark:hover:text-popover-foreground-dark/80",
-                                                        head_cell: "dark:text-muted-foreground-dark",
-                                                        day: "dark:text-popover-foreground-dark dark:hover:bg-accent-dark dark:hover:text-accent-foreground-dark",
-                                                        day_selected: "dark:bg-primary-dark dark:text-primary-foreground-dark dark:hover:bg-primary-dark/90",
-                                                        day_today: "dark:bg-accent-dark dark:text-accent-foreground-dark",
-                                                        day_disabled: "dark:text-muted-foreground-dark dark:opacity-50",
-                                                        // ... bạn có thể thêm các tùy chỉnh khác cho dark mode nếu cần
-                                                    }}
                                                 />
                                             </PopoverContent>
                                         </Popover>
-                                        <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                            {tStocks('purchaseDateDescription')}
+                                        <FormDescription>
+                                            Ngày thực hiện giao dịch mua
                                         </FormDescription>
                                         <FormMessage />
                                     </FormItem>
@@ -775,85 +320,50 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             />
 
                             {/* Phí giao dịch */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('transactionFee')}</FormLabel>
-                                    <div className="flex items-center space-x-2 text-sm">
-                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">{tStocks('feeToggleManual')}</span>
-                                        <FormField
-                                            control={form.control}
-                                            name="autoFee"
-                                            render={({ field }) => (
-                                                <FormControl>
-                                                    <Switch
-                                                        checked={field.value ?? true}
-                                                        onCheckedChange={handleAutoFeeToggle}
-                                                        disabled={isLoading || isFetchingPrice}
-                                                        className="data-[state=checked]:bg-primary dark:data-[state=checked]:bg-primary-dark data-[state=unchecked]:bg-input dark:data-[state=unchecked]:bg-input-dark"
-                                                    />
-                                                </FormControl>
-                                            )}
-                                        />
-                                        <span className="text-muted-foreground dark:text-muted-foreground-dark">{tStocks('feeToggleAuto')}</span>
-                                    </div>
-                                </div>
-
-                                <FormField
-                                    control={form.control}
-                                    name="fee"
-                                    render={({ field, fieldState: { error } }) => (
-                                        <FormItem>
-                                            <FormControl>
-                                                <CurrencyInput
-                                                    placeholder="0"
-                                                    value={field.value ?? 0}
-                                                    onChange={field.onChange}
-                                                    onBlur={field.onBlur}
-                                                    disabled={isLoading || (form.getValues('autoFee') ?? true) || isFetchingPrice}
-                                                    className={cn((form.getValues('autoFee') ?? true) ? "bg-gray-100 dark:bg-gray-700 text-right" : "bg-input dark:bg-input-dark text-right", "text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark")}
-                                                />
-                                            </FormControl>
-                                            <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                                {(form.getValues('autoFee') ?? true)
-                                                    ? tStocks('feeAutoDescription', {
-                                                        feePercent: (form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerFeePercent') ?? 0.15) : selectedBroker.feePercent,
-                                                        minFee: ((form.watch('broker') ?? BROKERS[0].id) === 'other' ? (form.getValues('otherBrokerMinFee') ?? 0) : selectedBroker.minFee).toLocaleString()
-                                                    })
-                                                    : t('validation.brokerageAndOtherFees')}
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </div>
+                            <FormField
+                                control={form.control}
+                                name="fee"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Phí giao dịch (VND)</FormLabel>
+                                        <FormControl>
+                                            <CurrencyInput
+                                                placeholder="0"
+                                                value={field.value || 0}
+                                                onChange={field.onChange}
+                                                onBlur={field.onBlur}
+                                                disabled={isLoading || isFetchingPrice}
+                                                className="text-right"
+                                            />
+                                        </FormControl>
+                                        <FormDescription>
+                                            Phí giao dịch (tự động tính 0.15%, tối thiểu 10,000 VND)
+                                        </FormDescription>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
                         </div>
 
                         {/* Tổng giá trị đầu tư */}
                         <div className="bg-blue-100 dark:bg-gray-800 p-4 rounded-md space-y-2">
                             <div className="flex justify-between items-center">
-                                <div className="font-medium text-gray-700 dark:text-gray-200">{tStocks('stockValueSummary')}</div>
+                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng giá trị cổ phiếu:</div>
                                 <div className="text-xl font-bold text-blue-800 dark:text-blue-300">
                                     {totalInvestment.toLocaleString('vi-VN')} VND
                                 </div>
                             </div>
-
                             <div className="flex justify-between items-center text-sm">
-                                <div className="text-gray-600 dark:text-gray-300">{tStocks('transactionFeeSummary')}</div>
+                                <div className="text-gray-600 dark:text-gray-300">Phí giao dịch:</div>
                                 <div className="font-medium text-gray-700 dark:text-gray-200">
-                                    + {(form.watch('fee') ?? 0).toLocaleString('vi-VN')} VND
+                                    + {(form.watch('fee') || 0).toLocaleString('vi-VN')} VND
                                 </div>
                             </div>
-
                             <div className="flex justify-between items-center pt-2 border-t border-blue-200 dark:border-gray-700">
-                                <div className="font-medium text-gray-700 dark:text-gray-200">{tStocks('totalInvestmentCost')}</div>
+                                <div className="font-medium text-gray-700 dark:text-gray-200">Tổng chi phí đầu tư:</div>
                                 <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">
                                     {totalWithFee.toLocaleString('vi-VN')} VND
                                 </div>
-                            </div>
-
-                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1 flex items-center">
-                                <Info className="h-3 w-3 mr-1" />
-                                {tStocks('includingFees')}
                             </div>
                         </div>
 
@@ -863,17 +373,17 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                             name="notes"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="font-medium text-foreground dark:text-foreground-dark">{tStocks('investmentNotes')}</FormLabel>
+                                    <FormLabel>Ghi chú</FormLabel>
                                     <FormControl>
                                         <Textarea
-                                            placeholder={tStocks('investmentNotesPlaceholder')}
-                                            className="resize-none bg-input dark:bg-input-dark text-foreground dark:text-foreground-dark placeholder:text-muted-foreground dark:placeholder:text-muted-foreground-dark"
+                                            placeholder="Thêm bất kỳ ghi chú nào về quyết định đầu tư của bạn"
+                                            className="resize-none"
                                             {...field}
                                             disabled={isLoading || isFetchingPrice}
                                         />
                                     </FormControl>
-                                    <FormDescription className="text-muted-foreground dark:text-muted-foreground-dark">
-                                        {tStocks('investmentNotesDescription')}
+                                    <FormDescription>
+                                        Ghi chú về lý do đầu tư, chiến lược, v.v.
                                     </FormDescription>
                                     <FormMessage />
                                 </FormItem>
@@ -882,12 +392,12 @@ export function StockInvestForm({ onSuccess, onCancel }: StockInvestFormProps) {
                     </CardContent>
                     <CardFooter className="flex justify-end space-x-2 pt-0">
                         {onCancel && (
-                            <Button variant="outline" onClick={onCancel} disabled={isLoading || isFetchingPrice} className="bg-transparent hover:bg-accent dark:hover:bg-accent-dark text-foreground dark:text-foreground-dark border-border dark:border-border-dark">
-                                {t('cancel')}
+                            <Button variant="outline" onClick={onCancel} disabled={isLoading || isFetchingPrice}>
+                                Hủy
                             </Button>
                         )}
-                        <Button type="submit" disabled={isLoading || isFetchingPrice} className="bg-primary hover:bg-primary/90 dark:bg-primary-dark dark:hover:bg-primary-dark/90 text-primary-foreground dark:text-primary-foreground-dark">
-                            {isLoading ? t('adding') : tStocks('saveInvestment')}
+                        <Button type="submit" disabled={isLoading || isFetchingPrice}>
+                            {isLoading ? 'Đang lưu...' : 'Lưu đầu tư'}
                         </Button>
                     </CardFooter>
                 </Card>
