@@ -20,8 +20,12 @@ export const useSocketContext = () => useContext(SocketContext)
 
 export function SocketProvider({ children }: { children: React.ReactNode }) {
     const auth = useAppSelector((state) => state.auth)
-    const token = auth.token || Cookies.get('token')
-    const { isConnected } = useSocket(token)
+    const tokenObj = auth.token || Cookies.get('token')
+    // Chuyển đổi token thành string nếu là object
+    const tokenString = typeof tokenObj === 'object' && tokenObj !== null 
+        ? tokenObj.accessToken 
+        : (typeof tokenObj === 'string' ? tokenObj : null)
+    const { isConnected } = useSocket(tokenString)
     const [notifications, setNotifications] = useState<any[]>([])
 
     // Tự động tham gia room của user sau khi kết nối thành công
@@ -37,14 +41,14 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
 
     // Xử lý các sự kiện socket
     useEffect(() => {
-        if (!token) {
+        if (!tokenString) {
             console.log('No token available for socket events');
             return;
         }
 
         // Log thông tin token để debug
-        console.log('Socket auth token type:', typeof token);
-        console.log('Socket auth token length:', token?.length);
+        console.log('Socket auth token type:', typeof tokenString);
+        console.log('Socket auth token length:', tokenString?.length);
 
         console.log('Setting up socket event handlers...');
 
@@ -72,15 +76,15 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
             socketService.off(SocketEvent.EXPENSE_CREATE)
             socketService.off(SocketEvent.INCOME_CREATE)
         }
-    }, [token])
+    }, [tokenString])
 
     // Ngắt kết nối khi không có token
     useEffect(() => {
-        if (!token && socketService.isConnected()) {
+        if (!tokenString && socketService.isConnected()) {
             console.log('No token available, disconnecting socket');
             socketService.disconnect()
         }
-    }, [token])
+    }, [tokenString])
 
     return (
         <SocketContext.Provider value={{ isConnected }}>
