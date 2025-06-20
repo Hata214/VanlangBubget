@@ -141,14 +141,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
             if (response && response.user && response.token) {
                 // Ensure user object has all required fields for Redux
                 const normalizedUser = {
-                    _id: response.user._id || response.user.id || '',
+                    _id: (response.user as any)._id || (response.user as any).id || '',
                     email: response.user.email || '',
-                    firstName: response.user.firstName || '',
-                    lastName: response.user.lastName || '',
-                    phoneNumber: response.user.phoneNumber || '',
-                    fullName: response.user.fullName || `${response.user.firstName || ''} ${response.user.lastName || ''}`.trim(),
-                    role: response.user.role || 'user',
-                    isEmailVerified: response.user.isEmailVerified || false
+                    firstName: (response.user as any).firstName || '',
+                    lastName: (response.user as any).lastName || '',
+                    phoneNumber: (response.user as any).phoneNumber || '',
+                    fullName: (response.user as any).fullName || `${(response.user as any).firstName || ''} ${(response.user as any).lastName || ''}`.trim(),
+                    role: (response.user as any).role || 'user',
+                    isEmailVerified: (response.user as any).isEmailVerified || false
                 };
 
                 // Dispatch to Redux store with normalized user
