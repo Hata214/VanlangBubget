@@ -3289,7 +3289,7 @@ ${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số t
             const response = await this.callTransactionAPI(apiEndpoint, transactionData, sessionId);
 
             if (response.success) {
-                return `✅ **Đã lưu thành công!**
+                const successMessage = `✅ **Đã lưu thành công!**
 
 💰 **Số tiền:** ${transactionData.amount.toLocaleString('vi-VN')} VND
 📝 **Ghi chú:** ${transactionData.note}
@@ -3297,6 +3297,17 @@ ${remainingBalance >= 0 ? '✅ **Kết quả:** Bạn có thể chi tiêu số t
 📅 **Ngày:** ${new Date(transactionData.date).toLocaleDateString('vi-VN')}
 
 Giao dịch đã được thêm vào hệ thống.`;
+
+                // Thêm metadata để frontend biết cần refresh data
+                return {
+                    message: successMessage,
+                    metadata: {
+                        action: 'transaction_added',
+                        transactionType: transactionData.type,
+                        needsRefresh: true,
+                        refreshTypes: this.getRefreshTypes(transactionData.type)
+                    }
+                };
             } else {
                 return `❌ **Lỗi khi lưu:** ${response.message || 'Không thể lưu giao dịch'}`;
             }
@@ -3982,6 +3993,20 @@ Tôi hỗ trợ bạn 24/7 với mọi vấn đề tài chính!`;
             'savings': '/api/incomes' // Savings được lưu vào income
         };
         return endpoints[type] || '/api/transactions';
+    }
+
+    /**
+     * Xác định loại data cần refresh dựa trên transaction type
+     */
+    getRefreshTypes(transactionType) {
+        const refreshMap = {
+            'income': ['incomes', 'notifications'],
+            'savings': ['incomes', 'notifications'], // Savings được lưu như income
+            'expense': ['expenses', 'notifications'],
+            'loan': ['loans', 'notifications']
+        };
+
+        return refreshMap[transactionType] || ['notifications'];
     }
 
     /**

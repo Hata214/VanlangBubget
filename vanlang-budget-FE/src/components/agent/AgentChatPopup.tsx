@@ -11,6 +11,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { MessageContent } from '@/utils/stockMessageFormatter';
 import { useAppSelector } from '@/redux/hooks';
 import { getToken } from '@/services/api';
+import { refreshData } from '@/utils/dataRefresh';
 
 interface Message {
   id: string;
@@ -35,6 +36,11 @@ interface AgentResponse {
     responseTime: number;
     language: string;
     timestamp: string;
+    // Manual refresh metadata
+    action?: string;
+    transactionType?: string;
+    needsRefresh?: boolean;
+    refreshTypes?: string[];
   };
 }
 
@@ -219,6 +225,12 @@ const AgentChatPopup: React.FC = () => {
 
         setMessages(prev => [...prev, agentMessage]);
         setSessionInfo(data.data.metadata);
+
+        // 🔄 Trigger manual refresh if agent added transaction
+        if (data.data.metadata?.needsRefresh) {
+          console.log('🔄 Agent response contains refresh metadata, triggering manual refresh...');
+          await handleManualRefresh(data.data.metadata);
+        }
       } else {
         throw new Error(data.error || data.message || 'Không thể nhận phản hồi từ Agent');
       }
@@ -266,6 +278,50 @@ const AgentChatPopup: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  // Handle manual refresh when agent adds transaction
+  const handleManualRefresh = async (metadata: any) => {
+    if (!metadata?.needsRefresh || !metadata?.refreshTypes) {
+      return;
+    }
+
+    console.log('🔄 Agent triggered manual refresh:', metadata);
+
+    try {
+      const refreshOptions: any = {
+        delay: 500 // Wait 500ms for backend to process
+      };
+
+      // Map refresh types to refreshData options
+      metadata.refreshTypes.forEach((type: string) => {
+        if (type === 'incomes') refreshOptions.incomes = true;
+        if (type === 'expenses') refreshOptions.expenses = true;
+        if (type === 'loans') refreshOptions.loans = true;
+        if (type === 'notifications') refreshOptions.notifications = true;
+      });
+
+      console.log('🔄 Refreshing data with options:', refreshOptions);
+      await refreshData(refreshOptions);
+
+      // Show success toast
+      toast({
+        title: '✅ Dữ liệu đã được cập nhật',
+        description: `${metadata.transactionType === 'income' ? 'Thu nhập' :
+          metadata.transactionType === 'expense' ? 'Chi tiêu' :
+            metadata.transactionType === 'loan' ? 'Khoản vay' : 'Giao dịch'} đã được thêm và dữ liệu đã được làm mới`,
+        type: 'success'
+      });
+
+      console.log('✅ Manual refresh completed successfully');
+    } catch (error) {
+      console.error('❌ Manual refresh failed:', error);
+      toast({
+        title: '⚠️ Cập nhật dữ liệu thất bại',
+        description: 'Giao dịch đã được lưu nhưng không thể làm mới dữ liệu. Vui lòng tải lại trang.',
+        type: 'warning'
+      });
+    }
   };
 
   // Show agent for all users (remove auth restriction for now)

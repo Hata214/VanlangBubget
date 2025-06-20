@@ -183,18 +183,9 @@ class AgentService {
             // Cache the response (TEMPORARILY DISABLED FOR TESTING)
             // await this.setCachedResponse(cacheKey, response);
 
-            logger.info('Agent response generated', {
-                userId,
-                sessionId: session.sessionId,
-                responseTime: Date.now() - startTime,
-                aiMode: options.aiMode,
-                responseLength: response.length,
-                responsePreview: response.substring(0, 100) + '...'
-            });
-
-            return {
+            // Kiểm tra nếu response có metadata (cho manual refresh)
+            let responseData = {
                 success: true,
-                response,
                 metadata: {
                     cached: false,
                     sessionId: session.sessionId,
@@ -202,6 +193,38 @@ class AgentService {
                     responseTime: Date.now() - startTime
                 }
             };
+
+            if (typeof response === 'object' && response.metadata) {
+                // Response có metadata - thường là transaction được thêm thành công
+                responseData.response = response.message;
+                responseData.metadata = {
+                    ...responseData.metadata,
+                    ...response.metadata // Merge agent metadata (needsRefresh, refreshTypes, etc.)
+                };
+
+                logger.info('Agent response with metadata generated', {
+                    userId,
+                    sessionId: session.sessionId,
+                    responseTime: Date.now() - startTime,
+                    aiMode: options.aiMode,
+                    hasRefreshMetadata: !!response.metadata.needsRefresh,
+                    refreshTypes: response.metadata.refreshTypes
+                });
+            } else {
+                // Response thông thường
+                responseData.response = response;
+
+                logger.info('Agent response generated', {
+                    userId,
+                    sessionId: session.sessionId,
+                    responseTime: Date.now() - startTime,
+                    aiMode: options.aiMode,
+                    responseLength: response.length,
+                    responsePreview: response.substring(0, 100) + '...'
+                });
+            }
+
+            return responseData;
 
         } catch (error) {
             logger.error('Agent service error:', error);
