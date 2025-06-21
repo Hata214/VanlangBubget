@@ -108,6 +108,8 @@ export default function SettingsPage() {
                         </CardContent>
                     </Card>
 
+                    {/* Currency Format Card - Hidden as requested */}
+                    {/*
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -125,6 +127,7 @@ export default function SettingsPage() {
                             </Link>
                         </CardContent>
                     </Card>
+                    */}
 
                     <Card>
                         <CardHeader>
