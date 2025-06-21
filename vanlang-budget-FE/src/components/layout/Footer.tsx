@@ -14,9 +14,11 @@ export function Footer() {
     const { isAuthenticated: isUserAuthenticated, user } = useAuth(); // Lấy trạng thái xác thực và user từ context
     const { content: footerContent, loading: footerLoading } = useFooterContent();
 
-    // Debug logging
-    console.log('🦶 Footer - footerContent:', footerContent);
-    console.log('🦶 Footer - footerLoading:', footerLoading);
+    // Debug logging (commented out to reduce console noise)
+    // console.log('🦶 Footer - footerContent:', footerContent);
+    // console.log('🦶 Footer - footerLoading:', footerLoading);
+    // console.log('🦶 Footer - isUserAuthenticated:', isUserAuthenticated);
+    // console.log('🦶 Footer - user:', user);
 
     return (
         <footer className="bg-gray-900 dark:bg-slate-900 text-white pt-16 pb-6 border-t border-gray-800 dark:border-indigo-900/40 relative">
@@ -193,15 +195,15 @@ export function Footer() {
             <div className="border-t border-gray-800 dark:border-gray-700/30 my-8"></div>
 
             {/* Admin Link - Fixed position */}
-            <div className="fixed bottom-4 right-4 text-sm z-50">
-                {!isUserAuthenticated ? (
-                    <Link href="/admin/login" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors bg-gray-800 dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg">
+            <div className="fixed bottom-4 right-4 text-sm z-[9999]">
+                {!isUserAuthenticated || !user ? (
+                    <Link href="/admin/login" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors bg-gray-800 dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg border border-gray-600 hover:border-primary">
                         Admin Login
                     </Link>
                 ) : (
                     // Kiểm tra user có role là admin hoặc superadmin
                     user?.role === 'admin' || user?.role === 'superadmin' ? (
-                        <Link href="/admin" className="text-white dark:text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-2 rounded-md shadow-lg flex items-center gap-2">
+                        <Link href="/admin" className="text-white dark:text-white bg-indigo-600 hover:bg-indigo-700 transition-colors px-3 py-2 rounded-md shadow-lg flex items-center gap-2 border border-indigo-500">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect width="7" height="9" x="3" y="3" rx="1" />
                                 <rect width="7" height="5" x="14" y="3" rx="1" />
@@ -210,7 +212,12 @@ export function Footer() {
                             </svg>
                             <span>Quản trị</span>
                         </Link>
-                    ) : null
+                    ) : (
+                        // Hiển thị button Admin Login cho user thường
+                        <Link href="/admin/login" className="text-gray-400 dark:text-gray-300 hover:text-primary transition-colors bg-gray-800 dark:bg-slate-800 px-3 py-2 rounded-md shadow-lg border border-gray-600 hover:border-primary">
+                            Admin Login
+                        </Link>
+                    )
                 )}
             </div>
 

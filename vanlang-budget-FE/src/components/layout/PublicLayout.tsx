@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTranslations, useLocale } from 'next-intl'
@@ -19,7 +19,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger
 } from '@/components/ui/DropdownMenu'
-import { User, Settings, LogOut } from 'lucide-react'
+import { User, Settings, LogOut, Menu, X } from 'lucide-react'
 import { useAppDispatch } from '@/redux/hooks'
 import { logout } from '@/redux/features/authSlice'
 import { useHeaderContent } from '@/hooks/useHeaderContent'
@@ -36,6 +36,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
     const dispatch = useAppDispatch()
     const { isAuthenticated, user } = useSelector((state: RootState) => state.auth)
     const { content: headerContent, loading: headerLoading } = useHeaderContent()
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
     // Debug logging
     console.log('🏠 PublicLayout - headerContent:', headerContent);
@@ -94,8 +95,20 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                             ))}
                         </nav>
 
+                        {/* Mobile menu button */}
+                        <div className="md:hidden">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                                className="p-2"
+                            >
+                                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+                            </Button>
+                        </div>
+
                         {/* Right section */}
-                        <div className="flex items-center space-x-4">
+                        <div className="hidden md:flex items-center space-x-4">
                             <Link href="/dashboard">
                                 <Button variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                                     {t('common.goToWallet')}
@@ -147,6 +160,11 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                                 </DropdownMenu>
                             ) : (
                                 <div className="hidden md:flex space-x-3">
+                                    <Link href="/admin/login">
+                                        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary">
+                                            Admin
+                                        </Button>
+                                    </Link>
                                     <Link href="/login">
                                         <Button variant="outline">{headerContent?.loginButton || t('header.buttons.login')}</Button>
                                     </Link>
@@ -159,6 +177,53 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                     </div>
                 </div>
             </header>
+
+            {/* Mobile menu */}
+            {mobileMenuOpen && (
+                <div className="md:hidden bg-card border-b border-border">
+                    <div className="px-4 py-2 space-y-2">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className={`block py-2 text-sm font-medium ${pathname === link.href
+                                    ? 'text-primary'
+                                    : 'text-foreground hover:text-primary'
+                                    }`}
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {link.label}
+                            </Link>
+                        ))}
+                        <div className="pt-2 border-t border-border">
+                            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                                <Button variant="default" className="w-full mb-2 bg-primary hover:bg-primary/90 text-primary-foreground">
+                                    {t('common.goToWallet')}
+                                </Button>
+                            </Link>
+                            {!isAuthenticated && (
+                                <div className="space-y-2">
+                                    <Link href="/admin/login" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-primary">
+                                            Admin Login
+                                        </Button>
+                                    </Link>
+                                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button variant="outline" className="w-full">{headerContent?.loginButton || t('header.buttons.login')}</Button>
+                                    </Link>
+                                    <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
+                                        <Button className="w-full">{headerContent?.signupButton || t('header.buttons.register')}</Button>
+                                    </Link>
+                                </div>
+                            )}
+                            <div className="flex justify-center space-x-4 mt-4">
+                                <ThemeToggle />
+                                <LanguageToggle />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Main content */}
             <main className="flex-grow">
