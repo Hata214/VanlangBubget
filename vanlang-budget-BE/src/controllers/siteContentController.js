@@ -651,7 +651,7 @@ export const rejectHomepageContent = async (req, res, next) => {
 /**
  * @desc    Khởi tạo dữ liệu mặc định cho trang chủ
  * @route   POST /api/site-content/homepage/initialize
- * @access  Private (SuperAdmin only)
+ * @access  Private (Admin/SuperAdmin)
  */
 export const initializeHomepageContent = async (req, res, next) => {
     try {
@@ -661,12 +661,12 @@ export const initializeHomepageContent = async (req, res, next) => {
         let result;
         if (existingHomepage) {
             // Nếu đã có dữ liệu, cập nhật
-            logger.info(`SuperAdmin ${req.user.email} đang cập nhật dữ liệu mặc định cho trang chủ`);
+            logger.info(`Admin ${req.user.email} (${req.user.role}) đang cập nhật dữ liệu mặc định cho trang chủ`);
             result = await updateHomepageContentScript();
             logger.info(`Dữ liệu trang chủ đã được cập nhật thành công bởi ${req.user.email}`);
         } else {
             // Nếu chưa có dữ liệu, tạo mới
-            logger.info(`SuperAdmin ${req.user.email} đang tạo dữ liệu mặc định cho trang chủ`);
+            logger.info(`Admin ${req.user.email} (${req.user.role}) đang tạo dữ liệu mặc định cho trang chủ`);
             result = await createHomepageContent();
             logger.info(`Dữ liệu trang chủ đã được tạo thành công bởi ${req.user.email}`);
         }

@@ -119,8 +119,8 @@ router.post('/homepage/approve', superAdminOnly, approveHomepageContent);
 // Từ chối nội dung trang chủ
 router.post('/homepage/reject', superAdminOnly, rejectHomepageContent);
 
-// Khởi tạo dữ liệu mặc định cho trang chủ
-router.post('/homepage/initialize', superAdminOnly, initializeHomepageContent);
+// Khởi tạo dữ liệu mặc định cho trang chủ (cho phép Admin và SuperAdmin)
+router.post('/homepage/initialize', initializeHomepageContent);
 
 // Khôi phục phiên bản nội dung
 router.post('/:type/restore/:version', superAdminOnly, restoreContentVersion);
