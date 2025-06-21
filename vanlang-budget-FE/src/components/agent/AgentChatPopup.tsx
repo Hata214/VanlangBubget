@@ -213,6 +213,14 @@ const AgentChatPopup: React.FC = () => {
 
       const data: any = await response.json();
       console.log('📦 Agent response data:', data);
+      console.log('🔍 Response metadata debug:', {
+        hasData: !!data.data,
+        hasMetadata: !!data.data?.metadata,
+        needsRefresh: data.data?.metadata?.needsRefresh,
+        refreshTypes: data.data?.metadata?.refreshTypes,
+        transactionType: data.data?.metadata?.transactionType,
+        fullMetadata: data.data?.metadata
+      });
 
       if (data.success && data.data && data.data.response) {
         const agentMessage: Message = {
@@ -227,9 +235,17 @@ const AgentChatPopup: React.FC = () => {
         setSessionInfo(data.data.metadata);
 
         // 🔄 Trigger manual refresh if agent added transaction
+        console.log('🔄 Checking if manual refresh needed:', {
+          hasMetadata: !!data.data.metadata,
+          needsRefresh: data.data.metadata?.needsRefresh,
+          refreshTypes: data.data.metadata?.refreshTypes
+        });
+
         if (data.data.metadata?.needsRefresh) {
           console.log('🔄 Agent response contains refresh metadata, triggering manual refresh...');
           await handleManualRefresh(data.data.metadata);
+        } else {
+          console.log('❌ No manual refresh needed or metadata missing');
         }
       } else {
         throw new Error(data.error || data.message || 'Không thể nhận phản hồi từ Agent');
