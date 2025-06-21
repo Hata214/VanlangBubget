@@ -14,7 +14,8 @@
     "test:stock": "node test-stock-integration.js",
     "test:coverage": "jest --coverage",
     "lint": "eslint src/",
-    "lint:fix": "eslint src/ --fix"
+    "lint:fix": "eslint src/ --fix",
+    "standardize:features": "node src/scripts/standardizeFeaturesContent.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.2.1",

@@ -803,7 +803,7 @@
             "bankSync": {
                 "title": "Bank Synchronization",
                 "description": "Integrate directly with your bank accounts to automatically update transactions.",
-                "eta": "June 2025"
+                "eta": "Q4 2025"
             },
             "groupExpense": {
                 "title": "Group Expenses",

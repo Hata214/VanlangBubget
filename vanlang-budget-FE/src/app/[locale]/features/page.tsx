@@ -167,9 +167,9 @@ export default function FeaturesPage() {
             icon: "👥"
         },
         {
-            title: "Bank Synchronization",
-            description: "Integrate directly with bank accounts to automatically update transactions",
-            eta: "Q4 2025",
+            title: t('features.comingSoon.bankSync.title') || "Bank Synchronization",
+            description: t('features.comingSoon.bankSync.description') || "Integrate directly with bank accounts to automatically update transactions",
+            eta: t('features.comingSoon.bankSync.eta') || "Q4 2025",
             icon: "🏦"
         }
     ];

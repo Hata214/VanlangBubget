@@ -231,7 +231,7 @@
             "bankSync": {
                 "title": "Đồng bộ hóa ngân hàng",
                 "description": "Tích hợp trực tiếp với tài khoản ngân hàng của bạn để tự động cập nhật giao dịch.",
-                "eta": "Tháng 6/2025"
+                "eta": "Q4 2025"
             },
             "groupExpense": {
                 "title": "Chi tiêu nhóm",
