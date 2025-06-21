@@ -160,11 +160,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                                 </DropdownMenu>
                             ) : (
                                 <div className="hidden md:flex space-x-3">
-                                    <Link href="/admin/login">
-                                        <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-primary">
-                                            Admin
-                                        </Button>
-                                    </Link>
                                     <Link href="/login">
                                         <Button variant="outline">{headerContent?.loginButton || t('header.buttons.login')}</Button>
                                     </Link>
@@ -203,11 +198,6 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                             </Link>
                             {!isAuthenticated && (
                                 <div className="space-y-2">
-                                    <Link href="/admin/login" onClick={() => setMobileMenuOpen(false)}>
-                                        <Button variant="ghost" size="sm" className="w-full text-xs text-muted-foreground hover:text-primary">
-                                            Admin Login
-                                        </Button>
-                                    </Link>
                                     <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                                         <Button variant="outline" className="w-full">{headerContent?.loginButton || t('header.buttons.login')}</Button>
                                     </Link>
